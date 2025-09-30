@@ -64,7 +64,7 @@ function RootComponent() {
 		<>
 			<main
 				id="scroll-area"
-				className="container mx-auto max-h-[100%] max-w-6xl overflow-y-scroll"
+				className="max-h-[100%] overflow-y-scroll"
 				style={{
 					paddingTop: "max(1.5rem, env(safe-area-inset-top))",
 					paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",
@@ -72,9 +72,11 @@ function RootComponent() {
 					paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
 				}}
 			>
-				<Outlet />
-				<StatusIndicator />
-				<div className="h-20 md:h-0" />
+				<div className="container mx-auto max-w-6xl">
+					<Outlet />
+					<StatusIndicator />
+					<div className="h-20 md:h-0" />
+				</div>
 			</main>
 			<ScrollReset containerId="scroll-area" />
 			<Navigation dueReminderCount={dueReminderCount} />
