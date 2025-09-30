@@ -1,0 +1,22 @@
+{
+	"rewrites": [
+		{
+			"source": "/app/(.*)",
+			"destination": "/app/index.html"
+		},
+		{
+			"source": "/plausible/(.*)",
+			"destination": "https://plausible.io/$1"
+		},
+		{
+			"source": "/api/event",
+			"destination": "https://plausible.io/api/event"
+		}
+	],
+	"crons": [
+		{
+			"path": "/api/push/deliver-notifications",
+			"schedule": "0 * * * *"
+		}
+	]
+}

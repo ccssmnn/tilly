@@ -1,0 +1,372 @@
+---
+import MinimalMarketingLayout from "#www/layouts/MinimalMarketingLayout.astro"
+import { Navbar } from "#www/components/Navbar"
+import { Hero } from "#www/components/Hero"
+import { ContentWithTestimonial } from "#www/components/ContentWithTestimonial"
+import { FeatureGridOffset } from "#www/components/FeatureGridOffset"
+import { FeaturesWithProductScreenshot } from "#www/components/FeaturesWithProductScreenshot"
+import { Testimonials } from "#www/components/Testimonials"
+import { FeatureGridCentered } from "#www/components/FeatureGridCentered"
+import { Pricing } from "#www/components/Pricing"
+import { FAQ } from "#www/components/FAQ"
+import { CTA } from "#www/components/CTA"
+import { Footer } from "#www/components/Footer"
+---
+
+<MinimalMarketingLayout
+	title="Tilly - Dein persönlicher Freundschaftsassistent"
+	description="Bleib in Verbindung mit den Menschen, die dir wichtig sind."
+>
+	<Navbar
+		client:load
+		logo={{
+			text: "Tilly",
+			href: "/de/",
+		}}
+		locale="de"
+		navigation={[
+			{ name: "Funktionen", href: "#features" },
+			{ name: "Tarife", href: "#experience" },
+			{ name: "FAQ", href: "#faq" },
+		]}
+		cta={{
+			text: "Zur App",
+			href: "/app",
+		}}
+	/>
+
+	<div class="py-12 md:py-24">
+		<Hero
+			client:load
+			badge={{
+				text: "Tilly ist Open Source",
+				href: "https://github.com/ccssmnn/tilly",
+				description: "Schau dir den Code an",
+			}}
+			title="Sei ein Freund, der sich an das Wichtige erinnern kann."
+			description="Das Leben ist hektisch. Wir vergessen, was unseren Freunden wichtig ist. Tilly hilft dir, dranzubleiben."
+			primaryCta={{
+				text: "Probiers aus",
+				href: "/app",
+			}}
+			secondaryCta={{
+				text: "Mehr erfahren",
+				href: "#features",
+			}}
+			media={{
+				kind: "image",
+				src: "/images/screenshots/de-people.webp",
+				alt: "Telefon mit der Tilly-Personenliste",
+				loading: "eager",
+				aspectRatio: "215 / 466",
+				fit: "contain",
+			}}
+		/>
+	</div>
+	<div id="story" class="py-24">
+		<ContentWithTestimonial
+			title="Du kennst dieses Gefühl."
+			testimonial={{
+				quote: "Liebe deine Freunde nicht nur – zeig es ihnen auch.",
+				author: {
+					name: "Carl Assmann",
+					title: "Der, der Tilly gebaut hat.",
+					avatar: "/images/avatars/carl.webp",
+				},
+			}}
+		>
+			<p>
+				Dein Freund erzählt von einem Vorstellungsgespräch. Es ist dir wichtig.
+				Doch Wochen später merkst du: Du hast nie nachgefragt. <em
+					>"Wie lief das Gespräch?"</em
+				> klingt später einfach seltsam.
+			</p>
+			<b>Du hast verpasst zu zeigen, dass du in wichtigen Momenten da bist.</b>
+		</ContentWithTestimonial>
+	</div>
+	<div class="py-12 md:py-24">
+		<FeatureGridOffset
+			title="Es ist dir ja nicht egal."
+			subtitle="Du erinnerst dich nur nicht im richtigen Moment daran"
+			problems={[
+				{
+					name: "Gespräche finden persönlich statt",
+					description: "Wichtige Updates gehen verloren",
+				},
+				{
+					name: "Du hast nichts zu sagen",
+					description:
+						"Du möchtest dich melden, weißt aber nicht, was du fragen sollst",
+				},
+				{
+					name: "Freundschaft fühlt sich wie Arbeit an",
+					description: "To-do-Apps lassen Beziehungen künstlich wirken",
+				},
+				{
+					name: "Notizen gehen unter",
+					description:
+						"Persönliche Notizen gehen in lauter anderem Kram verloren.",
+				},
+			]}
+		/>
+	</div>
+
+	<div class="py-12 md:py-24">
+		<FeaturesWithProductScreenshot
+			badge="Lerne Tilly kennen"
+			title="Deine Freunde verdienen ihren eigenen Space."
+			features={[
+				{
+					name: "Für jede Person:",
+					description:
+						"Speichere Notizen und setze Erinnerungen. Behalte Wichtiges im Blick – nicht nur die Telefonnummer.",
+				},
+				{
+					name: "Der Tilly Agent (Plus-Tarif)",
+					description:
+						"Sprich einfach: 'Lisa wurde befördert, Emma kommt in den Kindergarten, sie wirkte gestresst.' Tilly ordnet das ein und schlägt Erinnerungen zum Nachfassen vor.",
+				},
+			]}
+			media={{
+				kind: "image",
+				src: "/images/screenshots/de-person.webp",
+				alt: "Telefon mit den Tilly-Notizen zu einer Person",
+				aspectRatio: "215 / 466",
+				fit: "contain",
+			}}
+		/>
+	</div>
+	<div class="py-24" id="features">
+		<FeatureGridCentered
+			title="Einfach einfach"
+			description="Alles, was du brauchst, um ein besserer Freund zu sein. Nichts was du nicht brauchst."
+			features={[
+				{
+					name: "Personen & Notizen",
+					description:
+						"Merke dir was wichtig ist – Geburtstage, Interessen, Lebensereignisse und bedeutsame Momente",
+					icon: "PersonHearts",
+				},
+				{
+					name: "Erinnerungen",
+					description:
+						"Sanfte Anstupser zum richtigen Zeitpunkt – damit du keine wichtigen Momente verpasst",
+					icon: "Bell",
+				},
+				{
+					name: "Push-Benachrichtigungen",
+					description:
+						"Verpasse keinen Geburtstag und keine wichtige Erinnerung – rechtzeitig auf all deinen Geräten",
+					icon: "PhoneFill",
+				},
+				{
+					name: "Tilly Agent (Plus-Tarif)",
+					description:
+						"Ein KI‑Agent, der deine Gedanken ordnet und aktiv hilft, in Kontakt zu bleiben",
+					icon: "Chat",
+				},
+				{
+					name: "Daten unter Kontrolle",
+					description:
+						"Client-seitig verschlüsselte Synchronisation mit verwalteten Schlüsseln für Benachrichtigungen und den Tilly Agent. Exportiere deine Daten jederzeit. Kein Lock-in.",
+					icon: "Download",
+				},
+				{
+					name: "Funktioniert einfach überall",
+					description:
+						"Sofort synchron auf all deinen Geräten. Voll funktionsfähig – auch offline.",
+					icon: "CloudCheck",
+				},
+			]}
+		/>
+	</div>
+
+	<div class="py-12 md:py-24">
+		<Testimonials
+			client:load
+			title="Was Nutzer sagen"
+			subtitle="Menschen lieben Tilly aus verschiedenen Gründen"
+			testimonials={[
+				{
+					quote:
+						"Heute habe ich die Lieblingsfarbe meiner Design-Kollegin erfahren. Dachte darüber nach, wie ich sie mir merken könnte... Tilly! Da hat's geklickt - die App ist wirklich praktisch für das Sammeln kleiner, aber wichtiger Details",
+				},
+				{
+					quote:
+						"Ich wusste nicht, dass mir so etwas fehlte. Jetzt weiß ich, dass ich genau das schon sehr lange hätte brauchen können.",
+				},
+				{
+					quote:
+						"Macht genau das, was es soll, und ist schnell. Der Chat funktioniert überraschend gut.",
+				},
+				{ quote: "Das ist ein Cheat-Code, um ein besserer Freund zu sein!" },
+			]}
+		/>
+	</div>
+	<div class="py-12 md:py-24">
+		<FeaturesWithProductScreenshot
+			client:load
+			badge="Tilly Agent: Dein Freundschaftsassistent"
+			title="Der Tilly Agent liest und schreibt in deinem Freundebuch."
+			features={[
+				{
+					name: "Einfach sprechen:",
+					description:
+						"'Lisa wurde befördert, Emma kommt in den Kindergarten, sie wirkte gestresst.'",
+				},
+				{
+					name: "Tilly organisiert:",
+					description:
+						"Findet Lisa, legt Notizen an, schlägt Erinnerungen zum Nachfassen vor.",
+				},
+				{
+					name: "Vor einem Treffen:",
+					description:
+						"'Bringe mich bei Sarah auf den neuesten Stand' – weiß, was du fragen kannst.",
+				},
+				{
+					name: "Beim Kontaktieren:",
+					description: "'Hilf mir, Tom zu schreiben' – bekomme Vorschläge.",
+				},
+			]}
+			closing="Der Komfort ist real. So einfach, dass du es wirklich nutzt."
+			media={{
+				kind: "image",
+				src: "/images/screenshots/de-chat.webp",
+				alt: "Telefon mit dem Tilly-Agent-Chat",
+				aspectRatio: "215 / 466",
+				fit: "contain",
+			}}
+		/>
+	</div>
+	<div id="experience" class="py-24">
+		<Pricing
+			title="Wähle, wie du Tilly nutzt"
+			subtitle="Kostenlos oder Plus - einfache Preise für alle."
+			tiers={[
+				{
+					name: "Kostenlos",
+					id: "tier-free",
+					href: "/app",
+					priceMonthly: "Kostenlos",
+					priceSuffix: null,
+					description: "Kostenlos erfordert eine Anmeldung für Sync und Push-Benachrichtigungen",
+					features: [
+						"Unbegrenzte Personen, Notizen und Erinnerungen",
+						"Push-Benachrichtigungen",
+						"Synchronisation mit der Cloud",
+						"Synchronisation zwischen Geräten",
+						"Daten importieren und exportieren",
+					],
+					featured: false,
+					ctaText: "Kostenlos registrieren",
+				},
+				{
+					name: "Plus",
+					id: "tier-plus",
+					href: "/app",
+					priceMonthly: "$6",
+					priceSuffix: "/Monat",
+					description: "KI‑Agent für maximalen Komfort",
+					features: [
+						"Alles aus Kostenlos",
+						"Tilly Agent",
+						"Bedienung in natürlicher Sprache",
+						"Nachrichtenvorschläge",
+						"Automatische Notizen-Organisation",
+						"Intelligente Nachfass-Erinnerungen",
+						"Das wohlige Gefühl, die Entwicklung von Tilly zu unterstützen",
+					],
+					featured: true,
+					ctaText: "Zu Plus wechseln",
+				},
+			]}
+		/>
+	</div>
+
+	<div id="faq" class="py-24">
+		<FAQ
+			client:load
+			title="Häufig gestellte Fragen"
+			faqs={[
+				{
+					question:
+						"Wie unterscheidet sich das von meiner Kontakte-App, To-dos oder Notizen?",
+					answer:
+						"Deine Kontakte zeigen Telefonnummern. Deine To-dos und Notizen gehen unter. Tilly gibt Freunden ihren eigenen Raum.",
+				},
+				{
+					question:
+						"Synchronisiert Tilly automatisch mit meinen Kontakten oder sozialen Medien?",
+					answer:
+						"Nein. Tilly enthält nur, was du selbst hinzufügst. Keine automatischen Übernahmen – so bleibt in Tilly nur, was dir wichtig genug ist, es selbst einzutragen.",
+				},
+				{
+					question: "Was ist, wenn ich vergesse, es zu nutzen?",
+					answer:
+						"Öffne Tilly, wenn du daran denkst. Füge hinzu, was dir in den Sinn kommt. Die Gewohnheit entsteht ganz von allein.",
+				},
+				{
+					question: "Sind meine Daten privat?",
+					answer:
+						"Tilly verschlüsselt deine Daten im Browser, bevor sie mit Jazz synchronisiert werden. Die Schlüssel liegen beim Auth-Provider, damit der Tilly-Server Push-Benachrichtigungen senden und den Tilly Agent betreiben kann. Wenn du Tilly Chat nutzt, werden die von dir geteilten Inhalte an den KI-Anbieter weitergegeben. Tilly ist Open Source (AGPL) und du kannst deine Daten jederzeit exportieren.",
+				},
+				{
+					question: "Fühlt sich das nicht künstlich an?",
+					answer:
+						"Nicht künstlicher als im Chatverlauf hochzuscrollen. Tilly funktioniert aber auch bei Telefonaten und persönlichen Treffen.",
+				},
+				{
+					question:
+						"Warum für KI bezahlen, wenn es kostenlose KI-Apps gibt?",
+					answer:
+						"Kostenlose KI‑Apps merken sich nichts und erinnern dich nicht daran, dich zu melden. Tilly ist der Platz für deine Freunde. Und der Agent ist unglaublich praktisch. Tilly Agent kennt deine Beziehungshistorie. Außerdem kostet KI Geld – ich möchte Tilly nachhaltig betreiben, um weiter daran zu arbeiten.",
+				},
+			]}
+		/>
+	</div>
+
+	<CTA
+		title="Bereit, ein besserer Freund zu sein?"
+		primaryCta={{
+			text: "Zur App",
+			href: "/app",
+		}}
+	/>
+
+	<Footer
+		navigation={{
+			main: [
+				{ name: "Funktionen", href: "#features" },
+				{ name: "Tarife", href: "#experience" },
+				{ name: "FAQ", href: "#faq" },
+				{ name: "Impressum", href: "/de/imprint" },
+				{ name: "Datenschutz", href: "/de/privacy" },
+			],
+			social: [
+				{
+					name: "Twitter",
+					href: "https://twitter.com/tillydotsocial",
+					icon: "Twitter",
+				},
+				{
+					name: "Instagram",
+					href: "https://instagram.com/tilly.social",
+					icon: "Instagram",
+				},
+				{
+					name: "GitHub",
+					href: "https://github.com/ccssmnn/tilly",
+					icon: "Github",
+				},
+			],
+			languages: [
+				{ name: "English", href: "/en/" },
+				{ name: "Deutsch", href: "/de/" },
+			],
+		}}
+		company={{
+			name: "Tilly",
+		}}
+	/>
+</MinimalMarketingLayout>

@@ -1,0 +1,129 @@
+---
+import "#app/index.css"
+import { Navbar } from "#www/components/Navbar"
+import { Footer } from "#www/components/Footer"
+
+export interface Props {
+	title: string
+	description?: string
+	locale?: "en" | "de"
+}
+
+let { title, description, locale = "en" } = Astro.props
+let requestUrl = new URL(Astro.request.url)
+let siteBaseUrl = Astro.site ?? new URL(requestUrl.origin)
+let canonicalUrl = new URL(
+	requestUrl.pathname + requestUrl.search,
+	siteBaseUrl,
+).toString()
+let ogImageUrl = new URL("/og.png", siteBaseUrl).toString()
+let metaDescription = description ?? ""
+
+// Localized navigation
+let localizedNav =
+	locale === "de"
+		? {
+				home: "/de/",
+				features: "/de/#features",
+				pricing: "/de/#pricing",
+				faq: "/de/#faq",
+				imprint: "/de/imprint",
+				privacy: "/de/privacy",
+				labels: {
+					features: "Funktionen",
+					pricing: "Tarife",
+					faq: "FAQ",
+					imprint: "Impressum",
+					privacy: "Datenschutz",
+					goToApp: "Zur App",
+				},
+			}
+		: {
+				home: "/en/",
+				features: "/en/#features",
+				pricing: "/en/#pricing",
+				faq: "/en/#faq",
+				imprint: "/en/imprint",
+				privacy: "/en/privacy",
+				labels: {
+					features: "Features",
+					pricing: "Pricing",
+					faq: "FAQ",
+					imprint: "Imprint",
+					privacy: "Privacy",
+					goToApp: "Go to App",
+				},
+			}
+---
+
+<!doctype html>
+<html lang={locale}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={metaDescription} />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="canonical" href={canonicalUrl} />
+		<title>{title}</title>
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={metaDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={metaDescription} />
+		<meta name="twitter:image" content={ogImageUrl} />
+	</head>
+	<body class="min-h-screen bg-background text-foreground">
+		<Navbar
+			locale={locale}
+			client:load
+			logo={{
+				text: "Tilly",
+				href: localizedNav.home,
+			}}
+			navigation={[
+				{ name: localizedNav.labels.features, href: localizedNav.features },
+				{ name: localizedNav.labels.pricing, href: localizedNav.pricing },
+				{ name: localizedNav.labels.faq, href: localizedNav.faq },
+			]}
+			cta={{
+				text: localizedNav.labels.goToApp,
+				href: "/app",
+			}}
+		/>
+
+		<main class="mx-auto max-w-4xl px-6 py-24">
+			<div class="prose prose-gray max-w-none dark:prose-invert">
+				<slot />
+			</div>
+		</main>
+		<Footer
+			navigation={{
+				main: [
+					{ name: localizedNav.labels.features, href: localizedNav.features },
+					{ name: localizedNav.labels.pricing, href: localizedNav.pricing },
+					{ name: localizedNav.labels.faq, href: localizedNav.faq },
+					{ name: localizedNav.labels.imprint, href: localizedNav.imprint },
+					{ name: localizedNav.labels.privacy, href: localizedNav.privacy },
+				],
+				social: [
+					{ name: "Twitter", href: "#", icon: "Twitter" },
+					{ name: "GitHub", href: "#", icon: "Github" },
+				],
+			}}
+			company={{
+				name: "Tilly",
+			}}
+		/>
+	</body>
+</html>
+
+<style>
+	html {
+		font-family: system-ui, sans-serif;
+	}
+</style>

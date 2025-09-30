@@ -1,0 +1,590 @@
+{
+	"type": "tilly",
+	"version": 1,
+	"people": [
+		{
+			"name": "Sarah Martinez",
+			"summary": "College friend, software engineer at Google, lives in SF with her cat Luna",
+			"avatar": "female1.jpg",
+			"notes": [
+				{
+					"content": "Job: Software Engineer at Google",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-45",
+					"updatedAt": "DAYS_AGO:-45"
+				},
+				{
+					"content": "I had coffee with Sarah today. She's been working on a new ML project at Google and seems really excited about it. Her cat Luna is doing well after the surgery last month. She mentioned wanting to visit Portland soon.",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Ask Sarah about her ML project progress",
+					"dueAtDate": "TODAY",
+					"createdAt": "DAYS_AGO:-7",
+					"updatedAt": "DAYS_AGO:-7"
+				},
+				{
+					"text": "Send Sarah Portland restaurant recommendations",
+					"dueAtDate": "DAYS_FROM_NOW:5",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"createdAt": "DAYS_AGO:-120",
+			"updatedAt": "DAYS_AGO:-3"
+		},
+		{
+			"name": "Mike & Jessica Chen",
+			"summary": "Neighbors, married couple with 2 kids (Emma 8, Noah 5), Mike works in finance, Jessica is a teacher",
+			"avatar": "couple1.jpg",
+			"notes": [
+				{
+					"content": "Kids: Emma (8) and Noah (5)",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Mike works in finance, Jessica teaches 3rd grade",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "I helped them move their piano last weekend. Jessica made amazing homemade cookies as a thank you. Emma started piano lessons and is really enthusiastic about it. Noah is obsessed with dinosaurs right now.",
+					"createdAt": "DAYS_AGO:-8",
+					"updatedAt": "DAYS_AGO:-8"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Check how Emma's piano lessons are going",
+					"dueAtDate": "DAYS_FROM_NOW:7",
+					"createdAt": "DAYS_AGO:-8",
+					"updatedAt": "DAYS_AGO:-8"
+				},
+				{
+					"text": "Thank Jessica for the cookies",
+					"dueAtDate": "DAYS_AGO:-5",
+					"done": true,
+					"createdAt": "DAYS_AGO:-8",
+					"updatedAt": "DAYS_AGO:-5"
+				}
+			],
+			"createdAt": "DAYS_AGO:-100",
+			"updatedAt": "DAYS_AGO:-8"
+		},
+		{
+			"name": "Dad",
+			"summary": "Retired teacher, loves gardening and woodworking, lives in Denver",
+			"avatar": "male1.jpg",
+			"notes": [
+				{
+					"content": "Retired high school history teacher",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				},
+				{
+					"content": "Lives in Denver, loves gardening and woodworking",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				},
+				{
+					"content": "I called Dad this evening. He's been working on a new bookshelf in his workshop and is really proud of the dovetail joints he's mastered. His tomatoes are coming in great this year. He asked about my work and seemed genuinely interested in the tech stuff, which always makes me happy.",
+					"createdAt": "DAYS_AGO:-2",
+					"updatedAt": "DAYS_AGO:-2"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Call Dad",
+					"dueAtDate": "DAYS_AGO:-2",
+					"done": true,
+					"repeat": {
+						"interval": 1,
+						"unit": "week"
+					},
+					"createdAt": "DAYS_AGO:-30",
+					"updatedAt": "DAYS_AGO:-2"
+				},
+				{
+					"text": "Ask Dad to send photos of the bookshelf",
+					"dueAtDate": "DAYS_FROM_NOW:3",
+					"createdAt": "DAYS_AGO:-2",
+					"updatedAt": "DAYS_AGO:-2"
+				}
+			],
+			"createdAt": "DAYS_AGO:-300",
+			"updatedAt": "DAYS_AGO:-2"
+		},
+		{
+			"name": "Alex Thompson",
+			"summary": "Coworker and close friend, frontend developer, loves rock climbing",
+			"avatar": "male2.jpg",
+			"notes": [
+				{
+					"content": "Frontend developer on my team",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-180",
+					"updatedAt": "DAYS_AGO:-180"
+				},
+				{
+					"content": "Passionate rock climber, goes to the gym 4x/week",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-150",
+					"updatedAt": "DAYS_AGO:-150"
+				},
+				{
+					"content": "Had lunch with Alex today. He's training for a big climbing competition in Yosemite next month. He's been putting in extra hours at the gym and following a strict diet. Really admire his dedication.",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Wish Alex good luck before his climbing competition",
+					"dueAtDate": "DAYS_FROM_NOW:25",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				},
+				{
+					"text": "Plan team lunch",
+					"dueAtDate": "DAYS_AGO:-3",
+					"done": true,
+					"createdAt": "DAYS_AGO:-10",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"createdAt": "DAYS_AGO:-200",
+			"updatedAt": "DAYS_AGO:-1"
+		},
+		{
+			"name": "Maria Rodriguez",
+			"summary": "Yoga instructor and wellness coach, incredibly positive energy, vegetarian",
+			"avatar": "female2.jpg",
+			"notes": [
+				{
+					"content": "Yoga instructor and wellness coach",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-80",
+					"updatedAt": "DAYS_AGO:-80"
+				},
+				{
+					"content": "Vegetarian, very health-conscious",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-80",
+					"updatedAt": "DAYS_AGO:-80"
+				},
+				{
+					"content": "Went to Maria's morning yoga class. She's started a new meditation workshop series and invited me to join. Her positive energy is infectious. She mentioned her sister is visiting from Spain next week.",
+					"createdAt": "DAYS_AGO:-5",
+					"updatedAt": "DAYS_AGO:-5"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Sign up for Maria's meditation workshop",
+					"dueAtDate": "TODAY",
+					"createdAt": "DAYS_AGO:-5",
+					"updatedAt": "DAYS_AGO:-5"
+				},
+				{
+					"text": "Ask about Maria's sister's visit",
+					"dueAtDate": "DAYS_FROM_NOW:4",
+					"createdAt": "DAYS_AGO:-5",
+					"updatedAt": "DAYS_AGO:-5"
+				}
+			],
+			"createdAt": "DAYS_AGO:-90",
+			"updatedAt": "DAYS_AGO:-5"
+		},
+		{
+			"name": "Ben Williams",
+			"summary": "College roommate, now lives in NYC, works in marketing, big foodie",
+			"avatar": "male3.jpg",
+			"notes": [
+				{
+					"content": "College roommate, now lives in NYC",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-150",
+					"updatedAt": "DAYS_AGO:-150"
+				},
+				{
+					"content": "Works in marketing, huge foodie, always knows the best restaurants",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-150",
+					"updatedAt": "DAYS_AGO:-150"
+				},
+				{
+					"content": "Ben texted me photos from his latest restaurant discovery in Brooklyn. He's planning a food tour when I visit NYC next month and has already made a spreadsheet of places we need to try. Classic Ben!",
+					"createdAt": "DAYS_AGO:-12",
+					"updatedAt": "DAYS_AGO:-12"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Book NYC trip to visit Ben",
+					"dueAtDate": "DAYS_FROM_NOW:10",
+					"createdAt": "DAYS_AGO:-12",
+					"updatedAt": "DAYS_AGO:-12"
+				},
+				{
+					"text": "Ask Ben for Brooklyn restaurant recommendations",
+					"dueAtDate": "DAYS_AGO:-10",
+					"done": true,
+					"createdAt": "DAYS_AGO:-15",
+					"updatedAt": "DAYS_AGO:-10"
+				}
+			],
+			"createdAt": "DAYS_AGO:-200",
+			"updatedAt": "DAYS_AGO:-12"
+		},
+		{
+			"name": "Emma Foster",
+			"summary": "Freelance graphic designer, lives downtown, loves indie music and vintage fashion",
+			"avatar": "female3.jpg",
+			"notes": [
+				{
+					"content": "Freelance graphic designer, very talented",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-70",
+					"updatedAt": "DAYS_AGO:-70"
+				},
+				{
+					"content": "Lives downtown, loves indie music and vintage shopping",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-70",
+					"updatedAt": "DAYS_AGO:-70"
+				},
+				{
+					"content": "Emma showed me her latest branding project for a local coffee shop. Her work is amazing - she has such a great eye for color and typography. She's been struggling with client payments lately though, which is stressful.",
+					"createdAt": "DAYS_AGO:-6",
+					"updatedAt": "DAYS_AGO:-6"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Check in with Emma about her client payment situation",
+					"dueAtDate": "DAYS_FROM_NOW:2",
+					"createdAt": "DAYS_AGO:-6",
+					"updatedAt": "DAYS_AGO:-6"
+				},
+				{
+					"text": "Send Emma that freelancer invoice template",
+					"dueAtDate": "DAYS_AGO:-4",
+					"done": true,
+					"createdAt": "DAYS_AGO:-6",
+					"updatedAt": "DAYS_AGO:-4"
+				}
+			],
+			"createdAt": "DAYS_AGO:-80",
+			"updatedAt": "DAYS_AGO:-6"
+		},
+		{
+			"name": "David Kim",
+			"summary": "Gym buddy, personal trainer, studying for physical therapy degree",
+			"avatar": "male4.jpg",
+			"notes": [
+				{
+					"content": "Personal trainer at my gym",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-60",
+					"updatedAt": "DAYS_AGO:-60"
+				},
+				{
+					"content": "Studying for physical therapy degree part-time",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-60",
+					"updatedAt": "DAYS_AGO:-60"
+				},
+				{
+					"content": "David helped me with my deadlift form today. He's stressed about his PT school applications but trying to stay positive. His knowledge of anatomy and movement is incredible - he'll make a great physical therapist.",
+					"createdAt": "DAYS_AGO:-4",
+					"updatedAt": "DAYS_AGO:-4"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Ask David about his PT school applications",
+					"dueAtDate": "DAYS_FROM_NOW:6",
+					"createdAt": "DAYS_AGO:-4",
+					"updatedAt": "DAYS_AGO:-4"
+				}
+			],
+			"createdAt": "DAYS_AGO:-70",
+			"updatedAt": "DAYS_AGO:-4"
+		},
+		{
+			"name": "Lisa & Tom Anderson",
+			"summary": "Family friends, Lisa is a nurse, Tom is an engineer, recently moved to Portland",
+			"avatar": "couple2.jpg",
+			"notes": [
+				{
+					"content": "Family friends, known them for 15+ years",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-100",
+					"updatedAt": "DAYS_AGO:-100"
+				},
+				{
+					"content": "Lisa is a nurse, Tom is a civil engineer, just moved to Portland",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-30",
+					"updatedAt": "DAYS_AGO:-30"
+				},
+				{
+					"content": "Video called Lisa and Tom tonight to see how they're settling in Portland. They love their new neighborhood and Tom already found a good hiking group. Lisa is adjusting to the new hospital but likes her colleagues. They invited me to visit once they're fully settled.",
+					"createdAt": "DAYS_AGO:-7",
+					"updatedAt": "DAYS_AGO:-7"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Plan Portland visit to see Lisa & Tom",
+					"dueAtDate": "DAYS_FROM_NOW:14",
+					"createdAt": "DAYS_AGO:-7",
+					"updatedAt": "DAYS_AGO:-7"
+				},
+				{
+					"text": "Send Lisa & Tom housewarming gift",
+					"dueAtDate": "DAYS_AGO:-20",
+					"done": true,
+					"createdAt": "DAYS_AGO:-35",
+					"updatedAt": "DAYS_AGO:-20"
+				}
+			],
+			"createdAt": "DAYS_AGO:-150",
+			"updatedAt": "DAYS_AGO:-7"
+		},
+		{
+			"name": "Rachel Green",
+			"summary": "Book club friend, librarian, has two teenage daughters, going through divorce",
+			"avatar": "female4.jpg",
+			"notes": [
+				{
+					"content": "Librarian at the downtown branch",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-40",
+					"updatedAt": "DAYS_AGO:-40"
+				},
+				{
+					"content": "Two teenage daughters: Sophie (16) and Maya (14)",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-40",
+					"updatedAt": "DAYS_AGO:-40"
+				},
+				{
+					"content": "Going through a difficult divorce, trying to stay strong for her daughters",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-25",
+					"updatedAt": "DAYS_AGO:-25"
+				},
+				{
+					"content": "At book club, Rachel seemed more like her old self. She's been seeing a therapist which is helping. Sophie got into honor society and Maya made the volleyball team - she's so proud of them both.",
+					"createdAt": "DAYS_AGO:-9",
+					"updatedAt": "DAYS_AGO:-9"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Check in with Rachel, see how therapy is going",
+					"dueAtDate": "DAYS_FROM_NOW:8",
+					"createdAt": "DAYS_AGO:-9",
+					"updatedAt": "DAYS_AGO:-9"
+				},
+				{
+					"text": "Congratulate Rachel on Sophie's honor society",
+					"dueAtDate": "DAYS_AGO:-7",
+					"done": true,
+					"createdAt": "DAYS_AGO:-9",
+					"updatedAt": "DAYS_AGO:-7"
+				}
+			],
+			"createdAt": "DAYS_AGO:-50",
+			"updatedAt": "DAYS_AGO:-9"
+		},
+		{
+			"name": "Carlos Mendez",
+			"summary": "Former colleague, started his own consulting business, lives in Austin with wife Ana",
+			"avatar": "male5.jpg",
+			"notes": [
+				{
+					"content": "Started his own tech consulting business last year",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-365",
+					"updatedAt": "DAYS_AGO:-365"
+				},
+				{
+					"content": "Lives in Austin with wife Ana, no kids yet but trying",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				},
+				{
+					"content": "Carlos called to catch up. His consulting business is doing really well - he just landed two major clients. Ana got a promotion at her marketing firm. They're house hunting and excited about the Austin market.",
+					"createdAt": "DAYS_AGO:-14",
+					"updatedAt": "DAYS_AGO:-14"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Congratulate Ana on her promotion",
+					"dueAtDate": "DAYS_FROM_NOW:1",
+					"createdAt": "DAYS_AGO:-14",
+					"updatedAt": "DAYS_AGO:-14"
+				},
+				{
+					"text": "Ask Carlos for business advice",
+					"dueAtDate": "DAYS_FROM_NOW:12",
+					"createdAt": "DAYS_AGO:-14",
+					"updatedAt": "DAYS_AGO:-14"
+				}
+			],
+			"createdAt": "DAYS_AGO:-400",
+			"updatedAt": "DAYS_AGO:-14"
+		},
+		{
+			"name": "Sophie Turner",
+			"summary": "Barista at my favorite coffee shop, art student, very creative and energetic",
+			"avatar": "female5.jpg",
+			"notes": [
+				{
+					"content": "Barista at Corner Coffee, makes the best lattes",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Art student at the local college, specializes in ceramics",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Sophie was excited about her upcoming art show next month. She's been working on a series of ceramic pieces inspired by ocean waves. Her enthusiasm is contagious - she always brightens my morning coffee runs.",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Mark calendar for Sophie's art show",
+					"dueAtDate": "DAYS_FROM_NOW:28",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"createdAt": "DAYS_AGO:-100",
+			"updatedAt": "DAYS_AGO:-3"
+		},
+		{
+			"name": "Mom",
+			"summary": "Retired nurse, volunteers at animal shelter, loves gardening and cooking",
+			"avatar": "mom.jpg",
+			"notes": [
+				{
+					"content": "Retired nurse, now volunteers at the animal shelter 3 days a week",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-300",
+					"updatedAt": "DAYS_AGO:-300"
+				},
+				{
+					"content": "Amazing cook, grows her own herbs and vegetables",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-300",
+					"updatedAt": "DAYS_AGO:-300"
+				},
+				{
+					"content": "I video called Mom this morning. She's fostering a new rescue dog named Buddy - a golden retriever mix who's very sweet but nervous. Her garden is thriving and she's already planning what to preserve for winter. She asked about my eating habits as usual.",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Call Mom",
+					"dueAtDate": "DAYS_AGO:-1",
+					"done": true,
+					"repeat": {
+						"interval": 3,
+						"unit": "day"
+					},
+					"createdAt": "DAYS_AGO:-20",
+					"updatedAt": "DAYS_AGO:-1"
+				},
+				{
+					"text": "Send Mom photos of healthy meals I'm cooking",
+					"dueAtDate": "DAYS_FROM_NOW:2",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				}
+			],
+			"createdAt": "DAYS_AGO:-400",
+			"updatedAt": "DAYS_AGO:-1"
+		},
+		{
+			"name": "Jason Park",
+			"summary": "High school friend, dentist, married to Kelly, lives in suburbs with twin boys",
+			"avatar": "male6.jpg",
+			"notes": [
+				{
+					"content": "Dentist, has his own practice",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-180",
+					"updatedAt": "DAYS_AGO:-180"
+				},
+				{
+					"content": "Married to Kelly, twin boys Jake and Luke (age 6)",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-180",
+					"updatedAt": "DAYS_AGO:-180"
+				},
+				{
+					"content": "Ran into Jason at the grocery store. The twins just started soccer and are loving it, but it means crazy weekends driving to games. Kelly started a part-time job at a marketing agency. Jason looks tired but happy - parenthood suits him.",
+					"createdAt": "DAYS_AGO:-11",
+					"updatedAt": "DAYS_AGO:-11"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Ask Jason about the twins' soccer season",
+					"dueAtDate": "DAYS_FROM_NOW:15",
+					"createdAt": "DAYS_AGO:-11",
+					"updatedAt": "DAYS_AGO:-11"
+				}
+			],
+			"createdAt": "DAYS_AGO:-200",
+			"updatedAt": "DAYS_AGO:-11"
+		},
+		{
+			"name": "Amanda Brooks",
+			"summary": "Recently deleted - old college acquaintance who moved away",
+			"avatar": null,
+			"notes": [
+				{
+					"content": "College acquaintance, moved to Chicago for work",
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Check in with Amanda about Chicago",
+					"dueAtDate": "DAYS_AGO:-45",
+					"deleted": true,
+					"deletedAt": "DAYS_AGO:-15",
+					"createdAt": "DAYS_AGO:-60",
+					"updatedAt": "DAYS_AGO:-45"
+				}
+			],
+			"deleted": true,
+			"deletedAt": "DAYS_AGO:-15",
+			"createdAt": "DAYS_AGO:-220",
+			"updatedAt": "DAYS_AGO:-15"
+		}
+	]
+}

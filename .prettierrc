@@ -1,0 +1,6 @@
+{
+	"useTabs": true,
+	"semi": false,
+	"arrowParens": "avoid",
+	"plugins": ["prettier-plugin-tailwindcss"]
+}

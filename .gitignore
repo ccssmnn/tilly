@@ -1,0 +1,24 @@
+.astro
+.vercel
+.claude
+.pnpm-store
+.tanstack
+
+pnpm-debug.log*
+
+node_modules
+dist
+*.local
+
+.DS_Store
+
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Generated mock data
+scripts/mock-data.json
+scripts/mock-data.de.json
+
+*-worktree

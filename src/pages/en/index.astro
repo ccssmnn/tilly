@@ -1,0 +1,369 @@
+---
+import MinimalMarketingLayout from "#www/layouts/MinimalMarketingLayout.astro"
+import { Navbar } from "#www/components/Navbar"
+import { Hero } from "#www/components/Hero"
+import { ContentWithTestimonial } from "#www/components/ContentWithTestimonial"
+import { FeatureGridOffset } from "#www/components/FeatureGridOffset"
+import { FeaturesWithProductScreenshot } from "#www/components/FeaturesWithProductScreenshot"
+import { Testimonials } from "#www/components/Testimonials"
+import { FeatureGridCentered } from "#www/components/FeatureGridCentered"
+import { Pricing } from "#www/components/Pricing"
+import { FAQ } from "#www/components/FAQ"
+import { CTA } from "#www/components/CTA"
+import { Footer } from "#www/components/Footer"
+---
+
+<MinimalMarketingLayout
+	title="Tilly - Your Personal Relationship Assistant"
+	description="Stay connected with the people who matter most."
+>
+	<Navbar
+		locale="en"
+		client:load
+		logo={{
+			text: "Tilly",
+			href: "/en/",
+		}}
+		navigation={[
+			{ name: "Features", href: "#features" },
+			{ name: "Experience", href: "#experience" },
+			{ name: "FAQ", href: "#faq" },
+		]}
+		cta={{
+			text: "Go to App",
+			href: "/app",
+		}}
+	/>
+
+	<div class="py-12 md:py-24">
+		<Hero
+			client:load
+			badge={{
+				text: "Tilly is Open Source",
+				href: "https://github.com/ccssmnn/tilly",
+				description: "Check out the Repo",
+			}}
+			title="Be the friend who remembers."
+			description="Life gets busy. We forget to follow up on things that matter. Tilly helps you remember."
+			primaryCta={{
+				text: "Try Tilly Now",
+				href: "/app",
+			}}
+			secondaryCta={{
+				text: "Learn more",
+				href: "#features",
+			}}
+			media={{
+				kind: "image",
+				src: "/images/screenshots/en-people.webp",
+				alt: "Phone showing the Tilly People list",
+				loading: "eager",
+				aspectRatio: "215 / 466",
+				fit: "contain",
+			}}
+		/>
+	</div>
+	<div id="story" class="py-24">
+		<ContentWithTestimonial
+			title="You know that feeling."
+			testimonial={{
+				quote: "Don't think you love your friends. Show them.",
+				author: {
+					name: "Carl Assmann",
+					title: "Creator of Tilly",
+					avatar: "/images/avatars/carl.webp",
+				},
+			}}
+		>
+			<p>
+				Your friend mentions their job interview. You care deeply. But weeks
+				pass, and you realize you never asked how it went. <em
+					>"How did the interview go?"</em
+				> sounds terrible weeks later.
+			</p>
+			<b>You missed the chance to show you were there for them.</b>
+		</ContentWithTestimonial>
+	</div>
+	<div class="py-12 md:py-24">
+		<FeatureGridOffset
+			title="It's not that you don't care"
+			subtitle="You just don't remember in the moment"
+			problems={[
+				{
+					name: "Conversations happen in person",
+					description: "Important updates get lost",
+				},
+				{
+					name: "Nothing to say",
+					description: "You want to reach out but don't know what to ask",
+				},
+				{
+					name: "Friendship feels like work",
+					description: "Todo apps make connection feel artificial",
+				},
+				{
+					name: "Notes get buried",
+					description: "Personal details get lost in everything else",
+				},
+			]}
+		/>
+	</div>
+
+	<div class="py-12 md:py-24">
+		<FeaturesWithProductScreenshot
+			badge="Meet Tilly"
+			title="Your relationships deserve their own space."
+			features={[
+				{
+					name: "For each person:",
+					description:
+						"Store notes and set reminders. See what matters most, not just their phone number.",
+				},
+				{
+					name: "Tilly Agent (Plus tier)",
+					description:
+						"Talk naturally: 'Lisa got promoted, Emma started kindergarten, she seemed stressed.' Tilly organizes and suggests follow-ups.",
+				},
+			]}
+			media={{
+				kind: "image",
+				src: "/images/screenshots/en-person.webp",
+				alt: "Phone showing Tilly person notes",
+				aspectRatio: "215 / 466",
+				fit: "contain",
+			}}
+		/>
+	</div>
+	<div class="py-24" id="features">
+		<FeatureGridCentered
+			title="Simple by design"
+			description="Everything you need to be a better friend. Nothing you don't."
+			features={[
+				{
+					name: "People & Notes",
+					description:
+						"Store what matters about each person - birthdays, interests, life updates, and meaningful moments",
+					icon: "PersonHearts",
+				},
+				{
+					name: "Reminders",
+					description:
+						"Gentle nudges to reach out at the right time, so you never miss important moments",
+					icon: "Bell",
+				},
+				{
+					name: "Push Notifications",
+					description:
+						"Never miss a birthday or important reminder with timely notifications on all your devices",
+					icon: "PhoneFill",
+				},
+				{
+					name: "Tilly Agent (Plus Tier)",
+					description:
+						"Agentic AI assistant that autonomously organizes your thoughts and takes action to help you connect",
+					icon: "Chat",
+				},
+				{
+					name: "Complete Data Control",
+					description:
+						"Client-side encrypted sync with securely managed keys for notifications and Tilly Assistant. Export your data anytime. No vendor lock-in ever.",
+					icon: "Download",
+				},
+				{
+					name: "Works Everywhere",
+					description:
+						"Instant sync across all your devices. Full functionality works offline when needed.",
+					icon: "CloudCheck",
+				},
+			]}
+		/>
+	</div>
+
+	<div class="py-12 md:py-24">
+		<Testimonials
+			client:load
+			title="What Users Say"
+			subtitle="People love Tilly for various reasons"
+			testimonials={[
+				{
+					quote:
+						"Today I learned my design peer's favorite color. Thought about how to remember it ...Tilly! That's when it clicked - the app really comes in handy for collecting small but important details",
+				},
+				{
+					quote:
+						"I didn't know I was missing something like this. Now I know I could have used exactly this for a very long time.",
+				},
+				{
+					quote:
+						"Does exactly what it should and is fast. The chat works surprisingly well.",
+				},
+				{ quote: "This is a cheat code for being a better friend!" },
+			]}
+		/>
+	</div>
+	<div class="py-12 md:py-24">
+		<FeaturesWithProductScreenshot
+			client:load
+			badge="Tilly Agent: Your Relationship Assistant"
+			title="Tilly Agent reads and writes your journal."
+			features={[
+				{
+					name: "Just talk:",
+					description:
+						"'Lisa got promoted, Emma started kindergarten, she seemed stressed.'",
+				},
+				{
+					name: "Tilly organizes:",
+					description:
+						"Finds Lisa, adds notes, suggests reminders to follow-up.",
+				},
+				{
+					name: "Before meeting:",
+					description: "'Catch me up on Sarah' Know what to ask.",
+				},
+				{
+					name: "When reaching out:",
+					description: "'Help me message Tom' Get suggestions.",
+				},
+			]}
+			closing="The convenience is real. It's so easy that you actually use it."
+			media={{
+				kind: "image",
+				src: "/images/screenshots/en-chat.webp",
+				alt: "Phone showing the Tilly Agent chat",
+				aspectRatio: "215 / 466",
+				fit: "contain",
+			}}
+		/>
+	</div>
+	<div id="experience" class="py-24">
+		<Pricing
+			title="Choose Your Experience"
+			subtitle="Free or Plus - simple pricing for everyone."
+			tiers={[
+				{
+					name: "Free",
+					id: "tier-free",
+					href: "/app",
+					priceMonthly: "Free",
+					priceSuffix: null,
+					description:
+						"Free requires a sign in for sync and push notifications",
+					features: [
+						"Unlimited people, notes and reminders",
+						"Push notifications",
+						"Sync to the cloud",
+						"Sync between devices",
+						"Import and export data",
+					],
+					featured: false,
+					ctaText: "Sign Up Free",
+				},
+				{
+					name: "Plus",
+					id: "tier-plus",
+					href: "/app",
+					priceMonthly: "$6",
+					priceSuffix: "/month",
+					description: "AI agent for ultimate convenience",
+					features: [
+						"Everything in Free",
+						"Tilly Agent",
+						"Natural language input",
+						"Message suggestions",
+						"Automated note organization",
+						"Smart follow-up reminders",
+						"Support sustainable development",
+					],
+					featured: true,
+					ctaText: "Upgrade to Plus",
+				},
+			]}
+		/>
+	</div>
+
+	<div id="faq" class="py-24">
+		<FAQ
+			client:load
+			title="Frequently Asked Questions"
+			faqs={[
+				{
+					question:
+						"How is this different from my contacts app, todos or notes?",
+					answer:
+						"Your contacts show phone numbers. Your todos and notes get buried. Tilly gives relationships their own space.",
+				},
+				{
+					question:
+						"Will Tilly automatically sync with my contacts or social media?",
+					answer:
+						"No. Tilly only contains what you add yourself. No automatic imports. This way, Tilly only contains what you found important enough to add yourself.",
+				},
+				{
+					question: "What if I forget to use it?",
+					answer:
+						"Pick it up when you remember. Add what's on your mind. The habit builds naturally.",
+				},
+				{
+					question: "Is my data private?",
+					answer:
+						"Tilly encrypts your data in the browser before it syncs with Jazz. Encryption keys live with the auth provider so the Tilly server can send push notifications and power Tilly Assistant. When you use Tilly Chat, the conversation you provide is shared with the AI provider. Tilly is open source (AGPL) and you can export your data anytime.",
+				},
+				{
+					question: "Doesn't this feel artificial?",
+					answer:
+						"No more than scrolling up in WhatsApp. Tilly works for phone calls and dinners too.",
+				},
+				{
+					question: "Why pay for AI when there are free AI apps?",
+					answer:
+						"Free AI apps don't remember and don't remind you to reach out. Tilly Agent has full access to your relationship history. Plus, AI costs money and i want to make Tilly sustainable so I can continue working on it.",
+				},
+			]}
+		/>
+	</div>
+
+	<CTA
+		title="Ready to be a better friend?"
+		primaryCta={{
+			text: "Open Tilly",
+			href: "/app",
+		}}
+	/>
+
+	<Footer
+		navigation={{
+			main: [
+				{ name: "Features", href: "#features" },
+				{ name: "Experience", href: "#experience" },
+				{ name: "FAQ", href: "#faq" },
+				{ name: "Imprint", href: "/en/imprint" },
+				{ name: "Privacy", href: "/en/privacy" },
+			],
+			social: [
+				{
+					name: "Twitter",
+					href: "https://twitter.com/tillydotsocial",
+					icon: "Twitter",
+				},
+				{
+					name: "Instagram",
+					href: "https://instagram.com/tilly.social",
+					icon: "Instagram",
+				},
+				{
+					name: "GitHub",
+					href: "https://github.com/ccssmnn/tilly",
+					icon: "Github",
+				},
+			],
+			languages: [
+				{ name: "English", href: "/en/" },
+				{ name: "Deutsch", href: "/de/" },
+			],
+		}}
+		company={{
+			name: "Tilly",
+		}}
+	/>
+</MinimalMarketingLayout>

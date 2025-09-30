@@ -1,0 +1,93 @@
+---
+import { PWA } from "#app/main"
+import "#app/index.css"
+import { SplashScreen } from "#app/components/splash-screen"
+import { PUBLIC_PLAUSIBLE_DOMAIN } from "astro:env/client"
+
+export let prerender = false
+let isProduction = import.meta.env.PROD
+let requestUrl = new URL(Astro.request.url)
+let siteBaseUrl = Astro.site ?? new URL(requestUrl.origin)
+let canonicalUrl = new URL(
+	requestUrl.pathname + requestUrl.search,
+	siteBaseUrl,
+).toString()
+let ogImageUrl = new URL("/og.png", siteBaseUrl).toString()
+let pageTitle = "Tilly - Personal Relation Helper"
+let metaDescription =
+	"remember what's important and stay in touch with your friends and loved ones."
+---
+
+<!doctype html>
+<html lang="en" class="overscroll-y-none bg-background">
+	<head>
+		<title>{pageTitle}</title>
+		<meta name="description" content={metaDescription} />
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="canonical" href={canonicalUrl} />
+		<meta
+			name="viewport"
+			content="initial-scale=1, viewport-fit=cover, width=device-width, user-scalable=no"
+		/>
+		<link rel="manifest" href="/app/manifest.json" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta
+			name="apple-mobile-web-app-status-bar-style"
+			content="black-translucent"
+		/>
+		<meta name="apple-mobile-web-app-title" content="Tilly" />
+		<link rel="apple-touch-icon" href="/app/icons/icon-152x152.png" />
+		<meta id="theme-color" name="theme-color" content="#FFFFFF" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={metaDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={metaDescription} />
+		<meta name="twitter:image" content={ogImageUrl} />
+		{
+			isProduction && PUBLIC_PLAUSIBLE_DOMAIN && (
+				<script
+					is:inline
+					defer
+					data-domain={PUBLIC_PLAUSIBLE_DOMAIN}
+					src="/plausible/js/script.tagged-events.js"
+				/>
+			)
+		}
+	</head>
+	<body
+		class="relative h-[100dvh] overflow-hidden selection:bg-primary selection:text-primary-foreground select-none bg-background text-foreground *:border-border overscroll-y-none"
+	>
+		<PWA client:only="react">
+			<SplashScreen slot="fallback" />
+		</PWA>
+		<script>
+			function updateThemeColor() {
+				let meta = document.getElementById("theme-color")
+				if (!meta) return
+				let bg = getComputedStyle(document.documentElement)
+					.getPropertyValue("--background")
+					.trim()
+				meta.setAttribute("content", bg)
+			}
+
+			updateThemeColor()
+
+			let observer = new MutationObserver(mutations => {
+				for (let m of mutations) {
+					if (m.type === "attributes" && m.attributeName === "class") {
+						updateThemeColor()
+					}
+				}
+			})
+
+			observer.observe(document.documentElement, { attributes: true })
+		</script>
+	</body>
+</html>

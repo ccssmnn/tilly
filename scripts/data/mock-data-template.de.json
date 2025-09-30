@@ -1,0 +1,490 @@
+{
+	"type": "tilly",
+	"version": 1,
+	"people": [
+		{
+			"name": "Sarah Müller",
+			"summary": "Studienfreundin, Softwareentwicklerin bei Google, lebt in SF mit ihrer Katze Luna",
+			"avatar": "female1.jpg",
+			"notes": [
+				{
+					"content": "Job: Softwareentwicklerin bei Google",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-45",
+					"updatedAt": "DAYS_AGO:-45"
+				},
+				{
+					"content": "Ich habe heute mit Sarah Kaffee getrunken. Sie arbeitet an einem neuen ML‑Projekt bei Google und ist richtig begeistert. Ihre Katze Luna erholt sich nach der Operation letzten Monat gut. Sie hat erwähnt, dass sie bald nach Portland reisen möchte.",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Sarah nach dem Fortschritt ihres ML‑Projekts fragen",
+					"dueAtDate": "TODAY",
+					"createdAt": "DAYS_AGO:-7",
+					"updatedAt": "DAYS_AGO:-7"
+				},
+				{
+					"text": "Sarah Restaurant‑Tipps für Portland schicken",
+					"dueAtDate": "DAYS_FROM_NOW:5",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"createdAt": "DAYS_AGO:-120",
+			"updatedAt": "DAYS_AGO:-3"
+		},
+		{
+			"name": "Mehmet & Aylin Yilmaz",
+			"summary": "Nachbarn, verheiratetes Paar mit 2 Kindern (Emma 8, Noah 5), Mike arbeitet in der Finanzbranche, Jessica ist Lehrerin",
+			"avatar": "couple1.jpg",
+			"notes": [
+				{
+					"content": "Kinder: Emma (8) und Noah (5)",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Mehmet arbeitet in der Finanzbranche, Aylin unterrichtet die 3. Klasse",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Ich habe ihnen letztes Wochenende geholfen, ihr Klavier zu tragen. Aylin hat als Dank fantastische selbstgemachte Kekse gebacken. Emma hat mit dem Klavierunterricht begonnen und ist sehr begeistert. Noah ist gerade völlig verrückt nach Dinosauriern.",
+					"createdAt": "DAYS_AGO:-8",
+					"updatedAt": "DAYS_AGO:-8"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Fragen, wie Emmas Klavierunterricht läuft",
+					"dueAtDate": "DAYS_FROM_NOW:7",
+					"createdAt": "DAYS_AGO:-8",
+					"updatedAt": "DAYS_AGO:-8"
+				},
+				{
+					"text": "Aylin für die Kekse danken",
+					"dueAtDate": "DAYS_AGO:-5",
+					"done": true,
+					"createdAt": "DAYS_AGO:-8",
+					"updatedAt": "DAYS_AGO:-5"
+				}
+			],
+			"createdAt": "DAYS_AGO:-100",
+			"updatedAt": "DAYS_AGO:-8"
+		},
+		{
+			"name": "Papa",
+			"summary": "Pensionierter Lehrer, liebt Gartenarbeit und Holzarbeiten, lebt in Denver",
+			"avatar": "male1.jpg",
+			"notes": [
+				{
+					"content": "Pensionierter Geschichtslehrer an der Highschool",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				},
+				{
+					"content": "Lebt in Denver, liebt Gartenarbeit und Holzwerken",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				},
+				{
+					"content": "Ich habe heute Abend mit Papa telefoniert. Er baut ein neues Bücherregal in der Werkstatt und ist stolz auf die Schwalbenschwanz‑Verbindungen, die er inzwischen perfekt beherrscht. Die Tomaten wachsen dieses Jahr prächtig. Er hat nach meiner Arbeit gefragt und war wirklich interessiert, auch an den Technikthemen – das freut mich immer.",
+					"createdAt": "DAYS_AGO:-2",
+					"updatedAt": "DAYS_AGO:-2"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Papa anrufen",
+					"dueAtDate": "DAYS_AGO:-2",
+					"done": true,
+					"repeat": { "interval": 1, "unit": "week" },
+					"createdAt": "DAYS_AGO:-30",
+					"updatedAt": "DAYS_AGO:-2"
+				},
+				{
+					"text": "Papa um Fotos vom Bücherregal bitten",
+					"dueAtDate": "DAYS_FROM_NOW:3",
+					"createdAt": "DAYS_AGO:-2",
+					"updatedAt": "DAYS_AGO:-2"
+				}
+			],
+			"createdAt": "DAYS_AGO:-300",
+			"updatedAt": "DAYS_AGO:-2"
+		},
+		{
+			"name": "Alex Schneider",
+			"summary": "Kollege und enger Freund, Frontend‑Entwickler, liebt Klettern",
+			"avatar": "male2.jpg",
+			"notes": [
+				{
+					"content": "Frontend‑Entwickler in meinem Team",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-180",
+					"updatedAt": "DAYS_AGO:-180"
+				},
+				{
+					"content": "Leidenschaftlicher Kletterer, geht 4× pro Woche in die Halle",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-150",
+					"updatedAt": "DAYS_AGO:-150"
+				},
+				{
+					"content": "Ich war heute mit Alex Mittag essen. Er trainiert für einen großen Kletterwettbewerb im Yosemite nächsten Monat. Er verbringt extra Zeit im Gym und hält eine strikte Ernährung ein. Ich bewundere seine Disziplin.",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Alex vor dem Kletterwettbewerb viel Erfolg wünschen",
+					"dueAtDate": "DAYS_FROM_NOW:25",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				},
+				{
+					"text": "Team‑Lunch planen",
+					"dueAtDate": "DAYS_AGO:-3",
+					"done": true,
+					"createdAt": "DAYS_AGO:-10",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"createdAt": "DAYS_AGO:-200",
+			"updatedAt": "DAYS_AGO:-1"
+		},
+		{
+			"name": "Maria Rodriguez",
+			"summary": "Yogalehrerin und Wellness‑Coach, sehr positive Ausstrahlung, Vegetarierin",
+			"avatar": "female2.jpg",
+			"notes": [
+				{
+					"content": "Yogalehrerin und Wellness‑Coach",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-80",
+					"updatedAt": "DAYS_AGO:-80"
+				},
+				{
+					"content": "Vegetarisch, sehr gesundheitsbewusst",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-80",
+					"updatedAt": "DAYS_AGO:-80"
+				},
+				{
+					"content": "Ich war in Marias Morgen‑Yoga‑Stunde. Sie startet eine neue Meditations‑Workshop‑Reihe und hat mich eingeladen. Ihre positive Energie steckt an. Sie hat erwähnt, dass ihre Schwester nächste Woche aus Spanien zu Besuch kommt.",
+					"createdAt": "DAYS_AGO:-5",
+					"updatedAt": "DAYS_AGO:-5"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Für Marias Meditations‑Workshop anmelden",
+					"dueAtDate": "TODAY",
+					"createdAt": "DAYS_AGO:-5",
+					"updatedAt": "DAYS_AGO:-5"
+				},
+				{
+					"text": "Nach dem Besuch ihrer Schwester fragen",
+					"dueAtDate": "DAYS_FROM_NOW:4",
+					"createdAt": "DAYS_AGO:-5",
+					"updatedAt": "DAYS_AGO:-5"
+				}
+			],
+			"createdAt": "DAYS_AGO:-90",
+			"updatedAt": "DAYS_AGO:-5"
+		},
+		{
+			"name": "Ben Weber",
+			"summary": "Studienfreund und ehemaliger Mitbewohner, lebt in NYC, arbeitet im Marketing, großer Foodie",
+			"avatar": "male3.jpg",
+			"notes": [
+				{
+					"content": "Studienfreund, lebt jetzt in NYC",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-150",
+					"updatedAt": "DAYS_AGO:-150"
+				},
+				{
+					"content": "Arbeitet im Marketing, riesiger Foodie, kennt immer die besten Restaurants",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-150",
+					"updatedAt": "DAYS_AGO:-150"
+				},
+				{
+					"content": "Ben hat mir Fotos von seinem neuesten Restaurant‑Fund in Brooklyn geschickt. Wenn ich nächsten Monat nach NYC komme, plant er eine Food‑Tour und hat schon eine Tabelle mit den Lokalen angelegt. Typisch Ben!",
+					"createdAt": "DAYS_AGO:-12",
+					"updatedAt": "DAYS_AGO:-12"
+				}
+			],
+			"reminders": [
+				{
+					"text": "NYC‑Reise zu Ben buchen",
+					"dueAtDate": "DAYS_FROM_NOW:10",
+					"createdAt": "DAYS_AGO:-12",
+					"updatedAt": "DAYS_AGO:-12"
+				},
+				{
+					"text": "Ben nach Restaurant‑Tipps für Brooklyn fragen",
+					"dueAtDate": "DAYS_AGO:-10",
+					"done": true,
+					"createdAt": "DAYS_AGO:-15",
+					"updatedAt": "DAYS_AGO:-10"
+				}
+			],
+			"createdAt": "DAYS_AGO:-200",
+			"updatedAt": "DAYS_AGO:-12"
+		},
+		{
+			"name": "Emma Fischer",
+			"summary": "Freiberufliche Grafikdesignerin, wohnt in der Innenstadt, liebt Indie‑Musik und Vintage‑Mode",
+			"avatar": "female3.jpg",
+			"notes": [
+				{
+					"content": "Freiberufliche Grafikdesignerin, sehr talentiert",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-70",
+					"updatedAt": "DAYS_AGO:-70"
+				},
+				{
+					"content": "Wohnt in der Innenstadt, liebt Indie‑Musik und Vintage‑Shopping",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-70",
+					"updatedAt": "DAYS_AGO:-70"
+				},
+				{
+					"content": "Emma hat mir ihr aktuelles Branding‑Projekt für ein lokales Café gezeigt. Ihre Arbeit ist großartig – sie hat ein tolles Gespür für Farben und Typografie. Allerdings hat sie zuletzt Stress mit verspäteten Kundenzahlungen.",
+					"createdAt": "DAYS_AGO:-6",
+					"updatedAt": "DAYS_AGO:-6"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Bei Emma wegen der Kundenzahlungen nachfragen",
+					"dueAtDate": "DAYS_FROM_NOW:2",
+					"createdAt": "DAYS_AGO:-6",
+					"updatedAt": "DAYS_AGO:-6"
+				},
+				{
+					"text": "Emma die Vorlage für Rechnungen schicken",
+					"dueAtDate": "DAYS_AGO:-4",
+					"done": true,
+					"createdAt": "DAYS_AGO:-6",
+					"updatedAt": "DAYS_AGO:-4"
+				}
+			],
+			"createdAt": "DAYS_AGO:-80",
+			"updatedAt": "DAYS_AGO:-6"
+		},
+		{
+			"name": "Dawid Kowalski",
+			"summary": "Trainingspartner im Fitnessstudio, Personal Trainer, studiert nebenbei Physiotherapie",
+			"avatar": "male4.jpg",
+			"notes": [
+				{
+					"content": "Personal Trainer in meinem Fitnessstudio",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-60",
+					"updatedAt": "DAYS_AGO:-60"
+				},
+				{
+					"content": "Studiert nebenbei Physiotherapie",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-60",
+					"updatedAt": "DAYS_AGO:-60"
+				},
+				{
+					"content": "Dawid hat mir heute beim Kreuzheben geholfen. Seine PT‑Bewerbungen stressen ihn, aber er bleibt positiv. Sein Wissen über Anatomie und Bewegung ist beeindruckend – er wird ein großartiger Physio.",
+					"createdAt": "DAYS_AGO:-4",
+					"updatedAt": "DAYS_AGO:-4"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Nach Dawids PT‑Bewerbungen fragen",
+					"dueAtDate": "DAYS_FROM_NOW:6",
+					"createdAt": "DAYS_AGO:-4",
+					"updatedAt": "DAYS_AGO:-4"
+				}
+			],
+			"createdAt": "DAYS_AGO:-70",
+			"updatedAt": "DAYS_AGO:-4"
+		},
+		{
+			"name": "Lisa & Tom Schmidt",
+			"summary": "Familienfreunde, Lisa ist Krankenschwester, Tom ist Ingenieur, kürzlich nach Portland gezogen",
+			"avatar": "couple2.jpg",
+			"notes": [
+				{
+					"content": "Familienfreunde, seit 15+ Jahren",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-100",
+					"updatedAt": "DAYS_AGO:-100"
+				},
+				{
+					"content": "Lisa ist Krankenschwester, Tom Bauingenieur, gerade nach Portland umgezogen",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-30",
+					"updatedAt": "DAYS_AGO:-30"
+				},
+				{
+					"content": "Videoanruf mit Lisa und Tom, um zu hören, wie es in Portland läuft. Sie mögen ihre neue Nachbarschaft und Tom hat schon eine Wandergruppe gefunden. Lisa gewöhnt sich an das neue Krankenhaus, mag aber ihr Team. Sie haben mich eingeladen, sobald sie richtig angekommen sind.",
+					"createdAt": "DAYS_AGO:-7",
+					"updatedAt": "DAYS_AGO:-7"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Besuch in Portland planen, sobald sie angekommen sind",
+					"dueAtDate": "DAYS_FROM_NOW:20",
+					"createdAt": "DAYS_AGO:-7",
+					"updatedAt": "DAYS_AGO:-7"
+				}
+			],
+			"createdAt": "DAYS_AGO:-120",
+			"updatedAt": "DAYS_AGO:-7"
+		},
+		{
+			"name": "Sophie Nguyen",
+			"summary": "Barista im Stammcafé, studiert Kunst, arbeitet an Keramik‑Serie",
+			"avatar": "female4.jpg",
+			"notes": [
+				{
+					"content": "Barista, studiert Kunst",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Arbeitet an Keramik‑Stücken, inspiriert von Meereswellen",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-90",
+					"updatedAt": "DAYS_AGO:-90"
+				},
+				{
+					"content": "Sophie ist aufgeregt wegen ihrer Kunstausstellung nächsten Monat. Ihre Begeisterung steckt an – sie macht meinen Morgenkaffee immer besser.",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Sophies Ausstellung im Kalender markieren",
+					"dueAtDate": "DAYS_FROM_NOW:28",
+					"createdAt": "DAYS_AGO:-3",
+					"updatedAt": "DAYS_AGO:-3"
+				}
+			],
+			"createdAt": "DAYS_AGO:-100",
+			"updatedAt": "DAYS_AGO:-3"
+		},
+		{
+			"name": "Mama",
+			"summary": "Pensionierte Krankenschwester, hilft im Tierheim, liebt Gartenarbeit und Kochen",
+			"avatar": "mom.jpg",
+			"notes": [
+				{
+					"content": "Pensionierte Krankenschwester, ehrenamtlich 3 Tage pro Woche im Tierheim",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-300",
+					"updatedAt": "DAYS_AGO:-300"
+				},
+				{
+					"content": "Hervorragende Köchin, baut Kräuter und Gemüse selbst an",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-300",
+					"updatedAt": "DAYS_AGO:-300"
+				},
+				{
+					"content": "Ich habe heute früh mit Mama video‑telefoniert. Sie pflegt einen neuen Pflegehund namens Buddy – ein lieber, aber noch nervöser Golden‑Retriever‑Mix. Ihr Garten blüht, und sie plant schon, was sie für den Winter einkocht. Wie immer fragte sie nach meinen Essgewohnheiten.",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Mama anrufen",
+					"dueAtDate": "DAYS_AGO:-1",
+					"done": true,
+					"repeat": { "interval": 3, "unit": "day" },
+					"createdAt": "DAYS_AGO:-20",
+					"updatedAt": "DAYS_AGO:-1"
+				},
+				{
+					"text": "Mama Fotos von gesunden Mahlzeiten schicken",
+					"dueAtDate": "DAYS_FROM_NOW:2",
+					"createdAt": "DAYS_AGO:-1",
+					"updatedAt": "DAYS_AGO:-1"
+				}
+			],
+			"createdAt": "DAYS_AGO:-400",
+			"updatedAt": "DAYS_AGO:-1"
+		},
+		{
+			"name": "Yusuf Demir",
+			"summary": "Freund aus der Schulzeit, Zahnarzt, verheiratet mit Leyla, lebt mit Zwillingen im Vorort",
+			"avatar": "male6.jpg",
+			"notes": [
+				{
+					"content": "Zahnarzt mit eigener Praxis",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-180",
+					"updatedAt": "DAYS_AGO:-180"
+				},
+				{
+					"content": "Verheiratet mit Leyla, Zwillinge Jan und Luca (6)",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-180",
+					"updatedAt": "DAYS_AGO:-180"
+				},
+				{
+					"content": "Ich habe Yusuf im Supermarkt getroffen. Die Zwillinge haben mit Fußball angefangen und lieben es, aber die Wochenenden sind dadurch ziemlich voll. Leyla arbeitet jetzt Teilzeit in einer Agentur. Yusuf wirkt müde, aber glücklich – das Elternsein steht ihm gut.",
+					"createdAt": "DAYS_AGO:-11",
+					"updatedAt": "DAYS_AGO:-11"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Nach der Fußball‑Saison der Zwillinge fragen",
+					"dueAtDate": "DAYS_FROM_NOW:15",
+					"createdAt": "DAYS_AGO:-11",
+					"updatedAt": "DAYS_AGO:-11"
+				}
+			],
+			"createdAt": "DAYS_AGO:-200",
+			"updatedAt": "DAYS_AGO:-11"
+		},
+		{
+			"name": "Amanda Becker",
+			"summary": "Kürzlich gelöscht – frühere Studienbekannte, die weggezogen ist",
+			"avatar": null,
+			"notes": [
+				{
+					"content": "Studienbekanntschaft, ist für die Arbeit nach Chicago gezogen",
+					"createdAt": "DAYS_AGO:-200",
+					"updatedAt": "DAYS_AGO:-200"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Bei Amanda nach Chicago erkundigen",
+					"dueAtDate": "DAYS_AGO:-45",
+					"deleted": true,
+					"deletedAt": "DAYS_AGO:-15",
+					"createdAt": "DAYS_AGO:-60",
+					"updatedAt": "DAYS_AGO:-45"
+				}
+			],
+			"deleted": true,
+			"deletedAt": "DAYS_AGO:-15",
+			"createdAt": "DAYS_AGO:-220",
+			"updatedAt": "DAYS_AGO:-15"
+		}
+	]
+}
