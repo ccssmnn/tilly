@@ -26,7 +26,7 @@ import type {
 
 export { cronDeliveryApp }
 
-let cronDeliveryApp = new Hono().post(
+let cronDeliveryApp = new Hono().get(
 	"/deliver-notifications",
 	bearerAuth({ token: CRON_SECRET }),
 	async c => {
