@@ -79,11 +79,8 @@ type LoadedNotificationSettings = NonNullable<
 
 function getEnabledDevices(
 	notificationSettings: LoadedNotificationSettings,
-	userId?: string,
 ): PushDevice[] {
 	let devices = notificationSettings.pushDevices.filter(d => d.isEnabled) || []
-	let logPrefix = userId ? `User ${userId}:` : "User"
-	console.log(`${logPrefix} has ${devices.length} enabled devices`)
 	return devices
 }
 
@@ -125,9 +122,6 @@ function markNotificationSettingsAsDelivered(
 	currentUtc: Date,
 ) {
 	notificationSettings.$jazz.set("lastDeliveredAt", currentUtc)
-	console.log(
-		`Marked notifications as delivered at ${currentUtc.toISOString()}`,
-	)
 }
 
 /**

@@ -30,6 +30,7 @@ let cronDeliveryApp = new Hono().post(
 	"/deliver-notifications",
 	bearerAuth({ token: CRON_SECRET }),
 	async c => {
+		console.log("🔔 Starting notification delivery cron job")
 		let deliveryResults: Array<{
 			userID: string
 			notificationCount: number
@@ -107,14 +108,13 @@ async function* userGenerator() {
 	}
 
 	console.log(
-		`Found ${jazzUsers} users with Jazz accounts out of ${totalUsers} total users`,
+		`🚀 Found ${jazzUsers} users with Jazz accounts out of ${totalUsers} total users`,
 	)
 }
 
 async function loadNotificationSettings(user: User) {
 	let workerResult = await tryCatch(initUserWorker(user))
 	if (!workerResult.ok) {
-		// Don't localize this since we don't have worker access yet
 		throw `Failed to init worker - ${workerResult.error}`
 	}
 
@@ -125,6 +125,8 @@ async function loadNotificationSettings(user: User) {
 	if (!notificationSettings) {
 		throw "No notification settings configured"
 	}
+
+	console.log(`✅ User ${user.id}: Loaded notification settings`)
 
 	return {
 		user,
@@ -138,9 +140,10 @@ async function shouldReceiveNotification<
 	T extends {
 		notificationSettings: LoadedNotificationSettings
 		currentUtc: Date
+		user: User
 	},
 >(data: T) {
-	let { notificationSettings, currentUtc } = data
+	let { notificationSettings, currentUtc, user } = data
 
 	if (!isPastNotificationTime(notificationSettings, currentUtc)) {
 		let userTimezone = notificationSettings.timezone || "UTC"
@@ -161,6 +164,8 @@ async function shouldReceiveNotification<
 		throw `Already delivered today (last delivered: ${lastDelivered})`
 	}
 
+	console.log(`✅ User ${user.id}: Passed notification time checks`)
+
 	return data
 }
 
@@ -177,7 +182,10 @@ async function hasDueNotifications(
 		userAccountWithPeople,
 		notificationSettings,
 		currentUtc,
-		user.id,
+	)
+
+	console.log(
+		`✅ User ${user.id}: Checked due reminders (${dueReminderCount} found)`,
 	)
 
 	return {
@@ -195,15 +203,16 @@ async function getDevices(
 	let { user, notificationSettings } = data
 
 	if (data.dueReminderCount === 0) {
+		console.log(`✅ User ${user.id}: No due reminders to notify about`)
 		return {
 			...data,
 			devices: [],
 		}
 	}
 
-	let enabledDevices = getEnabledDevices(notificationSettings, user.id)
+	let enabledDevices = getEnabledDevices(notificationSettings)
 	if (enabledDevices.length === 0) {
-		console.log(`❌ User ${user.id}: No enabled devices`)
+		console.log(`✅ User ${user.id}: No enabled devices`)
 		return {
 			...data,
 			devices: [],
@@ -232,20 +241,21 @@ async function processDevicesPipeline(
 		currentUtc,
 	} = userWithDevices
 
-	if (dueReminderCount === 0) {
+	if (devices.length === 0) {
 		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
 		await worker.$jazz.waitForSync()
 		console.log(
-			`✅ User ${user.id}: No due reminders, marked as delivered for today`,
+			`✅ User ${user.id}: Marked as delivered (skipped - no action needed)`,
 		)
 		return [
 			{
 				userID: user.id,
-				notificationCount: dueReminderCount,
+				notificationCount: 0,
 				success: true,
 			},
 		]
 	}
+
 	let payload = createLocalizedNotificationPayload(
 		dueReminderCount,
 		user.id,
@@ -270,7 +280,7 @@ async function processDevicesPipeline(
 					: result.reason?.message || result.reason || "Unknown error"
 
 			console.error(
-				`Failed to send notification to device ${devices[i].endpoint}:`,
+				`❌ User ${user.id}: Failed to send to device ${devices[i].endpoint.slice(-10)}:`,
 				error,
 			)
 		} else {
@@ -282,11 +292,12 @@ async function processDevicesPipeline(
 		return { success }
 	})
 
-	// Aggregate user-level success (at least one device succeeded)
 	let userSuccess = deviceResults.some(r => r.success)
 
 	markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
 	await worker.$jazz.waitForSync()
+
+	console.log(`✅ User ${user.id}: Completed notification delivery`)
 
 	return [
 		{
@@ -344,7 +355,6 @@ function getDueReminderCount(
 	userAccount: LoadedUserAccountWithPeople,
 	notificationSettings: LoadedNotificationSettings,
 	currentUtc: Date,
-	userId?: string,
 ): number {
 	let userTimezone = notificationSettings.timezone || "UTC"
 	let userLocalTime = toZonedTime(currentUtc, userTimezone)
@@ -364,10 +374,6 @@ function getDueReminderCount(
 			}
 		}
 	}
-	let logPrefix = userId ? `User ${userId}:` : "User"
-	console.log(
-		`${logPrefix} has ${dueReminderCount} due reminders in timezone ${userTimezone}`,
-	)
 	return dueReminderCount
 }
 
