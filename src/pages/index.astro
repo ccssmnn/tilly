@@ -1,4 +1,66 @@
 ---
-// Redirect root to default locale
-return Astro.redirect("/en/", 301)
+// This page should never be shown - middleware redirects "/" based on browser language.
+// However, Vercel 404s without this file, so we keep it as a fallback.
+// If it does show up, at least it's beautiful and useful.
+
+import "#app/index.css"
+
+export let prerender = false
+
+let requestUrl = new URL(Astro.request.url)
+let siteBaseUrl = Astro.site ?? new URL(requestUrl.origin)
+let canonicalUrl = new URL(
+	requestUrl.pathname + requestUrl.search,
+	siteBaseUrl,
+).toString()
+let ogImageUrl = new URL("/og.png", siteBaseUrl).toString()
+let pageTitle = "Tilly - Personal Relation Helper"
+let metaDescription =
+	"remember what's important and stay in touch with your friends and loved ones."
 ---
+
+<!doctype html>
+<html lang="en" class="overscroll-y-none bg-background">
+	<head>
+		<title>{pageTitle}</title>
+		<meta name="description" content={metaDescription} />
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="canonical" href={canonicalUrl} />
+		<meta
+			name="viewport"
+			content="initial-scale=1, viewport-fit=cover, width=device-width, user-scalable=no"
+		/>
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={metaDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={metaDescription} />
+		<meta name="twitter:image" content={ogImageUrl} />
+	</head>
+	<body class="bg-background text-foreground">
+		<div class="flex min-h-screen flex-col items-center justify-center gap-8">
+			<img src="/app/icons/icon-192x192.png" class="h-24 w-24 rounded-lg" />
+			<h1 class="text-3xl font-semibold">Tilly</h1>
+			<div class="flex flex-col gap-3">
+				<a
+					href="/en/"
+					class="rounded-lg bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
+				>
+					Continue in English 🇺🇸
+				</a>
+				<a
+					href="/de/"
+					class="rounded-lg bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
+				>
+					Weiter auf Deutsch 🇩🇪
+				</a>
+			</div>
+		</div>
+	</body>
+</html>
