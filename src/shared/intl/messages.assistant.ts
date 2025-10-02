@@ -6,10 +6,10 @@ const baseAssistantMessages = messages({
 	// Assistant interface messages
 	"assistant.title": "Chat with Tilly",
 	"assistant.pageTitle": "Chat - Tilly",
-	"assistant.subscribe.title": "Tilly AI Assistant (Plus)",
+	"assistant.subscribe.title": "Unlock Tilly Agent",
 	"assistant.subscribe.description":
-		"Tilly's AI assistant helps you keep track and suggests reminders.",
-	"assistant.subscribe.manage": "Go to settings",
+		"Your AI assistant that reads and writes your relationship journal. Just talk about your day naturally - Tilly finds people, adds notes, and suggests reminders. Get caught up before meetings or get help writing messages.\n\nTry free for 7 days, then $6/month. Manage subscription in account settings.",
+	"assistant.subscribe.settings": "Go to Account Settings",
 	"assistant.subscribe.currentPlan": "Current plan: {$plan}",
 	"assistant.subscribe.currentPlan.unknown": "Unknown",
 	"assistant.subscribe.trialStatus": "Free trial active",
@@ -168,10 +168,10 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	// Assistant interface messages
 	"assistant.title": "Mit Tilly chatten",
 	"assistant.pageTitle": "Chat - Tilly",
-	"assistant.subscribe.title": "Tilly KI Assistent (Plus)",
+	"assistant.subscribe.title": "Tilly-Agent freischalten",
 	"assistant.subscribe.description":
-		"Der KI-Assistent von Tilly hilft dabei, dir das wichtigste zu merken.",
-	"assistant.subscribe.manage": "Zu den Einstellungen",
+		"Dein KI-Assistent, der dein Beziehungstagebuch liest und schreibt. Erzähle einfach natürlich von deinem Tag - Tilly findet Personen, fügt Notizen hinzu und schlägt Erinnerungen vor. Lass dich vor Treffen auf den neuesten Stand bringen oder erhalte Hilfe beim Nachrichtenschreiben.\n\n7 Tage kostenlos testen, dann 6€/Monat. Abonnement in den Kontoeinstellungen verwalten.",
+	"assistant.subscribe.settings": "Zu den Kontoeinstellungen",
 	"assistant.subscribe.currentPlan": "Aktueller Tarif: {$plan}",
 	"assistant.subscribe.currentPlan.unknown": "Unbekannt",
 	"assistant.subscribe.trialStatus": "Kostenlose Testphase aktiv",

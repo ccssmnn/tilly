@@ -97,26 +97,23 @@ function AssistantLoading() {
 
 function SubscribePrompt({ isSignedIn }: { isSignedIn: boolean }) {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-around gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
-			<div className="space-y-4">
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 md:min-h-[calc(100dvh-6rem)]">
+			<div className="mx-auto w-full max-w-md space-y-6 text-center">
 				<Chat className="text-muted-foreground mx-auto size-12" />
-				<div className="space-y-2">
+				<div className="space-y-3">
 					<h2 className="text-xl font-semibold">
 						<T k="assistant.subscribe.title" />
 					</h2>
-					<p className="text-muted-foreground">
+					<p className="text-muted-foreground whitespace-pre-line text-sm">
 						<T k="assistant.subscribe.description" />
 					</p>
 				</div>
-				{isSignedIn && (
-					<Button asChild>
-						<Link to="/settings">
-							<T k="assistant.subscribe.manage" />
-						</Link>
-					</Button>
-				)}
+				<Button asChild>
+					<Link to="/settings">
+						<T k="assistant.subscribe.settings" />
+					</Link>
+				</Button>
 			</div>
-			{isSignedIn ? null : <SignInRequired />}
 		</div>
 	)
 }

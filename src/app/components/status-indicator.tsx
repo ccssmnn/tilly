@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { CloudSlash, ArrowClockwise, PersonX } from "react-bootstrap-icons"
-import { useUser } from "@clerk/clerk-react"
+import { useAuth } from "@clerk/clerk-react"
 import { Link } from "@tanstack/react-router"
 import { Button } from "#shared/ui/button"
 import {
@@ -23,7 +23,7 @@ export { StatusIndicator }
 function StatusIndicator() {
 	let { updateAvailable } = useServiceWorkerUpdate()
 	let isOnline = useOnlineStatus()
-	let { user } = useUser()
+	let { isLoaded, isSignedIn } = useAuth()
 
 	if (!isOnline) {
 		return <OfflineIndicator />
@@ -33,7 +33,7 @@ function StatusIndicator() {
 		return <UpdateIndicator />
 	}
 
-	if (!user) {
+	if (isLoaded && !isSignedIn) {
 		return <NotSignedInIndicator />
 	}
 
@@ -48,10 +48,9 @@ function OfflineIndicator() {
 		<Dialog>
 			<DialogTrigger asChild>
 				<Button
-					size="icon"
 					title={t("status.offline.tooltip")}
 					variant="secondary"
-					className="absolute top-3 right-3"
+					className="absolute top-3 right-3 md:gap-2"
 					style={
 						isMobile
 							? {
@@ -62,6 +61,9 @@ function OfflineIndicator() {
 					}
 				>
 					<CloudSlash />
+					<span className="hidden md:inline">
+						<T k="status.offline.tooltip" />
+					</span>
 				</Button>
 			</DialogTrigger>
 			<DialogContent
@@ -119,9 +121,8 @@ function UpdateIndicator() {
 		<Dialog>
 			<DialogTrigger asChild>
 				<Button
-					size="icon"
 					title={t("status.update.tooltip")}
-					className="absolute top-3 right-3"
+					className="absolute top-3 right-3 md:gap-2"
 					style={
 						isMobile
 							? {
@@ -132,6 +133,9 @@ function UpdateIndicator() {
 					}
 				>
 					<ArrowClockwise />
+					<span className="hidden md:inline">
+						<T k="status.update.tooltip" />
+					</span>
 				</Button>
 			</DialogTrigger>
 			<DialogContent
@@ -175,10 +179,9 @@ function NotSignedInIndicator() {
 		<Dialog>
 			<DialogTrigger asChild>
 				<Button
-					size="icon"
 					title={t("status.notSignedIn.tooltip")}
 					variant="warning"
-					className="absolute top-3 right-3"
+					className="absolute top-3 right-3 md:gap-2"
 					style={
 						isMobile
 							? {
@@ -189,6 +192,9 @@ function NotSignedInIndicator() {
 					}
 				>
 					<PersonX />
+					<span className="hidden md:inline">
+						<T k="status.notSignedIn.tooltip" />
+					</span>
 				</Button>
 			</DialogTrigger>
 			<DialogContent
@@ -198,9 +204,7 @@ function NotSignedInIndicator() {
 							<T k="status.notSignedIn.dialog.title" />
 						</DialogTitle>
 						<DialogDescription>
-							<TypographyMuted>
-								<T k="status.notSignedIn.description" />
-							</TypographyMuted>
+							<T k="status.notSignedIn.description" />
 						</DialogDescription>
 					</DialogHeader>
 				}
@@ -210,27 +214,27 @@ function NotSignedInIndicator() {
 						<T k="status.notSignedIn.warning" />
 					</TypographyMuted>
 					<ul className="space-y-1">
-						<TypographyMuted className="text-xs">
-							<T k="status.notSignedIn.feature.local" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.notSignedIn.feature.agent.disabled" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.notSignedIn.feature.sync.disabled" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.notSignedIn.feature.notifications.disabled" />
-						</TypographyMuted>
+						<T
+							k="status.notSignedIn.features"
+							components={{
+								li: ({ children }: { children: React.ReactNode }) => (
+									<TypographyMuted className="text-xs">
+										{children}
+									</TypographyMuted>
+								),
+							}}
+						/>
 					</ul>
 					<TypographyMuted>
 						<T k="status.notSignedIn.benefits" />
 					</TypographyMuted>
-					<Button asChild className="w-full">
-						<Link to="/settings">
-							<T k="status.notSignedIn.signIn" />
-						</Link>
-					</Button>
+					<DialogClose asChild>
+						<Button asChild className="w-full">
+							<Link to="/settings">
+								<T k="status.notSignedIn.signIn" />
+							</Link>
+						</Button>
+					</DialogClose>
 				</div>
 			</DialogContent>
 		</Dialog>

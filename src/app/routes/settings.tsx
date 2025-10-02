@@ -186,7 +186,7 @@ function AuthenticationSection() {
 							: t("settings.auth.status.signedOut")}
 					</p>
 				</div>
-				{auth.isLoaded && (
+				{auth.isLoaded && auth.isSignedIn && (
 					<div>
 						<p className="mb-1 text-sm font-medium">
 							<T k="settings.auth.tier.label" />
