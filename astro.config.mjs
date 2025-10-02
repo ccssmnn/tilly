@@ -9,7 +9,9 @@ import vercel from "@astrojs/vercel"
 import node from "@astrojs/node"
 
 let useNodeAdapter = process.env.ASTRO_ADAPTER === "node"
-let runtimeAdapter = useNodeAdapter ? node({ mode: "standalone" }) : vercel()
+let runtimeAdapter = useNodeAdapter
+	? node({ mode: "standalone" })
+	: vercel({ edgeMiddleware: true })
 
 export default defineConfig({
 	output: "server",
