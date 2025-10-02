@@ -18,9 +18,6 @@ const baseUiMessages = messages({
 	"auth.signIn.requiresInternet": "Requires internet connection",
 	"auth.signIn.button": "Sign In",
 	"auth.signInRequired": "Sign In Required",
-	"auth.plusRequired.title": "Tilly Plus Required",
-	"auth.plusRequired.description":
-		"Open Settings to sign in with a Plus subscription before using the assistant.",
 	"auth.goToSettings": "Go to Settings to sign in",
 	"auth.settingsLink": "Sign in via Settings",
 
@@ -145,9 +142,6 @@ const deUiMessages = translate(baseUiMessages, {
 	"auth.signIn.requiresInternet": "Benötigt Internetverbindung",
 	"auth.signIn.button": "Anmelden",
 	"auth.signInRequired": "Anmeldung erforderlich",
-	"auth.plusRequired.title": "Tilly Plus erforderlich",
-	"auth.plusRequired.description":
-		"Öffne die Einstellungen, um dich mit einem Plus-Abonnement anzumelden und den Assistenten zu nutzen.",
 	"auth.goToSettings": "Gehe zu Einstellungen zum Anmelden",
 	"auth.settingsLink": "Über Einstellungen anmelden",
 

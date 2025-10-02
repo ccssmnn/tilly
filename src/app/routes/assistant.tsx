@@ -27,7 +27,6 @@ import { MessageRenderer } from "#app/features/assistant-message-components"
 import { useAppStore } from "#app/lib/store"
 import { nanoid } from "nanoid"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
-import { SignInRequired } from "#app/features/auth-required"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAuth } from "@clerk/clerk-react"
 import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
@@ -60,7 +59,7 @@ function AssistantScreen() {
 	if (access.status === "denied") {
 		return (
 			<AssistantLayout>
-				<SubscribePrompt isSignedIn={access.isSignedIn} />
+				<SubscribePrompt />
 			</AssistantLayout>
 		)
 	}
@@ -95,7 +94,7 @@ function AssistantLoading() {
 	)
 }
 
-function SubscribePrompt({ isSignedIn }: { isSignedIn: boolean }) {
+function SubscribePrompt() {
 	return (
 		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 md:min-h-[calc(100dvh-6rem)]">
 			<div className="mx-auto w-full max-w-md space-y-6 text-center">
