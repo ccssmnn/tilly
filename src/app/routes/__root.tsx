@@ -21,7 +21,7 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "#shared/ui/accordion"
-import { T, useIntl } from "#shared/intl/setup"
+import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { StatusIndicator } from "#app/components/status-indicator"
 import { ScrollReset } from "#app/components/scroll-reset"
 
@@ -86,6 +86,7 @@ function RootComponent() {
 
 function ErrorComponent({ error }: { error?: Error }) {
 	let t = useIntl()
+	let locale = useLocale()
 	async function handleCopyError(error: Error) {
 		let errorText = `Error Message:\n${error.message}\n\nStack Trace:\n${error.stack || "No stack trace available"}`
 
@@ -112,7 +113,7 @@ function ErrorComponent({ error }: { error?: Error }) {
 						<T k="error.description" />
 					</p>
 					<a
-						href="/feedback"
+						href={`/${locale}/feedback`}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-primary text-sm hover:underline"

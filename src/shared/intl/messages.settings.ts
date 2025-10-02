@@ -318,6 +318,17 @@ const baseSettingsMessages = messages({
 	"status.update.updating": "Updating...",
 	"status.update.updateNow": "Update Now",
 	"status.update.later": "Later",
+	"status.notSignedIn.tooltip": "Not signed in",
+	"status.notSignedIn.dialog.title": "Not Signed In",
+	"status.notSignedIn.description":
+		"You're using Tilly without an account. Your data is stored only in this browser and may be lost.",
+	"status.notSignedIn.warning":
+		"⚠️ Browser storage is not guaranteed to be persistent. Export your data regularly or sign in to prevent data loss.",
+	"status.notSignedIn.features":
+		"{#li}✅ All core features work locally{/li}{#li}❌ Tilly Agent (requires Plus subscription){/li}{#li}❌ Sync across devices{/li}{#li}❌ Push notifications{/li}",
+	"status.notSignedIn.signIn": "Sign In (Free)",
+	"status.notSignedIn.benefits":
+		"👉 Sign in to sync your data across devices and never lose it. It's free!",
 })
 
 const deSettingsMessages = translate(baseSettingsMessages, {
@@ -645,4 +656,15 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"status.update.updating": "Wird aktualisiert...",
 	"status.update.updateNow": "Jetzt aktualisieren",
 	"status.update.later": "Später",
+	"status.notSignedIn.tooltip": "Nicht angemeldet",
+	"status.notSignedIn.dialog.title": "Nicht angemeldet",
+	"status.notSignedIn.description":
+		"Du nutzt Tilly ohne Konto. Deine Daten werden nur in diesem Browser gespeichert und könnten verloren gehen.",
+	"status.notSignedIn.warning":
+		"⚠️ Browser-Speicher kann vom Betriebssystem zurückgesetzt werden. Exportiere deine Daten regelmäßig oder melde dich an, um Datenverlust zu vermeiden.",
+	"status.notSignedIn.features":
+		"{#li}✅ Alle Kernfunktionen funktionieren lokal{/li}{#li}❌ Tilly-Agent (benötigt Plus-Abo){/li}{#li}❌ Synchronisierung über Geräte hinweg{/li}{#li}❌ Push-Benachrichtigungen{/li}",
+	"status.notSignedIn.signIn": "Anmelden (kostenlos)",
+	"status.notSignedIn.benefits":
+		"👉 Melde dich an, um deine Daten über Geräte hinweg zu synchronisieren und nie zu verlieren. Es ist kostenlos!",
 })

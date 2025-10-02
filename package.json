@@ -8,7 +8,7 @@
 		"build:node": "ASTRO_ADAPTER=node astro check && ASTRO_ADAPTER=node astro build",
 		"preview": "astro preview",
 		"preview:node": "ASTRO_ADAPTER=node astro preview",
-		"check": "astro check",
+		"check": "astro check && prettier --check .",
 		"format": "prettier -w .",
 		"test": "vitest",
 		"test:run": "vitest run"
