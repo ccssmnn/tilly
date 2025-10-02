@@ -35,6 +35,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 		state => state.setPWAInstallHintDismissed,
 	)
 	let hideInstallNavItem = useAppStore(state => state.hideInstallNavItem)
+	let setHideInstallNavItem = useAppStore(state => state.setHideInstallNavItem)
 
 	let shouldShowPWAButton =
 		isMobileDevice && !isPWAInstalled && !hideInstallNavItem
@@ -237,7 +238,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 				open={showPWADialog}
 				onOpenChange={handlePWADialogClose}
 				onInstallComplete={handlePWAInstallComplete}
-				onDismiss={() => setPWAInstallHintDismissed(true)}
+				onDismiss={() => setHideInstallNavItem(true)}
 			/>
 		</>
 	)
