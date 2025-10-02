@@ -103,7 +103,7 @@ function SubscribePrompt() {
 					<h2 className="text-xl font-semibold">
 						<T k="assistant.subscribe.title" />
 					</h2>
-					<p className="text-muted-foreground whitespace-pre-line text-sm">
+					<p className="text-muted-foreground text-sm whitespace-pre-line">
 						<T k="assistant.subscribe.description" />
 					</p>
 				</div>
