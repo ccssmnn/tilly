@@ -1,0 +1,117 @@
+---
+import MinimalMarketingLayout from "#www/layouts/MinimalMarketingLayout.astro"
+import { Navbar } from "#www/components/Navbar"
+import { Footer } from "#www/components/Footer"
+import { getCollection } from "astro:content"
+
+export const prerender = true
+
+let allPosts = await getCollection("blog")
+let posts = allPosts
+	.filter(post => post.id.endsWith("/en"))
+	.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf())
+---
+
+<MinimalMarketingLayout
+	title="Blog - Tilly"
+	description="Tips and tricks on being a better friend with Tilly"
+>
+	<Navbar
+		locale="en"
+		client:load
+		logo={{
+			text: "Tilly",
+			href: "/en/",
+		}}
+		navigation={[
+			{ name: "Features", href: "/en/#features" },
+			{ name: "Experience", href: "/en/#experience" },
+			{ name: "FAQ", href: "/en/#faq" },
+			{ name: "Blog", href: "/en/blog" },
+		]}
+		cta={{
+			text: "Go to App",
+			href: "/app",
+		}}
+		languages={[
+			{ name: "English", href: "/en/blog" },
+			{ name: "Deutsch", href: "/de/blog" },
+		]}
+	/>
+
+	<main class="container mx-auto px-6 py-12 md:px-8 md:py-24">
+		<div class="mx-auto max-w-3xl">
+			<h1 class="text-4xl font-bold tracking-tight md:text-5xl">Blog</h1>
+			<p class="text-muted-foreground mt-4 text-lg">
+				Tips and tricks on being a better friend with Tilly
+			</p>
+
+			<div class="mt-12 space-y-8">
+				{posts.map(post => {
+					let slug = post.id.replace("/en", "")
+					return (
+						<article class="border-border border-b pb-8">
+							<a href={`/en/blog/${slug}`} class="group">
+								<h2 class="group-hover:text-primary text-2xl font-bold transition-colors">
+									{post.data.title}
+								</h2>
+								<p class="text-muted-foreground mt-2">
+									{post.data.description}
+								</p>
+								<div class="mt-3 flex items-center gap-4 text-sm">
+									<time class="text-muted-foreground">
+										{post.data.pubDate}
+									</time>
+									<div class="flex gap-2">
+										{post.data.tags.map(tag => (
+											<span class="bg-muted text-muted-foreground rounded px-2 py-1 text-xs">
+												{tag}
+											</span>
+										))}
+									</div>
+								</div>
+							</a>
+						</article>
+					)
+				})}
+			</div>
+		</div>
+	</main>
+
+	<Footer
+		navigation={{
+			main: [
+				{ name: "Features", href: "/en/#features" },
+				{ name: "Experience", href: "/en/#experience" },
+				{ name: "FAQ", href: "/en/#faq" },
+				{ name: "Blog", href: "/en/blog" },
+				{ name: "Imprint", href: "/en/imprint" },
+				{ name: "Privacy", href: "/en/privacy" },
+			],
+			social: [
+				{
+					name: "Twitter",
+					href: "https://twitter.com/tillydotsocial",
+					icon: "Twitter",
+				},
+				{
+					name: "Instagram",
+					href: "https://instagram.com/tilly.social",
+					icon: "Instagram",
+				},
+				{
+					name: "GitHub",
+					href: "https://github.com/ccssmnn/tilly",
+					icon: "Github",
+				},
+			],
+			languages: [
+				{ name: "English", href: "/en/blog" },
+				{ name: "Deutsch", href: "/de/blog" },
+			],
+		}}
+		company={{
+			name: "Tilly",
+		}}
+	/>
+</MinimalMarketingLayout>
