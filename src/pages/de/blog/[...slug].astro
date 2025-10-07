@@ -1,0 +1,122 @@
+---
+import MinimalMarketingLayout from "#www/layouts/MinimalMarketingLayout.astro"
+import { Navbar } from "#www/components/Navbar"
+import { Footer } from "#www/components/Footer"
+import { getCollection, render } from "astro:content"
+
+export const prerender = true
+
+export async function getStaticPaths() {
+	let posts = await getCollection("blog")
+	let dePosts = posts.filter(post => post.id.endsWith("/de"))
+
+	return dePosts.map(post => ({
+		params: { slug: post.id.replace("/de", "") },
+		props: { post },
+	}))
+}
+
+let { post } = Astro.props
+if (!post) {
+	throw new Error(`Post not found in props. Slug: ${Astro.params.slug}`)
+}
+let { Content } = await render(post)
+---
+
+<MinimalMarketingLayout
+	title={`${post.data.title} - Tilly Blog`}
+	description={post.data.description}
+>
+	<Navbar
+		locale="de"
+		client:load
+		logo={{
+			text: "Tilly",
+			href: "/de/",
+		}}
+		navigation={[
+			{ name: "Funktionen", href: "/de/#features" },
+			{ name: "Tarife", href: "/de/#experience" },
+			{ name: "FAQ", href: "/de/#faq" },
+			{ name: "Blog", href: "/de/blog" },
+		]}
+		cta={{
+			text: "Zur App",
+			href: "/app",
+		}}
+		languages={[
+			{ name: "English", href: `/en/blog/${post.id.replace("/de", "")}` },
+			{ name: "Deutsch", href: `/de/blog/${post.id.replace("/de", "")}` },
+		]}
+	/>
+
+	<main class="container mx-auto px-6 py-12 md:px-8 md:py-24">
+		<article class="prose prose-lg dark:prose-invert mx-auto max-w-3xl">
+			<div class="not-prose mb-8">
+				<a
+					href="/de/blog"
+					class="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm transition-colors"
+				>
+					← Zurück zum Blog
+				</a>
+				<h1 class="text-4xl font-bold tracking-tight md:text-5xl">
+					{post.data.title}
+				</h1>
+				<p class="text-muted-foreground mt-4 text-lg">
+					{post.data.description}
+				</p>
+				<div class="mt-4 flex items-center gap-4 text-sm">
+					<time class="text-muted-foreground">
+						{post.data.pubDate}
+					</time>
+					<div class="flex gap-2">
+						{post.data.tags.map(tag => (
+							<span class="bg-muted text-muted-foreground rounded px-2 py-1 text-xs">
+								{tag}
+							</span>
+						))}
+					</div>
+				</div>
+			</div>
+
+			<Content />
+		</article>
+	</main>
+
+	<Footer
+		navigation={{
+			main: [
+				{ name: "Funktionen", href: "/de/#features" },
+				{ name: "Tarife", href: "/de/#experience" },
+				{ name: "FAQ", href: "/de/#faq" },
+				{ name: "Blog", href: "/de/blog" },
+				{ name: "Impressum", href: "/de/imprint" },
+				{ name: "Datenschutz", href: "/de/privacy" },
+			],
+			social: [
+				{
+					name: "Twitter",
+					href: "https://twitter.com/tillydotsocial",
+					icon: "Twitter",
+				},
+				{
+					name: "Instagram",
+					href: "https://instagram.com/tilly.social",
+					icon: "Instagram",
+				},
+				{
+					name: "GitHub",
+					href: "https://github.com/ccssmnn/tilly",
+					icon: "Github",
+				},
+			],
+			languages: [
+				{ name: "English", href: "/en/blog" },
+				{ name: "Deutsch", href: "/de/blog" },
+			],
+		}}
+		company={{
+			name: "Tilly",
+		}}
+	/>
+</MinimalMarketingLayout>
