@@ -1,7 +1,7 @@
 ---
 title: "How to Self-Host Tilly"
 description: "A complete guide to hosting your own instance of Tilly with full control over your data and infrastructure"
-pubDate: "January 15 2025"
+pubDate: "October 7 2025"
 tags: ["technical"]
 ---
 
@@ -22,7 +22,7 @@ Tilly has both data import and export via JSON (in Settings). You can:
 
 - Export from the official deployment and use your data in development or your own deployment (I use this myself for debugging)
 - Move your data between instances anytime
-- Come back to the official version whenever you want
+- Come back to the official version whenever you want (I'd love that 😊)
 
 No lock-in, ever.
 
@@ -87,7 +87,7 @@ Hit deploy! Vercel will build and deploy your Tilly instance.
 
 ### 8. (Optional) Import Your Data
 
-If you're using the official Tilly deployment, you can export all your data as JSON and import it into your self-hosted instance. This works in both directions—you can always move your data back if needed.
+If you're using the official Tilly deployment, you can export all your data as JSON and import it into your self-hosted instance. This works in both directions, you can always move your data back if needed (please do 😊).
 
 ## Bonus: Skip Website
 
@@ -99,4 +99,4 @@ Check the `vercel.json` file in the repository to see the current configuration 
 
 That's it! You now have your own Tilly instance with full control over your data. The entire setup takes maybe 30 minutes, and you can always move your data between instances using JSON export/import.
 
-Self-hosting Tilly is genuinely easy, and I want to keep it that way. If you run into issues, open an issue on [GitHub](https://github.com/ccssmnn/tilly)—I'm happy to help.
+Self-hosting Tilly is genuinely easy, and I want to keep it that way. If you run into issues, open an issue on [GitHub](https://github.com/ccssmnn/tilly). I'm happy to help.

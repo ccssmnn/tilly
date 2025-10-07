@@ -1,7 +1,7 @@
 ---
 title: "Tilly selbst hosten"
 description: "Eine vollständige Anleitung zum Hosten deiner eigenen Tilly-Instanz mit voller Kontrolle über deine Daten und Infrastruktur"
-pubDate: "15. Januar 2025"
+pubDate: "7. Oktober 2025"
 tags: ["technical"]
 ---
 
@@ -22,7 +22,7 @@ Tilly hat sowohl Datenimport als auch -export via JSON (in den Einstellungen). D
 
 - Von der offiziellen Instanz exportieren und deine Daten in der Entwicklung oder deinem eigenen Deployment nutzen (ich nutze das selbst zum Debuggen)
 - Deine Daten jederzeit zwischen Instanzen verschieben
-- Jederzeit zur offiziellen Version zurückkommen
+- Jederzeit zur offiziellen Version zurückkommen (würde mich freuen 😊)
 
 Kein Lock-in, niemals.
 
@@ -87,7 +87,7 @@ Drücke auf Deploy! Vercel wird deine Tilly-Instanz bauen und deployen.
 
 ### 8. (Optional) Daten importieren
 
-Falls du die offizielle Tilly-Instanz nutzt, kannst du alle deine Daten als JSON exportieren und in deine selbst gehostete Instanz importieren. Das funktioniert in beide Richtungen—du kannst deine Daten jederzeit zurückverschieben, wenn nötig.
+Falls du die offizielle Tilly-Instanz nutzt, kannst du alle deine Daten als JSON exportieren und in deine selbst gehostete Instanz importieren. Das funktioniert in beide Richtungen, du kannst deine Daten jederzeit zurückverschieben, wenn nötig (bitte tu das 😊).
 
 ## Bonus: Website überspringen
 
@@ -99,4 +99,4 @@ Schau dir die `vercel.json`-Datei im Repository an, um die aktuelle Konfiguratio
 
 Das war's! Du hast jetzt deine eigene Tilly-Instanz mit voller Kontrolle über deine Daten. Das gesamte Setup dauert vielleicht 30 Minuten, und du kannst deine Daten jederzeit zwischen Instanzen verschieben per JSON-Export/Import.
 
-Tilly selbst zu hosten ist wirklich einfach, und ich möchte es so halten. Falls du auf Probleme stößt, öffne ein Issue auf [GitHub](https://github.com/ccssmnn/tilly)—ich helfe gerne weiter.
+Tilly selbst zu hosten ist wirklich einfach, und ich möchte es so halten. Falls du auf Probleme stößt, öffne ein Issue auf [GitHub](https://github.com/ccssmnn/tilly). Ich helfe gerne weiter.

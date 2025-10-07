@@ -58,7 +58,7 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 							</Button>
 						))}
 						{languages && (
-							<DropdownMenu>
+							<DropdownMenu modal={false}>
 								<DropdownMenuTrigger asChild>
 									<Button variant="ghost" size="icon">
 										{currentLanguageEmoji}
@@ -76,7 +76,7 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 					</div>
 					<div className="flex gap-3">
 						{languages && (
-							<DropdownMenu>
+							<DropdownMenu modal={false}>
 								<DropdownMenuTrigger asChild>
 									<Button variant="ghost" className="md:hidden" size="icon">
 										{currentLanguageEmoji}
