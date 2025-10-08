@@ -115,7 +115,6 @@ type ListRemindersResult = {
 		id: string
 		text: string
 		dueAtDate?: string
-		dueAt?: string
 		repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
 		done: boolean
 		createdAt: string
