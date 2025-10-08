@@ -8,6 +8,7 @@ let blog = defineCollection({
 		description: z.string(),
 		pubDate: z.string(),
 		tags: z.array(z.string()),
+		ogImage: z.string().optional(),
 	}),
 })
 

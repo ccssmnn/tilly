@@ -121,7 +121,7 @@ const baseAssistantMessages = messages({
 	"tool.reminder.created.dialog.section": "Reminder",
 	"tool.reminder.created.undo.success": '✅ Undo: Deleted reminder "{$text}"',
 	"tool.reminder.noDate": "No date",
-	"tool.reminder.repeats": "• Repeats every {$interval :number} {$unit}(s)",
+	"tool.reminder.repeats": "Repeats every {$interval :number} {$unit}(s)",
 	"tool.reminder.done": "Done",
 	"tool.reminder.notDone": "Not done",
 	"tool.reminder.updated.message": "Updated reminder",
@@ -290,7 +290,7 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		'✅ Rückgängig: Erinnerung "{$text}" gelöscht',
 	"tool.reminder.noDate": "Kein Datum",
 	"tool.reminder.repeats":
-		"• Wiederholt sich alle {$interval :number} {$unit}(e)",
+		"Wiederholt sich alle {$interval :number} {$unit}(e)",
 	"tool.reminder.done": "Erledigt",
 	"tool.reminder.notDone": "Nicht erledigt",
 	"tool.reminder.updated.message": "Erinnerung aktualisiert",

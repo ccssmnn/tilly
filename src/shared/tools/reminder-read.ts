@@ -115,7 +115,6 @@ type ListRemindersResult = {
 		id: string
 		text: string
 		dueAtDate?: string
-		dueAt?: string
 		repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
 		done: boolean
 		createdAt: string
@@ -167,7 +166,6 @@ let listRemindersTool = tool({
 					id: z.string(),
 					text: z.string(),
 					dueAtDate: z.string().optional(),
-					dueAt: z.string().optional(),
 					repeat: z
 						.object({
 							interval: z.number(),

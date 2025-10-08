@@ -3,6 +3,7 @@ title: "Tilly selbst hosten"
 description: "Eine vollständige Anleitung zum Hosten deiner eigenen Tilly-Instanz mit voller Kontrolle über deine Daten und Infrastruktur"
 pubDate: "7. Oktober 2025"
 tags: ["technical"]
+ogImage: "/blog/self-hosting/og.png"
 ---
 
 Tilly ist Open Source, weil ich glaube, dass persönliche Software wie diese deine Daten nicht als Geisel nehmen sollte. Ich finde auch, dass Tilly sich richtig gut anfühlt, und möchte zeigen, wie einfach es ist, eine eigene Instanz zu betreiben und deine Daten zu migrieren.

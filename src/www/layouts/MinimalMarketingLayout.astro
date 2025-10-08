@@ -5,9 +5,10 @@ import { PUBLIC_PLAUSIBLE_DOMAIN } from "astro:env/client"
 export interface Props {
 	title: string
 	description?: string
+	ogImage?: string
 }
 
-let { title, description } = Astro.props
+let { title, description, ogImage } = Astro.props
 let isProduction = import.meta.env.PROD
 let requestUrl = new URL(Astro.request.url)
 let siteBaseUrl = Astro.site ?? new URL(requestUrl.origin)
@@ -15,7 +16,7 @@ let canonicalUrl = new URL(
 	requestUrl.pathname + requestUrl.search,
 	siteBaseUrl,
 ).toString()
-let ogImageUrl = new URL("/og.png", siteBaseUrl).toString()
+let ogImageUrl = new URL(ogImage ?? "/og.png", siteBaseUrl).toString()
 let metaDescription = description ?? ""
 ---
 

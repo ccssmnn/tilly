@@ -93,7 +93,6 @@ let addReminderTool = tool({
 			reminderId: z.string(),
 			text: z.string(),
 			dueAtDate: z.string().optional(),
-			dueAt: z.string().optional(),
 			repeat: z
 				.object({
 					interval: z.number(),
