@@ -69,15 +69,15 @@ export function PersonDetails({
 		}
 
 		setIsEditDialogOpen(false)
-		toast.success("Person updated", {
+		toast.success(t("toast.personUpdated"), {
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updatePerson(person.$jazz.id, result.data.previous),
 					)
 					if (undoResult.ok) {
-						toast.success("Person update undone")
+						toast.success(t("toast.personUpdateUndone"))
 					} else {
 						toast.error(
 							typeof undoResult.error === "string"
@@ -103,16 +103,16 @@ export function PersonDetails({
 
 		setIsDeleteDialogOpen(false)
 		navigate({ to: "/people" })
-		toast.success("Person deleted - will be permanently deleted in 30 days", {
+		toast.success(t("toast.personDeletedScheduled"), {
 			duration: 10000,
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updatePerson(person.$jazz.id, { deletedAt: undefined }),
 					)
 					if (undoResult.ok) {
-						toast.success("Person restored")
+						toast.success(t("toast.personRestored"))
 					} else {
 						toast.error(
 							typeof undoResult.error === "string"
