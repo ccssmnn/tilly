@@ -195,3 +195,49 @@ pnpm check          # Always run after code changes
 - Tool functions in `tools.ts` files use operations internally
 - Return sanitized data (exclude `_ref` properties)
 - No file upload support in AI tools
+
+### Blog Posts
+
+Blog posts live in `src/content/blog/` organized by post slug, with locale-specific markdown files:
+
+```
+src/content/blog/
+  self-hosting/
+    en.md
+    de.md
+public/blog/
+  self-hosting/
+    og.png
+```
+
+**Frontmatter Schema:**
+
+```yaml
+---
+title: "Post Title"
+description: "Post description for meta tags"
+pubDate: "October 7 2025"
+tags: ["technical"]
+ogImage: "/blog/post-slug/og.png"  # Optional, falls back to /og.png
+---
+```
+
+**Creating OG Images:**
+
+```bash
+# Generate blog-specific OG image
+pnpm tsx scripts/og.tsx \
+  --heading="Your Title" \
+  --tagline="Your Tagline" \
+  --out=public/blog/your-slug/og.png
+
+# Add to frontmatter
+ogImage: "/blog/your-slug/og.png"
+```
+
+**Key Points:**
+
+- Colocate OG images with posts in `public/blog/{slug}/`
+- Use short, punchy text for headings (rendered at 96px)
+- Taglines appear below at 48px
+- Images are 1200x630px optimized for social sharing

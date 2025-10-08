@@ -26,6 +26,7 @@ let { Content } = await render(post)
 <MinimalMarketingLayout
 	title={`${post.data.title} - Tilly Blog`}
 	description={post.data.description}
+	ogImage={post.data.ogImage}
 >
 	<Navbar
 		locale="en"
