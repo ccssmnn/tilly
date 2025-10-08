@@ -157,7 +157,7 @@ let getPersonDetailsTool = tool({
 				z.object({
 					id: z.string(),
 					text: z.string(),
-					dueAt: z.string().optional(),
+					dueAtDate: z.string().optional(),
 					deletedAt: z.string().optional(),
 					createdAt: z.string(),
 					updatedAt: z.string(),
@@ -228,7 +228,7 @@ async function getPersonDetailsExecute(
 		reminders: filteredReminders.map(r => ({
 			id: r.$jazz.id,
 			text: r.text,
-			dueAt: r.dueAtDate,
+			dueAtDate: r.dueAtDate,
 			deletedAt: r.deletedAt?.toISOString(),
 			createdAt: r.createdAt.toISOString(),
 			updatedAt: r.updatedAt.toISOString(),

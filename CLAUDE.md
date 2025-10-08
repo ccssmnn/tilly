@@ -218,7 +218,7 @@ title: "Post Title"
 description: "Post description for meta tags"
 pubDate: "October 7 2025"
 tags: ["technical"]
-ogImage: "/blog/post-slug/og.png"  # Optional, falls back to /og.png
+ogImage: "/blog/post-slug/og.png" # Optional, falls back to /og.png
 ---
 ```
 

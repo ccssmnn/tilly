@@ -98,11 +98,11 @@ function ListRemindersResult({
 											<p className="truncate font-medium">{reminder.text}</p>
 											<p className="text-muted-foreground text-xs">
 												{reminder.person.name}
-												{reminder.dueAt && (
+												{reminder.dueAtDate && (
 													<span>
 														{" "}
 														•{" "}
-														{new Date(reminder.dueAt).toLocaleDateString(
+														{new Date(reminder.dueAtDate).toLocaleDateString(
 															locale,
 														)}
 													</span>

@@ -148,7 +148,7 @@ function UpdateReminderResult({
 							</h4>
 							<ReminderDetails
 								text={result.text}
-								dueAt={result.dueAt}
+								dueAt={result.dueAtDate}
 								repeat={result.repeat}
 								done={result.done}
 							/>
@@ -160,7 +160,7 @@ function UpdateReminderResult({
 								</h4>
 								<ReminderDetails
 									text={result.previous.text}
-									dueAt={result.previous.dueAt}
+									dueAt={result.previous.dueAtDate}
 									repeat={result.previous.repeat}
 									done={result.previous.done}
 								/>
@@ -302,7 +302,7 @@ function RemoveReminderResult({
 							</h4>
 							<ReminderDetails
 								text={result.text}
-								dueAt={result.dueAt}
+								dueAt={result.dueAtDate}
 								repeat={result.repeat}
 								done={result.done}
 							/>

@@ -158,7 +158,7 @@ function AddReminderResult({
 							</h4>
 							<ReminderDetails
 								text={result.text}
-								dueAt={result.dueAt}
+								dueAt={result.dueAtDate}
 								repeat={result.repeat}
 								done={result.done}
 							/>
@@ -211,17 +211,19 @@ function ReminderDetails({
 	return (
 		<>
 			<p className="text-sm">{text}</p>
-			<div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+			<div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm">
 				{repeat ? (
 					<ArrowRepeat className="h-4 w-4" />
 				) : (
 					<Calendar className="h-4 w-4" />
 				)}
-				{dueAt
-					? new Date(dueAt).toLocaleDateString(locale)
-					: t("tool.reminder.noDate")}
+				<span className="whitespace-nowrap">
+					{dueAt
+						? new Date(dueAt).toLocaleDateString(locale)
+						: t("tool.reminder.noDate")}
+				</span>
 				{repeat && (
-					<span>
+					<span className="whitespace-nowrap">
 						<T
 							k="tool.reminder.repeats"
 							params={{ interval: repeat.interval, unit: repeat.unit }}
@@ -229,8 +231,7 @@ function ReminderDetails({
 					</span>
 				)}
 				{done !== undefined && (
-					<span className="flex items-center gap-1">
-						•{" "}
+					<span className="flex items-center gap-1 whitespace-nowrap">
 						{done ? (
 							<>
 								<CheckCircle className="h-3 w-3 text-green-600" />{" "}
