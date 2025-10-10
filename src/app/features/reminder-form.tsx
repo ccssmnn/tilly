@@ -22,7 +22,7 @@ import { z } from "zod"
 import { Textarea } from "#shared/ui/textarea"
 import { useState } from "react"
 import { nanoid } from "nanoid"
-import { cn } from "#app/lib/utils"
+
 import { T, useIntl } from "#shared/intl/setup"
 
 let reminderPlaceholders = [
@@ -70,7 +70,6 @@ export function ReminderForm({
 	onCancel: () => void
 	onSubmit: (data: ReminderFormValues) => void
 }) {
-	let isUpdate = defaultValues && defaultValues.text !== ""
 	let t = useIntl()
 	let reminderFormSchema = createReminderFormSchema(t)
 	let form = useForm({
@@ -87,15 +86,7 @@ export function ReminderForm({
 
 	return (
 		<Form {...form}>
-			<form
-				onSubmit={form.handleSubmit(onSubmit)}
-				className={cn(
-					"space-y-3",
-					isUpdate
-						? "plausible--event-name=Reminder+Update"
-						: "plausible--event-name=Reminder+Create",
-				)}
-			>
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 				<FormField
 					control={form.control}
 					name="text"

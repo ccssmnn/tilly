@@ -10,7 +10,7 @@ import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { Plus, X, Search, Bell, People } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
-import { useState, useMemo, useDeferredValue, type ReactNode } from "react"
+import { useState, useDeferredValue, type ReactNode } from "react"
 import { Combobox } from "#shared/ui/combobox"
 import { useAppStore } from "#app/lib/store"
 import {
@@ -389,16 +389,12 @@ function AddReminder({
 	let [addReminderDialogOpen, setAddReminderDialogOpen] = useState(false)
 
 	// Prepare people options for combobox
-	let peopleOptions = useMemo(
-		() =>
-			people
-				.filter(person => person && !isDeleted(person))
-				.map(person => ({
-					value: person.$jazz.id,
-					label: person.name,
-				})),
-		[people],
-	)
+	let peopleOptions = people
+		.filter(person => person && !isDeleted(person))
+		.map(person => ({
+			value: person.$jazz.id,
+			label: person.name,
+		}))
 
 	let selectedPersonLabel =
 		peopleOptions.find(personOption => personOption.value === selectedPersonId)

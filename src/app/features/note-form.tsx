@@ -12,7 +12,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { cn } from "#app/lib/utils"
+
 import { T, useIntl } from "#shared/intl/setup"
 import { useState } from "react"
 
@@ -51,7 +51,6 @@ export function NoteForm({
 	onCancel: () => void
 	onSubmit: (data: NoteFormValues) => void
 }) {
-	let isUpdate = defaultValues && defaultValues.content !== ""
 	let t = useIntl()
 	let noteFormSchema = createNoteFormSchema(t)
 	let [placeholder] = useState(getRotatingNotePlaceholder(t))
@@ -65,15 +64,7 @@ export function NoteForm({
 
 	return (
 		<Form {...form}>
-			<form
-				onSubmit={form.handleSubmit(onSubmit)}
-				className={cn(
-					"space-y-3",
-					isUpdate
-						? "plausible--event-name=Note+Update"
-						: "plausible--event-name=Note+Create",
-				)}
-			>
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 				<FormField
 					control={form.control}
 					name="content"

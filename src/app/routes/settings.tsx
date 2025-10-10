@@ -1,11 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
-import {
-	SignInButton,
-	SignOutButton,
-	useAuth,
-	UserProfile,
-	useUser,
-} from "@clerk/clerk-react"
+import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"
+import { PUBLIC_CLERK_ACCOUNTS_URL } from "astro:env/client"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -159,7 +154,7 @@ function AuthenticationSection() {
 	let isAuthenticated = useIsAuthenticated()
 	let auth = useAuth()
 	let { user } = useUser()
-	let [showProfile, setShowProfile] = useState(false)
+
 	let isOnline = useOnlineStatus()
 
 	return (
@@ -174,28 +169,78 @@ function AuthenticationSection() {
 			}
 		>
 			<div className="space-y-6">
-				<div>
-					<p className="mb-1 text-sm font-medium">
-						<T k="settings.auth.status.label" />
-					</p>
-					<p className="text-muted-foreground text-sm">
-						{isAuthenticated
-							? t("settings.auth.status.signedIn", {
+				{isAuthenticated ? (
+					<>
+						<div>
+							<p className="mb-1 text-sm font-medium">
+								<T k="settings.auth.status.label" />
+							</p>
+							<p className="text-muted-foreground text-sm">
+								{t("settings.auth.status.signedIn", {
 									email: user?.emailAddresses[0]?.emailAddress || "",
-								})
-							: t("settings.auth.status.signedOut")}
-					</p>
-				</div>
-				{auth.isLoaded && auth.isSignedIn && (
+								})}
+							</p>
+							<div className="mt-3 inline-flex flex-wrap gap-3">
+								<Button asChild variant="secondary" disabled={!isOnline}>
+									<a href={`${getAccountsUrl()}/user`}>
+										<T k="settings.auth.manageAccount" />
+									</a>
+								</Button>
+								<SignOutButton redirectUrl="/app">
+									<Button
+										onClick={() => resetAppStore()}
+										variant="outline"
+										disabled={!isOnline}
+									>
+										<T k="settings.auth.signOut" />
+									</Button>
+								</SignOutButton>
+							</div>
+						</div>
+						{auth.isLoaded && auth.isSignedIn && (
+							<div>
+								<p className="mb-1 text-sm font-medium">
+									<T k="settings.auth.tier.label" />
+								</p>
+								<p className="text-muted-foreground text-sm">
+									{auth.has({ plan: "plus" })
+										? t("settings.auth.tier.plus")
+										: t("settings.auth.tier.free")}
+								</p>
+								<div className="mt-3">
+									<Button asChild variant="secondary" disabled={!isOnline}>
+										<a href={`${getAccountsUrl()}/user/billing`}>
+											<T k="settings.auth.manageSubscription" />
+										</a>
+									</Button>
+								</div>
+							</div>
+						)}
+					</>
+				) : (
 					<div>
 						<p className="mb-1 text-sm font-medium">
-							<T k="settings.auth.tier.label" />
+							<T k="settings.auth.status.label" />
 						</p>
 						<p className="text-muted-foreground text-sm">
-							{auth.has({ plan: "plus" })
-								? t("settings.auth.tier.plus")
-								: t("settings.auth.tier.free")}
+							{t("settings.auth.status.signedOut")}
 						</p>
+						<div className="mt-3 space-x-2">
+							<Button asChild disabled={!isOnline}>
+								<a
+									href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
+								>
+									<T k="auth.signIn.button" />
+								</a>
+							</Button>
+							<Button asChild variant="outline" disabled={!isOnline}>
+								<a
+									href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
+								>
+									<T k="auth.signUp.button" />
+								</a>
+							</Button>
+						</div>
 					</div>
 				)}
 				<div className="space-y-2">
@@ -210,59 +255,7 @@ function AuthenticationSection() {
 							</AlertDescription>
 						</Alert>
 					)}
-					<div className="space-x-2">
-						{isAuthenticated ? (
-							<>
-								<Button
-									onClick={() => setShowProfile(true)}
-									disabled={!isOnline}
-								>
-									<T k="settings.auth.manageAccount" />
-								</Button>
-								<SignOutButton redirectUrl="/app">
-									<Button
-										onClick={handleSignOut}
-										variant="outline"
-										disabled={!isOnline}
-									>
-										<T k="settings.auth.signOut" />
-									</Button>
-								</SignOutButton>
-							</>
-						) : (
-							<SignInButton>
-								<Button
-									disabled={!isOnline}
-									className="plausible--event-name=Sign+In"
-								>
-									<T k="auth.signIn.button" />
-								</Button>
-							</SignInButton>
-						)}
-					</div>
 				</div>
-				{showProfile && (
-					<div
-						className="fixed inset-0 z-50 bg-black/80"
-						onClick={() => setShowProfile(false)}
-					>
-						<div
-							className="fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]"
-							onClick={e => e.stopPropagation()}
-						>
-							<UserProfile
-								appearance={{
-									elements: {
-										profileSectionPrimaryButton__photoSection: "display: none",
-										userPreviewAvatarContainer: "display: none",
-										profileSection__profile:
-											"[&_.cl-userPreviewAvatarContainer]:hidden",
-									},
-								}}
-							/>
-						</div>
-					</div>
-				)}
 			</div>
 		</SettingsSection>
 	)
@@ -493,10 +486,7 @@ function PWASection() {
 					</div>
 					{!isPWAInstalled && (
 						<div>
-							<Button
-								onClick={() => setShowInstallDialog(true)}
-								className="plausible--event-name=Install+Click+Settings"
-							>
+							<Button onClick={() => setShowInstallDialog(true)}>
 								<T k="settings.pwa.install.button" />
 							</Button>
 							<p className="text-muted-foreground mt-2 text-xs">
@@ -775,6 +765,10 @@ function WebsiteSection() {
 	)
 }
 
-function handleSignOut(): void {
-	resetAppStore()
+function getAccountsUrl(): string {
+	return PUBLIC_CLERK_ACCOUNTS_URL
+}
+
+function getCurrentUrl(): string {
+	return window.location.origin
 }

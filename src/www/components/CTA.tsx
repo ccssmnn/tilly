@@ -27,7 +27,6 @@ function CTA({ title, primaryCta, secondaryCta }: Props) {
 						className={cn(
 							buttonVariants({ variant: "default" }),
 							"px-3.5 py-2.5",
-							"plausible--event-name=Main+CTA",
 						)}
 					>
 						{primaryCta.text}

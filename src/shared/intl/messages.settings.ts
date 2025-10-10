@@ -24,6 +24,7 @@ const baseSettingsMessages = messages({
 	"settings.auth.offlineDescription":
 		"Please connect to the internet to sign in or manage your account.",
 	"settings.auth.manageAccount": "Manage Account",
+	"settings.auth.manageSubscription": "Manage Subscription",
 	"settings.auth.signOut": "Sign Out",
 	"settings.profile.title": "About You",
 	"settings.profile.description": "Update your personal information.",
@@ -353,6 +354,7 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.auth.offlineDescription":
 		"Bitte stelle eine Internetverbindung her, um dich anzumelden oder dein Konto zu verwalten.",
 	"settings.auth.manageAccount": "Konto verwalten",
+	"settings.auth.manageSubscription": "Abonnement verwalten",
 	"settings.auth.signOut": "Abmelden",
 	"settings.profile.title": "Über dich",
 	"settings.profile.description":

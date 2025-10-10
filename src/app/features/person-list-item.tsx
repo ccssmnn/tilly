@@ -28,7 +28,7 @@ import {
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
-import { useState, useMemo, type ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale } from "#shared/intl/setup"
 
@@ -177,7 +177,7 @@ function RestorePersonDialog({
 	let [open, setOpen] = useState(false)
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
-	let deletionInfo = useMemo(() => {
+	let deletionInfo = (() => {
 		if (!person.deletedAt) return null
 		let daysSinceDeletion = differenceInDays(new Date(), person.deletedAt)
 		let daysUntilPermanentDeletion = Math.max(0, 30 - daysSinceDeletion)
@@ -186,7 +186,7 @@ function RestorePersonDialog({
 			daysUntilPermanentDeletion,
 			isDueForPermanentDeletion: daysSinceDeletion >= 30,
 		}
-	}, [person.deletedAt])
+	})()
 
 	async function handleRestore() {
 		let result = await tryCatch(

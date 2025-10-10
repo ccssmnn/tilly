@@ -216,7 +216,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								shouldPulse
 									? "text-primary hover:text-primary/80 md:hover:bg-primary/10 transition-color"
 									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
-								"plausible--event-name=Install+Click+Navigation",
 							)}
 							onClick={handlePWAInstallClick}
 						>

@@ -29,7 +29,7 @@ import {
 	CheckLg,
 	ArrowCounterclockwise,
 } from "react-bootstrap-icons"
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { ReminderForm } from "./reminder-form"
 import { Link } from "@tanstack/react-router"
 import { Image as JazzImage } from "jazz-tools/react"
@@ -527,7 +527,7 @@ function RestoreReminderDialog({
 }) {
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
-	let deletionInfo = useMemo(() => {
+	let deletionInfo = (() => {
 		if (!reminder.deletedAt) return null
 		let daysSinceDeletion = differenceInDays(new Date(), reminder.deletedAt)
 		let daysUntilPermanentDeletion = Math.max(0, 30 - daysSinceDeletion)
@@ -536,7 +536,7 @@ function RestoreReminderDialog({
 			daysUntilPermanentDeletion,
 			isDueForPermanentDeletion: daysSinceDeletion >= 30,
 		}
-	}, [reminder.deletedAt])
+	})()
 
 	async function handleRestore() {
 		let restored = await onRestore()

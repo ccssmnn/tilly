@@ -27,12 +27,9 @@ const Textarea = React.forwardRef<
 		}, [props.value, enableAutoResize])
 
 		// Handle ref assignment and initial resize
-		const handleRef = React.useCallback(
-			(element: HTMLTextAreaElement | null) => {
-				internalRef.current = element
-			},
-			[],
-		)
+		function handleRef(element: HTMLTextAreaElement | null) {
+			internalRef.current = element
+		}
 
 		return (
 			<textarea

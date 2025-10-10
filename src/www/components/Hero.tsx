@@ -49,12 +49,7 @@ function Hero({
 				<TypographyLead>{description}</TypographyLead>
 				<div className="inline-flex gap-3">
 					<Button asChild>
-						<a
-							href={primaryCta.href}
-							className="plausible--event-name=Hero+Primary+CTA"
-						>
-							{primaryCta.text}
-						</a>
+						<a href={primaryCta.href}>{primaryCta.text}</a>
 					</Button>
 					<Button asChild variant="ghost">
 						<a href={secondaryCta.href}>
