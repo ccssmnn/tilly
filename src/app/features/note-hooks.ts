@@ -1,4 +1,3 @@
-import { useMemo } from "react"
 import {
 	Person,
 	Note,
@@ -13,57 +12,55 @@ function usePersonNotes<Q extends ResolveQuery<typeof Person>>(
 	person: co.loaded<typeof Person, Q>,
 	searchQuery: string,
 ) {
-	return useMemo(() => {
-		if (!person.notes) return { active: [], deleted: [] }
+	if (!person.notes) return { active: [], deleted: [] }
 
-		let filteredNotes = searchQuery
-			? person.notes.filter(note => {
-					if (!note || isPermanentlyDeleted(note)) return false
-					let searchLower = searchQuery.toLowerCase()
-					return note.content.toLowerCase().includes(searchLower)
-				})
-			: person.notes.filter(note => note && !isPermanentlyDeleted(note))
+	let filteredNotes = searchQuery
+		? person.notes.filter(note => {
+				if (!note || isPermanentlyDeleted(note)) return false
+				let searchLower = searchQuery.toLowerCase()
+				return note.content.toLowerCase().includes(searchLower)
+			})
+		: person.notes.filter(note => note && !isPermanentlyDeleted(note))
 
-		let active: Array<{
-			type: "note"
-			item: co.loaded<typeof Note>
-			timestamp: Date
-			priority: "high" | "normal"
-		}> = []
+	let active: Array<{
+		type: "note"
+		item: co.loaded<typeof Note>
+		timestamp: Date
+		priority: "high" | "normal"
+	}> = []
 
-		let deleted: Array<{
-			type: "note"
-			item: co.loaded<typeof Note>
-			timestamp: Date
-			priority: "high" | "normal"
-		}> = []
+	let deleted: Array<{
+		type: "note"
+		item: co.loaded<typeof Note>
+		timestamp: Date
+		priority: "high" | "normal"
+	}> = []
 
-		filteredNotes.forEach(note => {
-			if (!note) return
+	filteredNotes.forEach(note => {
+		if (!note) return
 
-			let item = {
-				type: "note" as const,
-				item: note,
-				timestamp: note.createdAt || new Date(note.$jazz.createdAt),
-				priority: note.pinned ? ("high" as const) : ("normal" as const),
-			}
+		let item = {
+			type: "note" as const,
+			item: note,
+			timestamp: note.createdAt || new Date(note.$jazz.createdAt),
+			priority: note.pinned ? ("high" as const) : ("normal" as const),
+		}
 
-			if (isDeleted(note) && !isPermanentlyDeleted(note)) {
-				deleted.push(item)
-			} else if (!isDeleted(note)) {
-				active.push(item)
-			}
-		})
+		if (isDeleted(note) && !isPermanentlyDeleted(note)) {
+			deleted.push(item)
+		} else if (!isDeleted(note)) {
+			active.push(item)
+		}
+	})
 
-		sortByPriorityAndDate(active)
-		deleted.sort((a, b) => {
-			let aTime = a.item.deletedAt?.getTime() ?? a.timestamp.getTime()
-			let bTime = b.item.deletedAt?.getTime() ?? b.timestamp.getTime()
-			return bTime - aTime
-		})
+	sortByPriorityAndDate(active)
+	deleted.sort((a, b) => {
+		let aTime = a.item.deletedAt?.getTime() ?? a.timestamp.getTime()
+		let bTime = b.item.deletedAt?.getTime() ?? b.timestamp.getTime()
+		return bTime - aTime
+	})
 
-		return { active, deleted }
-	}, [person.notes, searchQuery])
+	return { active, deleted }
 }
 
 function sortByPriorityAndDate(

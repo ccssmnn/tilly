@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import {
 	SignInButton,
+	SignUpButton,
 	SignOutButton,
 	useAuth,
 	UserProfile,
@@ -230,39 +231,29 @@ function AuthenticationSection() {
 								</SignOutButton>
 							</>
 						) : (
-							<SignInButton>
-								<Button
-									disabled={!isOnline}
-									className="plausible--event-name=Sign+In"
-								>
-									<T k="auth.signIn.button" />
-								</Button>
-							</SignInButton>
+							<div className="space-x-2">
+								<SignInButton>
+									<Button
+										disabled={!isOnline}
+										className="plausible--event-name=Sign+In"
+									>
+										<T k="auth.signIn.button" />
+									</Button>
+								</SignInButton>
+								<SignUpButton>
+									<Button
+										variant="outline"
+										disabled={!isOnline}
+										className="plausible--event-name=Sign+Up"
+									>
+										<T k="auth.signUp.button" />
+									</Button>
+								</SignUpButton>
+							</div>
 						)}
 					</div>
 				</div>
-				{showProfile && (
-					<div
-						className="fixed inset-0 z-50 bg-black/80"
-						onClick={() => setShowProfile(false)}
-					>
-						<div
-							className="fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]"
-							onClick={e => e.stopPropagation()}
-						>
-							<UserProfile
-								appearance={{
-									elements: {
-										profileSectionPrimaryButton__photoSection: "display: none",
-										userPreviewAvatarContainer: "display: none",
-										profileSection__profile:
-											"[&_.cl-userPreviewAvatarContainer]:hidden",
-									},
-								}}
-							/>
-						</div>
-					</div>
-				)}
+				{showProfile && <UserProfile />}
 			</div>
 		</SettingsSection>
 	)

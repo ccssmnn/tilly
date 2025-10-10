@@ -1,4 +1,3 @@
-import { useMemo } from "react"
 import {
 	Person,
 	isDeleted,
@@ -14,28 +13,24 @@ function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	allPeople: A,
 	searchQuery: string,
 ): { active: P[]; deleted: P[] } {
-	return useMemo(() => {
-		let searchLower = searchQuery.toLowerCase().trim()
-		let visiblePeople = allPeople.filter(
-			person => !isPermanentlyDeleted(person),
-		)
+	let searchLower = searchQuery.toLowerCase().trim()
+	let visiblePeople = allPeople.filter(person => !isPermanentlyDeleted(person))
 
-		let filteredPeople = searchQuery
-			? visiblePeople.filter(
-					person =>
-						person.name.toLowerCase().includes(searchLower) ||
-						person.summary?.toLowerCase().includes(searchLower),
-				)
-			: visiblePeople
+	let filteredPeople = searchQuery
+		? visiblePeople.filter(
+				person =>
+					person.name.toLowerCase().includes(searchLower) ||
+					person.summary?.toLowerCase().includes(searchLower),
+			)
+		: visiblePeople
 
-		let active = filteredPeople.filter(person => !isDeleted(person))
-		let deleted = filteredPeople.filter(
-			person => isDeleted(person) && !isPermanentlyDeleted(person),
-		)
+	let active = filteredPeople.filter(person => !isDeleted(person))
+	let deleted = filteredPeople.filter(
+		person => isDeleted(person) && !isPermanentlyDeleted(person),
+	)
 
-		sortByUpdatedAt(active)
-		sortByDeletedAt(deleted)
+	sortByUpdatedAt(active)
+	sortByDeletedAt(deleted)
 
-		return { active, deleted }
-	}, [allPeople, searchQuery])
+	return { active, deleted }
 }

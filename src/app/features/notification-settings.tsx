@@ -27,7 +27,7 @@ import {
 } from "#shared/ui/dialog"
 import z from "zod"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -1047,7 +1047,7 @@ function useCurrentEndpoint(): [string | null | undefined, () => void] {
 	let [endpoint, setEndpoint] = useState<string | null | undefined>(undefined)
 	let [initialized, setInitialized] = useState(false)
 
-	let refreshEndpoint = useCallback(async function refreshCurrentEndpoint() {
+	async function refreshCurrentEndpoint() {
 		async function getCurrentPushEndpoint(): Promise<string | null> {
 			if ("serviceWorker" in navigator && "PushManager" in window) {
 				let result = await tryCatch(
@@ -1064,14 +1064,14 @@ function useCurrentEndpoint(): [string | null | undefined, () => void] {
 
 		let newEndpoint = await getCurrentPushEndpoint()
 		setEndpoint(newEndpoint)
-	}, [])
+	}
 
 	if (!initialized) {
 		setInitialized(true)
-		refreshEndpoint()
+		refreshCurrentEndpoint()
 	}
 
-	return [endpoint, refreshEndpoint]
+	return [endpoint, refreshCurrentEndpoint]
 }
 
 async function subscribeToPushNotifications(): Promise<{
