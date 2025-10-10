@@ -330,7 +330,6 @@ function UserInput(props: {
 					<form
 						// eslint-disable-next-line react-hooks/refs
 						onSubmit={form.handleSubmit(handleSubmit)}
-						className={`plausible--event-name=Chat+Message+Send${props.chatSize === 0 ? "+First" : "+Followup"}`}
 					>
 						<FormField
 							control={form.control}

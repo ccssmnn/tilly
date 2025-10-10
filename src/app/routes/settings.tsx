@@ -230,23 +230,14 @@ function AuthenticationSection() {
 							</>
 						) : (
 							<div className="space-x-2">
-								<Button
-									asChild
-									disabled={!isOnline}
-									className="plausible--event-name=Sign+In"
-								>
+								<Button asChild disabled={!isOnline}>
 									<a
 										href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
 									>
 										<T k="auth.signIn.button" />
 									</a>
 								</Button>
-								<Button
-									asChild
-									variant="outline"
-									disabled={!isOnline}
-									className="plausible--event-name=Sign+Up"
-								>
+								<Button asChild variant="outline" disabled={!isOnline}>
 									<a
 										href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
 									>
@@ -487,10 +478,7 @@ function PWASection() {
 					</div>
 					{!isPWAInstalled && (
 						<div>
-							<Button
-								onClick={() => setShowInstallDialog(true)}
-								className="plausible--event-name=Install+Click+Settings"
-							>
+							<Button onClick={() => setShowInstallDialog(true)}>
 								<T k="settings.pwa.install.button" />
 							</Button>
 							<p className="text-muted-foreground mt-2 text-xs">

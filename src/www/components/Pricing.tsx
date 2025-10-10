@@ -93,7 +93,6 @@ function Pricing({ title, subtitle, ctaText, tiers }: Props) {
 										buttonVariants({
 											variant: tier.featured ? "default" : "secondary",
 										}),
-										`plausible--event-name=Pricing+${tier.name}+CTA`,
 									)}
 								>
 									{tier.ctaText || ctaText || "Get started"}

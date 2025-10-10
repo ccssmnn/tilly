@@ -92,12 +92,7 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 							</DropdownMenu>
 						)}
 						<Button asChild>
-							<a
-								href={cta.href}
-								className="plausible--event-name=Navbar+App+Link"
-							>
-								{cta.text}
-							</a>
+							<a href={cta.href}>{cta.text}</a>
 						</Button>
 						<Button
 							variant="ghost"

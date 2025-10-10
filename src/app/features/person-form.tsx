@@ -26,7 +26,7 @@ import { useState, useRef } from "react"
 import { Image as JazzImage } from "jazz-tools/react"
 import Cropper from "react-easy-crop"
 import { tryCatch } from "#shared/lib/trycatch"
-import { cn } from "#app/lib/utils"
+
 import { T, useIntl } from "#shared/intl/setup"
 
 export { PersonForm, AvatarField }
@@ -136,7 +136,6 @@ function PersonForm({
 	onSave: (values: PersonFormValues) => void
 	submitButtonText?: string
 }) {
-	let isUpdate = !!person
 	let t = useIntl()
 	let personFormSchema = createPersonFormSchema(t)
 	let form = useForm<PersonFormValues>({
@@ -178,15 +177,7 @@ function PersonForm({
 				className="hidden"
 				onChange={handleAvatarChange}
 			/>
-			<form
-				onSubmit={form.handleSubmit(onSave)}
-				className={cn(
-					"space-y-4",
-					isUpdate
-						? "plausible--event-name=Person+Update"
-						: "plausible--event-name=Person+Create",
-				)}
-			>
+			<form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
 				<FormField
 					control={form.control}
 					name="avatar"
