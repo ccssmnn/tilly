@@ -30,17 +30,16 @@ import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let query = {
-	avatar: true,
-	notes: { $each: true },
-	reminders: { $each: true },
-} as const
+type Query = {
+	avatar: true
+	notes: { $each: true }
+	reminders: { $each: true }
+}
 
 export function PersonDetails({
 	person,
 }: {
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, Query>
 	me: co.loaded<typeof UserAccount>
 }) {
 	let navigate = useNavigate()

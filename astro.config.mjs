@@ -17,7 +17,7 @@ export default defineConfig({
 
 	devToolbar: { enabled: false },
 	integrations: [
-		react(),
+		react({ babel: { plugins: ["babel-plugin-react-compiler"] } }),
 		pwa({
 			registerType: "prompt",
 			scope: "/app/",

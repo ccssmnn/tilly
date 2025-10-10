@@ -90,7 +90,7 @@ async function addNoteExecute(
 ): Promise<_AddNoteTool["output"]> {
 	let res = await tryCatch(createNote(input.personId, input))
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref: _unused, ...data } = res.data // eslint-disable-line @typescript-eslint/no-unused-vars
+	let { data } = res
 	return {
 		noteId: data.noteID,
 		personId: data.personID,
