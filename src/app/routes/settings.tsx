@@ -1,12 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
-import {
-	SignInButton,
-	SignUpButton,
-	SignOutButton,
-	useAuth,
-	UserProfile,
-	useUser,
-} from "@clerk/clerk-react"
+import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -160,8 +153,7 @@ function AuthenticationSection() {
 	let isAuthenticated = useIsAuthenticated()
 	let auth = useAuth()
 	let { user } = useUser()
-	let [showProfile, setShowProfile] = useState(false)
-	let [showBilling, setShowBilling] = useState(false)
+
 	let isOnline = useOnlineStatus()
 
 	return (
@@ -212,25 +204,30 @@ function AuthenticationSection() {
 							</AlertDescription>
 						</Alert>
 					)}
-					<div className="space-x-2">
+					<div className="inline-flex flex-wrap gap-3">
 						{isAuthenticated ? (
 							<>
-								<Button
-									onClick={() => setShowProfile(true)}
-									disabled={!isOnline}
-								>
-									<T k="settings.auth.manageAccount" />
+								<Button asChild disabled={!isOnline}>
+									<a
+										href="https://accounts.tilly.social/user?redirect_url=https://tilly.social/app/settings"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<T k="settings.auth.manageAccount" />
+									</a>
 								</Button>
-								<Button
-									onClick={() => setShowBilling(true)}
-									variant="outline"
-									disabled={!isOnline}
-								>
-									<T k="settings.auth.manageSubscription" />
+								<Button asChild variant="secondary" disabled={!isOnline}>
+									<a
+										href="https://accounts.tilly.social/user/billing?redirect_url=https://tilly.social/app/settings"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<T k="settings.auth.manageSubscription" />
+									</a>
 								</Button>
 								<SignOutButton redirectUrl="/app">
 									<Button
-										onClick={handleSignOut}
+										onClick={() => resetAppStore()}
 										variant="outline"
 										disabled={!isOnline}
 									>
@@ -240,72 +237,37 @@ function AuthenticationSection() {
 							</>
 						) : (
 							<div className="space-x-2">
-								<SignInButton>
-									<Button
-										disabled={!isOnline}
-										className="plausible--event-name=Sign+In"
+								<Button
+									asChild
+									disabled={!isOnline}
+									className="plausible--event-name=Sign+In"
+								>
+									<a
+										href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
+										target="_blank"
+										rel="noopener noreferrer"
 									>
 										<T k="auth.signIn.button" />
-									</Button>
-								</SignInButton>
-								<SignUpButton>
-									<Button
-										variant="outline"
-										disabled={!isOnline}
-										className="plausible--event-name=Sign+Up"
+									</a>
+								</Button>
+								<Button
+									asChild
+									variant="outline"
+									disabled={!isOnline}
+									className="plausible--event-name=Sign+Up"
+								>
+									<a
+										href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
+										target="_blank"
+										rel="noopener noreferrer"
 									>
 										<T k="auth.signUp.button" />
-									</Button>
-								</SignUpButton>
+									</a>
+								</Button>
 							</div>
 						)}
 					</div>
 				</div>
-				{showProfile && (
-					<div
-						className="fixed inset-0 z-50 bg-black/80"
-						onClick={() => setShowProfile(false)}
-					>
-						<div
-							className="fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]"
-							onClick={e => e.stopPropagation()}
-						>
-							<UserProfile
-								appearance={{
-									elements: {
-										profileSectionPrimaryButton__photoSection: "display: none",
-										userPreviewAvatarContainer: "display: none",
-										profileSection__profile:
-											"[&_.cl-userPreviewAvatarContainer]:hidden",
-									},
-								}}
-							/>
-						</div>
-					</div>
-				)}
-				{showBilling && (
-					<div
-						className="fixed inset-0 z-50 bg-black/80"
-						onClick={() => setShowBilling(false)}
-					>
-						<div
-							className="fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]"
-							onClick={e => e.stopPropagation()}
-						>
-							<UserProfile
-								path="/billing"
-								appearance={{
-									elements: {
-										profileSectionPrimaryButton__photoSection: "display: none",
-										userPreviewAvatarContainer: "display: none",
-										profileSection__profile:
-											"[&_.cl-userPreviewAvatarContainer]:hidden",
-									},
-								}}
-							/>
-						</div>
-					</div>
-				)}
 			</div>
 		</SettingsSection>
 	)
@@ -818,6 +780,17 @@ function WebsiteSection() {
 	)
 }
 
-function handleSignOut(): void {
-	resetAppStore()
+function getAccountsUrl(): string {
+	let isDevelopment = import.meta.env.DEV
+	if (isDevelopment) {
+		return "https://accounts.clerk.accounts.dev"
+	}
+	return "https://accounts.tilly.social"
+}
+
+function getCurrentUrl(): string {
+	if (typeof window !== "undefined") {
+		return window.location.origin
+	}
+	return import.meta.env.PUBLIC_SITE_URL || "https://tilly.social"
 }
