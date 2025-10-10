@@ -209,16 +209,12 @@ function AuthenticationSection() {
 						{isAuthenticated ? (
 							<>
 								<Button asChild disabled={!isOnline}>
-									<a
-										href={`${getAccountsUrl()}/user?redirect_url=${getCurrentUrl()}/app/settings`}
-									>
+									<a href={`${getAccountsUrl()}/user`}>
 										<T k="settings.auth.manageAccount" />
 									</a>
 								</Button>
 								<Button asChild variant="secondary" disabled={!isOnline}>
-									<a
-										href={`${getAccountsUrl()}/user/billing?redirect_url=${getCurrentUrl()}/app/settings`}
-									>
+									<a href={`${getAccountsUrl()}/user/billing`}>
 										<T k="settings.auth.manageSubscription" />
 									</a>
 								</Button>
