@@ -161,6 +161,7 @@ function AuthenticationSection() {
 	let auth = useAuth()
 	let { user } = useUser()
 	let [showProfile, setShowProfile] = useState(false)
+	let [showBilling, setShowBilling] = useState(false)
 	let isOnline = useOnlineStatus()
 
 	return (
@@ -221,7 +222,7 @@ function AuthenticationSection() {
 									<T k="settings.auth.manageAccount" />
 								</Button>
 								<Button
-									onClick={handleManageSubscription}
+									onClick={() => setShowBilling(true)}
 									variant="outline"
 									disabled={!isOnline}
 								>
@@ -260,7 +261,51 @@ function AuthenticationSection() {
 						)}
 					</div>
 				</div>
-				{showProfile && <UserProfile />}
+				{showProfile && (
+					<div
+						className="fixed inset-0 z-50 bg-black/80"
+						onClick={() => setShowProfile(false)}
+					>
+						<div
+							className="fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]"
+							onClick={e => e.stopPropagation()}
+						>
+							<UserProfile
+								appearance={{
+									elements: {
+										profileSectionPrimaryButton__photoSection: "display: none",
+										userPreviewAvatarContainer: "display: none",
+										profileSection__profile:
+											"[&_.cl-userPreviewAvatarContainer]:hidden",
+									},
+								}}
+							/>
+						</div>
+					</div>
+				)}
+				{showBilling && (
+					<div
+						className="fixed inset-0 z-50 bg-black/80"
+						onClick={() => setShowBilling(false)}
+					>
+						<div
+							className="fixed top-[50%] left-[50%] z-50 translate-x-[-50%] translate-y-[-50%]"
+							onClick={e => e.stopPropagation()}
+						>
+							<UserProfile
+								path="/billing"
+								appearance={{
+									elements: {
+										profileSectionPrimaryButton__photoSection: "display: none",
+										userPreviewAvatarContainer: "display: none",
+										profileSection__profile:
+											"[&_.cl-userPreviewAvatarContainer]:hidden",
+									},
+								}}
+							/>
+						</div>
+					</div>
+				)}
 			</div>
 		</SettingsSection>
 	)
@@ -775,8 +820,4 @@ function WebsiteSection() {
 
 function handleSignOut(): void {
 	resetAppStore()
-}
-
-function handleManageSubscription(): void {
-	window.open("https://tilly.clerk.accounts.dev/user/billing", "_blank")
 }
