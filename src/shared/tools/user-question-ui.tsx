@@ -26,6 +26,7 @@ import {
 	userQuestionExecute,
 	userQuestionTool,
 } from "#shared/tools/user-question"
+import type { AddToolResultFunction } from "#shared/tools/tools"
 import type { InferUITool } from "ai"
 
 export { UserQuestionConfirmation, UserQuestionResult }
@@ -41,8 +42,7 @@ function UserQuestionConfirmation({
 		input: UserQuestionToolUI["input"]
 		state: "input-available"
 	}
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-	addToolResult: Function
+	addToolResult: AddToolResultFunction
 }) {
 	let [isResponding, setIsResponding] = useState(false)
 	let t = useIntl()

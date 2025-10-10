@@ -15,8 +15,9 @@ function useIsPWAInstalled(): boolean {
 	useEffect(() => {
 		let checkInstalled = () => {
 			let isStandalone = window.matchMedia("(display-mode: standalone)").matches
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			let isIOSStandalone = (window.navigator as any).standalone === true
+			let isIOSStandalone =
+				(window.navigator as unknown as { standalone: boolean }).standalone ===
+				true
 			setIsInstalled(isStandalone || isIOSStandalone)
 		}
 
@@ -32,48 +33,27 @@ function useIsPWAInstalled(): boolean {
 }
 
 function useIsAndroid(): boolean {
-	let [isAndroid, setIsAndroid] = useState(false)
-
-	useEffect(() => {
-		let userAgent = navigator.userAgent.toLowerCase()
-		let isAndroidResult = userAgent.includes("android")
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setIsAndroid(isAndroidResult)
-	}, [])
-
-	return isAndroid
+	let userAgent = navigator.userAgent.toLowerCase()
+	let isAndroidResult = userAgent.includes("android")
+	return isAndroidResult
 }
 
 function useIsIOS(): boolean {
-	let [isIOS, setIsIOS] = useState(false)
-
-	useEffect(() => {
-		let userAgent = navigator.userAgent.toLowerCase()
-		let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setIsIOS(isIOSDevice)
-	}, [])
-
-	return isIOS
+	let userAgent = navigator.userAgent.toLowerCase()
+	let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
+	return isIOSDevice
 }
 
 function useIsMobileDevice(): boolean {
-	let [isMobileDevice, setIsMobileDevice] = useState(false)
+	let userAgent = navigator.userAgent.toLowerCase()
+	let isMobile =
+		/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+			userAgent,
+		)
+	let hasTouchScreen = "ontouchstart" in window || navigator.maxTouchPoints > 0
+	let isMobileResult = isMobile || hasTouchScreen
 
-	useEffect(() => {
-		let userAgent = navigator.userAgent.toLowerCase()
-		let isMobile =
-			/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-				userAgent,
-			)
-		let hasTouchScreen =
-			"ontouchstart" in window || navigator.maxTouchPoints > 0
-		let isMobileResult = isMobile || hasTouchScreen
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setIsMobileDevice(isMobileResult)
-	}, [])
-
-	return isMobileDevice
+	return isMobileResult
 }
 
 interface BeforeInstallPromptEvent extends Event {

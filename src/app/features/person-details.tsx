@@ -166,8 +166,7 @@ export function PersonDetails({
 								person.createdAt || new Date(person.$jazz.createdAt),
 								{
 									addSuffix: true,
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									locale: (locale === "de" ? dfnsDe : undefined) as any,
+									locale: locale === "de" ? dfnsDe : undefined,
 								},
 							),
 						})}
@@ -185,8 +184,7 @@ export function PersonDetails({
 									person.updatedAt || new Date(person.$jazz.lastUpdatedAt),
 									{
 										addSuffix: true,
-										// eslint-disable-next-line @typescript-eslint/no-explicit-any
-										locale: (locale === "de" ? dfnsDe : undefined) as any,
+										locale: locale === "de" ? dfnsDe : undefined,
 									},
 								),
 							})}

@@ -241,8 +241,7 @@ function RestorePersonDialog({
 												),
 											{
 												addSuffix: true,
-												// eslint-disable-next-line @typescript-eslint/no-explicit-any
-												locale: dfnsLocale as any,
+												locale: dfnsLocale,
 											},
 										),
 									}}

@@ -2,7 +2,7 @@ import { Markdown } from "#shared/ui/markdown"
 import { ToolResultRenderer } from "#shared/tools/ui"
 import { CreatePersonConfirmation } from "#shared/tools/person-create-ui"
 import { UserQuestionConfirmation } from "#shared/tools/user-question-ui"
-import type { TillyUIMessage } from "#shared/tools/tools"
+import type { AddToolResultFunction, TillyUIMessage } from "#shared/tools/tools"
 
 export function UserMessage({ message }: { message: TillyUIMessage }) {
 	if (message.role !== "user") return null
@@ -29,8 +29,7 @@ export function AssistantMessage({
 }: {
 	message: TillyUIMessage
 	userId?: string
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-	addToolResult?: Function
+	addToolResult?: AddToolResultFunction
 }) {
 	if (message.role !== "assistant") return null
 
@@ -185,8 +184,7 @@ export function MessageRenderer({
 }: {
 	message: TillyUIMessage
 	userId: string
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-	addToolResult?: Function
+	addToolResult?: AddToolResultFunction
 }) {
 	switch (message.role) {
 		case "user":
