@@ -169,28 +169,78 @@ function AuthenticationSection() {
 			}
 		>
 			<div className="space-y-6">
-				<div>
-					<p className="mb-1 text-sm font-medium">
-						<T k="settings.auth.status.label" />
-					</p>
-					<p className="text-muted-foreground text-sm">
-						{isAuthenticated
-							? t("settings.auth.status.signedIn", {
+				{isAuthenticated ? (
+					<>
+						<div>
+							<p className="mb-1 text-sm font-medium">
+								<T k="settings.auth.status.label" />
+							</p>
+							<p className="text-muted-foreground text-sm">
+								{t("settings.auth.status.signedIn", {
 									email: user?.emailAddresses[0]?.emailAddress || "",
-								})
-							: t("settings.auth.status.signedOut")}
-					</p>
-				</div>
-				{auth.isLoaded && auth.isSignedIn && (
+								})}
+							</p>
+							<div className="mt-3 inline-flex flex-wrap gap-3">
+								<Button asChild variant="secondary" disabled={!isOnline}>
+									<a href={`${getAccountsUrl()}/user`}>
+										<T k="settings.auth.manageAccount" />
+									</a>
+								</Button>
+								<SignOutButton redirectUrl="/app">
+									<Button
+										onClick={() => resetAppStore()}
+										variant="outline"
+										disabled={!isOnline}
+									>
+										<T k="settings.auth.signOut" />
+									</Button>
+								</SignOutButton>
+							</div>
+						</div>
+						{auth.isLoaded && auth.isSignedIn && (
+							<div>
+								<p className="mb-1 text-sm font-medium">
+									<T k="settings.auth.tier.label" />
+								</p>
+								<p className="text-muted-foreground text-sm">
+									{auth.has({ plan: "plus" })
+										? t("settings.auth.tier.plus")
+										: t("settings.auth.tier.free")}
+								</p>
+								<div className="mt-3">
+									<Button asChild variant="secondary" disabled={!isOnline}>
+										<a href={`${getAccountsUrl()}/user/billing`}>
+											<T k="settings.auth.manageSubscription" />
+										</a>
+									</Button>
+								</div>
+							</div>
+						)}
+					</>
+				) : (
 					<div>
 						<p className="mb-1 text-sm font-medium">
-							<T k="settings.auth.tier.label" />
+							<T k="settings.auth.status.label" />
 						</p>
 						<p className="text-muted-foreground text-sm">
-							{auth.has({ plan: "plus" })
-								? t("settings.auth.tier.plus")
-								: t("settings.auth.tier.free")}
+							{t("settings.auth.status.signedOut")}
 						</p>
+						<div className="mt-3 space-x-2">
+							<Button asChild disabled={!isOnline}>
+								<a
+									href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
+								>
+									<T k="auth.signIn.button" />
+								</a>
+							</Button>
+							<Button asChild variant="outline" disabled={!isOnline}>
+								<a
+									href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
+								>
+									<T k="auth.signUp.button" />
+								</a>
+							</Button>
+						</div>
 					</div>
 				)}
 				<div className="space-y-2">
@@ -205,48 +255,6 @@ function AuthenticationSection() {
 							</AlertDescription>
 						</Alert>
 					)}
-					<div className="inline-flex flex-wrap gap-3">
-						{isAuthenticated ? (
-							<>
-								<Button asChild disabled={!isOnline}>
-									<a href={`${getAccountsUrl()}/user`}>
-										<T k="settings.auth.manageAccount" />
-									</a>
-								</Button>
-								<Button asChild variant="secondary" disabled={!isOnline}>
-									<a href={`${getAccountsUrl()}/user/billing`}>
-										<T k="settings.auth.manageSubscription" />
-									</a>
-								</Button>
-								<SignOutButton redirectUrl="/app">
-									<Button
-										onClick={() => resetAppStore()}
-										variant="outline"
-										disabled={!isOnline}
-									>
-										<T k="settings.auth.signOut" />
-									</Button>
-								</SignOutButton>
-							</>
-						) : (
-							<div className="space-x-2">
-								<Button asChild disabled={!isOnline}>
-									<a
-										href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
-									>
-										<T k="auth.signIn.button" />
-									</a>
-								</Button>
-								<Button asChild variant="outline" disabled={!isOnline}>
-									<a
-										href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
-									>
-										<T k="auth.signUp.button" />
-									</a>
-								</Button>
-							</div>
-						)}
-					</div>
 				</div>
 			</div>
 		</SettingsSection>
