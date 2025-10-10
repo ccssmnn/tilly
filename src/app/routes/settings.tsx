@@ -781,11 +781,9 @@ function WebsiteSection() {
 }
 
 function getAccountsUrl(): string {
-	let isDevelopment = import.meta.env.DEV
-	if (isDevelopment) {
-		return "https://accounts.clerk.accounts.dev"
-	}
-	return "https://accounts.tilly.social"
+	return (
+		import.meta.env.PUBLIC_CLERK_ACCOUNTS_URL || "https://accounts.tilly.social"
+	)
 }
 
 function getCurrentUrl(): string {

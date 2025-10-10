@@ -59,6 +59,10 @@ export default defineConfig({
 				context: "client",
 				access: "public",
 			}),
+			PUBLIC_CLERK_ACCOUNTS_URL: envField.string({
+				context: "client",
+				access: "public",
+			}),
 			PUBLIC_JAZZ_SYNC_SERVER: envField.string({
 				context: "client",
 				access: "public",
