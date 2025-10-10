@@ -30,16 +30,16 @@ import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
 
-let query = {
-	avatar: true,
-	notes: { $each: true },
-	reminders: { $each: true },
-} as const
+type Query = {
+	avatar: true
+	notes: { $each: true }
+	reminders: { $each: true }
+}
 
 export function PersonDetails({
 	person,
 }: {
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, Query>
 	me: co.loaded<typeof UserAccount>
 }) {
 	let navigate = useNavigate()
@@ -166,7 +166,7 @@ export function PersonDetails({
 								person.createdAt || new Date(person.$jazz.createdAt),
 								{
 									addSuffix: true,
-									locale: (locale === "de" ? dfnsDe : undefined) as any,
+									locale: locale === "de" ? dfnsDe : undefined,
 								},
 							),
 						})}
@@ -184,7 +184,7 @@ export function PersonDetails({
 									person.updatedAt || new Date(person.$jazz.lastUpdatedAt),
 									{
 										addSuffix: true,
-										locale: (locale === "de" ? dfnsDe : undefined) as any,
+										locale: locale === "de" ? dfnsDe : undefined,
 									},
 								),
 							})}

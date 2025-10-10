@@ -241,7 +241,7 @@ function RestorePersonDialog({
 												),
 											{
 												addSuffix: true,
-												locale: dfnsLocale as any,
+												locale: dfnsLocale,
 											},
 										),
 									}}

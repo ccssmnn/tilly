@@ -2,6 +2,8 @@ import { describe, test, expect } from "vitest"
 import { createIntl } from "@ccssmnn/intl"
 import { messagesEn, messagesDe } from "./messages"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 describe("messages parsing", () => {
 	test("all English messages can be parsed without errors", () => {
 		let compilationErrors: string[] = []

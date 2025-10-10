@@ -17,7 +17,7 @@ export default defineConfig({
 
 	devToolbar: { enabled: false },
 	integrations: [
-		react(),
+		react({ babel: { plugins: ["babel-plugin-react-compiler"] } }),
 		pwa({
 			registerType: "prompt",
 			scope: "/app/",
@@ -27,6 +27,7 @@ export default defineConfig({
 			filename: "sw.ts",
 			manifest: false,
 			injectManifest: {
+				maximumFileSizeToCacheInBytes: 5_000_000,
 				globPatterns: [
 					"_astro/**/*",
 					"app/**/*.{css,html,ico,js,json,png,svg,txt,webp,woff2}",

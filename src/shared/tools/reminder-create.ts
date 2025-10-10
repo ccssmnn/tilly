@@ -116,7 +116,7 @@ async function addReminderExecute(
 
 	let res = await tryCatch(createReminder(data, { personId, userId }))
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...result } = res.data
+	let result = res.data
 	return {
 		personId: result.personID,
 		reminderId: result.reminderID,

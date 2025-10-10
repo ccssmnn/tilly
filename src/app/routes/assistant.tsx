@@ -164,6 +164,7 @@ function AuthenticatedChat() {
 				addToolResult({
 					tool: toolName,
 					toolCallId: toolCall.toolCallId,
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					output: await executeFn(currentMe.$jazz.id, toolCall.input as any),
 				})
 			}
@@ -327,6 +328,7 @@ function UserInput(props: {
 			<div className="container mx-auto md:max-w-xl">
 				<Form {...form}>
 					<form
+						// eslint-disable-next-line react-hooks/refs
 						onSubmit={form.handleSubmit(handleSubmit)}
 						className={`plausible--event-name=Chat+Message+Send${props.chatSize === 0 ? "+First" : "+Followup"}`}
 					>

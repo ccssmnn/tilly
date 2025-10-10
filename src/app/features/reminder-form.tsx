@@ -16,7 +16,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "#shared/ui/form"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Textarea } from "#shared/ui/textarea"
@@ -83,7 +83,7 @@ export function ReminderForm({
 	})
 	let [placeholder] = useState(getRotatingReminderPlaceholder(t))
 	let [selectKey, setSelectKey] = useState(nanoid())
-	let repeat = form.watch("repeat")
+	let repeat = useWatch({ control: form.control, name: "repeat" })
 
 	return (
 		<Form {...form}>

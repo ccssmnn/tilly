@@ -1,7 +1,7 @@
 import { de as dfnsDe } from "date-fns/locale"
 import { formatDistanceToNow } from "date-fns"
 import { useIsAuthenticated } from "jazz-tools/react"
-import { co, type ResolveQuery } from "jazz-tools"
+import { co } from "jazz-tools"
 import { PushDevice, UserAccount } from "#shared/schema/user"
 import { Alert, AlertTitle, AlertDescription } from "#shared/ui/alert"
 import { ExclamationTriangle } from "react-bootstrap-icons"
@@ -27,7 +27,7 @@ import {
 } from "#shared/ui/dialog"
 import z from "zod"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -51,7 +51,7 @@ import { useIsIOS, useIsPWAInstalled } from "#app/hooks/use-pwa"
 export function NotificationSettings({
 	me,
 }: {
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, Query>
 }) {
 	let t = useIntl()
 	let isAuthenticated = useIsAuthenticated()
@@ -148,15 +148,16 @@ export function NotificationSettings({
 	)
 }
 
-let query = {
-	root: { notificationSettings: true },
-} satisfies ResolveQuery<typeof UserAccount>
+type Query = {
+	root: { notificationSettings: true }
+}
 
 let timezoneFormSchema = z.object({
 	timezone: z.string().refine(
 		value => {
 			try {
 				// supportedValuesOf is not in all TypeScript versions but exists in modern browsers
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				return (Intl as any).supportedValuesOf("timeZone").includes(value)
 			} catch {
 				return false
@@ -174,11 +175,7 @@ let notificationTimeFormSchema = z.object({
 		}),
 })
 
-function TimezoneSection({
-	me,
-}: {
-	me: co.loaded<typeof UserAccount, typeof query>
-}) {
+function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 	let notifications = me?.root.notificationSettings
 	let currentTimezone =
 		notifications?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -321,7 +318,7 @@ function TimezoneSection({
 function NotificationTimeSection({
 	me,
 }: {
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, Query>
 }) {
 	let notifications = me?.root.notificationSettings
 	let currentNotificationTime = notifications?.notificationTime || "12:00"
@@ -486,7 +483,7 @@ function NotificationTimeSection({
 function LastDeliveredSection({
 	me,
 }: {
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, Query>
 }) {
 	let notifications = me?.root.notificationSettings
 	let locale = useLocale()
@@ -567,7 +564,7 @@ interface DeviceListItemProps {
 			auth: string
 		}
 	}
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, Query>
 }
 
 function DeviceListItem({ device, me }: DeviceListItemProps) {
@@ -824,7 +821,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 }
 
 interface AddDeviceDialogProps {
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, Query>
 	disabled?: boolean
 }
 
@@ -1048,6 +1045,7 @@ function getDeviceName(): string {
 
 function useCurrentEndpoint(): [string | null | undefined, () => void] {
 	let [endpoint, setEndpoint] = useState<string | null | undefined>(undefined)
+	let [initialized, setInitialized] = useState(false)
 
 	let refreshEndpoint = useCallback(async function refreshCurrentEndpoint() {
 		async function getCurrentPushEndpoint(): Promise<string | null> {
@@ -1068,9 +1066,10 @@ function useCurrentEndpoint(): [string | null | undefined, () => void] {
 		setEndpoint(newEndpoint)
 	}, [])
 
-	useEffect(() => {
+	if (!initialized) {
+		setInitialized(true)
 		refreshEndpoint()
-	}, [refreshEndpoint])
+	}
 
 	return [endpoint, refreshEndpoint]
 }

@@ -39,6 +39,7 @@ async function createPerson(
 				placeholder: "blur",
 				progressive: true,
 			})
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			person.$jazz.set("avatar", avatar as any) // TODO: is this an error on the jazz side of things?
 		} catch (error) {
 			console.warn("Failed to create avatar:", error)

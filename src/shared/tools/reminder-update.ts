@@ -210,7 +210,7 @@ async function updateReminderExecute(
 		updateReminder(updates, { userId, personId, reminderId }),
 	)
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...result } = res.data
+	let result = res.data
 	return {
 		personId: result.personID,
 		reminderId: result.reminderID,
@@ -272,7 +272,7 @@ async function removeReminderExecute(
 		updateReminder({ deletedAt: new Date() }, { userId, personId, reminderId }),
 	)
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...result } = res.data
+	let result = res.data
 	return {
 		personId: result.personID,
 		reminderId: result.reminderID,

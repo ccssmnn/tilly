@@ -90,7 +90,7 @@ async function addNoteExecute(
 ): Promise<_AddNoteTool["output"]> {
 	let res = await tryCatch(createNote(input.personId, input))
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...data } = res.data
+	let { data } = res
 	return {
 		noteId: data.noteID,
 		personId: data.personID,

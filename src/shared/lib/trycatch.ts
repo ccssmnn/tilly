@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare */
 type Success<T> = {
 	ok: true
 	data: T

@@ -22,6 +22,7 @@ import {
 	createPersonExecute,
 	createPersonTool,
 } from "#shared/tools/person-create"
+import type { AddToolResultFunction } from "#shared/tools/tools"
 import type { InferUITool } from "ai"
 import { updatePerson } from "#shared/tools/person-update"
 import { cn } from "#app/lib/utils"
@@ -49,7 +50,7 @@ function CreatePersonConfirmation({
 		input: CreatePersonToolUI["input"]
 		state: "input-available"
 	}
-	addToolResult: Function
+	addToolResult: AddToolResultFunction
 	userId: string
 }) {
 	let [isCreating, setIsCreating] = useState(false)

@@ -281,7 +281,7 @@ function ReminderItemHeader({
 						new Date(reminder.$jazz.lastUpdatedAt || reminder.$jazz.createdAt),
 					{
 						addSuffix: true,
-						locale: dfnsLocale as any,
+						locale: dfnsLocale,
 					},
 				)}
 			</div>
@@ -575,9 +575,7 @@ function RestoreReminderDialog({
 												),
 											{
 												addSuffix: true,
-												locale: (useLocale() === "de"
-													? dfnsDe
-													: undefined) as any,
+												locale: useLocale() === "de" ? dfnsDe : undefined,
 											},
 										),
 									}}

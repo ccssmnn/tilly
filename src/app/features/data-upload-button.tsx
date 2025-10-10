@@ -345,6 +345,7 @@ export function UploadButton({ userID }: { userID: string }) {
 								placeholder: "blur",
 								progressive: true,
 							})
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							person.$jazz.set("avatar", avatarImage as any) // TODO: is this an error on the jazz side of things?
 						} catch (error) {
 							console.warn(

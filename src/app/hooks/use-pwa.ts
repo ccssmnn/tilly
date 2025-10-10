@@ -15,7 +15,9 @@ function useIsPWAInstalled(): boolean {
 	useEffect(() => {
 		let checkInstalled = () => {
 			let isStandalone = window.matchMedia("(display-mode: standalone)").matches
-			let isIOSStandalone = (window.navigator as any).standalone === true
+			let isIOSStandalone =
+				(window.navigator as unknown as { standalone: boolean }).standalone ===
+				true
 			setIsInstalled(isStandalone || isIOSStandalone)
 		}
 
@@ -31,43 +33,27 @@ function useIsPWAInstalled(): boolean {
 }
 
 function useIsAndroid(): boolean {
-	let [isAndroid, setIsAndroid] = useState(false)
-
-	useEffect(() => {
-		let userAgent = navigator.userAgent.toLowerCase()
-		setIsAndroid(userAgent.includes("android"))
-	}, [])
-
-	return isAndroid
+	let userAgent = navigator.userAgent.toLowerCase()
+	let isAndroidResult = userAgent.includes("android")
+	return isAndroidResult
 }
 
 function useIsIOS(): boolean {
-	let [isIOS, setIsIOS] = useState(false)
-
-	useEffect(() => {
-		let userAgent = navigator.userAgent.toLowerCase()
-		let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
-		setIsIOS(isIOSDevice)
-	}, [])
-
-	return isIOS
+	let userAgent = navigator.userAgent.toLowerCase()
+	let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
+	return isIOSDevice
 }
 
 function useIsMobileDevice(): boolean {
-	let [isMobileDevice, setIsMobileDevice] = useState(false)
+	let userAgent = navigator.userAgent.toLowerCase()
+	let isMobile =
+		/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+			userAgent,
+		)
+	let hasTouchScreen = "ontouchstart" in window || navigator.maxTouchPoints > 0
+	let isMobileResult = isMobile || hasTouchScreen
 
-	useEffect(() => {
-		let userAgent = navigator.userAgent.toLowerCase()
-		let isMobile =
-			/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-				userAgent,
-			)
-		let hasTouchScreen =
-			"ontouchstart" in window || navigator.maxTouchPoints > 0
-		setIsMobileDevice(isMobile || hasTouchScreen)
-	}, [])
-
-	return isMobileDevice
+	return isMobileResult
 }
 
 interface BeforeInstallPromptEvent extends Event {

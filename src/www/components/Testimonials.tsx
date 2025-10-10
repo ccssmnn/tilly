@@ -22,7 +22,7 @@ function Testimonials({ title, subtitle, testimonials }: Props) {
 					{testimonials.map((testimonial, index) => (
 						<figure key={index} className="border-primary border-l pl-8">
 							<blockquote className="text-foreground text-lg font-medium tracking-tight">
-								<p>"{testimonial.quote}"</p>
+								<p>&ldquo;{testimonial.quote}&rdquo;</p>
 							</blockquote>
 							{testimonial.author && (
 								<figcaption className="text-muted-foreground mt-6 text-sm">
