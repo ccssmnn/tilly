@@ -1,5 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"
+import { PUBLIC_CLERK_ACCOUNTS_URL } from "astro:env/client"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -209,18 +210,14 @@ function AuthenticationSection() {
 							<>
 								<Button asChild disabled={!isOnline}>
 									<a
-										href="https://accounts.tilly.social/user?redirect_url=https://tilly.social/app/settings"
-										target="_blank"
-										rel="noopener noreferrer"
+										href={`${getAccountsUrl()}/user?redirect_url=${getCurrentUrl()}/app/settings`}
 									>
 										<T k="settings.auth.manageAccount" />
 									</a>
 								</Button>
 								<Button asChild variant="secondary" disabled={!isOnline}>
 									<a
-										href="https://accounts.tilly.social/user/billing?redirect_url=https://tilly.social/app/settings"
-										target="_blank"
-										rel="noopener noreferrer"
+										href={`${getAccountsUrl()}/user/billing?redirect_url=${getCurrentUrl()}/app/settings`}
 									>
 										<T k="settings.auth.manageSubscription" />
 									</a>
@@ -244,8 +241,6 @@ function AuthenticationSection() {
 								>
 									<a
 										href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
-										target="_blank"
-										rel="noopener noreferrer"
 									>
 										<T k="auth.signIn.button" />
 									</a>
@@ -258,8 +253,6 @@ function AuthenticationSection() {
 								>
 									<a
 										href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
-										target="_blank"
-										rel="noopener noreferrer"
 									>
 										<T k="auth.signUp.button" />
 									</a>
@@ -781,14 +774,9 @@ function WebsiteSection() {
 }
 
 function getAccountsUrl(): string {
-	return (
-		import.meta.env.PUBLIC_CLERK_ACCOUNTS_URL || "https://accounts.tilly.social"
-	)
+	return PUBLIC_CLERK_ACCOUNTS_URL
 }
 
 function getCurrentUrl(): string {
-	if (typeof window !== "undefined") {
-		return window.location.origin
-	}
-	return import.meta.env.PUBLIC_SITE_URL || "https://tilly.social"
+	return window.location.origin
 }
