@@ -220,6 +220,13 @@ function AuthenticationSection() {
 								>
 									<T k="settings.auth.manageAccount" />
 								</Button>
+								<Button
+									onClick={handleManageSubscription}
+									variant="outline"
+									disabled={!isOnline}
+								>
+									<T k="settings.auth.manageSubscription" />
+								</Button>
 								<SignOutButton redirectUrl="/app">
 									<Button
 										onClick={handleSignOut}
@@ -768,4 +775,8 @@ function WebsiteSection() {
 
 function handleSignOut(): void {
 	resetAppStore()
+}
+
+function handleManageSubscription(): void {
+	window.open("https://tilly.clerk.accounts.dev/user/billing", "_blank")
 }
