@@ -31,7 +31,7 @@ const Textarea = React.forwardRef<
 			(element: HTMLTextAreaElement | null) => {
 				internalRef.current = element
 			},
-			[enableAutoResize],
+			[],
 		)
 
 		return (

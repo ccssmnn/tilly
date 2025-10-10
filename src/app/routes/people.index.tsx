@@ -92,6 +92,7 @@ function PeopleScreen() {
 					{people.active.map((person, index) => (
 						<li key={person.$jazz.id}>
 							<PersonListItem
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
 								person={person as any} // TODO: ouch :(
 								searchQuery={deferredSearchQuery}
 								noLazy={index < eagerCount}
@@ -135,6 +136,7 @@ function PeopleScreen() {
 									{people.deleted.map((person, index) => (
 										<li key={person.$jazz.id}>
 											<PersonListItem
+												// eslint-disable-next-line @typescript-eslint/no-explicit-any
 												person={person as any} // TODO: ouch :(
 												searchQuery={deferredSearchQuery}
 												noLazy={index < eagerCount}
@@ -162,6 +164,7 @@ function PeopleScreen() {
 								{people.deleted.map((person, index) => (
 									<li key={person.$jazz.id}>
 										<PersonListItem
+											// eslint-disable-next-line @typescript-eslint/no-explicit-any
 											person={person as any} // TODO: ouch :(
 											searchQuery={deferredSearchQuery}
 											noLazy={index < eagerCount}

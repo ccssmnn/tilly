@@ -281,6 +281,7 @@ function ReminderItemHeader({
 						new Date(reminder.$jazz.lastUpdatedAt || reminder.$jazz.createdAt),
 					{
 						addSuffix: true,
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						locale: dfnsLocale as any,
 					},
 				)}
@@ -575,9 +576,10 @@ function RestoreReminderDialog({
 												),
 											{
 												addSuffix: true,
+
 												locale: (useLocale() === "de"
 													? dfnsDe
-													: undefined) as any,
+													: undefined) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
 											},
 										),
 									}}

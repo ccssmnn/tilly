@@ -79,4 +79,5 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>
 // Types for UI integration
 export type ToolSet = typeof tools
 export type MyTools = InferUITools<ToolSet>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type TillyUIMessage = UIMessage<MessageMetadata, {}, MyTools>

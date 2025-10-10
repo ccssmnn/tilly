@@ -42,7 +42,7 @@ function ContentWithTestimonial({
 				<div className="relative md:order-last md:col-span-5">
 					<figure className="border-primary border-l pl-8">
 						<blockquote className="text-foreground text-xl/8 font-semibold tracking-tight">
-							<p>"{testimonial.quote}"</p>
+							<p>&ldquo;{testimonial.quote}&rdquo;</p>
 						</blockquote>
 						<figcaption className="mt-8 flex gap-x-4">
 							{testimonial.author.avatar && (

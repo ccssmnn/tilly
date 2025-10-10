@@ -49,6 +49,7 @@ function CreatePersonConfirmation({
 		input: CreatePersonToolUI["input"]
 		state: "input-available"
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 	addToolResult: Function
 	userId: string
 }) {

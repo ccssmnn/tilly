@@ -189,7 +189,7 @@ function NotFoundComponent() {
 			userAgent: navigator.userAgent,
 			timestamp: new Date().toISOString(),
 		})
-	}, [])
+	}, [location.pathname, location.search, location.hash, location.href])
 
 	return (
 		<main className="container mx-auto max-w-6xl px-3 py-6 pb-20 md:pt-20 md:pb-0">

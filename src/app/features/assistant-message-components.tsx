@@ -29,6 +29,7 @@ export function AssistantMessage({
 }: {
 	message: TillyUIMessage
 	userId?: string
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 	addToolResult?: Function
 }) {
 	if (message.role !== "assistant") return null
@@ -184,6 +185,7 @@ export function MessageRenderer({
 }: {
 	message: TillyUIMessage
 	userId: string
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 	addToolResult?: Function
 }) {
 	switch (message.role) {

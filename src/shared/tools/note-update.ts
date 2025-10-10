@@ -137,7 +137,7 @@ async function editNoteExecute(
 
 	let res = await tryCatch(updateNote(personId, noteId, updates))
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...result } = res.data
+	let { _ref: _unused, ...result } = res.data // eslint-disable-line @typescript-eslint/no-unused-vars
 	return {
 		personId: result.personID,
 		noteId: result.noteID,
@@ -193,7 +193,7 @@ async function deleteNoteExecute(
 		updateNote(personId, noteId, { deletedAt: new Date() }),
 	)
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...result } = res.data
+	let { _ref: _unused2, ...result } = res.data // eslint-disable-line @typescript-eslint/no-unused-vars
 	return {
 		personId: result.personID,
 		noteId: result.noteID,

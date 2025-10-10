@@ -148,6 +148,7 @@ export function NotificationSettings({
 	)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let query = {
 	root: { notificationSettings: true },
 } satisfies ResolveQuery<typeof UserAccount>
@@ -157,6 +158,7 @@ let timezoneFormSchema = z.object({
 		value => {
 			try {
 				// supportedValuesOf is not in all TypeScript versions but exists in modern browsers
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				return (Intl as any).supportedValuesOf("timeZone").includes(value)
 			} catch {
 				return false
@@ -1069,6 +1071,7 @@ function useCurrentEndpoint(): [string | null | undefined, () => void] {
 	}, [])
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		refreshEndpoint()
 	}, [refreshEndpoint])
 

@@ -116,7 +116,7 @@ async function addReminderExecute(
 
 	let res = await tryCatch(createReminder(data, { personId, userId }))
 	if (!res.ok) return { error: `${res.error}` }
-	let { _ref, ...result } = res.data
+	let { _ref: _unused, ...result } = res.data // eslint-disable-line @typescript-eslint/no-unused-vars
 	return {
 		personId: result.personID,
 		reminderId: result.reminderID,

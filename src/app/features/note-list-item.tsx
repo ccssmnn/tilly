@@ -170,11 +170,19 @@ function TimeStamp({
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	let createdText = formatDistanceToNow(
 		record.createdAt || new Date(record.$jazz.createdAt),
-		{ addSuffix: true, locale: dfnsLocale as any },
+		{
+			addSuffix: true,
+			/* eslint-disable-next-line @typescript-eslint/no-explicit-any */ locale:
+				dfnsLocale as any,
+		},
 	)
 	let updatedText = formatDistanceToNow(
 		record.updatedAt || new Date(record.$jazz.lastUpdatedAt),
-		{ addSuffix: true, locale: dfnsLocale as any },
+		{
+			addSuffix: true,
+			/* eslint-disable-next-line @typescript-eslint/no-explicit-any */ locale:
+				dfnsLocale as any,
+		},
 	)
 
 	let shouldShowUpdated =
@@ -474,9 +482,10 @@ function RestoreNoteDialog({
 												),
 											{
 												addSuffix: true,
+
 												locale: (useLocale() === "de"
 													? dfnsDe
-													: undefined) as any,
+													: undefined) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
 											},
 										),
 									}}

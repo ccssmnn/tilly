@@ -28,6 +28,92 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { cn } from "#app/lib/utils"
 import { T, useIntl } from "#shared/intl/setup"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+function AvatarField({
+	value,
+	person,
+	form,
+	fileInputRef,
+}: {
+	value: any
+	person: any
+	form: any
+	fileInputRef: any
+}) {
+	let [preview, setPreview] = useState<string>()
+	let nameValue = form.watch("name")
+
+	useEffect(() => {
+		if (value) {
+			let reader = new FileReader()
+			reader.onloadend = () => {
+				setPreview(reader.result as string)
+			}
+			reader.readAsDataURL(value)
+		} else if (value === null) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setPreview(undefined)
+		}
+	}, [value])
+
+	let displaySrc = preview
+
+	return (
+		<FormItem>
+			<FormLabel>
+				<T k="person.form.avatar.label" />
+			</FormLabel>
+			<div className="flex items-center gap-4">
+				<Avatar
+					className="size-20 cursor-pointer"
+					onClick={() => fileInputRef.current?.click()}
+				>
+					{displaySrc ? (
+						<AvatarImage src={displaySrc} />
+					) : value !== null && person?.avatar ? (
+						<JazzImage
+							imageId={person.avatar.$jazz.id}
+							alt={nameValue}
+							width={80}
+							data-slot="avatar-image"
+							className="aspect-square size-full object-cover shadow-inner"
+						/>
+					) : null}
+					<AvatarFallback>
+						{nameValue ? nameValue.slice(0, 1) : "?"}
+					</AvatarFallback>
+				</Avatar>
+				<div className="inline-flex flex-1 flex-wrap gap-2">
+					<FormControl>
+						<Button
+							variant="outline"
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+						>
+							{displaySrc || person?.avatar ? (
+								<T k="person.form.avatar.change" />
+							) : (
+								<T k="person.form.avatar.upload" />
+							)}
+						</Button>
+					</FormControl>
+					{(person?.avatar || displaySrc) && (
+						<Button
+							type="button"
+							variant="destructive"
+							onClick={() => form.setValue("avatar", null)}
+						>
+							<T k="person.form.avatar.remove" />
+						</Button>
+					)}
+				</div>
+			</div>
+			<FormMessage />
+		</FormItem>
+	)
+}
+
 export { PersonForm }
 
 export type { PersonFormValues }
@@ -109,78 +195,14 @@ function PersonForm({
 				<FormField
 					control={form.control}
 					name="avatar"
-					render={({ field: { value } }) => {
-						let [preview, setPreview] = useState<string>()
-						let nameValue = form.watch("name")
-
-						useEffect(() => {
-							if (value) {
-								let reader = new FileReader()
-								reader.onloadend = () => {
-									setPreview(reader.result as string)
-								}
-								reader.readAsDataURL(value)
-							} else if (value === null) {
-								setPreview(undefined)
-							}
-						}, [value])
-
-						let displaySrc = preview
-
-						return (
-							<FormItem>
-								<FormLabel>
-									<T k="person.form.avatar.label" />
-								</FormLabel>
-								<div className="flex items-center gap-4">
-									<Avatar
-										className="size-20 cursor-pointer"
-										onClick={() => fileInputRef.current?.click()}
-									>
-										{displaySrc ? (
-											<AvatarImage src={displaySrc} />
-										) : value !== null && person?.avatar ? (
-											<JazzImage
-												imageId={person.avatar.$jazz.id}
-												alt={nameValue}
-												width={80}
-												data-slot="avatar-image"
-												className="aspect-square size-full object-cover shadow-inner"
-											/>
-										) : null}
-										<AvatarFallback>
-											{nameValue ? nameValue.slice(0, 1) : "?"}
-										</AvatarFallback>
-									</Avatar>
-									<div className="inline-flex flex-1 flex-wrap gap-2">
-										<FormControl>
-											<Button
-												variant="outline"
-												type="button"
-												onClick={() => fileInputRef.current?.click()}
-											>
-												{displaySrc || person?.avatar ? (
-													<T k="person.form.avatar.change" />
-												) : (
-													<T k="person.form.avatar.upload" />
-												)}
-											</Button>
-										</FormControl>
-										{(person?.avatar || displaySrc) && (
-											<Button
-												type="button"
-												variant="destructive"
-												onClick={() => form.setValue("avatar", null)}
-											>
-												<T k="person.form.avatar.remove" />
-											</Button>
-										)}
-									</div>
-								</div>
-								<FormMessage />
-							</FormItem>
-						)
-					}}
+					render={({ field: { value } }) => (
+						<AvatarField
+							value={value}
+							person={person}
+							form={form}
+							fileInputRef={fileInputRef}
+						/>
+					)}
 				/>
 				<FormField
 					control={form.control}

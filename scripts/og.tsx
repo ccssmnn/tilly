@@ -51,12 +51,10 @@ async function main() {
 	let resvg = new Resvg(svg, { fitTo: { mode: "width", value: WIDTH } })
 	let png = resvg.render().asPng()
 	let outPath = await writeOutput(args.out, png)
-	// eslint-disable-next-line no-console
 	console.log(`OG image written to ${outPath}`)
 }
 
 main().catch(error => {
-	// eslint-disable-next-line no-console
 	console.error(error)
 	process.exit(1)
 })

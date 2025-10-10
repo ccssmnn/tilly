@@ -44,7 +44,7 @@ function imageToDataURL(imagePath) {
 		let mimeType =
 			ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png"
 		return `data:${mimeType};base64,${imageBase64}`
-	} catch (error) {
+	} catch {
 		console.warn(`Warning: Could not read avatar image ${imagePath}`)
 		return null
 	}

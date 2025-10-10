@@ -41,6 +41,7 @@ function UserQuestionConfirmation({
 		input: UserQuestionToolUI["input"]
 		state: "input-available"
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 	addToolResult: Function
 }) {
 	let [isResponding, setIsResponding] = useState(false)

@@ -30,6 +30,7 @@ import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let query = {
 	avatar: true,
 	notes: { $each: true },
@@ -166,6 +167,7 @@ export function PersonDetails({
 								person.createdAt || new Date(person.$jazz.createdAt),
 								{
 									addSuffix: true,
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									locale: (locale === "de" ? dfnsDe : undefined) as any,
 								},
 							),
@@ -184,6 +186,7 @@ export function PersonDetails({
 									person.updatedAt || new Date(person.$jazz.lastUpdatedAt),
 									{
 										addSuffix: true,
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
 										locale: (locale === "de" ? dfnsDe : undefined) as any,
 									},
 								),

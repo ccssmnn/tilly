@@ -15,6 +15,7 @@ function useIsPWAInstalled(): boolean {
 	useEffect(() => {
 		let checkInstalled = () => {
 			let isStandalone = window.matchMedia("(display-mode: standalone)").matches
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			let isIOSStandalone = (window.navigator as any).standalone === true
 			setIsInstalled(isStandalone || isIOSStandalone)
 		}
@@ -35,7 +36,9 @@ function useIsAndroid(): boolean {
 
 	useEffect(() => {
 		let userAgent = navigator.userAgent.toLowerCase()
-		setIsAndroid(userAgent.includes("android"))
+		let isAndroidResult = userAgent.includes("android")
+		// eslint-disable-next-line react-hooks/set-state-in-effect
+		setIsAndroid(isAndroidResult)
 	}, [])
 
 	return isAndroid
@@ -47,6 +50,7 @@ function useIsIOS(): boolean {
 	useEffect(() => {
 		let userAgent = navigator.userAgent.toLowerCase()
 		let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setIsIOS(isIOSDevice)
 	}, [])
 
@@ -64,7 +68,9 @@ function useIsMobileDevice(): boolean {
 			)
 		let hasTouchScreen =
 			"ontouchstart" in window || navigator.maxTouchPoints > 0
-		setIsMobileDevice(isMobile || hasTouchScreen)
+		let isMobileResult = isMobile || hasTouchScreen
+		// eslint-disable-next-line react-hooks/set-state-in-effect
+		setIsMobileDevice(isMobileResult)
 	}, [])
 
 	return isMobileDevice
