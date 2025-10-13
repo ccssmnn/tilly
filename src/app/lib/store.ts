@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { del, get, set } from "idb-keyval"
 import { z } from "zod"
+import { format } from "date-fns"
 import type { PersistStorage } from "zustand/middleware"
 import type { TillyUIMessage } from "#shared/tools/tools"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -27,7 +28,7 @@ interface AppState {
 	clearChatHintDismissed: boolean
 	setClearChatHintDismissed: (dismissed: boolean) => void
 
-	lastAccessDate: number
+	lastAccessDate: string
 }
 
 let storeStateSchema = z.object({
@@ -37,7 +38,7 @@ let storeStateSchema = z.object({
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
 	clearChatHintDismissed: z.boolean(),
-	lastAccessDate: z.number(),
+	lastAccessDate: z.string(),
 })
 
 type PersistedState = Pick<
@@ -58,7 +59,7 @@ let initialPersistedState: PersistedState = {
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
 	clearChatHintDismissed: false,
-	lastAccessDate: new Date().getDate(),
+	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 }
 
 type StorageValue<T> = {
@@ -183,7 +184,7 @@ export let useAppStore = create<AppState>()(
 			setClearChatHintDismissed: (dismissed: boolean) =>
 				set({ clearChatHintDismissed: dismissed }),
 
-			lastAccessDate: new Date().getDate(),
+			lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 		}),
 		{
 			name: "tilly-app-storage",
@@ -202,7 +203,7 @@ export let useAppStore = create<AppState>()(
 			onRehydrateStorage: () => state => {
 				if (!state) return
 
-				let today = new Date().getDate()
+				let today = format(new Date(), "yyyy-MM-dd")
 				let isNewDay = state.lastAccessDate !== today
 
 				if (isNewDay) {
@@ -225,6 +226,7 @@ export function resetAppStore(): void {
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
 		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
+		lastAccessDate: initialPersistedState.lastAccessDate,
 	})
 
 	let clearResult = tryCatch(() => useAppStore.persist.clearStorage())
