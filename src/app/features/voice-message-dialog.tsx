@@ -426,56 +426,43 @@ function useVoicePlayback({
 }) {
 	let playbackAnalyserRef = useRef<AnalyserNode | null>(null)
 	let playbackAnimationRef = useRef<number | null>(null)
+	let playbackAudioContextRef = useRef<AudioContext | null>(null)
+	let playbackSourceRef = useRef<MediaElementAudioSourceNode | null>(null)
 
 	let [isPlaying, setIsPlaying] = useState(false)
 
 	let setupPlaybackAnalyser = useCallback(() => {
 		if (!audioRef.current) return
 
-		// Clean up existing analyzer if any
-		if (playbackAnalyserRef.current) {
-			playbackAnalyserRef.current.disconnect()
-			playbackAnalyserRef.current = null
-		}
 		if (playbackAnimationRef.current) {
 			cancelAnimationFrame(playbackAnimationRef.current)
 			playbackAnimationRef.current = null
 		}
 
-		// Create a simulated analyzer based on audio playback
-		let lastUpdate = 0
-		let simulateAudioLevels = (timestamp: number) => {
-			if (!audioRef.current) {
-				return
-			}
+		if (!playbackAudioContextRef.current) {
+			let audioContext = createAudioContext()
+			playbackAudioContextRef.current = audioContext
 
-			if (audioRef.current.paused) {
-				onAudioLevel?.(0)
-				return
-			}
+			let analyser = audioContext.createAnalyser()
+			analyser.fftSize = 256
+			playbackAnalyserRef.current = analyser
 
-			if (audioRef.current.ended) {
-				onAudioLevel?.(0)
-				return
-			}
+			let source = audioContext.createMediaElementSource(audioRef.current)
+			playbackSourceRef.current = source
 
-			// Throttle updates to ~60fps to avoid overwhelming React
-			if (timestamp - lastUpdate > 16) {
-				// Simulate audio levels based on playback position
-				// This creates a realistic-looking audio level animation
-				let time = audioRef.current.currentTime
-				let baseLevel = 30 + Math.sin(time * 2) * 20
-				let variation = Math.random() * 30
-				let level = Math.min(100, Math.max(0, baseLevel + variation))
-
-				onAudioLevel?.(level)
-				lastUpdate = timestamp
-			}
-
-			playbackAnimationRef.current = requestAnimationFrame(simulateAudioLevels)
+			source.connect(analyser)
+			analyser.connect(audioContext.destination)
 		}
 
-		playbackAnimationRef.current = requestAnimationFrame(simulateAudioLevels)
+		if (playbackAnalyserRef.current) {
+			let setLevel = () => {}
+			setupAudioAnalyzer(
+				playbackAnalyserRef.current,
+				setLevel,
+				playbackAnimationRef,
+				onAudioLevel,
+			)
+		}
 	}, [audioRef, onAudioLevel])
 
 	let handlePlayPause = useCallback(async () => {
@@ -483,10 +470,29 @@ function useVoicePlayback({
 
 		if (isPlaying) {
 			audioRef.current.pause()
+			if (playbackAnimationRef.current) {
+				cancelAnimationFrame(playbackAnimationRef.current)
+				playbackAnimationRef.current = null
+			}
+			onAudioLevel?.(0)
 		} else {
 			await audioRef.current.play()
 		}
-	}, [audioRef, isPlaying])
+	}, [audioRef, isPlaying, onAudioLevel])
+
+	useEffect(() => {
+		return () => {
+			if (playbackAnimationRef.current) {
+				cancelAnimationFrame(playbackAnimationRef.current)
+			}
+			if (playbackAnalyserRef.current) {
+				playbackAnalyserRef.current.disconnect()
+			}
+			if (playbackAudioContextRef.current?.state !== "closed") {
+				playbackAudioContextRef.current?.close()
+			}
+		}
+	}, [])
 
 	return {
 		isPlaying,
