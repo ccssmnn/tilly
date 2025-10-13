@@ -208,10 +208,12 @@ export let useAppStore = create<AppState>()(
 
 				if (isNewDay) {
 					// Reset chat and search queries for new day
-					state.peopleSearchQuery = ""
-					state.remindersSearchQuery = ""
-					state.chat = []
-					state.lastAccessDate = today
+					useAppStore.setState({
+						peopleSearchQuery: "",
+						remindersSearchQuery: "",
+						chat: [],
+						lastAccessDate: today,
+					})
 				}
 			},
 		},
