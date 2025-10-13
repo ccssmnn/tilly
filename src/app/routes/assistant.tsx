@@ -381,10 +381,20 @@ function UserInput(props: {
 	let promptValue = form.watch("prompt")
 	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
 
+	function resizeTextarea() {
+		if (!textareaRef.current) return
+		textareaRef.current.style.height = "auto"
+		let scrollHeight = textareaRef.current.scrollHeight
+		let maxHeight = 2.5 * 6
+		textareaRef.current.style.height =
+			Math.min(scrollHeight, maxHeight * 16) + "px"
+	}
+
 	function handleStartSpeech() {
 		start(chunk => {
 			let current = form.getValues("prompt")
 			form.setValue("prompt", (current + " " + chunk).trim())
+			resizeTextarea()
 		})
 	}
 
@@ -417,6 +427,7 @@ function UserInput(props: {
 				inputFocused && "bg-background bottom-1",
 				!inputFocused &&
 					"bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*19)]",
+				active && "border-destructive",
 			)}
 		>
 			<div className="container mx-auto md:max-w-xl">
@@ -430,11 +441,13 @@ function UserInput(props: {
 									<FormControl>
 										<Textarea
 											placeholder={
-												props.disabled
-													? t("assistant.placeholder.disabled")
-													: props.chatSize === 0
-														? t("assistant.placeholder.initial")
-														: t("assistant.placeholder.reply")
+												active
+													? t("assistant.listening")
+													: props.disabled
+														? t("assistant.placeholder.disabled")
+														: props.chatSize === 0
+															? t("assistant.placeholder.initial")
+															: t("assistant.placeholder.reply")
 											}
 											rows={1}
 											className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
@@ -442,14 +455,7 @@ function UserInput(props: {
 											autoResize={false}
 											disabled={props.disabled || active}
 											{...field}
-											onInput={e => {
-												let target = e.target as HTMLTextAreaElement
-												target.style.height = "auto"
-												let scrollHeight = target.scrollHeight
-												let maxHeight = 2.5 * 6
-												target.style.height =
-													Math.min(scrollHeight, maxHeight * 16) + "px"
-											}}
+											onInput={resizeTextarea}
 											onKeyDown={e => {
 												if (e.key !== "Enter") return
 
@@ -493,7 +499,7 @@ function UserInput(props: {
 												handleStopSpeech()
 											}}
 											size="icon"
-											className="size-10 rounded-3xl"
+											className="size-10 animate-pulse rounded-3xl"
 										>
 											<MicFill />
 										</Button>
