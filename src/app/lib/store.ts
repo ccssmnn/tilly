@@ -23,6 +23,8 @@ interface AppState {
 
 	hideInstallNavItem: boolean
 	setHideInstallNavItem: (hidden: boolean) => void
+
+	lastAccessDate: number
 }
 
 let storeStateSchema = z.object({
@@ -31,6 +33,7 @@ let storeStateSchema = z.object({
 	chat: z.array(z.any()),
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
+	lastAccessDate: z.number(),
 })
 
 type PersistedState = Pick<
@@ -40,6 +43,7 @@ type PersistedState = Pick<
 	| "chat"
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
+	| "lastAccessDate"
 >
 
 let initialPersistedState: PersistedState = {
@@ -48,6 +52,7 @@ let initialPersistedState: PersistedState = {
 	chat: [],
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
+	lastAccessDate: new Date().getDate(),
 }
 
 type StorageValue<T> = {
@@ -167,6 +172,7 @@ export let useAppStore = create<AppState>()(
 			hideInstallNavItem: false,
 			setHideInstallNavItem: (hidden: boolean) =>
 				set({ hideInstallNavItem: hidden }),
+			lastAccessDate: new Date().getDate(),
 		}),
 		{
 			name: "tilly-app-storage",
@@ -179,7 +185,22 @@ export let useAppStore = create<AppState>()(
 				// pwaInstallHintDismissed: state.pwaInstallHintDismissed,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
+				lastAccessDate: state.lastAccessDate,
 			}),
+			onRehydrateStorage: () => state => {
+				if (!state) return
+
+				let today = new Date().getDate()
+				let isNewDay = state.lastAccessDate !== today
+
+				if (isNewDay) {
+					// Reset chat and search queries for new day
+					state.peopleSearchQuery = ""
+					state.remindersSearchQuery = ""
+					state.chat = []
+					state.lastAccessDate = today
+				}
+			},
 		},
 	),
 )
