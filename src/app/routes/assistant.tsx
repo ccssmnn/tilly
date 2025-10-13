@@ -1,8 +1,8 @@
 import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef, useState, type ReactNode } from "react"
+import { useRef, useState, useEffect, type ReactNode } from "react"
 import { z } from "zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "#shared/ui/button"
 import { Textarea } from "#shared/ui/textarea"
@@ -13,6 +13,7 @@ import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Send, Pause, Chat, WifiOff, Mic, MicFill } from "react-bootstrap-icons"
+import { toast } from "sonner"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
@@ -294,6 +295,7 @@ function useSpeechRecognition(lang: string) {
 	let recognitionRef = useRef<any>(null)
 	let onChunkRef = useRef<((chunk: string) => void) | null>(null)
 	let onInterimRef = useRef<((chunk: string) => void) | null>(null)
+	let t = useIntl()
 
 	let isAvailable = "webkitSpeechRecognition" in window
 
@@ -340,8 +342,30 @@ function useSpeechRecognition(lang: string) {
 			}
 		}
 
-		recognition.onerror = () => {
+		recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
 			setActive(false)
+			let errorMessage = event.error || "unknown"
+
+			switch (errorMessage) {
+				case "not-allowed":
+				case "service-not-allowed":
+					toast.error(t("assistant.speech.error.permission"))
+					break
+				case "network":
+					toast.error(t("assistant.speech.error.network"))
+					break
+				case "no-speech":
+					toast.warning(t("assistant.speech.error.noSpeech"))
+					break
+				case "audio-capture":
+					toast.error(t("assistant.speech.error.audioCapture"))
+					break
+				case "aborted":
+					// User stopped recording, no error needed
+					break
+				default:
+					toast.error(t("assistant.speech.error.generic"))
+			}
 		}
 
 		recognition.onend = () => {
@@ -359,7 +383,15 @@ function useSpeechRecognition(lang: string) {
 		}
 		setActive(false)
 		onChunkRef.current = null
+		onInterimRef.current = null
 	}
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			stop()
+		}
+	}, [])
 
 	return {
 		isAvailable,
@@ -390,7 +422,11 @@ function UserInput(props: {
 		defaultValues: { prompt: "" },
 	})
 
-	let promptValue = form.watch("prompt")
+	let promptValue = useWatch({
+		control: form.control,
+		name: "prompt",
+		defaultValue: "",
+	})
 	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
 	let baseTextRef = useRef("")
 
@@ -424,8 +460,10 @@ function UserInput(props: {
 
 	function handleStopSpeech() {
 		stop()
-		// Ensure we have the final text without any remaining interim text
-		form.setValue("prompt", baseTextRef.current)
+		// Get the current form value (includes any interim text the user sees)
+		let currentText = form.getValues("prompt")
+		// Update baseTextRef to match so we don't lose it
+		baseTextRef.current = currentText
 		resizeTextarea()
 	}
 
@@ -438,10 +476,6 @@ function UserInput(props: {
 		if (textareaRef.current) {
 			textareaRef.current.style.height = "auto"
 			textareaRef.current.style.height = ""
-		}
-
-		if (active) {
-			stop()
 		}
 	}
 
@@ -459,7 +493,14 @@ function UserInput(props: {
 		>
 			<div className="container mx-auto md:max-w-xl">
 				<Form {...form}>
-					<form onSubmit={form.handleSubmit(handleSubmit)}>
+					<form
+						onSubmit={e => {
+							if (active) {
+								stop()
+							}
+							form.handleSubmit(handleSubmit)(e)
+						}}
+					>
 						<FormField
 							control={form.control}
 							name="prompt"
@@ -522,20 +563,21 @@ function UserInput(props: {
 											variant="destructive"
 											onClick={e => {
 												e.preventDefault()
-												e.stopPropagation()
 												handleStopSpeech()
 											}}
 											size="icon"
 											className="size-10 animate-pulse rounded-3xl"
 										>
 											<MicFill />
+											<span className="sr-only">
+												<T k="assistant.speech.stop" />
+											</span>
 										</Button>
 									) : isEmpty && isAvailable ? (
 										<Button
 											type="button"
 											onClick={e => {
 												e.preventDefault()
-												e.stopPropagation()
 												handleStartSpeech()
 											}}
 											size="icon"
@@ -543,6 +585,9 @@ function UserInput(props: {
 											disabled={props.disabled}
 										>
 											<Mic />
+											<span className="sr-only">
+												<T k="assistant.speech.start" />
+											</span>
 										</Button>
 									) : (
 										<Button
