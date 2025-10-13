@@ -142,6 +142,8 @@ function AuthenticatedChat() {
 		setChat,
 		addChatMessage,
 		clearChat,
+		clearChatHintDismissed,
+		setClearChatHintDismissed,
 	} = useAppStore()
 	let { canUseChat } = useOfflineCapabilities()
 
@@ -202,6 +204,24 @@ function AuthenticatedChat() {
 					<AlertDescription>
 						<T k="assistant.chatUnavailable.description" />
 					</AlertDescription>
+				</Alert>
+			)}
+			{messages.length > 0 && !isBusy && !clearChatHintDismissed && (
+				<Alert>
+					<AlertTitle>
+						<T k="assistant.clearChatHint.title" />
+					</AlertTitle>
+					<AlertDescription>
+						<T k="assistant.clearChatHint.description" />
+					</AlertDescription>
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => setClearChatHintDismissed(true)}
+						className="mt-2"
+					>
+						<T k="assistant.clearChatHint.dismiss" />
+					</Button>
 				</Alert>
 			)}
 			{messages.length === 0 ? (

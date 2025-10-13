@@ -24,6 +24,9 @@ interface AppState {
 	hideInstallNavItem: boolean
 	setHideInstallNavItem: (hidden: boolean) => void
 
+	clearChatHintDismissed: boolean
+	setClearChatHintDismissed: (dismissed: boolean) => void
+
 	lastAccessDate: number
 }
 
@@ -33,6 +36,7 @@ let storeStateSchema = z.object({
 	chat: z.array(z.any()),
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
+	clearChatHintDismissed: z.boolean(),
 	lastAccessDate: z.number(),
 })
 
@@ -43,6 +47,7 @@ type PersistedState = Pick<
 	| "chat"
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
+	| "clearChatHintDismissed"
 	| "lastAccessDate"
 >
 
@@ -52,6 +57,7 @@ let initialPersistedState: PersistedState = {
 	chat: [],
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
+	clearChatHintDismissed: false,
 	lastAccessDate: new Date().getDate(),
 }
 
@@ -172,6 +178,11 @@ export let useAppStore = create<AppState>()(
 			hideInstallNavItem: false,
 			setHideInstallNavItem: (hidden: boolean) =>
 				set({ hideInstallNavItem: hidden }),
+
+			clearChatHintDismissed: false,
+			setClearChatHintDismissed: (dismissed: boolean) =>
+				set({ clearChatHintDismissed: dismissed }),
+
 			lastAccessDate: new Date().getDate(),
 		}),
 		{
@@ -185,6 +196,7 @@ export let useAppStore = create<AppState>()(
 				// pwaInstallHintDismissed: state.pwaInstallHintDismissed,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
+				clearChatHintDismissed: state.clearChatHintDismissed,
 				lastAccessDate: state.lastAccessDate,
 			}),
 			onRehydrateStorage: () => state => {
@@ -212,6 +224,7 @@ export function resetAppStore(): void {
 		chat: initialPersistedState.chat,
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
+		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
 	})
 
 	let clearResult = tryCatch(() => useAppStore.persist.clearStorage())

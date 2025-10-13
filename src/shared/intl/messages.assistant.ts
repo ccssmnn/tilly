@@ -29,6 +29,10 @@ const baseAssistantMessages = messages({
 		"You've reached your usage limit. Check your settings to see when limits reset.",
 	"assistant.usageLimit.viewSettings": "View Settings",
 	"assistant.clearChat": "Clear Chat",
+	"assistant.clearChatHint.title": "Save usage with fresh conversations",
+	"assistant.clearChatHint.description":
+		"Starting a new conversation helps save your usage budget. Clear your chat to begin fresh.",
+	"assistant.clearChatHint.dismiss": "Got it",
 	"assistant.placeholder.disabled": "Chat requires internet connection",
 	"assistant.placeholder.initial": "Chat with Tilly",
 	"assistant.placeholder.reply": "Reply to Tilly...",
@@ -226,6 +230,10 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		"Du hast deine Nutzungsgrenze erreicht. Schaue in den Einstellungen wann die Grenzen zurückgesetzt werden.",
 	"assistant.usageLimit.viewSettings": "Einstellungen ansehen",
 	"assistant.clearChat": "Chat leeren",
+	"assistant.clearChatHint.title": "Nutzung mit neuen Gesprächen sparen",
+	"assistant.clearChatHint.description":
+		"Ein neues Gespräch zu beginnen hilft, dein Nutzungsbudget zu sparen. Lösche deinen Chat für einen frischen Start.",
+	"assistant.clearChatHint.dismiss": "Alles klar",
 	"assistant.placeholder.disabled": "Chat erfordert Internetverbindung",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
 	"assistant.placeholder.reply": "Tilly antworten...",
