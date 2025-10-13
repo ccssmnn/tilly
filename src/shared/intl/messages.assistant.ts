@@ -161,10 +161,10 @@ const baseAssistantMessages = messages({
 	"tool.userQuestion.submit": "Submit",
 
 	// Voice recording messages
-	"assistant.voiceRecording.title": "Voice Recording",
+	"assistant.voiceRecording.title": "Voice Message",
 	"assistant.voiceRecording.recording": "Recording...",
 	"assistant.voiceRecording.maxDuration": "Maximum 10 minutes",
-	"assistant.voiceRecording.send": "Send Recording",
+	"assistant.voiceRecording.send": "Send Message",
 	"assistant.voiceRecording.start": "Start Recording",
 	"assistant.voiceRecording.stop": "Stop Recording",
 	"assistant.voiceRecording.continue": "Continue",
@@ -354,10 +354,10 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.userQuestion.submit": "Senden",
 
 	// Voice recording messages
-	"assistant.voiceRecording.title": "Sprachaufnahme",
+	"assistant.voiceRecording.title": "Sprachnachricht",
 	"assistant.voiceRecording.recording": "Aufnahme läuft...",
 	"assistant.voiceRecording.maxDuration": "Maximal 10 Minuten",
-	"assistant.voiceRecording.send": "Aufnahme senden",
+	"assistant.voiceRecording.send": "Nachricht senden",
 	"assistant.voiceRecording.start": "Aufnahme starten",
 	"assistant.voiceRecording.stop": "Aufnahme stoppen",
 	"assistant.voiceRecording.continue": "Fortsetzen",

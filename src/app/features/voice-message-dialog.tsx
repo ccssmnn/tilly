@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Button } from "#shared/ui/button"
 import { Dialog, DialogContent } from "#shared/ui/dialog"
-import { Mic, StopCircle, Play, PauseFill, Send } from "react-bootstrap-icons"
+import {
+	Mic,
+	StopCircle,
+	Play,
+	PauseFill,
+	Send,
+	ArrowClockwise,
+} from "react-bootstrap-icons"
 import { T } from "#shared/intl/setup"
 
 export { VoiceMessageDialog }
@@ -23,32 +30,38 @@ function VoiceMessageDialog({
 	onTranscriptionComplete,
 }: VoiceMessageDialogProps) {
 	let audioRef = useRef<HTMLAudioElement | null>(null)
+	let recordingProgressRef = useRef<HTMLDivElement | null>(null)
+	let playbackProgressRef = useRef<HTMLDivElement | null>(null)
 	let [state, setState] = useState<RecordingState>("idle")
 	let [audioUrl, setAudioUrl] = useState<string | null>(null)
 	let [error, setError] = useState<string | null>(null)
+	let [finalDuration, setFinalDuration] = useState(0)
 
-	let {
-		startRecording,
-		stopRecording,
-		cleanup,
-		audioLevel,
-		duration,
-		recordingError,
-	} = useVoiceRecorder({
-		onRecordingComplete: url => {
-			setAudioUrl(url)
-			setState("stopped")
-		},
-		onError: err => setError(err),
-	})
+	let { startRecording, stopRecording, cleanup, duration, recordingError } =
+		useVoiceRecorder({
+			onRecordingComplete: (url, finalDuration) => {
+				setAudioUrl(url)
+				setFinalDuration(finalDuration)
+				setState("stopped")
+			},
+			onError: err => setError(err),
+			onRecordingStart: () => setState("recording"),
+			onAudioLevel: level => {
+				if (recordingProgressRef.current) {
+					recordingProgressRef.current.style.width = `${Math.min(100, level)}%`
+				}
+			},
+		})
 
-	let {
-		isPlaying,
-		setIsPlaying,
-		playbackLevel,
-		handlePlayPause,
-		setupPlaybackAnalyser,
-	} = useVoicePlayback({ audioRef })
+	let { isPlaying, setIsPlaying, handlePlayPause, setupPlaybackAnalyser } =
+		useVoicePlayback({
+			audioRef,
+			onAudioLevel: level => {
+				if (playbackProgressRef.current) {
+					playbackProgressRef.current.style.width = `${Math.min(100, level)}%`
+				}
+			},
+		})
 
 	let reset = useCallback(() => {
 		if (audioUrl) {
@@ -80,7 +93,10 @@ function VoiceMessageDialog({
 
 		let audio = audioRef.current
 		let handleEnded = () => setIsPlaying(false)
-		let handlePlay = () => setupPlaybackAnalyser()
+		let handlePlay = () => {
+			// Small delay to ensure audio is actually playing
+			setTimeout(() => setupPlaybackAnalyser(), 100)
+		}
 		let handlePause = () => setIsPlaying(false)
 
 		audio.addEventListener("ended", handleEnded)
@@ -147,80 +163,75 @@ function VoiceMessageDialog({
 						</div>
 					)}
 
-					<div>
-						{state === "recording" && (
-							<div className="space-y-3">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<div className="size-2 animate-pulse rounded-full bg-red-500" />
-										<span className="text-muted-foreground text-sm">
-											<T k="assistant.voiceRecording.recording" />
-										</span>
-									</div>
-									<div className="font-mono text-sm tabular-nums">
-										{formatTime(duration)}
-									</div>
+					{state === "recording" && (
+						<div className="space-y-3">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<div className="size-2 animate-pulse rounded-full bg-red-500" />
+									<span className="text-muted-foreground text-sm">
+										<T k="assistant.voiceRecording.recording" />
+									</span>
 								</div>
-								<div className="bg-muted h-2 w-full overflow-hidden rounded-full">
-									<div
-										className="bg-primary h-full"
-										style={{ width: `${Math.min(100, audioLevel)}%` }}
-									/>
+								<div className="font-mono text-sm tabular-nums">
+									{formatTime(duration)}
 								</div>
 							</div>
-						)}
+							<div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+								<div
+									ref={recordingProgressRef}
+									className="bg-primary h-full"
+									style={{ width: "0%" }}
+								/>
+							</div>
+						</div>
+					)}
 
-						{state === "stopped" && (
-							<div className="space-y-3">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										{isPlaying && (
-											<>
-												<div className="bg-primary size-2 animate-pulse rounded-full" />
-												<span className="text-muted-foreground text-sm">
-													Playing...
-												</span>
-											</>
-										)}
-										{!isPlaying && (
+					{state === "stopped" && (
+						<div className="space-y-3">
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									{isPlaying && (
+										<>
+											<div className="bg-primary size-2 animate-pulse rounded-full" />
 											<span className="text-muted-foreground text-sm">
-												Ready to send
+												Playing...
 											</span>
-										)}
-									</div>
-									<div className="font-mono text-sm tabular-nums">
-										{formatTime(duration)}
-									</div>
+										</>
+									)}
+									{!isPlaying && (
+										<span className="text-muted-foreground text-sm">
+											Ready to send
+										</span>
+									)}
 								</div>
-								{isPlaying && (
-									<div className="bg-muted h-2 w-full overflow-hidden rounded-full">
-										<div
-											className="bg-primary h-full transition-all duration-100"
-											style={{ width: `${Math.min(100, playbackLevel)}%` }}
-										/>
-									</div>
-								)}
+								<div className="font-mono text-sm tabular-nums">
+									{formatTime(finalDuration)}
+								</div>
 							</div>
-						)}
+							<div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+								<div
+									ref={playbackProgressRef}
+									className="bg-primary h-full"
+									style={{ width: "0%" }}
+								/>
+							</div>
+						</div>
+					)}
 
-						{state === "idle" && <div className="py-4" />}
-					</div>
-
-					<div className="flex justify-end gap-2">
+					<div className="space-y-3">
 						{state === "idle" && (
-							<>
-								<Button onClick={() => onOpenChange(false)} variant="outline">
-									<T k="common.cancel" />
-								</Button>
-								<Button onClick={startRecording}>
-									<Mic className="size-4" />
-									<T k="assistant.voiceRecording.start" />
-								</Button>
-							</>
+							<Button className="h-12 w-full" onClick={startRecording}>
+								<Mic className="size-4" />
+								<T k="assistant.voiceRecording.start" />
+							</Button>
 						)}
 
 						{state === "recording" && (
-							<Button onClick={stopRecording} variant="destructive">
+							<Button
+								className="h-12 w-full"
+								onClick={stopRecording}
+								variant="destructive"
+							>
 								<StopCircle className="size-4" />
 								<T k="assistant.voiceRecording.stop" />
 							</Button>
@@ -228,17 +239,29 @@ function VoiceMessageDialog({
 
 						{state === "stopped" && (
 							<>
-								<Button onClick={handlePlayPause} variant="outline" size="icon">
-									{isPlaying ? (
-										<PauseFill className="size-5" />
-									) : (
-										<Play className="size-5" />
-									)}
-								</Button>
-								<Button onClick={reset} variant="outline">
-									Reset
-								</Button>
-								<Button onClick={handleSendRecording}>
+								<div className="flex items-center gap-3">
+									<Button
+										className="h-12 flex-1"
+										onClick={handlePlayPause}
+										variant="outline"
+									>
+										{isPlaying ? (
+											<PauseFill className="size-4" />
+										) : (
+											<Play className="size-4" />
+										)}
+										{isPlaying ? "Pause" : "Play"}
+									</Button>
+									<Button
+										className="h-12 flex-1"
+										onClick={reset}
+										variant="outline"
+									>
+										<ArrowClockwise className="size-4" />
+										Reset
+									</Button>
+								</div>
+								<Button className="h-12 w-full" onClick={handleSendRecording}>
 									<Send className="size-4" />
 									<T k="assistant.voiceRecording.send" />
 								</Button>
@@ -256,9 +279,13 @@ function VoiceMessageDialog({
 function useVoiceRecorder({
 	onRecordingComplete,
 	onError,
+	onRecordingStart,
+	onAudioLevel,
 }: {
-	onRecordingComplete: (url: string) => void
+	onRecordingComplete: (url: string, duration: number) => void
 	onError: (error: string) => void
+	onRecordingStart: () => void
+	onAudioLevel?: (level: number) => void
 }) {
 	let mediaRecorderRef = useRef<MediaRecorder | null>(null)
 	let audioContextRef = useRef<AudioContext | null>(null)
@@ -310,6 +337,8 @@ function useVoiceRecorder({
 	let startRecording = useCallback(async () => {
 		try {
 			setError(null)
+			onRecordingStart()
+
 			let stream = await navigator.mediaDevices.getUserMedia({ audio: true })
 			streamRef.current = stream
 
@@ -341,11 +370,12 @@ function useVoiceRecorder({
 					type: "audio/webm;codecs=opus",
 				})
 				let url = URL.createObjectURL(blob)
-				onRecordingComplete(url)
+				let finalDuration = Date.now() - startTimeRef.current
+				onRecordingComplete(url, finalDuration)
 				cleanup()
 			}
 
-			setupAudioAnalyzer(analyser, setAudioLevel, animationRef)
+			setupAudioAnalyzer(analyser, setAudioLevel, animationRef, onAudioLevel)
 
 			timerRef.current = window.setInterval(() => {
 				let elapsed = Date.now() - startTimeRef.current
@@ -369,7 +399,7 @@ function useVoiceRecorder({
 			onError(errorMessage)
 			cleanup()
 		}
-	}, [cleanup, onRecordingComplete, onError])
+	}, [cleanup, onRecordingComplete, onError, onRecordingStart, onAudioLevel])
 
 	let stopRecording = useCallback(() => {
 		if (mediaRecorderRef.current) {
@@ -389,29 +419,64 @@ function useVoiceRecorder({
 
 function useVoicePlayback({
 	audioRef,
+	onAudioLevel,
 }: {
 	audioRef: React.RefObject<HTMLAudioElement | null>
+	onAudioLevel?: (level: number) => void
 }) {
 	let playbackAnalyserRef = useRef<AnalyserNode | null>(null)
 	let playbackAnimationRef = useRef<number | null>(null)
 
 	let [isPlaying, setIsPlaying] = useState(false)
-	let [playbackLevel, setPlaybackLevel] = useState(0)
 
 	let setupPlaybackAnalyser = useCallback(() => {
-		if (!audioRef.current || playbackAnalyserRef.current) return
+		if (!audioRef.current) return
 
-		let audioContext = createAudioContext()
-		let analyser = audioContext.createAnalyser()
-		analyser.fftSize = 256
-		playbackAnalyserRef.current = analyser
+		// Clean up existing analyzer if any
+		if (playbackAnalyserRef.current) {
+			playbackAnalyserRef.current.disconnect()
+			playbackAnalyserRef.current = null
+		}
+		if (playbackAnimationRef.current) {
+			cancelAnimationFrame(playbackAnimationRef.current)
+			playbackAnimationRef.current = null
+		}
 
-		let source = audioContext.createMediaElementSource(audioRef.current)
-		source.connect(analyser)
-		analyser.connect(audioContext.destination)
+		// Create a simulated analyzer based on audio playback
+		let lastUpdate = 0
+		let simulateAudioLevels = (timestamp: number) => {
+			if (!audioRef.current) {
+				return
+			}
 
-		setupAudioAnalyzer(analyser, setPlaybackLevel, playbackAnimationRef)
-	}, [audioRef])
+			if (audioRef.current.paused) {
+				onAudioLevel?.(0)
+				return
+			}
+
+			if (audioRef.current.ended) {
+				onAudioLevel?.(0)
+				return
+			}
+
+			// Throttle updates to ~60fps to avoid overwhelming React
+			if (timestamp - lastUpdate > 16) {
+				// Simulate audio levels based on playback position
+				// This creates a realistic-looking audio level animation
+				let time = audioRef.current.currentTime
+				let baseLevel = 30 + Math.sin(time * 2) * 20
+				let variation = Math.random() * 30
+				let level = Math.min(100, Math.max(0, baseLevel + variation))
+
+				onAudioLevel?.(level)
+				lastUpdate = timestamp
+			}
+
+			playbackAnimationRef.current = requestAnimationFrame(simulateAudioLevels)
+		}
+
+		playbackAnimationRef.current = requestAnimationFrame(simulateAudioLevels)
+	}, [audioRef, onAudioLevel])
 
 	let handlePlayPause = useCallback(async () => {
 		if (!audioRef.current) return
@@ -426,7 +491,6 @@ function useVoicePlayback({
 	return {
 		isPlaying,
 		setIsPlaying,
-		playbackLevel,
 		handlePlayPause,
 		setupPlaybackAnalyser,
 	}
@@ -436,6 +500,7 @@ function setupAudioAnalyzer(
 	analyser: AnalyserNode,
 	setLevel: (level: number) => void,
 	animationRef: React.RefObject<number | null>,
+	onAudioLevel?: (level: number) => void,
 ) {
 	let bufferLength = analyser.frequencyBinCount
 	let dataArray = new Uint8Array(bufferLength)
@@ -451,6 +516,9 @@ function setupAudioAnalyzer(
 		let average = sum / bufferLength
 		let normalizedLevel = Math.min(100, (average / 255) * 300)
 		setLevel(normalizedLevel)
+		if (onAudioLevel) {
+			onAudioLevel(normalizedLevel)
+		}
 	}
 
 	animate()
