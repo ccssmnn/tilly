@@ -12,7 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
-import { Send, Pause, Chat, WifiOff, Mic, MicFill } from "react-bootstrap-icons"
+import {
+	Send,
+	Pause,
+	Chat,
+	WifiOff,
+	Mic,
+	MicFill,
+	InfoCircleFill,
+} from "react-bootstrap-icons"
 import { toast } from "sonner"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
@@ -142,6 +150,8 @@ function AuthenticatedChat() {
 		setChat,
 		addChatMessage,
 		clearChat,
+		clearChatHintDismissed,
+		setClearChatHintDismissed,
 	} = useAppStore()
 	let { canUseChat } = useOfflineCapabilities()
 
@@ -260,6 +270,24 @@ function AuthenticatedChat() {
 							</AlertDescription>
 						</Alert>
 					)}
+					{messages.length > 0 && !isBusy && !clearChatHintDismissed && (
+						<Alert>
+							<InfoCircleFill />
+							<AlertTitle>
+								<T k="assistant.clearChatHint.title" />
+							</AlertTitle>
+							<AlertDescription>
+								<T k="assistant.clearChatHint.description" />
+								<Button
+									variant="secondary"
+									onClick={() => setClearChatHintDismissed(true)}
+									className="mt-2"
+								>
+									<T k="assistant.clearChatHint.dismiss" />
+								</Button>
+							</AlertDescription>
+						</Alert>
+					)}
 					{messages.length > 0 && !isBusy && (
 						<div className="mt-2 flex justify-center">
 							<Button
@@ -276,7 +304,7 @@ function AuthenticatedChat() {
 						</div>
 					)}
 					<ScrollIntoView trigger={messages} />
-					<div className="h-24" />
+					<div className="h-16" />
 				</div>
 			)}
 			<UserInput

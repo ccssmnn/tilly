@@ -36,7 +36,6 @@ import { SettingsSection } from "#app/components/settings-section"
 import { useIsPWAInstalled, useIsMobileDevice } from "#app/hooks/use-pwa"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { PWAInstallDialog } from "#app/components/pwa-install-dialog"
-import { Switch } from "#shared/ui/switch"
 import { Progress } from "#shared/ui/progress"
 import { resetAppStore, useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -458,9 +457,6 @@ function PWASection() {
 	let isMobileDevice = useIsMobileDevice()
 	let [showInstallDialog, setShowInstallDialog] = useState(false)
 
-	let hideInstallNavItem = useAppStore(state => state.hideInstallNavItem)
-	let setHideInstallNavItem = useAppStore(state => state.setHideInstallNavItem)
-
 	return (
 		<>
 			<SettingsSection
@@ -536,26 +532,6 @@ function PWASection() {
 									</>
 								)}
 							</ul>
-						</div>
-					)}
-
-					{isMobileDevice && !isPWAInstalled && (
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<div className="space-y-0.5">
-									<Label htmlFor="hide-install-nav">
-										<T k="settings.pwa.hideInstall.label" />
-									</Label>
-									<p className="text-muted-foreground text-xs">
-										<T k="settings.pwa.hideInstall.description" />
-									</p>
-								</div>
-								<Switch
-									id="hide-install-nav"
-									checked={hideInstallNavItem}
-									onCheckedChange={setHideInstallNavItem}
-								/>
-							</div>
 						</div>
 					)}
 				</div>
@@ -668,12 +644,14 @@ function DeleteDataButton({
 			setRemindersSearchQuery,
 			setPWAInstallHintDismissed,
 			setHideInstallNavItem,
+			setClearChatHintDismissed,
 		} = useAppStore.getState()
 		clearChat()
 		setPeopleSearchQuery("")
 		setRemindersSearchQuery("")
 		setPWAInstallHintDismissed(false)
 		setHideInstallNavItem(false)
+		setClearChatHintDismissed(false)
 
 		toast.success(t("settings.data.delete.success"))
 		form.reset()

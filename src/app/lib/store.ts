@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { del, get, set } from "idb-keyval"
 import { z } from "zod"
+import { format } from "date-fns"
 import type { PersistStorage } from "zustand/middleware"
 import type { TillyUIMessage } from "#shared/tools/tools"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -23,6 +24,11 @@ interface AppState {
 
 	hideInstallNavItem: boolean
 	setHideInstallNavItem: (hidden: boolean) => void
+
+	clearChatHintDismissed: boolean
+	setClearChatHintDismissed: (dismissed: boolean) => void
+
+	lastAccessDate: string
 }
 
 let storeStateSchema = z.object({
@@ -31,6 +37,8 @@ let storeStateSchema = z.object({
 	chat: z.array(z.any()),
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
+	clearChatHintDismissed: z.boolean(),
+	lastAccessDate: z.string(),
 })
 
 type PersistedState = Pick<
@@ -40,6 +48,8 @@ type PersistedState = Pick<
 	| "chat"
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
+	| "clearChatHintDismissed"
+	| "lastAccessDate"
 >
 
 let initialPersistedState: PersistedState = {
@@ -48,6 +58,8 @@ let initialPersistedState: PersistedState = {
 	chat: [],
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
+	clearChatHintDismissed: false,
+	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 }
 
 type StorageValue<T> = {
@@ -167,6 +179,12 @@ export let useAppStore = create<AppState>()(
 			hideInstallNavItem: false,
 			setHideInstallNavItem: (hidden: boolean) =>
 				set({ hideInstallNavItem: hidden }),
+
+			clearChatHintDismissed: false,
+			setClearChatHintDismissed: (dismissed: boolean) =>
+				set({ clearChatHintDismissed: dismissed }),
+
+			lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 		}),
 		{
 			name: "tilly-app-storage",
@@ -179,7 +197,25 @@ export let useAppStore = create<AppState>()(
 				// pwaInstallHintDismissed: state.pwaInstallHintDismissed,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
+				clearChatHintDismissed: state.clearChatHintDismissed,
+				lastAccessDate: state.lastAccessDate,
 			}),
+			onRehydrateStorage: () => state => {
+				if (!state) return
+
+				let today = format(new Date(), "yyyy-MM-dd")
+				let isNewDay = state.lastAccessDate !== today
+
+				if (isNewDay) {
+					// Reset chat and search queries for new day
+					useAppStore.setState({
+						peopleSearchQuery: "",
+						remindersSearchQuery: "",
+						chat: [],
+						lastAccessDate: today,
+					})
+				}
+			},
 		},
 	),
 )
@@ -191,6 +227,8 @@ export function resetAppStore(): void {
 		chat: initialPersistedState.chat,
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
+		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
+		lastAccessDate: initialPersistedState.lastAccessDate,
 	})
 
 	let clearResult = tryCatch(() => useAppStore.persist.clearStorage())
