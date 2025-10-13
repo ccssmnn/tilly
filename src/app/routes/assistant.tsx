@@ -293,13 +293,18 @@ function useSpeechRecognition(lang: string) {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let recognitionRef = useRef<any>(null)
 	let onChunkRef = useRef<((chunk: string) => void) | null>(null)
+	let onInterimRef = useRef<((chunk: string) => void) | null>(null)
 
 	let isAvailable = "webkitSpeechRecognition" in window
 
-	function start(onChunk: (chunk: string) => void) {
+	function start(
+		onChunk: (chunk: string) => void,
+		onInterim: (chunk: string) => void,
+	) {
 		if (!isAvailable) return
 
 		onChunkRef.current = onChunk
+		onInterimRef.current = onInterim
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let SpeechRecognitionConstructor = (window as any).webkitSpeechRecognition
@@ -316,15 +321,22 @@ function useSpeechRecognition(lang: string) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		recognition.onresult = (event: any) => {
 			let final = ""
+			let interim = ""
 
 			for (let i = event.resultIndex; i < event.results.length; i++) {
 				if (event.results[i].isFinal) {
 					final += event.results[i][0].transcript + " "
+				} else {
+					interim += event.results[i][0].transcript
 				}
 			}
 
 			if (final && onChunkRef.current) {
 				onChunkRef.current(final)
+			}
+
+			if (interim && onInterimRef.current) {
+				onInterimRef.current(interim)
 			}
 		}
 
@@ -380,6 +392,7 @@ function UserInput(props: {
 
 	let promptValue = form.watch("prompt")
 	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
+	let baseTextRef = useRef("")
 
 	function resizeTextarea() {
 		if (!textareaRef.current) return
@@ -391,15 +404,29 @@ function UserInput(props: {
 	}
 
 	function handleStartSpeech() {
-		start(chunk => {
-			let current = form.getValues("prompt")
-			form.setValue("prompt", (current + " " + chunk).trim())
-			resizeTextarea()
-		})
+		baseTextRef.current = form.getValues("prompt")
+
+		start(
+			// Final result callback
+			finalChunk => {
+				baseTextRef.current = (baseTextRef.current + " " + finalChunk).trim()
+				form.setValue("prompt", baseTextRef.current)
+				resizeTextarea()
+			},
+			// Interim result callback
+			interimChunk => {
+				let fullText = (baseTextRef.current + " " + interimChunk).trim()
+				form.setValue("prompt", fullText)
+				resizeTextarea()
+			},
+		)
 	}
 
 	function handleStopSpeech() {
 		stop()
+		// Ensure we have the final text without any remaining interim text
+		form.setValue("prompt", baseTextRef.current)
+		resizeTextarea()
 	}
 
 	function handleSubmit(data: { prompt: string }) {
