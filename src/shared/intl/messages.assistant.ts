@@ -32,6 +32,23 @@ const baseAssistantMessages = messages({
 	"assistant.placeholder.disabled": "Chat requires internet connection",
 	"assistant.placeholder.initial": "Chat with Tilly",
 	"assistant.placeholder.reply": "Reply to Tilly...",
+	"assistant.speak": "Speak",
+	"assistant.listening": "Listening...",
+
+	// Speech recognition
+	"assistant.speech.start": "Start voice input",
+	"assistant.speech.stop": "Stop voice input",
+
+	// Speech recognition errors
+	"assistant.speech.error.permission":
+		"Microphone permission denied. Please allow microphone access.",
+	"assistant.speech.error.network":
+		"Network error. Please check your connection.",
+	"assistant.speech.error.noSpeech": "No speech detected. Please try again.",
+	"assistant.speech.error.audioCapture":
+		"Could not access microphone. Please check your device settings.",
+	"assistant.speech.error.generic":
+		"Speech recognition error. Please try again.",
 
 	// Tool-related messages
 	"tool.cancel": "Cancel",
@@ -160,6 +177,24 @@ const baseAssistantMessages = messages({
 	"tool.userQuestion.cancel": "Cancel",
 	"tool.userQuestion.submit": "Submit",
 
+	// Voice recording messages
+	"assistant.voiceRecording.title": "Voice Message",
+	"assistant.voiceRecording.recording": "Recording...",
+	"assistant.voiceRecording.maxDuration": "Maximum 10 minutes",
+	"assistant.voiceRecording.send": "Send Message",
+	"assistant.voiceRecording.start": "Start Recording",
+	"assistant.voiceRecording.stop": "Stop Recording",
+	"assistant.voiceRecording.continue": "Continue",
+	"assistant.voiceRecording.restart": "Restart",
+	"assistant.voiceRecording.play": "Play",
+	"assistant.voiceRecording.pause": "Pause",
+
+	// New message dialog
+	"assistant.newMessage.title": "New Message",
+	"assistant.newMessage.placeholder": "Type your message...",
+	"assistant.newMessage.voiceButton": "Voice",
+	"assistant.newMessage.send": "Send",
+
 	// Action messages (general actions)
 	"action.undo": "Undo",
 })
@@ -194,6 +229,24 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.placeholder.disabled": "Chat erfordert Internetverbindung",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
 	"assistant.placeholder.reply": "Tilly antworten...",
+	"assistant.speak": "Sprechen",
+	"assistant.listening": "Höre zu...",
+
+	// Speech recognition
+	"assistant.speech.start": "Spracheingabe starten",
+	"assistant.speech.stop": "Spracheingabe stoppen",
+
+	// Speech recognition errors
+	"assistant.speech.error.permission":
+		"Mikrofonberechtigung verweigert. Bitte erlaube den Mikrofonzugriff.",
+	"assistant.speech.error.network":
+		"Netzwerkfehler. Bitte überprüfe deine Verbindung.",
+	"assistant.speech.error.noSpeech":
+		"Keine Sprache erkannt. Bitte versuche es erneut.",
+	"assistant.speech.error.audioCapture":
+		"Kein Zugriff auf Mikrofon möglich. Bitte überprüfe deine Geräteeinstellungen.",
+	"assistant.speech.error.generic":
+		"Fehler bei der Spracherkennung. Bitte versuche es erneut.",
 
 	// Tool-related messages
 	"tool.cancel": "Abbrechen",
@@ -334,6 +387,24 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.userQuestion.no": "Nein",
 	"tool.userQuestion.cancel": "Abbrechen",
 	"tool.userQuestion.submit": "Senden",
+
+	// Voice recording messages
+	"assistant.voiceRecording.title": "Sprachnachricht",
+	"assistant.voiceRecording.recording": "Aufnahme läuft...",
+	"assistant.voiceRecording.maxDuration": "Maximal 10 Minuten",
+	"assistant.voiceRecording.send": "Nachricht senden",
+	"assistant.voiceRecording.start": "Aufnahme starten",
+	"assistant.voiceRecording.stop": "Aufnahme stoppen",
+	"assistant.voiceRecording.continue": "Fortsetzen",
+	"assistant.voiceRecording.restart": "Neu starten",
+	"assistant.voiceRecording.play": "Abspielen",
+	"assistant.voiceRecording.pause": "Pausieren",
+
+	// New message dialog
+	"assistant.newMessage.title": "Neue Nachricht",
+	"assistant.newMessage.placeholder": "Schreibe deine Nachricht...",
+	"assistant.newMessage.voiceButton": "Sprache",
+	"assistant.newMessage.send": "Senden",
 
 	// Action messages (general actions)
 	"action.undo": "Rückgängig",

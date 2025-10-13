@@ -1,8 +1,8 @@
 import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef, type ReactNode } from "react"
+import { useRef, useState, useEffect, type ReactNode } from "react"
 import { z } from "zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "#shared/ui/button"
 import { Textarea } from "#shared/ui/textarea"
@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
-import { Send, Pause, Chat, WifiOff } from "react-bootstrap-icons"
+import { Send, Pause, Chat, WifiOff, Mic, MicFill } from "react-bootstrap-icons"
+import { toast } from "sonner"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
@@ -288,6 +289,118 @@ function AuthenticatedChat() {
 	)
 }
 
+function useSpeechRecognition(lang: string) {
+	let [active, setActive] = useState(false)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let recognitionRef = useRef<any>(null)
+	let onChunkRef = useRef<((chunk: string) => void) | null>(null)
+	let onInterimRef = useRef<((chunk: string) => void) | null>(null)
+	let t = useIntl()
+
+	let isAvailable = "webkitSpeechRecognition" in window
+
+	function start(
+		onChunk: (chunk: string) => void,
+		onInterim: (chunk: string) => void,
+	) {
+		if (!isAvailable) return
+
+		onChunkRef.current = onChunk
+		onInterimRef.current = onInterim
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let SpeechRecognitionConstructor = (window as any).webkitSpeechRecognition
+		let recognition = new SpeechRecognitionConstructor()
+
+		recognition.continuous = true
+		recognition.interimResults = true
+		recognition.lang = lang
+
+		recognition.onstart = () => {
+			setActive(true)
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		recognition.onresult = (event: any) => {
+			let final = ""
+			let interim = ""
+
+			for (let i = event.resultIndex; i < event.results.length; i++) {
+				if (event.results[i].isFinal) {
+					final += event.results[i][0].transcript + " "
+				} else {
+					interim += event.results[i][0].transcript
+				}
+			}
+
+			if (final && onChunkRef.current) {
+				onChunkRef.current(final)
+			}
+
+			if (interim && onInterimRef.current) {
+				onInterimRef.current(interim)
+			}
+		}
+
+		recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+			setActive(false)
+			let errorMessage = event.error || "unknown"
+
+			switch (errorMessage) {
+				case "not-allowed":
+				case "service-not-allowed":
+					toast.error(t("assistant.speech.error.permission"))
+					break
+				case "network":
+					toast.error(t("assistant.speech.error.network"))
+					break
+				case "no-speech":
+					toast.warning(t("assistant.speech.error.noSpeech"))
+					break
+				case "audio-capture":
+					toast.error(t("assistant.speech.error.audioCapture"))
+					break
+				case "aborted":
+					// User stopped recording, no error needed
+					break
+				default:
+					toast.error(t("assistant.speech.error.generic"))
+			}
+		}
+
+		recognition.onend = () => {
+			setActive(false)
+		}
+
+		recognitionRef.current = recognition
+		recognition.start()
+	}
+
+	function stop() {
+		if (recognitionRef.current) {
+			recognitionRef.current.stop()
+			recognitionRef.current = null
+		}
+		setActive(false)
+		onChunkRef.current = null
+		onInterimRef.current = null
+	}
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			stop()
+		}
+	}, [])
+
+	return {
+		isAvailable,
+		active,
+		start,
+		stop,
+	}
+}
+
 function UserInput(props: {
 	onSubmit: (prompt: string) => void
 	chatSize: number
@@ -298,11 +411,61 @@ function UserInput(props: {
 	let autoFocusRef = useAutoFocusInput()
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
 	let t = useIntl()
+	let data = Route.useLoaderData()
+	let { me: subscribedMe } = useAccount(UserAccount, { resolve: query })
+	let currentMe = subscribedMe ?? data.me
+	let locale = currentMe.root.language || "en"
+	let langCode = locale === "de" ? "de-DE" : "en-US"
 
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },
 	})
+
+	let promptValue = useWatch({
+		control: form.control,
+		name: "prompt",
+		defaultValue: "",
+	})
+	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
+	let baseTextRef = useRef("")
+
+	function resizeTextarea() {
+		if (!textareaRef.current) return
+		textareaRef.current.style.height = "auto"
+		let scrollHeight = textareaRef.current.scrollHeight
+		let maxHeight = 2.5 * 6
+		textareaRef.current.style.height =
+			Math.min(scrollHeight, maxHeight * 16) + "px"
+	}
+
+	function handleStartSpeech() {
+		baseTextRef.current = form.getValues("prompt")
+
+		start(
+			// Final result callback
+			finalChunk => {
+				baseTextRef.current = (baseTextRef.current + " " + finalChunk).trim()
+				form.setValue("prompt", baseTextRef.current)
+				resizeTextarea()
+			},
+			// Interim result callback
+			interimChunk => {
+				let fullText = (baseTextRef.current + " " + interimChunk).trim()
+				form.setValue("prompt", fullText)
+				resizeTextarea()
+			},
+		)
+	}
+
+	function handleStopSpeech() {
+		stop()
+		// Get the current form value (includes any interim text the user sees)
+		let currentText = form.getValues("prompt")
+		// Update baseTextRef to match so we don't lose it
+		baseTextRef.current = currentText
+		resizeTextarea()
+	}
 
 	function handleSubmit(data: { prompt: string }) {
 		if (!data.prompt.trim()) return
@@ -316,6 +479,8 @@ function UserInput(props: {
 		}
 	}
 
+	let isEmpty = !promptValue.trim()
+
 	return (
 		<div
 			className={cn(
@@ -323,13 +488,18 @@ function UserInput(props: {
 				inputFocused && "bg-background bottom-1",
 				!inputFocused &&
 					"bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*19)]",
+				active && "border-destructive",
 			)}
 		>
 			<div className="container mx-auto md:max-w-xl">
 				<Form {...form}>
 					<form
-						// eslint-disable-next-line react-hooks/refs
-						onSubmit={form.handleSubmit(handleSubmit)}
+						onSubmit={e => {
+							if (active) {
+								stop()
+							}
+							form.handleSubmit(handleSubmit)(e)
+						}}
 					>
 						<FormField
 							control={form.control}
@@ -339,25 +509,21 @@ function UserInput(props: {
 									<FormControl>
 										<Textarea
 											placeholder={
-												props.disabled
-													? t("assistant.placeholder.disabled")
-													: props.chatSize === 0
-														? t("assistant.placeholder.initial")
-														: t("assistant.placeholder.reply")
+												active
+													? t("assistant.listening")
+													: props.disabled
+														? t("assistant.placeholder.disabled")
+														: props.chatSize === 0
+															? t("assistant.placeholder.initial")
+															: t("assistant.placeholder.reply")
 											}
 											rows={1}
 											className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
 											style={{ height: "auto" }}
 											autoResize={false}
-											disabled={props.disabled}
-											onInput={e => {
-												let target = e.target as HTMLTextAreaElement
-												target.style.height = "auto"
-												let scrollHeight = target.scrollHeight
-												let maxHeight = 2.5 * 6 // 6 rows * 2.5rem per row
-												target.style.height =
-													Math.min(scrollHeight, maxHeight * 16) + "px" // 16px = 1rem
-											}}
+											disabled={props.disabled || active}
+											{...field}
+											onInput={resizeTextarea}
 											onKeyDown={e => {
 												if (e.key !== "Enter") return
 
@@ -374,7 +540,6 @@ function UserInput(props: {
 													textareaRef.current?.blur()
 												}
 											}}
-											{...field}
 											ref={r => {
 												textareaRef.current = r
 												autoFocusRef.current = r
@@ -391,6 +556,38 @@ function UserInput(props: {
 											className="size-10 rounded-3xl"
 										>
 											<Pause />
+										</Button>
+									) : active ? (
+										<Button
+											type="button"
+											variant="destructive"
+											onClick={e => {
+												e.preventDefault()
+												handleStopSpeech()
+											}}
+											size="icon"
+											className="size-10 animate-pulse rounded-3xl"
+										>
+											<MicFill />
+											<span className="sr-only">
+												<T k="assistant.speech.stop" />
+											</span>
+										</Button>
+									) : isEmpty && isAvailable ? (
+										<Button
+											type="button"
+											onClick={e => {
+												e.preventDefault()
+												handleStartSpeech()
+											}}
+											size="icon"
+											className="size-10 rounded-3xl"
+											disabled={props.disabled}
+										>
+											<Mic />
+											<span className="sr-only">
+												<T k="assistant.speech.start" />
+											</span>
 										</Button>
 									) : (
 										<Button

@@ -79,7 +79,7 @@ function DialogContent({
 				onOpenAutoFocus={e => (isMobile ? e.preventDefault() : null)}
 				{...props}
 			>
-				<div className="mb-3 flex items-start justify-between gap-3">
+				<div className="flex items-start justify-between gap-3">
 					{titleSlot}
 					<Button asChild variant="secondary">
 						<DialogPrimitive.Close>
