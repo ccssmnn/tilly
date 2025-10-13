@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
-import { Send, Pause, Chat, WifiOff } from "react-bootstrap-icons"
+import { Send, Pause, Chat, WifiOff, Mic, MicFill } from "react-bootstrap-icons"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
@@ -288,6 +288,75 @@ function AuthenticatedChat() {
 	)
 }
 
+function useSpeechRecognition(lang: string) {
+	let [active, setActive] = useState(false)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let recognitionRef = useRef<any>(null)
+	let onChunkRef = useRef<((chunk: string) => void) | null>(null)
+
+	let isAvailable = "webkitSpeechRecognition" in window
+
+	function start(onChunk: (chunk: string) => void) {
+		if (!isAvailable) return
+
+		onChunkRef.current = onChunk
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let SpeechRecognitionConstructor = (window as any).webkitSpeechRecognition
+		let recognition = new SpeechRecognitionConstructor()
+
+		recognition.continuous = true
+		recognition.interimResults = true
+		recognition.lang = lang
+
+		recognition.onstart = () => {
+			setActive(true)
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		recognition.onresult = (event: any) => {
+			let final = ""
+
+			for (let i = event.resultIndex; i < event.results.length; i++) {
+				if (event.results[i].isFinal) {
+					final += event.results[i][0].transcript + " "
+				}
+			}
+
+			if (final && onChunkRef.current) {
+				onChunkRef.current(final)
+			}
+		}
+
+		recognition.onerror = () => {
+			setActive(false)
+		}
+
+		recognition.onend = () => {
+			setActive(false)
+		}
+
+		recognitionRef.current = recognition
+		recognition.start()
+	}
+
+	function stop() {
+		if (recognitionRef.current) {
+			recognitionRef.current.stop()
+			recognitionRef.current = null
+		}
+		setActive(false)
+		onChunkRef.current = null
+	}
+
+	return {
+		isAvailable,
+		active,
+		start,
+		stop,
+	}
+}
+
 function UserInput(props: {
 	onSubmit: (prompt: string) => void
 	chatSize: number
@@ -298,11 +367,30 @@ function UserInput(props: {
 	let autoFocusRef = useAutoFocusInput()
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
 	let t = useIntl()
+	let data = Route.useLoaderData()
+	let { me: subscribedMe } = useAccount(UserAccount, { resolve: query })
+	let currentMe = subscribedMe ?? data.me
+	let locale = currentMe.root.language || "en"
+	let langCode = locale === "de" ? "de-DE" : "en-US"
 
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },
 	})
+
+	let promptValue = form.watch("prompt")
+	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
+
+	function handleStartSpeech() {
+		start(chunk => {
+			let current = form.getValues("prompt")
+			form.setValue("prompt", (current + " " + chunk).trim())
+		})
+	}
+
+	function handleStopSpeech() {
+		stop()
+	}
 
 	function handleSubmit(data: { prompt: string }) {
 		if (!data.prompt.trim()) return
@@ -314,7 +402,13 @@ function UserInput(props: {
 			textareaRef.current.style.height = "auto"
 			textareaRef.current.style.height = ""
 		}
+
+		if (active) {
+			stop()
+		}
 	}
+
+	let isEmpty = !promptValue.trim()
 
 	return (
 		<div
@@ -327,10 +421,7 @@ function UserInput(props: {
 		>
 			<div className="container mx-auto md:max-w-xl">
 				<Form {...form}>
-					<form
-						// eslint-disable-next-line react-hooks/refs
-						onSubmit={form.handleSubmit(handleSubmit)}
-					>
+					<form onSubmit={form.handleSubmit(handleSubmit)}>
 						<FormField
 							control={form.control}
 							name="prompt"
@@ -349,14 +440,15 @@ function UserInput(props: {
 											className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
 											style={{ height: "auto" }}
 											autoResize={false}
-											disabled={props.disabled}
+											disabled={props.disabled || active}
+											{...field}
 											onInput={e => {
 												let target = e.target as HTMLTextAreaElement
 												target.style.height = "auto"
 												let scrollHeight = target.scrollHeight
-												let maxHeight = 2.5 * 6 // 6 rows * 2.5rem per row
+												let maxHeight = 2.5 * 6
 												target.style.height =
-													Math.min(scrollHeight, maxHeight * 16) + "px" // 16px = 1rem
+													Math.min(scrollHeight, maxHeight * 16) + "px"
 											}}
 											onKeyDown={e => {
 												if (e.key !== "Enter") return
@@ -374,7 +466,6 @@ function UserInput(props: {
 													textareaRef.current?.blur()
 												}
 											}}
-											{...field}
 											ref={r => {
 												textareaRef.current = r
 												autoFocusRef.current = r
@@ -391,6 +482,34 @@ function UserInput(props: {
 											className="size-10 rounded-3xl"
 										>
 											<Pause />
+										</Button>
+									) : active ? (
+										<Button
+											type="button"
+											variant="destructive"
+											onClick={e => {
+												e.preventDefault()
+												e.stopPropagation()
+												handleStopSpeech()
+											}}
+											size="icon"
+											className="size-10 rounded-3xl"
+										>
+											<MicFill />
+										</Button>
+									) : isEmpty && isAvailable ? (
+										<Button
+											type="button"
+											onClick={e => {
+												e.preventDefault()
+												e.stopPropagation()
+												handleStartSpeech()
+											}}
+											size="icon"
+											className="size-10 rounded-3xl"
+											disabled={props.disabled}
+										>
+											<Mic />
 										</Button>
 									) : (
 										<Button

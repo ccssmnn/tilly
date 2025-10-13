@@ -32,6 +32,8 @@ const baseAssistantMessages = messages({
 	"assistant.placeholder.disabled": "Chat requires internet connection",
 	"assistant.placeholder.initial": "Chat with Tilly",
 	"assistant.placeholder.reply": "Reply to Tilly...",
+	"assistant.speak": "Speak",
+	"assistant.listening": "Listening...",
 
 	// Tool-related messages
 	"tool.cancel": "Cancel",
@@ -212,6 +214,8 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.placeholder.disabled": "Chat erfordert Internetverbindung",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
 	"assistant.placeholder.reply": "Tilly antworten...",
+	"assistant.speak": "Sprechen",
+	"assistant.listening": "Höre zu...",
 
 	// Tool-related messages
 	"tool.cancel": "Abbrechen",
