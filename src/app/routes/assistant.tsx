@@ -1,23 +1,15 @@
 import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef, type ReactNode } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useState, type ReactNode } from "react"
 import { Button } from "#shared/ui/button"
-import { Textarea } from "#shared/ui/textarea"
-import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
-import { Send, Pause, Chat, WifiOff } from "react-bootstrap-icons"
+import { Pause, Chat, WifiOff, ChatRightText, Mic } from "react-bootstrap-icons"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
-import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
-import { useInputFocusState } from "#app/hooks/use-input-focus-state"
 import { useOfflineCapabilities } from "#app/hooks/use-online-status"
-import { cn } from "#app/lib/utils"
 import {
 	DefaultChatTransport,
 	lastAssistantMessageIsCompleteWithToolCalls,
@@ -30,6 +22,8 @@ import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAuth } from "@clerk/clerk-react"
 import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
+import { TextMessageDialog } from "#app/features/text-message-dialog"
+import { VoiceMessageDialog } from "#app/features/voice-message-dialog"
 
 export let Route = createFileRoute("/assistant")({
 	loader: async ({ context }) => {
@@ -275,140 +269,83 @@ function AuthenticatedChat() {
 						</div>
 					)}
 					<ScrollIntoView trigger={messages} />
-					<div className="h-24" />
+					<div className="h-8" />
 				</div>
 			)}
-			<UserInput
+			<NewMessageButton
 				onSubmit={handleSubmit}
-				chatSize={messages.length}
-				stopGeneratingResponse={isBusy ? stop : undefined}
 				disabled={!canUseChat}
+				stopGeneratingResponse={isBusy ? stop : undefined}
 			/>
 		</>
 	)
 }
 
-function UserInput(props: {
+function NewMessageButton(props: {
 	onSubmit: (prompt: string) => void
-	chatSize: number
-	stopGeneratingResponse?: () => void
 	disabled?: boolean
+	stopGeneratingResponse?: () => void
 }) {
-	let inputFocused = useInputFocusState()
-	let autoFocusRef = useAutoFocusInput()
-	let textareaRef = useRef<HTMLTextAreaElement>(null)
+	let [messageDialogOpen, setMessageDialogOpen] = useState(false)
+	let [voiceDialogOpen, setVoiceDialogOpen] = useState(false)
 	let t = useIntl()
 
-	let form = useForm({
-		resolver: zodResolver(z.object({ prompt: z.string() })),
-		defaultValues: { prompt: "" },
-	})
+	function handleMessageSubmit(message: string) {
+		props.onSubmit(message)
+	}
 
-	function handleSubmit(data: { prompt: string }) {
-		if (!data.prompt.trim()) return
-
-		props.onSubmit(data.prompt)
-
-		form.setValue("prompt", "")
-		if (textareaRef.current) {
-			textareaRef.current.style.height = "auto"
-			textareaRef.current.style.height = ""
-		}
+	function handleVoiceTranscriptionComplete(text: string) {
+		props.onSubmit(text)
 	}
 
 	return (
-		<div
-			className={cn(
-				"bg-background/50 border-border absolute z-1 rounded-4xl border p-2 backdrop-blur-xl transition-all duration-300 max-md:inset-x-3 md:bottom-3 md:left-1/2 md:w-full md:max-w-xl md:-translate-x-1/2",
-				inputFocused && "bg-background bottom-1",
-				!inputFocused &&
-					"bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*19)]",
-			)}
-		>
-			<div className="container mx-auto md:max-w-xl">
-				<Form {...form}>
-					<form
-						// eslint-disable-next-line react-hooks/refs
-						onSubmit={form.handleSubmit(handleSubmit)}
+		<>
+			<div className="fixed right-3 bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*18)] flex gap-3 md:right-auto md:bottom-6 md:left-1/2 md:-translate-x-1/2">
+				{props.stopGeneratingResponse ? (
+					<Button
+						variant="destructive"
+						onClick={props.stopGeneratingResponse}
+						className="size-14 rounded-full p-0 shadow-lg"
 					>
-						<FormField
-							control={form.control}
-							name="prompt"
-							render={({ field }) => (
-								<FormItem className="flex items-end">
-									<FormControl>
-										<Textarea
-											placeholder={
-												props.disabled
-													? t("assistant.placeholder.disabled")
-													: props.chatSize === 0
-														? t("assistant.placeholder.initial")
-														: t("assistant.placeholder.reply")
-											}
-											rows={1}
-											className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
-											style={{ height: "auto" }}
-											autoResize={false}
-											disabled={props.disabled}
-											onInput={e => {
-												let target = e.target as HTMLTextAreaElement
-												target.style.height = "auto"
-												let scrollHeight = target.scrollHeight
-												let maxHeight = 2.5 * 6 // 6 rows * 2.5rem per row
-												target.style.height =
-													Math.min(scrollHeight, maxHeight * 16) + "px" // 16px = 1rem
-											}}
-											onKeyDown={e => {
-												if (e.key !== "Enter") return
-
-												let shouldSubmit = e.metaKey || e.ctrlKey || e.shiftKey
-												if (!shouldSubmit) return
-
-												e.preventDefault()
-
-												if (
-													!form.formState.isSubmitting &&
-													field.value.trim()
-												) {
-													form.handleSubmit(handleSubmit)()
-													textareaRef.current?.blur()
-												}
-											}}
-											{...field}
-											ref={r => {
-												textareaRef.current = r
-												autoFocusRef.current = r
-												field.ref(r)
-											}}
-										/>
-									</FormControl>
-									{props.stopGeneratingResponse ? (
-										<Button
-											type="button"
-											variant="destructive"
-											onClick={props.stopGeneratingResponse}
-											size="icon"
-											className="size-10 rounded-3xl"
-										>
-											<Pause />
-										</Button>
-									) : (
-										<Button
-											type="submit"
-											size="icon"
-											className="size-10 rounded-3xl"
-											disabled={props.disabled}
-										>
-											<Send />
-										</Button>
-									)}
-								</FormItem>
-							)}
-						/>
-					</form>
-				</Form>
+						<Pause className="size-6" />
+					</Button>
+				) : (
+					<>
+						<Button
+							onClick={() => setVoiceDialogOpen(true)}
+							disabled={props.disabled}
+							className="size-14 rounded-full p-0 shadow-lg"
+						>
+							<Mic className="size-6" />
+						</Button>
+						<Button
+							onClick={() => setMessageDialogOpen(true)}
+							disabled={props.disabled}
+							className="size-14 rounded-full p-0 shadow-lg"
+						>
+							<ChatRightText className="size-6" />
+						</Button>
+					</>
+				)}
 			</div>
-		</div>
+
+			<TextMessageDialog
+				open={messageDialogOpen}
+				onOpenChange={setMessageDialogOpen}
+				onSubmit={handleMessageSubmit}
+				disabled={props.disabled}
+				placeholder={
+					props.disabled
+						? t("assistant.placeholder.disabled")
+						: t("assistant.placeholder.initial")
+				}
+			/>
+			<VoiceMessageDialog
+				open={voiceDialogOpen}
+				onOpenChange={setVoiceDialogOpen}
+				onTranscriptionComplete={handleVoiceTranscriptionComplete}
+			/>
+		</>
 	)
 }
 

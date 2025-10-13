@@ -160,6 +160,24 @@ const baseAssistantMessages = messages({
 	"tool.userQuestion.cancel": "Cancel",
 	"tool.userQuestion.submit": "Submit",
 
+	// Voice recording messages
+	"assistant.voiceRecording.title": "Voice Recording",
+	"assistant.voiceRecording.recording": "Recording...",
+	"assistant.voiceRecording.maxDuration": "Maximum 10 minutes",
+	"assistant.voiceRecording.send": "Send Recording",
+	"assistant.voiceRecording.start": "Start Recording",
+	"assistant.voiceRecording.stop": "Stop Recording",
+	"assistant.voiceRecording.continue": "Continue",
+	"assistant.voiceRecording.restart": "Restart",
+	"assistant.voiceRecording.play": "Play",
+	"assistant.voiceRecording.pause": "Pause",
+
+	// New message dialog
+	"assistant.newMessage.title": "New Message",
+	"assistant.newMessage.placeholder": "Type your message...",
+	"assistant.newMessage.voiceButton": "Voice",
+	"assistant.newMessage.send": "Send",
+
 	// Action messages (general actions)
 	"action.undo": "Undo",
 })
@@ -334,6 +352,24 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.userQuestion.no": "Nein",
 	"tool.userQuestion.cancel": "Abbrechen",
 	"tool.userQuestion.submit": "Senden",
+
+	// Voice recording messages
+	"assistant.voiceRecording.title": "Sprachaufnahme",
+	"assistant.voiceRecording.recording": "Aufnahme läuft...",
+	"assistant.voiceRecording.maxDuration": "Maximal 10 Minuten",
+	"assistant.voiceRecording.send": "Aufnahme senden",
+	"assistant.voiceRecording.start": "Aufnahme starten",
+	"assistant.voiceRecording.stop": "Aufnahme stoppen",
+	"assistant.voiceRecording.continue": "Fortsetzen",
+	"assistant.voiceRecording.restart": "Neu starten",
+	"assistant.voiceRecording.play": "Abspielen",
+	"assistant.voiceRecording.pause": "Pausieren",
+
+	// New message dialog
+	"assistant.newMessage.title": "Neue Nachricht",
+	"assistant.newMessage.placeholder": "Schreibe deine Nachricht...",
+	"assistant.newMessage.voiceButton": "Sprache",
+	"assistant.newMessage.send": "Senden",
 
 	// Action messages (general actions)
 	"action.undo": "Rückgängig",
