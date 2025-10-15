@@ -88,17 +88,6 @@ export function NotificationSettings({
 			description={t("notifications.description")}
 		>
 			<div className="space-y-8">
-				<div className="space-y-4">
-					<h3 className="text-lg font-medium">
-						<T k="notifications.timing.heading" />
-					</h3>
-					<div className="space-y-4">
-						<TimezoneSection me={me} />
-						<NotificationTimeSection me={me} />
-						<LastDeliveredSection me={me} />
-					</div>
-				</div>
-
 				{/* Devices Section */}
 				<div className="space-y-4">
 					<h3 className="text-lg font-medium">
@@ -121,9 +110,20 @@ export function NotificationSettings({
 								</div>
 							</>
 						) : (
-							<p className="text-muted-foreground text-sm">
-								<T k="notifications.devices.noDevices.description" />
-							</p>
+							<>
+								<Alert>
+									<ExclamationTriangle />
+									<AlertTitle>
+										<T k="notifications.devices.noDevices.title" />
+									</AlertTitle>
+									<AlertDescription>
+										<T k="notifications.devices.noDevices.warning" />
+									</AlertDescription>
+								</Alert>
+								<p className="text-muted-foreground text-sm">
+									<T k="notifications.devices.noDevices.description" />
+								</p>
+							</>
 						)}
 					</div>
 
@@ -142,6 +142,17 @@ export function NotificationSettings({
 							</AlertDescription>
 						</Alert>
 					)}
+				</div>
+
+				<div className="space-y-4">
+					<h3 className="text-lg font-medium">
+						<T k="notifications.timing.heading" />
+					</h3>
+					<div className="space-y-4">
+						<TimezoneSection me={me} />
+						<NotificationTimeSection me={me} />
+						<LastDeliveredSection me={me} />
+					</div>
 				</div>
 			</div>
 		</SettingsSection>
