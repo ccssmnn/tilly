@@ -213,6 +213,9 @@ const baseSettingsMessages = messages({
 		"Manage devices registered for push notifications.",
 	"notifications.devices.noDevices.description":
 		"Add devices to receive push notifications.",
+	"notifications.devices.noDevices.title": "No Devices Added",
+	"notifications.devices.noDevices.warning":
+		"You will NOT receive any notifications until you add at least one device. Add this device to start receiving reminders.",
 	"notifications.devices.thisDevice": "This device",
 	"notifications.devices.actions.title": "Device Actions",
 	"notifications.devices.actions.description":
@@ -547,6 +550,9 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Geräte verwalten, die Push-Benachrichtigungen empfangen.",
 	"notifications.devices.noDevices.description":
 		"Füge Geräte hinzu, die Push-Benachrichtigungen erhalten.",
+	"notifications.devices.noDevices.title": "Keine Geräte hinzugefügt",
+	"notifications.devices.noDevices.warning":
+		"Du wirst KEINE Benachrichtigungen erhalten, bis du mindestens ein Gerät hinzufügst. Füge dieses Gerät hinzu, um Erinnerungen zu erhalten.",
 	"notifications.devices.thisDevice": "Dieses Gerät",
 	"notifications.devices.actions.title": "Geräteaktionen",
 	"notifications.devices.actions.description":
