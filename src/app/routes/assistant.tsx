@@ -25,7 +25,7 @@ import { toast } from "sonner"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
-import { useOfflineCapabilities } from "#app/hooks/use-online-status"
+import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { cn } from "#app/lib/utils"
 import {
 	DefaultChatTransport,
@@ -129,10 +129,22 @@ function SubscribePrompt() {
 function useAssistantAccess() {
 	let clerkAuth = useAuth()
 	let isSignedIn = useIsAuthenticated()
+	let isOnline = useOnlineStatus()
 
 	if (!isSignedIn) return { status: "denied", isSignedIn }
 
 	if (!PUBLIC_ENABLE_PAYWALL) return { status: "granted", isSignedIn }
+
+	// When offline, allow access to interface but chat will be disabled by canUseChat
+	if (!isOnline) {
+		// If auth is loaded, we can determine access status
+		if (clerkAuth.isLoaded) {
+			let status = determineAccessStatus({ auth: clerkAuth })
+			return { status, isSignedIn }
+		}
+		// If auth isn't loaded yet, assume granted to avoid infinite loading
+		return { status: "granted", isSignedIn }
+	}
 
 	let status = determineAccessStatus({ auth: clerkAuth })
 
@@ -153,7 +165,7 @@ function AuthenticatedChat() {
 		clearChatHintDismissed,
 		setClearChatHintDismissed,
 	} = useAppStore()
-	let { canUseChat } = useOfflineCapabilities()
+	let canUseChat = useOnlineStatus()
 
 	let {
 		status,
