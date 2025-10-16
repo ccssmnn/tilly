@@ -127,6 +127,7 @@ export default defineConfig({
 				generatedRouteTree: "./src/app/routeTree.gen.ts",
 			}),
 			tailwindcss(),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		] as any,
 	},
 })
