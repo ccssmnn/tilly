@@ -26,6 +26,7 @@ import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
+import { useIsAndroid } from "#app/hooks/use-pwa"
 import { cn } from "#app/lib/utils"
 import {
 	DefaultChatTransport,
@@ -336,8 +337,9 @@ function useSpeechRecognition(lang: string) {
 	let onChunkRef = useRef<((chunk: string) => void) | null>(null)
 	let onInterimRef = useRef<((chunk: string) => void) | null>(null)
 	let t = useIntl()
+	let isAndroid = useIsAndroid()
 
-	let isAvailable = "webkitSpeechRecognition" in window
+	let isAvailable = "webkitSpeechRecognition" in window && !isAndroid
 
 	function start(
 		onChunk: (chunk: string) => void,
