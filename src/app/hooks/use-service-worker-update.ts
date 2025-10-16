@@ -93,7 +93,7 @@ function useServiceWorkerUpdate() {
 				function cleanup() {
 					if (finished) return
 					finished = true
-					navigator.serviceWorker.removeEventListener(
+					navigator.serviceWorker?.removeEventListener(
 						"controllerchange",
 						handleControllerChange,
 					)
@@ -104,7 +104,7 @@ function useServiceWorkerUpdate() {
 					cleanup()
 				}
 
-				navigator.serviceWorker.addEventListener(
+				navigator.serviceWorker?.addEventListener(
 					"controllerchange",
 					handleControllerChange,
 				)

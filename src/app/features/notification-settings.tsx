@@ -64,97 +64,107 @@ export function NotificationSettings({
 	let isCurrentDeviceAdded =
 		currentEndpoint && devices.some(d => d.endpoint === currentEndpoint)
 
-	let canAddDevice = !isIOS || isPWAInstalled
-
-	if (!isAuthenticated) {
-		return (
-			<SettingsSection
-				title={t("notifications.title")}
-				description={t("notifications.description")}
-			>
-				<Alert>
-					<ExclamationTriangle />
-					<AlertTitle>
-						<T k="notifications.signInRequired.title" />
-					</AlertTitle>
-				</Alert>
-			</SettingsSection>
-		)
-	}
+	let isServiceWorkerSupported =
+		"serviceWorker" in navigator && "PushManager" in window
+	let canAddDevice = (!isIOS || isPWAInstalled) && isServiceWorkerSupported
+	let browserRecommendation = getBrowserRecommendation()
 
 	return (
 		<SettingsSection
 			title={t("notifications.title")}
 			description={t("notifications.description")}
 		>
-			<div className="space-y-8">
-				{/* Devices Section */}
-				<div className="space-y-4">
-					<h3 className="text-lg font-medium">
-						<T k="notifications.devices.heading" />
-					</h3>
-					<div className="space-y-3">
-						{devices.length > 0 ? (
-							<>
-								<p className="text-muted-foreground text-sm">
-									<T k="notifications.devices.description" />
-								</p>
-								<div className="space-y-2">
-									{devices.map(device => (
-										<DeviceListItem
-											key={device.endpoint}
-											device={device}
-											me={me}
-										/>
-									))}
-								</div>
-							</>
-						) : (
-							<>
-								<Alert>
-									<ExclamationTriangle />
-									<AlertTitle>
-										<T k="notifications.devices.noDevices.title" />
-									</AlertTitle>
-									<AlertDescription>
-										<T k="notifications.devices.noDevices.warning" />
-									</AlertDescription>
-								</Alert>
-								<p className="text-muted-foreground text-sm">
-									<T k="notifications.devices.noDevices.description" />
-								</p>
-							</>
+			<div className="space-y-3">
+				{!isAuthenticated && (
+					<Alert>
+						<ExclamationTriangle />
+						<AlertTitle>
+							<T k="notifications.signInRequired.title" />
+						</AlertTitle>
+					</Alert>
+				)}
+				{!isServiceWorkerSupported && (
+					<Alert>
+						<ExclamationTriangle />
+						<AlertTitle>
+							<T k="notifications.browserNotSupported.title" />
+						</AlertTitle>
+						<AlertDescription>
+							<T k={browserRecommendation} />
+						</AlertDescription>
+					</Alert>
+				)}
+			</div>
+			{isAuthenticated && (
+				<div className="space-y-8">
+					{/* Devices Section */}
+					<div className="space-y-4">
+						<h3 className="text-lg font-medium">
+							<T k="notifications.devices.heading" />
+						</h3>
+						<div className="space-y-3">
+							{devices.length > 0 ? (
+								<>
+									<p className="text-muted-foreground text-sm">
+										<T k="notifications.devices.description" />
+									</p>
+									<div className="space-y-2">
+										{devices.map(device => (
+											<DeviceListItem
+												key={device.endpoint}
+												device={device}
+												me={me}
+											/>
+										))}
+									</div>
+								</>
+							) : (
+								<>
+									<Alert>
+										<ExclamationTriangle />
+										<AlertTitle>
+											<T k="notifications.devices.noDevices.title" />
+										</AlertTitle>
+										<AlertDescription>
+											<T k="notifications.devices.noDevices.warning" />
+										</AlertDescription>
+									</Alert>
+									<p className="text-muted-foreground text-sm">
+										<T k="notifications.devices.noDevices.description" />
+									</p>
+								</>
+							)}
+						</div>
+
+						{!isCurrentDeviceAdded && canAddDevice && (
+							<AddDeviceDialog me={me} disabled={!isAuthenticated} />
+						)}
+
+						{!isCurrentDeviceAdded && !canAddDevice && (
+							<Alert>
+								<ExclamationTriangle />
+								<AlertTitle>
+									<T k="notifications.iosRequirement.title" />
+								</AlertTitle>
+								<AlertDescription>
+									<T k="notifications.iosRequirement.description" />
+								</AlertDescription>
+							</Alert>
 						)}
 					</div>
 
-					{!isCurrentDeviceAdded && canAddDevice && (
-						<AddDeviceDialog me={me} disabled={!isAuthenticated} />
-					)}
-
-					{!isCurrentDeviceAdded && !canAddDevice && (
-						<Alert>
-							<ExclamationTriangle />
-							<AlertTitle>
-								<T k="notifications.iosRequirement.title" />
-							</AlertTitle>
-							<AlertDescription>
-								<T k="notifications.iosRequirement.description" />
-							</AlertDescription>
-						</Alert>
-					)}
-				</div>
-
-				<div className="space-y-4">
-					<h3 className="text-lg font-medium">
-						<T k="notifications.timing.heading" />
-					</h3>
 					<div className="space-y-4">
-						<TimezoneSection me={me} />
-						<NotificationTimeSection me={me} />
-						<LastDeliveredSection me={me} />
+						<h3 className="text-lg font-medium">
+							<T k="notifications.timing.heading" />
+						</h3>
+						<div className="space-y-4">
+							<TimezoneSection me={me} />
+							<NotificationTimeSection me={me} />
+							<LastDeliveredSection me={me} />
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
 		</SettingsSection>
 	)
 }
@@ -1171,4 +1181,26 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 		binary += String.fromCharCode(bytes[i])
 	}
 	return window.btoa(binary)
+}
+
+function getBrowserRecommendation() {
+	let userAgent = navigator.userAgent
+
+	if (userAgent.includes("iPhone") || userAgent.includes("iPad")) {
+		return "notifications.browserNotSupported.recommendation.ios" as const
+	}
+
+	if (userAgent.includes("Android")) {
+		return "notifications.browserNotSupported.recommendation.android" as const
+	}
+
+	if (userAgent.includes("Windows")) {
+		return "notifications.browserNotSupported.recommendation.windows" as const
+	}
+
+	if (userAgent.includes("Mac")) {
+		return "notifications.browserNotSupported.recommendation.macos" as const
+	}
+
+	return "notifications.browserNotSupported.recommendation.generic" as const
 }

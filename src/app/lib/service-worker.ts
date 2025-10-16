@@ -130,7 +130,7 @@ async function getServiceWorkerRegistration() {
 }
 
 function setUserIdInServiceWorker(userId: string) {
-	if (!navigator.serviceWorker.controller) {
+	if (!navigator.serviceWorker?.controller) {
 		console.log("[App] No service worker controller available")
 		return
 	}
@@ -143,7 +143,7 @@ function setUserIdInServiceWorker(userId: string) {
 }
 
 function clearUserIdInServiceWorker() {
-	if (!navigator.serviceWorker.controller) {
+	if (!navigator.serviceWorker?.controller) {
 		console.log("[App] No service worker controller available")
 		return
 	}
