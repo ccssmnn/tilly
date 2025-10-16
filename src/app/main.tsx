@@ -12,15 +12,18 @@ import { messagesDe } from "#shared/intl/messages"
 import { useServiceWorker } from "#app/lib/service-worker"
 import { SplashScreen } from "./components/splash-screen"
 import { Toaster } from "#shared/ui/sonner"
+import { MainErrorBoundary } from "#app/components/main-error-boundary"
 
 export function PWA() {
 	return (
-		<ClerkProvider
-			publishableKey={PUBLIC_CLERK_PUBLISHABLE_KEY}
-			afterSignOutUrl="/app"
-		>
-			<JazzWithClerk />
-		</ClerkProvider>
+		<MainErrorBoundary>
+			<ClerkProvider
+				publishableKey={PUBLIC_CLERK_PUBLISHABLE_KEY}
+				afterSignOutUrl="/app"
+			>
+				<JazzWithClerk />
+			</ClerkProvider>
+		</MainErrorBoundary>
 	)
 }
 

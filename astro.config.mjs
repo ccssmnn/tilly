@@ -119,6 +119,7 @@ export default defineConfig({
 		},
 	},
 	vite: {
+		server: { allowedHosts: [".ngrok-free.app"] },
 		plugins: [
 			// @ts-expect-error TODO: :(:(
 			tanstackRouter({
