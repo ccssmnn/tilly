@@ -14,8 +14,26 @@ let runtimeAdapter = useNodeAdapter ? node({ mode: "standalone" }) : vercel()
 export default defineConfig({
 	output: "server",
 	adapter: runtimeAdapter,
-
 	devToolbar: { enabled: false },
+	i18n: {
+		locales: ["en", "de"],
+		defaultLocale: "en",
+		routing: {
+			prefixDefaultLocale: false,
+		},
+	},
+	vite: {
+		server: { allowedHosts: [".ngrok-free.app"] },
+		plugins: [
+			tanstackRouter({
+				target: "react",
+				routesDirectory: "./src/app/routes",
+				generatedRouteTree: "./src/app/routeTree.gen.ts",
+			}),
+			tailwindcss(),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		] as any,
+	},
 	integrations: [
 		react({ babel: { plugins: ["babel-plugin-react-compiler"] } }),
 		pwa({
@@ -36,15 +54,6 @@ export default defineConfig({
 			},
 		}),
 	],
-
-	i18n: {
-		locales: ["en", "de"],
-		defaultLocale: "en",
-		routing: {
-			prefixDefaultLocale: false,
-		},
-	},
-
 	env: {
 		schema: {
 			GOOGLE_AI_API_KEY: envField.string({
@@ -117,17 +126,5 @@ export default defineConfig({
 				optional: true,
 			}),
 		},
-	},
-	vite: {
-		plugins: [
-			// @ts-expect-error TODO: :(:(
-			tanstackRouter({
-				target: "react",
-				routesDirectory: "./src/app/routes",
-				generatedRouteTree: "./src/app/routeTree.gen.ts",
-			}),
-			// @ts-expect-error TODO: :(:(
-			tailwindcss(),
-		],
 	},
 })

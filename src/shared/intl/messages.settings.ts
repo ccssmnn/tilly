@@ -180,7 +180,7 @@ const baseSettingsMessages = messages({
 	"notifications.description":
 		"Choose when you want to receive reminder notifications and manage your devices.",
 	"notifications.signInRequired.title":
-		"Push notifications are only available for signed-in users",
+		"Sign in to get access to push notifications",
 	"notifications.timing.heading": "Timing",
 	"notifications.timezone.label": "Timezone",
 	"notifications.timezone.change": "Change",
@@ -299,7 +299,21 @@ const baseSettingsMessages = messages({
 		"Push notifications require app installation",
 	"notifications.iosRequirement.description":
 		"On iOS, push notifications are only available after installing Tilly to your home screen. Install the app from the App Installation section below to enable push notifications.",
-
+	"notifications.browserNotSupported.title": "Push notifications not available",
+	"notifications.browserNotSupported.recommendation.ios":
+		"On iOS, please use Safari and install the app for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.iosInApp":
+		"On iOS, please open this link in Safari and install the app for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.android":
+		"On Android, please use Chrome and install the app for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.androidInApp":
+		"On Android, please open this link in Chrome and install the app for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.windows":
+		"On Windows, please use Chrome or Edge for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.macos":
+		"On macOS, please use Chrome or Safari for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.generic":
+		"Please try using Chrome, Edge, or Safari for the full Tilly experience.",
 	// Status messages
 	"status.offline.title": "You're offline",
 	"status.update.title": "Update available",
@@ -518,7 +532,7 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.description":
 		"Wähle, wann du Erinnerungsbenachrichtigungen erhalten willst, und verwalte deine Geräte.",
 	"notifications.signInRequired.title":
-		"Push-Benachrichtigungen nur für angemeldete Nutzer",
+		"Melde dich an, um Zugriff auf Push-Benachrichtigungen zu erhalten",
 	"notifications.timing.heading": "Zeitplanung",
 	"notifications.timezone.label": "Zeitzone",
 	"notifications.timezone.change": "Ändern",
@@ -639,6 +653,22 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Push-Benachrichtigungen erfordern App-Installation",
 	"notifications.iosRequirement.description":
 		"Unter iOS sind Push-Benachrichtigungen nur nach Installation von Tilly auf dem Home-Bildschirm verfügbar. Installiere die App unten im Abschnitt App-Installation.",
+	"notifications.browserNotSupported.title":
+		"Push-Benachrichtigungen nicht verfügbar",
+	"notifications.browserNotSupported.recommendation.ios":
+		"In iOS verwende bitte Safari und installiere die App für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.iosInApp":
+		"In iOS öffne bitte diesen Link in Safari und installiere die App für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.android":
+		"In Android verwende bitte Chrome und installiere die App für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.androidInApp":
+		"In Android öffne bitte diesen Link in Chrome und installiere die App für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.windows":
+		"In Windows verwende bitte Chrome oder Edge für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.macos":
+		"In macOS verwende bitte Chrome oder Safari für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.generic":
+		"Bitte verwende Chrome, Edge oder Safari für die vollständige Tilly-Erfahrung.",
 
 	// Status messages
 	"status.offline.title": "Du bist offline",

@@ -14,16 +14,10 @@ import { Navigation } from "#app/components/navigation"
 import { co } from "jazz-tools"
 import { Button } from "#shared/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "#shared/ui/card"
-import { ExclamationTriangle, Clipboard } from "react-bootstrap-icons"
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "#shared/ui/accordion"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { StatusIndicator } from "#app/components/status-indicator"
 import { ScrollReset } from "#app/components/scroll-reset"
+import { ErrorUI } from "#app/components/error-ui"
 
 export interface MyRouterContext {
 	me: co.loaded<typeof UserAccount> | null
@@ -87,94 +81,37 @@ function RootComponent() {
 function ErrorComponent({ error }: { error?: Error }) {
 	let t = useIntl()
 	let locale = useLocale()
-	async function handleCopyError(error: Error) {
-		let errorText = `Error Message:\n${error.message}\n\nStack Trace:\n${error.stack || "No stack trace available"}`
 
-		try {
-			await navigator.clipboard.writeText(errorText)
-			toast.success(t("error.copySuccess"))
-		} catch {
-			toast.error(t("error.copyFailure"))
-		}
-	}
 	return (
-		<main className="container mx-auto max-w-6xl px-3 py-6 pb-20 md:pt-20 md:pb-0">
-			<Card className="mx-auto max-w-lg">
-				<CardHeader>
-					<div className="flex items-center gap-3">
-						<ExclamationTriangle className="text-destructive size-5" />
-						<h3 className="font-medium">
-							<T k="error.title" />
-						</h3>
-					</div>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<p className="text-muted-foreground text-sm">
-						<T k="error.description" />
-					</p>
-					<a
-						href={`/${locale}/feedback`}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="text-primary text-sm hover:underline"
-					>
-						<T k="error.feedback" />
-					</a>
-					{error && (
-						<Accordion type="single" collapsible>
-							<AccordionItem value="error-details">
-								<AccordionTrigger className="text-sm">
-									<T k="error.showDetails" />
-								</AccordionTrigger>
-								<AccordionContent>
-									<div className="space-y-3">
-										<div className="flex items-center justify-between">
-											<p className="text-xs font-medium">
-												<T k="error.details" />
-											</p>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => handleCopyError(error)}
-												className="h-6 px-2 text-xs"
-											>
-												<Clipboard className="size-3" />
-												<T k="error.copy" />
-											</Button>
-										</div>
-										<div>
-											<p className="mb-1 text-xs font-medium">
-												<T k="error.message" />
-											</p>
-											<pre className="bg-muted overflow-auto rounded p-3 text-xs select-text">
-												{error.message}
-											</pre>
-										</div>
-										{error.stack && (
-											<div>
-												<p className="mb-1 text-xs font-medium">
-													<T k="error.stackTrace" />
-												</p>
-												<pre className="bg-muted max-h-40 overflow-auto rounded p-3 text-xs select-text">
-													{error.stack}
-												</pre>
-											</div>
-										)}
-									</div>
-								</AccordionContent>
-							</AccordionItem>
-						</Accordion>
-					)}
-				</CardContent>
-				<CardFooter>
-					<Button asChild variant="outline" className="w-full">
-						<Link to="/">
-							<T k="error.goBack" />
-						</Link>
-					</Button>
-				</CardFooter>
-			</Card>
-		</main>
+		<ErrorUI
+			error={error}
+			title={<T k="error.title" />}
+			description={<T k="error.description" />}
+			feedbackLink={
+				<a
+					href={`/${locale}/feedback`}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-primary text-sm hover:underline"
+				>
+					<T k="error.feedback" />
+				</a>
+			}
+			actions={
+				<Button asChild variant="outline" className="w-full">
+					<Link to="/">
+						<T k="error.goBack" />
+					</Link>
+				</Button>
+			}
+			showDetailsLabel={<T k="error.showDetails" />}
+			detailsLabel={<T k="error.details" />}
+			messageLabel={<T k="error.message" />}
+			stackTraceLabel={<T k="error.stackTrace" />}
+			copyLabel={<T k="error.copy" />}
+			onCopySuccess={() => toast.success(t("error.copySuccess"))}
+			onCopyError={() => toast.error(t("error.copyFailure"))}
+		/>
 	)
 }
 
