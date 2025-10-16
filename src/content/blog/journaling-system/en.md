@@ -43,24 +43,16 @@ There were two kinds of friction. The emotional friction of context-switching be
 
 That's where the idea for a dedicated space came from. I built Tilly to implement this approach as a single tool. One place for notes and reminders about the people I care about. With an AI agent that adds structure to my thoughts, not to determine what matters. Because convenience keeps you going, and friction kills consistency.
 
-## AI and Intentionality
+## Where AI Actually Helps
 
-Here's something important: I could lower the friction to zero. Let AI read my socials, record my conversations, allocate everything automatically. But with zero friction, the value of the journal becomes zero. The AI can't decide what's important to me. It can only add structure.
+AI works best when it removes friction from what you've already decided matters. When you write something down, you've done the hard part: thinking, reflecting, deciding it matters. AI can organize your thoughts, suggest reminders, surface old entries, even help you craft messages based on what you've tracked.
 
-I deliberately don't want my system to automatically scan my messages or calls and log them. I've seen AI friendship summaries, and they're not something I'd actually read. There's something about consciously choosing what to write down that matters.
+But it shouldn't decide what's worth remembering. That intentional choice to write something down is what makes the system work.
 
-If something isn't important enough for me to write it down myself, it's not important. The act of thinking and writing creates intentionality. It forces me to reflect on what I actually care about remembering.
+## Why This Works
 
-AI can help after the fact. It can structure what I've already decided to capture. Organizing my thoughts. Suggesting reminders based on what I wrote. Turning rough notes into polished entries. But AI shouldn't decide what's worth remembering about the people I love.
+The system sticks because it's friction-free. One place for notes and reminders. One app, not two. No formatting rules or perfect templates. The moment it becomes a chore, you stop using it.
 
-## The Real Lesson
-
-The system works because it's simple and it respects my time. Every bit of overhead you add is a reason to stop journaling altogether. The moment it becomes a chore, you abandon it.
-
-But there's something deeper: convenience is the real enabler of consistency. Not the fancy notebook. Not the perfect template. Not the app. It's removing friction from the thing you already want to do.
-
-I wanted to remember my friends better. I wanted to reach out with intention. The system I built does exactly that, nothing more, nothing less. And because it's easy, I actually stick with it.
-
-If you're struggling to maintain a journal, start here: forget about the system for now. Ask yourself what you actually want to remember and why. Then build the simplest possible structure around that answer. Anything else is just distraction.
+For me, this lived across two apps until I realized the split itself was the problem. Context-switching between tools meant less journaling. So I built Tilly to bring it together: one space for this specific approach.
 
 The best journal is the one you actually use.
