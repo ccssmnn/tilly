@@ -46,7 +46,7 @@ import { apiClient } from "#app/lib/api-client"
 import { PUBLIC_VAPID_KEY } from "astro:env/client"
 import { getServiceWorkerRegistration } from "#app/lib/service-worker"
 import { tryCatch } from "#shared/lib/trycatch"
-import { useIsIOS, useIsPWAInstalled } from "#app/hooks/use-pwa"
+import { useIsInAppBrowser } from "#app/hooks/use-pwa"
 
 export function NotificationSettings({
 	me,
@@ -55,8 +55,7 @@ export function NotificationSettings({
 }) {
 	let t = useIntl()
 	let isAuthenticated = useIsAuthenticated()
-	let isIOS = useIsIOS()
-	let isPWAInstalled = useIsPWAInstalled()
+	let isInAppBrowser = useIsInAppBrowser()
 
 	let [currentEndpoint] = useCurrentEndpoint()
 
@@ -64,10 +63,10 @@ export function NotificationSettings({
 	let isCurrentDeviceAdded =
 		currentEndpoint && devices.some(d => d.endpoint === currentEndpoint)
 
-	let isServiceWorkerSupported =
-		"serviceWorker" in navigator && "PushManager" in window
-	let canAddDevice = (!isIOS || isPWAInstalled) && isServiceWorkerSupported
-	let browserRecommendation = getBrowserRecommendation()
+	let isServiceWorkerSupported = "serviceWorker" in navigator
+	let isPushSupported = "PushManager" in window && "Notification" in window
+	let canAddDevice = isServiceWorkerSupported && isPushSupported
+	let browserRecommendation = getBrowserRecommendation(isInAppBrowser)
 
 	return (
 		<SettingsSection
@@ -83,7 +82,7 @@ export function NotificationSettings({
 						</AlertTitle>
 					</Alert>
 				)}
-				{!isServiceWorkerSupported && (
+				{(!isServiceWorkerSupported || !isPushSupported) && (
 					<Alert>
 						<ExclamationTriangle />
 						<AlertTitle>
@@ -138,18 +137,6 @@ export function NotificationSettings({
 
 						{!isCurrentDeviceAdded && canAddDevice && (
 							<AddDeviceDialog me={me} disabled={!isAuthenticated} />
-						)}
-
-						{!isCurrentDeviceAdded && !canAddDevice && (
-							<Alert>
-								<ExclamationTriangle />
-								<AlertTitle>
-									<T k="notifications.iosRequirement.title" />
-								</AlertTitle>
-								<AlertDescription>
-									<T k="notifications.iosRequirement.description" />
-								</AlertDescription>
-							</Alert>
 						)}
 					</div>
 
@@ -1183,14 +1170,20 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 	return window.btoa(binary)
 }
 
-function getBrowserRecommendation() {
+function getBrowserRecommendation(isInAppBrowser: boolean) {
 	let userAgent = navigator.userAgent
 
 	if (userAgent.includes("iPhone") || userAgent.includes("iPad")) {
+		if (isInAppBrowser) {
+			return "notifications.browserNotSupported.recommendation.iosInApp" as const
+		}
 		return "notifications.browserNotSupported.recommendation.ios" as const
 	}
 
 	if (userAgent.includes("Android")) {
+		if (isInAppBrowser) {
+			return "notifications.browserNotSupported.recommendation.androidInApp" as const
+		}
 		return "notifications.browserNotSupported.recommendation.android" as const
 	}
 

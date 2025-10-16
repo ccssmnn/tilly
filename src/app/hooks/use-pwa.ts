@@ -5,6 +5,7 @@ export {
 	useIsAndroid,
 	useIsIOS,
 	useIsMobileDevice,
+	useIsInAppBrowser,
 	usePWAInstallPrompt,
 }
 export type { BeforeInstallPromptEvent }
@@ -54,6 +55,17 @@ function useIsMobileDevice(): boolean {
 	let isMobileResult = isMobile || hasTouchScreen
 
 	return isMobileResult
+}
+
+function useIsInAppBrowser(): boolean {
+	let userAgent = navigator.userAgent
+	let isInApp =
+		userAgent.includes("Instagram") ||
+		userAgent.includes("FBAN") ||
+		userAgent.includes("FBAV") ||
+		userAgent.includes("Twitter") ||
+		userAgent.includes("LinkedIn")
+	return isInApp
 }
 
 interface BeforeInstallPromptEvent extends Event {

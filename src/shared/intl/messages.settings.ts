@@ -302,8 +302,12 @@ const baseSettingsMessages = messages({
 	"notifications.browserNotSupported.title": "Push notifications not available",
 	"notifications.browserNotSupported.recommendation.ios":
 		"On iOS, please use Safari and install the app for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.iosInApp":
+		"On iOS, please open this link in Safari and install the app for the full Tilly experience.",
 	"notifications.browserNotSupported.recommendation.android":
 		"On Android, please use Chrome and install the app for the full Tilly experience.",
+	"notifications.browserNotSupported.recommendation.androidInApp":
+		"On Android, please open this link in Chrome and install the app for the full Tilly experience.",
 	"notifications.browserNotSupported.recommendation.windows":
 		"On Windows, please use Chrome or Edge for the full Tilly experience.",
 	"notifications.browserNotSupported.recommendation.macos":
@@ -653,8 +657,12 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Push-Benachrichtigungen nicht verfügbar",
 	"notifications.browserNotSupported.recommendation.ios":
 		"In iOS verwende bitte Safari und installiere die App für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.iosInApp":
+		"In iOS öffne bitte diesen Link in Safari und installiere die App für die vollständige Tilly-Erfahrung.",
 	"notifications.browserNotSupported.recommendation.android":
 		"In Android verwende bitte Chrome und installiere die App für die vollständige Tilly-Erfahrung.",
+	"notifications.browserNotSupported.recommendation.androidInApp":
+		"In Android öffne bitte diesen Link in Chrome und installiere die App für die vollständige Tilly-Erfahrung.",
 	"notifications.browserNotSupported.recommendation.windows":
 		"In Windows verwende bitte Chrome oder Edge für die vollständige Tilly-Erfahrung.",
 	"notifications.browserNotSupported.recommendation.macos":

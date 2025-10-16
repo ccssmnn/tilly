@@ -121,14 +121,12 @@ export default defineConfig({
 	vite: {
 		server: { allowedHosts: [".ngrok-free.app"] },
 		plugins: [
-			// @ts-expect-error TODO: :(:(
 			tanstackRouter({
 				target: "react",
 				routesDirectory: "./src/app/routes",
 				generatedRouteTree: "./src/app/routeTree.gen.ts",
 			}),
-			// @ts-expect-error TODO: :(:(
 			tailwindcss(),
-		],
+		] as any,
 	},
 })
