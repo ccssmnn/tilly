@@ -152,14 +152,17 @@ function renderOgTree(input: TemplateInput) {
 					flexDirection: "column", // Stack heading and tagline vertically
 					alignItems: "flex-start", // Align text to the left within its container
 					justifyContent: "center", // Vertically center content if extra space exists
-					flexGrow: 1, // Allow text container to take available horizontal space
+					flexGrow: 0, // Don't grow to fill space
+					maxWidth: "600px", // Constrain width to force wrapping
 				}}
 			>
 				<div
 					style={{
 						fontSize: "96px",
 						fontWeight: 700,
-						lineHeight: 1.05,
+						lineHeight: 1.1,
+						wordWrap: "break-word",
+						overflowWrap: "break-word",
 					}}
 				>
 					{input.heading}
