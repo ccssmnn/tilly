@@ -7,6 +7,7 @@ author:
   name: "Carl Assmann"
   role: "Creator"
   avatar: "/images/avatars/carl.webp"
+ogImage: "/blog/pragmatic-relationship-journaling/og.png"
 ---
 
 I've always liked the idea of keeping a journal. The romanticized version I had in mind was creating a calm ritual at the same time every day, writing thoughtfully into a paper notebook. But this doesn't fit into my life. Thoughts come and go. I want the most important and recent things right on top. I want to find things quickly. I need the journal to work with how I actually live, not against it.
@@ -23,9 +24,9 @@ One note per person. One reminder per thing to follow up on. That's it.
 
 The philosophy is simple: remove every source of pressure. No daily quota. No perfect format. No guilt for gaps. No obligation to capture everything.
 
-**When:** Reflection happens naturally. While walking. Driving. After my workout. Whenever I have the capacity. Something sticks with me, I write it down. If I forget it, it wasn't important enough. Instead of writing things down after each conversation, I sleep on it. A little bit of time is a great filter for what actually matters.
+**When:** Reflection happens naturally. While walking. Driving. After my workout. Whenever I have the capacity. Something sticks with me, I write it down. If I forget it, it wasn't important enough. Instead of writing things down after each conversation, I sleep on it. **A little bit of time is a great filter for what's worth writing down.**
 
-**The note:** One summary per person, then entries in reverse order. Newest first. I add to it whenever something surfaces. The notes grow slowly because they're built on genuine memory, not obligation. They are nice to read from top to bottom, like traveling back in time.
+**The note:** One summary per person, then entries in reverse order. Newest first. I add to it whenever something surfaces. The notes grow slowly because they're built on genuine memory, not obligation. Reading from top to bottom feels like traveling back in time.
 
 **The reminder:** When someone mentions something I want to circle back on, I create a reminder. Simple and specific. For close friends, sometimes just "Ask about her week.". Reminders help me stay in touch when life gets busy. When I see a reminder is due, I find a small moment to reach out.
 
@@ -39,7 +40,7 @@ For years, this lived across two apps. I used **iA Writer** for the notes (one f
 
 But there is room for improvement. Todoist is where my work tasks live, household stuff, freelance work. My notes app has everything else. When I opened either app to add a journal entry, I'd see all that other noise first. It interrupted my flow.
 
-The friction came in two forms. First, context-switching between separate tools meant I'd often skip journaling entirely. Second, my notes and reminders were disconnected. I couldn't easily see that a note about Sarah and a reminder to ask her about her project were linked.
+The friction came in two forms. First, context-switching between separate tools meant I'd often skip journaling entirely. Second, while writing a note about Sarah, I'd think "I should add a reminder to follow up on this" and then have to switch apps again.
 
 ## Where AI Can Help
 
@@ -51,7 +52,7 @@ With notes and reminders in the same place, AI can do something useful: turn raw
 
 Say I capture this one thought: "I had coffee with Sarah this morning. She's really excited about her ML project getting approved for production. Her cat Luna is completely recovered from the surgery now. Then I ran into Emma at the coffee shop later. She landed a huge restaurant rebranding client and seems so much happier about her finances."
 
-AI parses that, creates a note for each person with the relevant details, and surfaces two follow-up reminders: "Ask Sarah how the project is going" and "Check in with Emma about the rebranding launch." Without this, I'd manually create separate entries. That friction would break my journaling habit.
+AI parses that, creates a note for each person with the relevant details, and surfaces two follow-up reminders: "Ask Sarah how the project is going" and "Check in with Emma about the rebranding launch." Without this, I'd manually create separate entries. Eliminating that friction is huge.
 
 It feels like talking to my journal. I just capture the moment, and the app handles the structure. The intentional part (deciding what to capture) stays with me. The tedious part (organizing it) is automated.
 
