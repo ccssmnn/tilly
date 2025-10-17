@@ -27,12 +27,14 @@ let localizedNav =
 				features: "/de/#features",
 				pricing: "/de/#pricing",
 				faq: "/de/#faq",
+				blog: "/de/blog",
 				imprint: "/de/imprint",
 				privacy: "/de/privacy",
 				labels: {
 					features: "Funktionen",
 					pricing: "Tarife",
 					faq: "FAQ",
+					blog: "Blog",
 					imprint: "Impressum",
 					privacy: "Datenschutz",
 					goToApp: "Zur App",
@@ -43,12 +45,14 @@ let localizedNav =
 				features: "/en/#features",
 				pricing: "/en/#pricing",
 				faq: "/en/#faq",
+				blog: "/en/blog",
 				imprint: "/en/imprint",
 				privacy: "/en/privacy",
 				labels: {
 					features: "Features",
 					pricing: "Pricing",
 					faq: "FAQ",
+					blog: "Blog",
 					imprint: "Imprint",
 					privacy: "Privacy",
 					goToApp: "Go to App",
@@ -85,11 +89,12 @@ let localizedNav =
 				text: "Tilly",
 				href: localizedNav.home,
 			}}
-			navigation={[
-				{ name: localizedNav.labels.features, href: localizedNav.features },
-				{ name: localizedNav.labels.pricing, href: localizedNav.pricing },
-				{ name: localizedNav.labels.faq, href: localizedNav.faq },
-			]}
+		navigation={[
+			{ name: localizedNav.labels.features, href: localizedNav.features },
+			{ name: localizedNav.labels.pricing, href: localizedNav.pricing },
+			{ name: localizedNav.labels.faq, href: localizedNav.faq },
+			{ name: localizedNav.labels.blog, href: localizedNav.blog },
+		]}
 			cta={{
 				text: localizedNav.labels.goToApp,
 				href: "/app",
@@ -106,14 +111,15 @@ let localizedNav =
 			</div>
 		</main>
 		<Footer
-			navigation={{
-				main: [
-					{ name: localizedNav.labels.features, href: localizedNav.features },
-					{ name: localizedNav.labels.pricing, href: localizedNav.pricing },
-					{ name: localizedNav.labels.faq, href: localizedNav.faq },
-					{ name: localizedNav.labels.imprint, href: localizedNav.imprint },
-					{ name: localizedNav.labels.privacy, href: localizedNav.privacy },
-				],
+		navigation={{
+			main: [
+				{ name: localizedNav.labels.features, href: localizedNav.features },
+				{ name: localizedNav.labels.pricing, href: localizedNav.pricing },
+				{ name: localizedNav.labels.faq, href: localizedNav.faq },
+				{ name: localizedNav.labels.blog, href: localizedNav.blog },
+				{ name: localizedNav.labels.imprint, href: localizedNav.imprint },
+				{ name: localizedNav.labels.privacy, href: localizedNav.privacy },
+			],
 				social: [
 					{ name: "Twitter", href: "#", icon: "Twitter" },
 					{ name: "GitHub", href: "#", icon: "Github" },

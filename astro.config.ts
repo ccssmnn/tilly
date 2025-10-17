@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig, envField } from "astro/config"
 import react from "@astrojs/react"
 import pwa from "@vite-pwa/astro"

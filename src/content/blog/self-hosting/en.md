@@ -2,8 +2,12 @@
 title: "How to Self-Host Tilly"
 description: "A complete guide to hosting your own instance of Tilly with full control over your data and infrastructure"
 pubDate: "October 7 2025"
-tags: ["technical"]
+tags: ["guide"]
 ogImage: "/blog/self-hosting/og.png"
+author:
+  name: "Carl Assmann"
+  role: "Creator"
+  avatar: "/images/avatars/carl.webp"
 ---
 
 Tilly is open source because I believe personal software like this should never hold your data hostage. I also think Tilly feels really good to use, and I want to show how easy it is to run your own instance and migrate your data over.

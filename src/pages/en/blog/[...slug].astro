@@ -78,6 +78,21 @@ let { Content } = await render(post)
 						))}
 					</div>
 				</div>
+				<div class="mt-6 flex items-center gap-3 border-t pt-6">
+					<img
+						src={post.data.author.avatar}
+						alt={post.data.author.name}
+						class="h-12 w-12 rounded-full object-cover"
+					/>
+					<div>
+						<p class="font-medium">
+							{post.data.author.name}
+						</p>
+						<p class="text-muted-foreground text-sm">
+							{post.data.author.role}
+						</p>
+					</div>
+				</div>
 			</div>
 
 			<Content />
