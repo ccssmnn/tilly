@@ -1,13 +1,11 @@
 ---
-title: "How I Built a Journaling System That Actually Sticks"
-description: "A pragmatic approach to relationship journaling that overcomes motivation gaps through intentional design and minimal structure"
+title: "Notes and Reminders: Pragmatic Relationship Journaling"
+description: "One note per person. One reminder per follow-up. A relationship journaling system built for people who actually want to stick with it."
 pubDate: "October 16 2025"
 tags: ["journaling", "relationships"]
 ---
 
-I've always liked the idea of keeping a journal. The romanticized version I had in mind was creating a calm ritual at the same time every day, writing thoughtfully into a paper notebook. But this doesn't fit into my life. Thoughts come and go. I want the most important and recent things right on top. I want to find things quickly. I need the system to work with how I actually live, not against it.
-
-And there was a problem with the traditional approach: the journals I admired required so much effort that I could never sustain them. I'd start with enthusiasm, write maybe three entries, then abandon the whole thing. This cycle repeated for years.
+I've always liked the idea of keeping a journal. The romanticized version I had in mind was creating a calm ritual at the same time every day, writing thoughtfully into a paper notebook. But this doesn't fit into my life. Thoughts come and go. I want the most important and recent things right on top. I want to find things quickly. I need the journal to work with how I actually live, not against it.
 
 The breakthrough came when I stopped asking "how should I journal?" and started asking "why do I want to journal in the first place?"
 
@@ -15,23 +13,19 @@ For me, the answer was simple: I don't want to forget important things about the
 
 Once I knew the _why_, everything else fell into place.
 
-## The Approach
+## My Journaling Approach
 
-My approach uses two tools that I was already using: a notes app and a todo app. Here's how it works in practice:
+One note per person. One reminder per thing to follow up on. That's it.
 
-**Every day I actively reflect on conversations**, whether digital or personal. This happens in my head while walking, driving, or stretching after my workout. Something I'm already doing anyway. I find the important pieces and then write them down. No dedicated 15-minute ritual needed.
+The philosophy is simple: remove every source of pressure. No daily quota. No perfect format. No guilt for gaps. No obligation to capture everything.
 
-I've found that sleeping on it is a natural filter. Whatever I remember the next day (or a few days later) is usually what actually mattered. I don't try to capture everything. If I forget something in the moment, I can always add it later. 80/20 pragmatism keeps me going. Perfectionism is the enemy of consistency.
+**When:** Reflection happens naturally. While walking. Driving. After my workout. Whenever I have the capacity. Something sticks with me, I write it down. If I forget it, it wasn't important enough. Instead of writing things down after each conversation, I sleep on it. A little bot of time is a great filter for what actually matters.
 
-**Each person** (friend, partner, family) has one note. At the top is a short summary, something I could tell a friend who doesn't know this person yet. Could be a few sentences or a few paragraphs. Below that, newer entries come first, like a social media timeline, with a new section for each conversation or memory I want to remember.
+**The note:** One summary per person, then entries in reverse order. Newest first. I add to it whenever something surfaces. The notes grow slowly because they're built on genuine memory, not obligation. They are nice to read from top to bottom, like traveling back in time.
 
-For people I only see together, I also create a shared note. Couples we only meet as a couple, or other families. If what I remember mostly involves them all together, my note title is "The Smiths" or whatever makes sense.
+**The reminder:** When someone mentions something I want to circle back on, I create a reminder. Simple and specific. For close friends, sometimes just "Ask about her week.". Reminders help me stay in touch when life gets busy. When I see a reminder is due, I find a small moment to reach out.
 
-**I let the note grow indefinitely.** We can embrace that the journal is digital. We can edit everything. We can add to the middle if something was out of order. Storage is cheap. It's valuable to scroll back and see how someone's life has evolved over months or years. It's a journal, after all. When I update a summary and it feels stale, I do that in the moment. But I don't overthink it.
-
-**When I identify something to follow up on**, I create a reminder. But I'm specific about it. For close family and friends, the reminder is simple: "Ask them about their week" or "Just chat." For others, I create actionable reminders tied to the conversation. If a friend mentions they're stressed about work, I create a reminder to ask how it's going in a few weeks. If someone tells me they're training for a marathon in October, I can circle back and wish them good luck or ask how it went.
-
-This approach works the same for every relationship. Closer friends will have longer, more detailed logs. I don't do this for people I have a purely functional relationship with. Again, 80/20. You don't have to be there for everyone. Make sure you're there for the people that matter to you.
+This works for me because I get immediate positive feedback for asking follow-up questions. The low friction and zero pressure keep me going. 
 
 ## The Tools and Friction
 
@@ -45,7 +39,7 @@ That's where the idea for a dedicated space came from. I built Tilly to implemen
 
 ## Where AI Actually Helps
 
-AI works best when it removes friction from what you've already decided matters. When you write something down, you've done the hard part: thinking, reflecting, deciding it matters. AI can organize your thoughts, suggest reminders, surface old entries, even help you craft messages based on what you've tracked.
+AI works best when it removes friction from what you're already doing. When you write something down, you've done the hard part: thinking, reflecting, deciding it matters. AI can organize your thoughts, suggest reminders, surface old entries, even help you craft messages based on what you've tracked.
 
 But it shouldn't decide what's worth remembering. That intentional choice to write something down is what makes the system work.
 
