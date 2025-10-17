@@ -2,7 +2,11 @@
 title: "Notes and Reminders: Pragmatic Relationship Journaling"
 description: "One note per person. One reminder per follow-up. A relationship journaling system built for people who actually want to stick with it."
 pubDate: "October 16 2025"
-tags: ["journaling", "relationships"]
+tags: ["guide"]
+author:
+  name: "Carl Assmann"
+  role: "Creator"
+  avatar: "/images/avatars/carl.webp"
 ---
 
 I've always liked the idea of keeping a journal. The romanticized version I had in mind was creating a calm ritual at the same time every day, writing thoughtfully into a paper notebook. But this doesn't fit into my life. Thoughts come and go. I want the most important and recent things right on top. I want to find things quickly. I need the journal to work with how I actually live, not against it.

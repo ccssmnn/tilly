@@ -9,6 +9,11 @@ let blog = defineCollection({
 		pubDate: z.string(),
 		tags: z.array(z.string()),
 		ogImage: z.string().optional(),
+		author: z.object({
+			name: z.string(),
+			role: z.string(),
+			avatar: z.string(),
+		}),
 	}),
 })
 
