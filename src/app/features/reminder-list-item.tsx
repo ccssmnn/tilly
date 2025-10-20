@@ -85,18 +85,20 @@ function ReminderListItem({
 					onClick={() => setDialogOpen("restore")}
 					noLazy={noLazy}
 				>
-					<ReminderItemHeader
-						person={person}
-						reminder={reminder}
-						showPerson={showPerson}
-						searchQuery={searchQuery}
-					/>
-					<ReminderItemText
-						reminder={reminder}
-						statusText={t("reminder.status.deleted")}
-						statusColor="text-destructive text-muted-foreground"
-						searchQuery={searchQuery}
-					/>
+					<div className="select-text">
+						<ReminderItemHeader
+							person={person}
+							reminder={reminder}
+							showPerson={showPerson}
+							searchQuery={searchQuery}
+						/>
+						<ReminderItemText
+							reminder={reminder}
+							statusText={t("reminder.status.deleted")}
+							statusColor="text-destructive text-muted-foreground"
+							searchQuery={searchQuery}
+						/>
+					</div>
 				</ReminderItemContainer>
 				<RestoreReminderDialog
 					reminder={reminder}
@@ -120,18 +122,20 @@ function ReminderListItem({
 					onClick={() => setDialogOpen("done")}
 					noLazy={noLazy}
 				>
-					<ReminderItemHeader
-						person={person}
-						reminder={reminder}
-						showPerson={showPerson}
-						searchQuery={searchQuery}
-					/>
-					<ReminderItemText
-						reminder={reminder}
-						statusText={t("reminder.status.done")}
-						statusColor="text-primary text-muted-foreground"
-						searchQuery={searchQuery}
-					/>
+					<div className="select-text">
+						<ReminderItemHeader
+							person={person}
+							reminder={reminder}
+							showPerson={showPerson}
+							searchQuery={searchQuery}
+						/>
+						<ReminderItemText
+							reminder={reminder}
+							statusText={t("reminder.status.done")}
+							statusColor="text-primary text-muted-foreground"
+							searchQuery={searchQuery}
+						/>
+					</div>
 				</ReminderItemContainer>
 				<DoneReminderActionsDialog
 					open={dialogOpen === "done"}
@@ -153,7 +157,7 @@ function ReminderListItem({
 				onClick={() => setDialogOpen("actions")}
 				noLazy={noLazy}
 			>
-				<div className="flex items-start gap-3">
+				<div className="flex items-start gap-3 select-text">
 					<div
 						className={cn(
 							"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
@@ -172,7 +176,7 @@ function ReminderListItem({
 						</p>
 					)}
 				</div>
-				<p className="text-md/tight text-left">
+				<p className="text-md/tight text-left select-text">
 					<TextHighlight text={reminder.text} query={searchQuery} />
 				</p>
 			</ReminderItemContainer>

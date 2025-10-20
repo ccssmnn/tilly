@@ -65,7 +65,7 @@ function NoteListItem(props: {
 						hasOverflow ? "pt-4" : "py-4",
 					)}
 				>
-					<div className="flex items-center gap-3">
+					<div className="flex items-center gap-3 select-text">
 						{props.note.deletedAt ? (
 							<span className="text-destructive">
 								<T k="note.status.deleted" />
@@ -82,7 +82,7 @@ function NoteListItem(props: {
 						<p
 							ref={contentRef}
 							className={cn(
-								"text-left text-wrap whitespace-pre-line",
+								"text-left text-wrap whitespace-pre-line select-text",
 								props.note.deletedAt && "text-muted-foreground",
 								!isExpanded && "line-clamp-2",
 							)}
