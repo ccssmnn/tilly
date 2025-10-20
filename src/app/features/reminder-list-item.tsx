@@ -232,7 +232,11 @@ function ReminderItemContainer({
 					"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
 					className,
 				)}
-				onClick={onClick}
+				onClick={() => {
+					let selection = window.getSelection()
+					if (selection && selection.toString().length > 0) return
+					onClick()
+				}}
 			>
 				{showPerson ? (
 					<Avatar

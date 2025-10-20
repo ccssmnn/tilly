@@ -130,7 +130,11 @@ export function PersonDetails({
 			<div className="flex flex-col items-center gap-6 md:flex-row">
 				<Avatar
 					className="size-48 cursor-pointer"
-					onClick={() => setActionsDialogOpen(true)}
+					onClick={() => {
+						let selection = window.getSelection()
+						if (selection && selection.toString().length > 0) return
+						setActionsDialogOpen(true)
+					}}
 				>
 					{person.avatar ? (
 						<JazzImage

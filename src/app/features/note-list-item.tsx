@@ -57,9 +57,11 @@ function NoteListItem(props: {
 			>
 				<button
 					id={`note-${props.note.$jazz.id}`}
-					onClick={() =>
+					onClick={() => {
+						let selection = window.getSelection()
+						if (selection && selection.toString().length > 0) return
 						setOpenDialog(props.note.deletedAt ? "restore" : "actions")
-					}
+					}}
 					className={cn(
 						"block w-full space-y-2",
 						hasOverflow ? "pt-4" : "py-4",
