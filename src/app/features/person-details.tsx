@@ -26,6 +26,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
+import { isTextSelectionOngoing } from "#app/lib/utils"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
@@ -131,8 +132,7 @@ export function PersonDetails({
 				<Avatar
 					className="size-48 cursor-pointer"
 					onClick={() => {
-						let selection = window.getSelection()
-						if (selection && selection.toString().length > 0) return
+						if (isTextSelectionOngoing()) return
 						setActionsDialogOpen(true)
 					}}
 				>

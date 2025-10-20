@@ -42,7 +42,7 @@ import {
 import { toast } from "sonner"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale, useIntl, T } from "#shared/intl/setup"
-import { cn } from "#app/lib/utils"
+import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { NoteForm } from "#app/features/note-form"
@@ -233,8 +233,7 @@ function ReminderItemContainer({
 					className,
 				)}
 				onClick={() => {
-					let selection = window.getSelection()
-					if (selection && selection.toString().length > 0) return
+					if (isTextSelectionOngoing()) return
 					onClick()
 				}}
 			>
