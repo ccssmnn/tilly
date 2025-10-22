@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
 import { T, useIntl } from "#shared/intl/setup"
+import type { KeyboardEvent } from "react"
 import { useState } from "react"
 
 let noteContentPlaceholders = [
@@ -62,6 +63,20 @@ export function NoteForm({
 		},
 	})
 
+	function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+		if ((!e.metaKey && !e.ctrlKey) || e.key !== "Enter" ) {
+			return
+		}
+
+		e.preventDefault()
+
+		if (form.formState.isSubmitting) {
+			return
+		}
+
+		form.handleSubmit(onSubmit)()
+	}
+
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
@@ -74,7 +89,12 @@ export function NoteForm({
 								<T k="note.form.content.label" />
 							</FormLabel>
 							<FormControl>
-								<Textarea placeholder={placeholder} rows={4} {...field} />
+									<Textarea
+										onKeyDown={handleTextareaKeyDown}
+										placeholder={placeholder}
+										rows={4}
+										{...field}
+									/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
