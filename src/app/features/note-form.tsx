@@ -64,7 +64,7 @@ export function NoteForm({
 	})
 
 	function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-		if ((!e.metaKey && !e.ctrlKey) || e.key !== "Enter" ) {
+		if (e.repeat || e.shiftKey || e.altKey || (!e.metaKey && !e.ctrlKey) || e.key !== "Enter") {
 			return
 		}
 
