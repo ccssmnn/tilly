@@ -472,7 +472,7 @@ function UserInput(props: {
 	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
 	let baseTextRef = useRef("")
 
-	useResizeTextarea(textareaRef, promptValue, 2.5 * 6 * 16)
+	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
 
 	function handleStartSpeech() {
 		baseTextRef.current = form.getValues("prompt")

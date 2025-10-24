@@ -57,8 +57,10 @@ Textarea.displayName = "Textarea"
 function useResizeTextarea(
 	ref: React.RefObject<HTMLTextAreaElement | null>,
 	value: string,
-	maxHeight?: number,
+	options?: { maxHeight?: number },
 ) {
+	let { maxHeight } = options || {}
+
 	React.useEffect(() => {
 		let textarea = ref.current
 		if (!textarea) return
