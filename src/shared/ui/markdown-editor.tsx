@@ -90,6 +90,7 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
+									onMouseDown={e => e.preventDefault()}
 									onClick={() =>
 										applyMarkdownFormat(textareaRef, value, onChange, "bold")
 									}
@@ -113,6 +114,7 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
+									onMouseDown={e => e.preventDefault()}
 									onClick={() =>
 										applyMarkdownFormat(textareaRef, value, onChange, "italic")
 									}
@@ -136,6 +138,7 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
+									onMouseDown={e => e.preventDefault()}
 									onClick={() =>
 										applyMarkdownFormat(textareaRef, value, onChange, "link")
 									}
@@ -159,6 +162,7 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
+									onMouseDown={e => e.preventDefault()}
 									onClick={() =>
 										applyMarkdownFormat(textareaRef, value, onChange, "list")
 									}
@@ -182,6 +186,7 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
+									onMouseDown={e => e.preventDefault()}
 									onClick={() =>
 										applyMarkdownFormat(textareaRef, value, onChange, "heading")
 									}
@@ -205,6 +210,7 @@ function MarkdownEditor({
 					type="button"
 					variant="ghost"
 					size="sm"
+					onMouseDown={e => e.preventDefault()}
 					onClick={() => setShowPreview(!showPreview)}
 					disabled={!value.trim()}
 					className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
