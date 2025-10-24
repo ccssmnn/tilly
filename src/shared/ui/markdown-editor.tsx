@@ -8,7 +8,10 @@ import {
 	TooltipTrigger,
 	TooltipContent,
 } from "./tooltip"
+import { Kbd, KbdGroup } from "./kbd"
 import { cn } from "#app/lib/utils"
+import { useIsMac } from "#app/hooks/use-pwa"
+import { T } from "#shared/intl/setup"
 import {
 	TypeBold,
 	TypeItalic,
@@ -38,6 +41,7 @@ function MarkdownEditor({
 }: MarkdownEditorProps) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
+	let isMac = useIsMac()
 
 	useEffect(() => {
 		let textarea = textareaRef.current
@@ -53,41 +57,186 @@ function MarkdownEditor({
 		onChange(e.target.value)
 	}
 
-	function insertMarkdown(before: string, after: string, placeholder: string) {
+	function getWordBounds(
+		text: string,
+		pos: number,
+	): { start: number; end: number } {
+		let start = pos
+		let end = pos
+
+		while (start > 0 && /\S/.test(text[start - 1])) {
+			start--
+		}
+
+		while (end < text.length && /\S/.test(text[end])) {
+			end++
+		}
+
+		return { start, end }
+	}
+
+	function insertBold() {
 		let textarea = textareaRef.current
 		if (!textarea) return
 
 		let start = textarea.selectionStart
 		let end = textarea.selectionEnd
 		let selectedText = value.substring(start, end)
-		let replacement = selectedText || placeholder
 
-		let newValue =
-			value.substring(0, start) +
-			before +
-			replacement +
-			after +
-			value.substring(end)
+		if (start === end) {
+			let { start: wordStart, end: wordEnd } = getWordBounds(value, start)
+			selectedText = value.substring(wordStart, wordEnd)
+			start = wordStart
+			end = wordEnd
+		}
+
+		let before = value.substring(Math.max(0, start - 2), start)
+		let after = value.substring(end, Math.min(value.length, end + 2))
+
+		let newValue = ""
+		let newStart = start
+		let newEnd = end
+
+		if (before === "**" && after === "**") {
+			newValue =
+				value.substring(0, start - 2) + selectedText + value.substring(end + 2)
+			newStart = start - 2
+			newEnd = start - 2 + selectedText.length
+		} else if (
+			selectedText.startsWith("**") &&
+			selectedText.endsWith("**") &&
+			selectedText.length > 4
+		) {
+			let unwrapped = selectedText.slice(2, -2)
+			newValue = value.substring(0, start) + unwrapped + value.substring(end)
+			newStart = start
+			newEnd = start + unwrapped.length
+		} else {
+			let wrapped = "**" + selectedText + "**"
+			newValue = value.substring(0, start) + wrapped + value.substring(end)
+			newStart = start + 2
+			newEnd = start + 2 + selectedText.length
+		}
 
 		onChange(newValue)
 
 		setTimeout(() => {
 			textarea.focus()
-			let newCursorPos = start + before.length + replacement.length
-			textarea.setSelectionRange(newCursorPos, newCursorPos)
+			textarea.setSelectionRange(newStart, newEnd)
 		}, 0)
 	}
 
-	function insertBold() {
-		insertMarkdown("**", "**", "bold text")
-	}
-
 	function insertItalic() {
-		insertMarkdown("*", "*", "italic text")
+		let textarea = textareaRef.current
+		if (!textarea) return
+
+		let start = textarea.selectionStart
+		let end = textarea.selectionEnd
+		let selectedText = value.substring(start, end)
+
+		if (start === end) {
+			let { start: wordStart, end: wordEnd } = getWordBounds(value, start)
+			selectedText = value.substring(wordStart, wordEnd)
+			start = wordStart
+			end = wordEnd
+		}
+
+		let before = value.substring(Math.max(0, start - 1), start)
+		let after = value.substring(end, Math.min(value.length, end + 1))
+		let beforeBold = value.substring(Math.max(0, start - 2), start)
+		let afterBold = value.substring(end, Math.min(value.length, end + 2))
+
+		let newValue = ""
+		let newStart = start
+		let newEnd = end
+
+		if (
+			before === "*" &&
+			after === "*" &&
+			!(beforeBold === "**" && afterBold === "**")
+		) {
+			newValue =
+				value.substring(0, start - 1) + selectedText + value.substring(end + 1)
+			newStart = start - 1
+			newEnd = start - 1 + selectedText.length
+		} else if (
+			selectedText.startsWith("*") &&
+			selectedText.endsWith("*") &&
+			!selectedText.startsWith("**") &&
+			selectedText.length > 2
+		) {
+			let unwrapped = selectedText.slice(1, -1)
+			newValue = value.substring(0, start) + unwrapped + value.substring(end)
+			newStart = start
+			newEnd = start + unwrapped.length
+		} else {
+			let wrapped = "*" + selectedText + "*"
+			newValue = value.substring(0, start) + wrapped + value.substring(end)
+			newStart = start + 1
+			newEnd = start + 1 + selectedText.length
+		}
+
+		onChange(newValue)
+
+		setTimeout(() => {
+			textarea.focus()
+			textarea.setSelectionRange(newStart, newEnd)
+		}, 0)
 	}
 
 	function insertLink() {
-		insertMarkdown("[", "](url)", "link text")
+		let textarea = textareaRef.current
+		if (!textarea) return
+
+		let start = textarea.selectionStart
+		let end = textarea.selectionEnd
+		let selectedText = value.substring(start, end)
+
+		if (start === end) {
+			let { start: wordStart, end: wordEnd } = getWordBounds(value, start)
+			selectedText = value.substring(wordStart, wordEnd)
+			start = wordStart
+			end = wordEnd
+		}
+
+		let before = value.substring(Math.max(0, start - 1), start)
+		let afterMatch = value.substring(end).match(/^\]\([^)]*\)/)
+
+		let newValue = ""
+		let newStart = start
+		let newEnd = end
+
+		if (before === "[" && afterMatch) {
+			let afterLength = afterMatch[0].length
+			newValue =
+				value.substring(0, start - 1) +
+				selectedText +
+				value.substring(end + afterLength)
+			newStart = start - 1
+			newEnd = start - 1 + selectedText.length
+		} else {
+			let linkPattern = /^\[(.+)\]\((.+)\)$/
+			let match = selectedText.match(linkPattern)
+
+			if (match) {
+				let linkText = match[1]
+				newValue = value.substring(0, start) + linkText + value.substring(end)
+				newStart = start
+				newEnd = start + linkText.length
+			} else {
+				let wrapped = "[" + selectedText + "](url)"
+				newValue = value.substring(0, start) + wrapped + value.substring(end)
+				newStart = start + 1
+				newEnd = start + 1 + selectedText.length
+			}
+		}
+
+		onChange(newValue)
+
+		setTimeout(() => {
+			textarea.focus()
+			textarea.setSelectionRange(newStart, newEnd)
+		}, 0)
 	}
 
 	function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -115,13 +264,14 @@ function MarkdownEditor({
 		let textarea = textareaRef.current
 		if (!textarea) return
 
-		let cursorPos = textarea.selectionStart
+		let start = textarea.selectionStart
+		let end = textarea.selectionEnd
 		let lines = value.split("\n")
 
 		let currentLineIndex = 0
 		let charCount = 0
 		for (let i = 0; i < lines.length; i++) {
-			if (charCount + lines[i].length >= cursorPos) {
+			if (charCount + lines[i].length >= start) {
 				currentLineIndex = i
 				break
 			}
@@ -130,16 +280,20 @@ function MarkdownEditor({
 
 		let currentLine = lines[currentLineIndex]
 		let lineStartPos = charCount
-		let cursorOffsetInLine = cursorPos - lineStartPos
+		let startOffsetInLine = start - lineStartPos
+		let endOffsetInLine = end - lineStartPos
 		let newLine = ""
-		let newCursorOffset = cursorOffsetInLine
+		let newStartOffset = startOffsetInLine
+		let newEndOffset = endOffsetInLine
 
 		if (currentLine.match(/^###\s/)) {
 			newLine = currentLine.replace(/^###\s/, "")
-			newCursorOffset = Math.max(0, cursorOffsetInLine - 4)
+			newStartOffset = Math.max(0, startOffsetInLine - 4)
+			newEndOffset = Math.max(0, endOffsetInLine - 4)
 		} else {
 			newLine = "### " + currentLine
-			newCursorOffset = cursorOffsetInLine + 4
+			newStartOffset = startOffsetInLine + 4
+			newEndOffset = endOffsetInLine + 4
 		}
 
 		lines[currentLineIndex] = newLine
@@ -149,8 +303,9 @@ function MarkdownEditor({
 
 		setTimeout(() => {
 			textarea.focus()
-			let newCursorPos = lineStartPos + newCursorOffset
-			textarea.setSelectionRange(newCursorPos, newCursorPos)
+			let newStart = lineStartPos + newStartOffset
+			let newEnd = lineStartPos + newEndOffset
+			textarea.setSelectionRange(newStart, newEnd)
 		}, 0)
 	}
 
@@ -158,13 +313,14 @@ function MarkdownEditor({
 		let textarea = textareaRef.current
 		if (!textarea) return
 
-		let cursorPos = textarea.selectionStart
+		let start = textarea.selectionStart
+		let end = textarea.selectionEnd
 		let lines = value.split("\n")
 
 		let currentLineIndex = 0
 		let charCount = 0
 		for (let i = 0; i < lines.length; i++) {
-			if (charCount + lines[i].length >= cursorPos) {
+			if (charCount + lines[i].length >= start) {
 				currentLineIndex = i
 				break
 			}
@@ -173,16 +329,20 @@ function MarkdownEditor({
 
 		let currentLine = lines[currentLineIndex]
 		let lineStartPos = charCount
-		let cursorOffsetInLine = cursorPos - lineStartPos
+		let startOffsetInLine = start - lineStartPos
+		let endOffsetInLine = end - lineStartPos
 		let newLine = ""
-		let newCursorOffset = cursorOffsetInLine
+		let newStartOffset = startOffsetInLine
+		let newEndOffset = endOffsetInLine
 
 		if (currentLine.match(/^\s*-\s/)) {
 			newLine = currentLine.replace(/^\s*-\s/, "")
-			newCursorOffset = Math.max(0, cursorOffsetInLine - 2)
+			newStartOffset = Math.max(0, startOffsetInLine - 2)
+			newEndOffset = Math.max(0, endOffsetInLine - 2)
 		} else {
 			newLine = "- " + currentLine
-			newCursorOffset = cursorOffsetInLine + 2
+			newStartOffset = startOffsetInLine + 2
+			newEndOffset = endOffsetInLine + 2
 		}
 
 		lines[currentLineIndex] = newLine
@@ -192,8 +352,9 @@ function MarkdownEditor({
 
 		setTimeout(() => {
 			textarea.focus()
-			let newCursorPos = lineStartPos + newCursorOffset
-			textarea.setSelectionRange(newCursorPos, newCursorPos)
+			let newStart = lineStartPos + newStartOffset
+			let newEnd = lineStartPos + newEndOffset
+			textarea.setSelectionRange(newStart, newEnd)
 		}, 0)
 	}
 
@@ -215,7 +376,13 @@ function MarkdownEditor({
 									<TypeBold className="h-5 w-5 md:h-4 md:w-4" />
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent>Bold (⌘B)</TooltipContent>
+							<TooltipContent>
+								<T k="markdown.bold" />{" "}
+								<KbdGroup>
+									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+									<Kbd>B</Kbd>
+								</KbdGroup>
+							</TooltipContent>
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -230,7 +397,13 @@ function MarkdownEditor({
 									<TypeItalic className="h-5 w-5 md:h-4 md:w-4" />
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent>Italic (⌘I)</TooltipContent>
+							<TooltipContent>
+								<T k="markdown.italic" />{" "}
+								<KbdGroup>
+									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+									<Kbd>I</Kbd>
+								</KbdGroup>
+							</TooltipContent>
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -245,7 +418,13 @@ function MarkdownEditor({
 									<Link45deg className="h-5 w-5 md:h-4 md:w-4" />
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent>Link (⌘K)</TooltipContent>
+							<TooltipContent>
+								<T k="markdown.link" />{" "}
+								<KbdGroup>
+									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+									<Kbd>K</Kbd>
+								</KbdGroup>
+							</TooltipContent>
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -260,7 +439,13 @@ function MarkdownEditor({
 									<ListUl className="h-5 w-5 md:h-4 md:w-4" />
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent>List (⌘L)</TooltipContent>
+							<TooltipContent>
+								<T k="markdown.list" />{" "}
+								<KbdGroup>
+									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+									<Kbd>L</Kbd>
+								</KbdGroup>
+							</TooltipContent>
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -275,7 +460,13 @@ function MarkdownEditor({
 									<TypeH3 className="h-5 w-5 md:h-4 md:w-4" />
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent>Heading (⌘H)</TooltipContent>
+							<TooltipContent>
+								<T k="markdown.heading" />{" "}
+								<KbdGroup>
+									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+									<Kbd>H</Kbd>
+								</KbdGroup>
+							</TooltipContent>
 						</Tooltip>
 					</div>
 				</TooltipProvider>
@@ -284,17 +475,22 @@ function MarkdownEditor({
 					variant="ghost"
 					size="sm"
 					onClick={() => setShowPreview(!showPreview)}
+					disabled={!value.trim()}
 					className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
 				>
 					{showPreview ? (
 						<>
 							<PencilSquare className="h-3 w-3" />
-							<span>Edit</span>
+							<span>
+								<T k="markdown.edit" />
+							</span>
 						</>
 					) : (
 						<>
 							<Eye className="h-3 w-3" />
-							<span>Preview</span>
+							<span>
+								<T k="markdown.preview" />
+							</span>
 						</>
 					)}
 				</Button>
@@ -310,7 +506,7 @@ function MarkdownEditor({
 						<Markdown>{value}</Markdown>
 					) : (
 						<p className="text-muted-foreground text-sm italic">
-							Nothing to preview
+							<T k="markdown.noPreview" />
 						</p>
 					)}
 				</div>
@@ -322,8 +518,9 @@ function MarkdownEditor({
 					onKeyDown={handleKeyDown}
 					placeholder={placeholder}
 					rows={rows}
+					autoResize={false}
 					className={cn(
-						"max-h-[400px] resize-none overflow-y-auto rounded-t-md rounded-br-none rounded-bl-none md:rounded-t-none md:rounded-b-md md:rounded-br-none",
+						"max-h-[400px] resize-none overflow-y-auto rounded-t-md rounded-br-none rounded-bl-none md:rounded-t-none md:rounded-b-md md:rounded-br-none [&::-webkit-resizer]:hidden",
 						className,
 					)}
 				/>
