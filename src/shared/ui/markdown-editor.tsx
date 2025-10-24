@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, type ChangeEvent } from "react"
-import { Textarea } from "./textarea"
+import { useState, useRef, type ChangeEvent } from "react"
+import { Textarea, useResizeTextarea } from "./textarea"
 import { Button } from "./button"
 import { Markdown } from "./markdown"
 import {
@@ -37,15 +37,7 @@ function MarkdownEditor({
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
 	let isMac = useIsMac()
 
-	useEffect(() => {
-		let textarea = textareaRef.current
-		if (!textarea) return
-
-		textarea.style.height = "auto"
-		let scrollHeight = textarea.scrollHeight
-		let maxHeight = 400
-		textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`
-	}, [value])
+	useResizeTextarea(textareaRef, value, 400)
 
 	function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
 		onChange(e.target.value)
