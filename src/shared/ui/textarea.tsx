@@ -1,8 +1,9 @@
 import * as React from "react"
-
 import { cn } from "#app/lib/utils"
 
-const Textarea = React.forwardRef<
+export { Textarea, useResizeTextarea }
+
+let Textarea = React.forwardRef<
 	HTMLTextAreaElement,
 	React.ComponentProps<"textarea"> & { autoResize?: boolean }
 >(
@@ -53,4 +54,25 @@ const Textarea = React.forwardRef<
 
 Textarea.displayName = "Textarea"
 
-export { Textarea }
+function useResizeTextarea(
+	ref: React.RefObject<HTMLTextAreaElement | null>,
+	value: string,
+	options?: { maxHeight?: number },
+) {
+	let { maxHeight } = options || {}
+
+	React.useEffect(() => {
+		let textarea = ref.current
+		if (!textarea) return
+
+		textarea.style.height = "auto"
+		let scrollHeight = textarea.scrollHeight
+		if (maxHeight) {
+			textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`
+		} else {
+			textarea.style.height = `${scrollHeight}px`
+		}
+
+		textarea.scrollTop = textarea.scrollHeight
+	}, [value, maxHeight, ref])
+}

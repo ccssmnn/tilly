@@ -1,5 +1,5 @@
 import { Button } from "#shared/ui/button"
-import { Textarea } from "#shared/ui/textarea"
+import { MarkdownEditor } from "#shared/ui/markdown-editor"
 import { Switch } from "#shared/ui/switch"
 import {
 	Form,
@@ -74,7 +74,12 @@ export function NoteForm({
 								<T k="note.form.content.label" />
 							</FormLabel>
 							<FormControl>
-								<Textarea placeholder={placeholder} rows={4} {...field} />
+								<MarkdownEditor
+									placeholder={placeholder}
+									rows={4}
+									value={field.value}
+									onChange={field.onChange}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>

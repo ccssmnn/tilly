@@ -29,7 +29,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { Badge } from "#shared/ui/badge"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
-import { TextHighlight } from "#shared/ui/text-highlight"
+import { Markdown } from "#shared/ui/markdown"
 
 export { NoteListItem }
 
@@ -80,19 +80,19 @@ function NoteListItem(props: {
 						)}
 					</div>
 					<div>
-						<p
+						<div
 							ref={contentRef}
 							className={cn(
-								"text-left text-wrap whitespace-pre-line select-text",
+								"text-left text-wrap select-text",
 								props.note.deletedAt && "text-muted-foreground",
 								!isExpanded && "line-clamp-2",
 							)}
 						>
-							<TextHighlight
-								text={props.note.content}
-								query={props.searchQuery}
+							<MarkdownWithHighlight
+								content={props.note.content}
+								searchQuery={props.searchQuery}
 							/>
-						</p>
+						</div>
 					</div>
 				</button>
 				<div
@@ -141,6 +141,33 @@ function NoteListItem(props: {
 			/>
 		</>
 	)
+}
+
+function MarkdownWithHighlight({
+	content,
+	searchQuery,
+}: MarkdownWithHighlightProps) {
+	if (!searchQuery || !searchQuery.trim()) {
+		return <Markdown>{content}</Markdown>
+	}
+
+	let trimmedQuery = searchQuery.trim()
+	let parts = content.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
+
+	let highlightedContent = parts
+		.map((part: string) => {
+			let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
+			return isMatch
+				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
+				: part
+		})
+		.join("")
+
+	return <Markdown>{highlightedContent}</Markdown>
+}
+
+function escapeRegExp(s: string) {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 function Pinned(props: { pinned?: boolean }) {
@@ -303,7 +330,7 @@ function EditDialog(props: {
 }
 
 function useContentOverflow(content: string, isExpanded: boolean) {
-	let contentRef = useRef<HTMLParagraphElement>(null)
+	let contentRef = useRef<HTMLDivElement>(null)
 	let [hasOverflow, setHasOverflow] = useState(false)
 
 	useEffect(() => {
@@ -400,6 +427,11 @@ async function pinOrUnpinNote(
 	toast.success(
 		currentPinned ? t("note.toast.unpinned") : t("note.toast.pinned"),
 	)
+}
+
+type MarkdownWithHighlightProps = {
+	content: string
+	searchQuery?: string
 }
 
 function RestoreNoteDialog({

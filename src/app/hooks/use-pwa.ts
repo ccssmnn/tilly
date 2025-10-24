@@ -4,6 +4,7 @@ export {
 	useIsPWAInstalled,
 	useIsAndroid,
 	useIsIOS,
+	useIsMac,
 	useIsMobileDevice,
 	useIsInAppBrowser,
 	usePWAInstallPrompt,
@@ -43,6 +44,12 @@ function useIsIOS(): boolean {
 	let userAgent = navigator.userAgent.toLowerCase()
 	let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
 	return isIOSDevice
+}
+
+function useIsMac(): boolean {
+	let userAgent = navigator.userAgent
+	let isMacDevice = /Mac|iPhone|iPod|iPad/.test(userAgent)
+	return isMacDevice
 }
 
 function useIsMobileDevice(): boolean {

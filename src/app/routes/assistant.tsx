@@ -5,7 +5,7 @@ import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "#shared/ui/button"
-import { Textarea } from "#shared/ui/textarea"
+import { Textarea, useResizeTextarea } from "#shared/ui/textarea"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
@@ -472,14 +472,7 @@ function UserInput(props: {
 	let { isAvailable, active, start, stop } = useSpeechRecognition(langCode)
 	let baseTextRef = useRef("")
 
-	function resizeTextarea() {
-		if (!textareaRef.current) return
-		textareaRef.current.style.height = "auto"
-		let scrollHeight = textareaRef.current.scrollHeight
-		let maxHeight = 2.5 * 6
-		textareaRef.current.style.height =
-			Math.min(scrollHeight, maxHeight * 16) + "px"
-	}
+	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
 
 	function handleStartSpeech() {
 		baseTextRef.current = form.getValues("prompt")
@@ -489,13 +482,11 @@ function UserInput(props: {
 			finalChunk => {
 				baseTextRef.current = (baseTextRef.current + " " + finalChunk).trim()
 				form.setValue("prompt", baseTextRef.current)
-				resizeTextarea()
 			},
 			// Interim result callback
 			interimChunk => {
 				let fullText = (baseTextRef.current + " " + interimChunk).trim()
 				form.setValue("prompt", fullText)
-				resizeTextarea()
 			},
 		)
 	}
@@ -506,7 +497,6 @@ function UserInput(props: {
 		let currentText = form.getValues("prompt")
 		// Update baseTextRef to match so we don't lose it
 		baseTextRef.current = currentText
-		resizeTextarea()
 	}
 
 	function handleSubmit(data: { prompt: string }) {
@@ -565,7 +555,6 @@ function UserInput(props: {
 											autoResize={false}
 											disabled={props.disabled || active}
 											{...field}
-											onInput={resizeTextarea}
 											onKeyDown={e => {
 												if (e.key !== "Enter") return
 
