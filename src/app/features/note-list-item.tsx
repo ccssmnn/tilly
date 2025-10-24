@@ -166,8 +166,8 @@ function MarkdownWithHighlight({
 	return <Markdown>{highlightedContent}</Markdown>
 }
 
-function escapeRegExp(string: string) {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+function escapeRegExp(s: string) {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 function Pinned(props: { pinned?: boolean }) {
