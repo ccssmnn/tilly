@@ -268,7 +268,7 @@ function MarkdownEditor({
 }
 
 function applyMarkdownFormat(
-	textareaRef: React.RefObject<HTMLTextAreaElement | null>,
+	textareaRef: TextareaRef,
 	value: string,
 	onChange: (value: string) => void,
 	format: MarkdownFormatType,
@@ -303,7 +303,7 @@ function applyInlineFormat(
 		end = bounds.end
 	}
 
-	let formatConfig = getInlineFormatConfig(
+	let formatConfig: InlineFormatConfig = getInlineFormatConfig(
 		format,
 		value,
 		start,
@@ -562,6 +562,8 @@ type MarkdownEditorProps = {
 }
 
 type MarkdownFormatType = "bold" | "italic" | "link" | "heading" | "list"
+
+type TextareaRef = React.RefObject<HTMLTextAreaElement | null>
 
 type WordBounds = {
 	start: number

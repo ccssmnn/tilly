@@ -146,10 +146,7 @@ function NoteListItem(props: {
 function MarkdownWithHighlight({
 	content,
 	searchQuery,
-}: {
-	content: string
-	searchQuery?: string
-}) {
+}: MarkdownWithHighlightProps) {
 	if (!searchQuery || !searchQuery.trim()) {
 		return <Markdown>{content}</Markdown>
 	}
@@ -391,6 +388,11 @@ async function editNote(
 		},
 	})
 	return { success: true }
+}
+
+type MarkdownWithHighlightProps = {
+	content: string
+	searchQuery?: string
 }
 
 async function deleteNote(
