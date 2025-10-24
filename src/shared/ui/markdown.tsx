@@ -5,8 +5,7 @@ import { cn } from "#app/lib/utils"
 
 const components: Partial<Components> = {
 	code: ({ children, className, ...props }) => {
-		const isInline = !className
-
+		let isInline = !className
 		if (isInline) {
 			return (
 				<code
@@ -28,28 +27,13 @@ const components: Partial<Components> = {
 	},
 	pre: ({ children }) => <>{children}</>,
 	ol: ({ children, ...props }) => {
-		return (
-			<ol
-				className="my-6 ml-6 list-outside list-decimal [&>li]:mt-2"
-				{...props}
-			>
-				{children}
-			</ol>
-		)
+		return <ol {...props}>{children}</ol>
 	},
 	li: ({ children, ...props }) => {
-		return (
-			<li className="leading-7" {...props}>
-				{children}
-			</li>
-		)
+		return <li {...props}>{children}</li>
 	},
 	ul: ({ children, ...props }) => {
-		return (
-			<ul className="my-6 ml-6 list-outside list-disc [&>li]:mt-2" {...props}>
-				{children}
-			</ul>
-		)
+		return <ul {...props}>{children}</ul>
 	},
 	strong: ({ children, ...props }) => {
 		return (
@@ -140,21 +124,21 @@ const components: Partial<Components> = {
 	},
 	p: ({ children, ...props }) => {
 		return (
-			<p className="leading-7 [&:not(:first-child)]:mt-6" {...props}>
+			<p className="leading-7 [&:not(:first-child)]:mt-3" {...props}>
 				{children}
 			</p>
 		)
 	},
 	blockquote: ({ children, ...props }) => {
 		return (
-			<blockquote className="mt-6 border-l-2 pl-6 italic" {...props}>
+			<blockquote className="mt-3 border-l-2 pl-3 italic" {...props}>
 				{children}
 			</blockquote>
 		)
 	},
 	table: ({ children, ...props }) => {
 		return (
-			<div className="my-6 w-full overflow-y-auto">
+			<div className="my-3 w-full overflow-y-auto">
 				<table className="w-full" {...props}>
 					{children}
 				</table>

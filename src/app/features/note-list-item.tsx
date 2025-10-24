@@ -29,9 +29,39 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { Badge } from "#shared/ui/badge"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
-import { TextHighlight } from "#shared/ui/text-highlight"
+import { Markdown } from "#shared/ui/markdown"
 
 export { NoteListItem }
+
+function MarkdownWithHighlight({
+	content,
+	searchQuery,
+}: {
+	content: string
+	searchQuery?: string
+}) {
+	if (!searchQuery || !searchQuery.trim()) {
+		return <Markdown>{content}</Markdown>
+	}
+
+	let trimmedQuery = searchQuery.trim()
+	let parts = content.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
+
+	let highlightedContent = parts
+		.map(part => {
+			let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
+			return isMatch
+				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
+				: part
+		})
+		.join("")
+
+	return <Markdown>{highlightedContent}</Markdown>
+}
+
+function escapeRegExp(string: string) {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
 
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
@@ -80,19 +110,19 @@ function NoteListItem(props: {
 						)}
 					</div>
 					<div>
-						<p
+						<div
 							ref={contentRef}
 							className={cn(
-								"text-left text-wrap whitespace-pre-line select-text",
+								"text-left text-wrap select-text",
 								props.note.deletedAt && "text-muted-foreground",
 								!isExpanded && "line-clamp-2",
 							)}
 						>
-							<TextHighlight
-								text={props.note.content}
-								query={props.searchQuery}
+							<MarkdownWithHighlight
+								content={props.note.content}
+								searchQuery={props.searchQuery}
 							/>
-						</p>
+						</div>
 					</div>
 				</button>
 				<div
