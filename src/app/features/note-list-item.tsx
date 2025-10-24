@@ -33,36 +33,6 @@ import { Markdown } from "#shared/ui/markdown"
 
 export { NoteListItem }
 
-function MarkdownWithHighlight({
-	content,
-	searchQuery,
-}: {
-	content: string
-	searchQuery?: string
-}) {
-	if (!searchQuery || !searchQuery.trim()) {
-		return <Markdown>{content}</Markdown>
-	}
-
-	let trimmedQuery = searchQuery.trim()
-	let parts = content.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
-
-	let highlightedContent = parts
-		.map(part => {
-			let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
-			return isMatch
-				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
-				: part
-		})
-		.join("")
-
-	return <Markdown>{highlightedContent}</Markdown>
-}
-
-function escapeRegExp(string: string) {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
-
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
@@ -171,6 +141,36 @@ function NoteListItem(props: {
 			/>
 		</>
 	)
+}
+
+function MarkdownWithHighlight({
+	content,
+	searchQuery,
+}: {
+	content: string
+	searchQuery?: string
+}) {
+	if (!searchQuery || !searchQuery.trim()) {
+		return <Markdown>{content}</Markdown>
+	}
+
+	let trimmedQuery = searchQuery.trim()
+	let parts = content.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
+
+	let highlightedContent = parts
+		.map(part => {
+			let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
+			return isMatch
+				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
+				: part
+		})
+		.join("")
+
+	return <Markdown>{highlightedContent}</Markdown>
+}
+
+function escapeRegExp(string: string) {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 function Pinned(props: { pinned?: boolean }) {
@@ -333,7 +333,7 @@ function EditDialog(props: {
 }
 
 function useContentOverflow(content: string, isExpanded: boolean) {
-	let contentRef = useRef<HTMLParagraphElement>(null)
+	let contentRef = useRef<HTMLDivElement>(null)
 	let [hasOverflow, setHasOverflow] = useState(false)
 
 	useEffect(() => {

@@ -23,14 +23,7 @@ import {
 } from "react-bootstrap-icons"
 
 export { MarkdownEditor }
-
-type MarkdownEditorProps = {
-	value: string
-	onChange: (value: string) => void
-	placeholder?: string
-	rows?: number
-	className?: string
-}
+export type { MarkdownEditorProps }
 
 function MarkdownEditor({
 	value,
@@ -57,305 +50,31 @@ function MarkdownEditor({
 		onChange(e.target.value)
 	}
 
-	function getWordBounds(
-		text: string,
-		pos: number,
-	): { start: number; end: number } {
-		let start = pos
-		let end = pos
-
-		while (start > 0 && /\S/.test(text[start - 1])) {
-			start--
-		}
-
-		while (end < text.length && /\S/.test(text[end])) {
-			end++
-		}
-
-		return { start, end }
-	}
-
-	function insertBold() {
-		let textarea = textareaRef.current
-		if (!textarea) return
-
-		let start = textarea.selectionStart
-		let end = textarea.selectionEnd
-		let selectedText = value.substring(start, end)
-
-		if (start === end) {
-			let { start: wordStart, end: wordEnd } = getWordBounds(value, start)
-			selectedText = value.substring(wordStart, wordEnd)
-			start = wordStart
-			end = wordEnd
-		}
-
-		let before = value.substring(Math.max(0, start - 2), start)
-		let after = value.substring(end, Math.min(value.length, end + 2))
-
-		let newValue = ""
-		let newStart = start
-		let newEnd = end
-
-		if (before === "**" && after === "**") {
-			newValue =
-				value.substring(0, start - 2) + selectedText + value.substring(end + 2)
-			newStart = start - 2
-			newEnd = start - 2 + selectedText.length
-		} else if (
-			selectedText.startsWith("**") &&
-			selectedText.endsWith("**") &&
-			selectedText.length > 4
-		) {
-			let unwrapped = selectedText.slice(2, -2)
-			newValue = value.substring(0, start) + unwrapped + value.substring(end)
-			newStart = start
-			newEnd = start + unwrapped.length
-		} else {
-			let wrapped = "**" + selectedText + "**"
-			newValue = value.substring(0, start) + wrapped + value.substring(end)
-			newStart = start + 2
-			newEnd = start + 2 + selectedText.length
-		}
-
-		onChange(newValue)
-
-		setTimeout(() => {
-			textarea.focus()
-			textarea.setSelectionRange(newStart, newEnd)
-		}, 0)
-	}
-
-	function insertItalic() {
-		let textarea = textareaRef.current
-		if (!textarea) return
-
-		let start = textarea.selectionStart
-		let end = textarea.selectionEnd
-		let selectedText = value.substring(start, end)
-
-		if (start === end) {
-			let { start: wordStart, end: wordEnd } = getWordBounds(value, start)
-			selectedText = value.substring(wordStart, wordEnd)
-			start = wordStart
-			end = wordEnd
-		}
-
-		let before = value.substring(Math.max(0, start - 1), start)
-		let after = value.substring(end, Math.min(value.length, end + 1))
-		let beforeBold = value.substring(Math.max(0, start - 2), start)
-		let afterBold = value.substring(end, Math.min(value.length, end + 2))
-
-		let newValue = ""
-		let newStart = start
-		let newEnd = end
-
-		if (
-			before === "*" &&
-			after === "*" &&
-			!(beforeBold === "**" && afterBold === "**")
-		) {
-			newValue =
-				value.substring(0, start - 1) + selectedText + value.substring(end + 1)
-			newStart = start - 1
-			newEnd = start - 1 + selectedText.length
-		} else if (
-			selectedText.startsWith("*") &&
-			selectedText.endsWith("*") &&
-			!selectedText.startsWith("**") &&
-			selectedText.length > 2
-		) {
-			let unwrapped = selectedText.slice(1, -1)
-			newValue = value.substring(0, start) + unwrapped + value.substring(end)
-			newStart = start
-			newEnd = start + unwrapped.length
-		} else {
-			let wrapped = "*" + selectedText + "*"
-			newValue = value.substring(0, start) + wrapped + value.substring(end)
-			newStart = start + 1
-			newEnd = start + 1 + selectedText.length
-		}
-
-		onChange(newValue)
-
-		setTimeout(() => {
-			textarea.focus()
-			textarea.setSelectionRange(newStart, newEnd)
-		}, 0)
-	}
-
-	function insertLink() {
-		let textarea = textareaRef.current
-		if (!textarea) return
-
-		let start = textarea.selectionStart
-		let end = textarea.selectionEnd
-		let selectedText = value.substring(start, end)
-
-		if (start === end) {
-			let { start: wordStart, end: wordEnd } = getWordBounds(value, start)
-			selectedText = value.substring(wordStart, wordEnd)
-			start = wordStart
-			end = wordEnd
-		}
-
-		let before = value.substring(Math.max(0, start - 1), start)
-		let afterMatch = value.substring(end).match(/^\]\([^)]*\)/)
-
-		let newValue = ""
-		let newStart = start
-		let newEnd = end
-
-		if (before === "[" && afterMatch) {
-			let afterLength = afterMatch[0].length
-			newValue =
-				value.substring(0, start - 1) +
-				selectedText +
-				value.substring(end + afterLength)
-			newStart = start - 1
-			newEnd = start - 1 + selectedText.length
-		} else {
-			let linkPattern = /^\[(.+)\]\((.+)\)$/
-			let match = selectedText.match(linkPattern)
-
-			if (match) {
-				let linkText = match[1]
-				newValue = value.substring(0, start) + linkText + value.substring(end)
-				newStart = start
-				newEnd = start + linkText.length
-			} else {
-				let wrapped = "[" + selectedText + "](url)"
-				newValue = value.substring(0, start) + wrapped + value.substring(end)
-				newStart = start + 1
-				newEnd = start + 1 + selectedText.length
-			}
-		}
-
-		onChange(newValue)
-
-		setTimeout(() => {
-			textarea.focus()
-			textarea.setSelectionRange(newStart, newEnd)
-		}, 0)
-	}
-
 	function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-		if (e.metaKey || e.ctrlKey) {
-			if (e.key === "b") {
-				e.preventDefault()
-				insertBold()
-			} else if (e.key === "i") {
-				e.preventDefault()
-				insertItalic()
-			} else if (e.key === "k") {
-				e.preventDefault()
-				insertLink()
-			} else if (e.key === "l") {
-				e.preventDefault()
-				insertList()
-			} else if (e.key === "h") {
-				e.preventDefault()
-				insertHeading()
-			}
-		}
-	}
+		let isModifierPressed = e.metaKey || e.ctrlKey
+		if (!isModifierPressed) return
 
-	function insertHeading() {
-		let textarea = textareaRef.current
-		if (!textarea) return
+		let markdownShortcutKeys = ["b", "i", "k", "l", "h"]
+		if (!markdownShortcutKeys.includes(e.key)) return
 
-		let start = textarea.selectionStart
-		let end = textarea.selectionEnd
-		let lines = value.split("\n")
-
-		let currentLineIndex = 0
-		let charCount = 0
-		for (let i = 0; i < lines.length; i++) {
-			if (charCount + lines[i].length >= start) {
-				currentLineIndex = i
+		e.preventDefault()
+		switch (e.key) {
+			case "b":
+				applyMarkdownFormat(textareaRef, value, onChange, "bold")
 				break
-			}
-			charCount += lines[i].length + 1
-		}
-
-		let currentLine = lines[currentLineIndex]
-		let lineStartPos = charCount
-		let startOffsetInLine = start - lineStartPos
-		let endOffsetInLine = end - lineStartPos
-		let newLine = ""
-		let newStartOffset = startOffsetInLine
-		let newEndOffset = endOffsetInLine
-
-		if (currentLine.match(/^###\s/)) {
-			newLine = currentLine.replace(/^###\s/, "")
-			newStartOffset = Math.max(0, startOffsetInLine - 4)
-			newEndOffset = Math.max(0, endOffsetInLine - 4)
-		} else {
-			newLine = "### " + currentLine
-			newStartOffset = startOffsetInLine + 4
-			newEndOffset = endOffsetInLine + 4
-		}
-
-		lines[currentLineIndex] = newLine
-		let newValue = lines.join("\n")
-
-		onChange(newValue)
-
-		setTimeout(() => {
-			textarea.focus()
-			let newStart = lineStartPos + newStartOffset
-			let newEnd = lineStartPos + newEndOffset
-			textarea.setSelectionRange(newStart, newEnd)
-		}, 0)
-	}
-
-	function insertList() {
-		let textarea = textareaRef.current
-		if (!textarea) return
-
-		let start = textarea.selectionStart
-		let end = textarea.selectionEnd
-		let lines = value.split("\n")
-
-		let currentLineIndex = 0
-		let charCount = 0
-		for (let i = 0; i < lines.length; i++) {
-			if (charCount + lines[i].length >= start) {
-				currentLineIndex = i
+			case "i":
+				applyMarkdownFormat(textareaRef, value, onChange, "italic")
 				break
-			}
-			charCount += lines[i].length + 1
+			case "k":
+				applyMarkdownFormat(textareaRef, value, onChange, "link")
+				break
+			case "l":
+				applyMarkdownFormat(textareaRef, value, onChange, "list")
+				break
+			case "h":
+				applyMarkdownFormat(textareaRef, value, onChange, "heading")
+				break
 		}
-
-		let currentLine = lines[currentLineIndex]
-		let lineStartPos = charCount
-		let startOffsetInLine = start - lineStartPos
-		let endOffsetInLine = end - lineStartPos
-		let newLine = ""
-		let newStartOffset = startOffsetInLine
-		let newEndOffset = endOffsetInLine
-
-		if (currentLine.match(/^\s*-\s/)) {
-			newLine = currentLine.replace(/^\s*-\s/, "")
-			newStartOffset = Math.max(0, startOffsetInLine - 2)
-			newEndOffset = Math.max(0, endOffsetInLine - 2)
-		} else {
-			newLine = "- " + currentLine
-			newStartOffset = startOffsetInLine + 2
-			newEndOffset = endOffsetInLine + 2
-		}
-
-		lines[currentLineIndex] = newLine
-		let newValue = lines.join("\n")
-
-		onChange(newValue)
-
-		setTimeout(() => {
-			textarea.focus()
-			let newStart = lineStartPos + newStartOffset
-			let newEnd = lineStartPos + newEndOffset
-			textarea.setSelectionRange(newStart, newEnd)
-		}, 0)
 	}
 
 	return (
@@ -369,7 +88,9 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
-									onClick={insertBold}
+									onClick={() =>
+										applyMarkdownFormat(textareaRef, value, onChange, "bold")
+									}
 									className="h-10 w-10 p-0 md:h-7 md:w-7"
 									disabled={showPreview}
 								>
@@ -390,7 +111,9 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
-									onClick={insertItalic}
+									onClick={() =>
+										applyMarkdownFormat(textareaRef, value, onChange, "italic")
+									}
 									className="h-10 w-10 p-0 md:h-7 md:w-7"
 									disabled={showPreview}
 								>
@@ -411,7 +134,9 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
-									onClick={insertLink}
+									onClick={() =>
+										applyMarkdownFormat(textareaRef, value, onChange, "link")
+									}
 									className="h-10 w-10 p-0 md:h-7 md:w-7"
 									disabled={showPreview}
 								>
@@ -432,7 +157,9 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
-									onClick={insertList}
+									onClick={() =>
+										applyMarkdownFormat(textareaRef, value, onChange, "list")
+									}
 									className="h-10 w-10 p-0 md:h-7 md:w-7"
 									disabled={showPreview}
 								>
@@ -453,7 +180,9 @@ function MarkdownEditor({
 									type="button"
 									variant="ghost"
 									size="sm"
-									onClick={insertHeading}
+									onClick={() =>
+										applyMarkdownFormat(textareaRef, value, onChange, "heading")
+									}
 									className="h-10 w-10 p-0 md:h-7 md:w-7"
 									disabled={showPreview}
 								>
@@ -527,4 +256,327 @@ function MarkdownEditor({
 			)}
 		</div>
 	)
+}
+
+function applyMarkdownFormat(
+	textareaRef: React.RefObject<HTMLTextAreaElement | null>,
+	value: string,
+	onChange: (value: string) => void,
+	format: MarkdownFormatType,
+) {
+	let textarea = textareaRef.current
+	if (!textarea) return
+
+	let start = textarea.selectionStart
+	let end = textarea.selectionEnd
+
+	if (format === "heading" || format === "list") {
+		applyLineFormat(textarea, value, onChange, format, start, end)
+	} else {
+		applyInlineFormat(textarea, value, onChange, format, start, end)
+	}
+}
+
+function applyInlineFormat(
+	textarea: HTMLTextAreaElement,
+	value: string,
+	onChange: (value: string) => void,
+	format: "bold" | "italic" | "link",
+	start: number,
+	end: number,
+) {
+	let selectedText = value.substring(start, end)
+
+	if (start === end) {
+		let bounds = getWordBounds(value, start)
+		selectedText = value.substring(bounds.start, bounds.end)
+		start = bounds.start
+		end = bounds.end
+	}
+
+	let formatConfig = getInlineFormatConfig(
+		format,
+		value,
+		start,
+		end,
+		selectedText,
+	)
+	let result = formatConfig.toggle()
+
+	onChange(result.newValue)
+
+	setTimeout(() => {
+		textarea.focus()
+		textarea.setSelectionRange(result.newStart, result.newEnd)
+	}, 0)
+}
+
+function applyLineFormat(
+	textarea: HTMLTextAreaElement,
+	value: string,
+	onChange: (value: string) => void,
+	format: "heading" | "list",
+	start: number,
+	end: number,
+) {
+	let lines = value.split("\n")
+	let currentLineIndex = 0
+	let charCount = 0
+
+	for (let i = 0; i < lines.length; i++) {
+		if (charCount + lines[i].length >= start) {
+			currentLineIndex = i
+			break
+		}
+		charCount += lines[i].length + 1
+	}
+
+	let currentLine = lines[currentLineIndex]
+	let lineStartPos = charCount
+	let startOffsetInLine = start - lineStartPos
+	let endOffsetInLine = end - lineStartPos
+
+	let formatConfig = getLineFormatConfig(format, currentLine)
+	let result = formatConfig.toggle(startOffsetInLine, endOffsetInLine)
+
+	lines[currentLineIndex] = result.newLine
+	let newValue = lines.join("\n")
+
+	onChange(newValue)
+
+	setTimeout(() => {
+		textarea.focus()
+		let newStart = lineStartPos + result.newStartOffset
+		let newEnd = lineStartPos + result.newEndOffset
+		textarea.setSelectionRange(newStart, newEnd)
+	}, 0)
+}
+
+function getWordBounds(text: string, pos: number): WordBounds {
+	let start = pos
+	let end = pos
+
+	while (start > 0 && /\S/.test(text[start - 1])) {
+		start--
+	}
+
+	while (end < text.length && /\S/.test(text[end])) {
+		end++
+	}
+
+	return { start, end }
+}
+
+function getInlineFormatConfig(
+	format: "bold" | "italic" | "link",
+	value: string,
+	start: number,
+	end: number,
+	selectedText: string,
+): InlineFormatConfig {
+	if (format === "bold") {
+		let before = value.substring(Math.max(0, start - 2), start)
+		let after = value.substring(end, Math.min(value.length, end + 2))
+
+		return {
+			toggle: () => {
+				if (before === "**" && after === "**") {
+					return {
+						newValue:
+							value.substring(0, start - 2) +
+							selectedText +
+							value.substring(end + 2),
+						newStart: start - 2,
+						newEnd: start - 2 + selectedText.length,
+					}
+				} else if (
+					selectedText.startsWith("**") &&
+					selectedText.endsWith("**") &&
+					selectedText.length > 4
+				) {
+					let unwrapped = selectedText.slice(2, -2)
+					return {
+						newValue:
+							value.substring(0, start) + unwrapped + value.substring(end),
+						newStart: start,
+						newEnd: start + unwrapped.length,
+					}
+				} else {
+					let wrapped = "**" + selectedText + "**"
+					return {
+						newValue:
+							value.substring(0, start) + wrapped + value.substring(end),
+						newStart: start + 2,
+						newEnd: start + 2 + selectedText.length,
+					}
+				}
+			},
+		}
+	} else if (format === "italic") {
+		let before = value.substring(Math.max(0, start - 1), start)
+		let after = value.substring(end, Math.min(value.length, end + 1))
+		let beforeBold = value.substring(Math.max(0, start - 2), start)
+		let afterBold = value.substring(end, Math.min(value.length, end + 2))
+
+		return {
+			toggle: () => {
+				if (
+					before === "*" &&
+					after === "*" &&
+					!(beforeBold === "**" && afterBold === "**")
+				) {
+					return {
+						newValue:
+							value.substring(0, start - 1) +
+							selectedText +
+							value.substring(end + 1),
+						newStart: start - 1,
+						newEnd: start - 1 + selectedText.length,
+					}
+				} else if (
+					selectedText.startsWith("*") &&
+					selectedText.endsWith("*") &&
+					!selectedText.startsWith("**") &&
+					selectedText.length > 2
+				) {
+					let unwrapped = selectedText.slice(1, -1)
+					return {
+						newValue:
+							value.substring(0, start) + unwrapped + value.substring(end),
+						newStart: start,
+						newEnd: start + unwrapped.length,
+					}
+				} else {
+					let wrapped = "*" + selectedText + "*"
+					return {
+						newValue:
+							value.substring(0, start) + wrapped + value.substring(end),
+						newStart: start + 1,
+						newEnd: start + 1 + selectedText.length,
+					}
+				}
+			},
+		}
+	} else {
+		let before = value.substring(Math.max(0, start - 1), start)
+		let afterMatch = value.substring(end).match(/^\]\([^)]*\)/)
+
+		return {
+			toggle: () => {
+				if (before === "[" && afterMatch) {
+					let afterLength = afterMatch[0].length
+					return {
+						newValue:
+							value.substring(0, start - 1) +
+							selectedText +
+							value.substring(end + afterLength),
+						newStart: start - 1,
+						newEnd: start - 1 + selectedText.length,
+					}
+				} else {
+					let linkPattern = /^\[(.+)\]\((.+)\)$/
+					let match = selectedText.match(linkPattern)
+
+					if (match) {
+						let linkText = match[1]
+						return {
+							newValue:
+								value.substring(0, start) + linkText + value.substring(end),
+							newStart: start,
+							newEnd: start + linkText.length,
+						}
+					} else {
+						let wrapped = "[" + selectedText + "](url)"
+						return {
+							newValue:
+								value.substring(0, start) + wrapped + value.substring(end),
+							newStart: start + 1,
+							newEnd: start + 1 + selectedText.length,
+						}
+					}
+				}
+			},
+		}
+	}
+}
+
+function getLineFormatConfig(
+	format: "heading" | "list",
+	currentLine: string,
+): LineFormatConfig {
+	if (format === "heading") {
+		return {
+			toggle: (startOffsetInLine: number, endOffsetInLine: number) => {
+				if (currentLine.match(/^###\s/)) {
+					return {
+						newLine: currentLine.replace(/^###\s/, ""),
+						newStartOffset: Math.max(0, startOffsetInLine - 4),
+						newEndOffset: Math.max(0, endOffsetInLine - 4),
+					}
+				} else {
+					return {
+						newLine: "### " + currentLine,
+						newStartOffset: startOffsetInLine + 4,
+						newEndOffset: endOffsetInLine + 4,
+					}
+				}
+			},
+		}
+	} else {
+		return {
+			toggle: (startOffsetInLine: number, endOffsetInLine: number) => {
+				if (currentLine.match(/^\s*-\s/)) {
+					return {
+						newLine: currentLine.replace(/^\s*-\s/, ""),
+						newStartOffset: Math.max(0, startOffsetInLine - 2),
+						newEndOffset: Math.max(0, endOffsetInLine - 2),
+					}
+				} else {
+					return {
+						newLine: "- " + currentLine,
+						newStartOffset: startOffsetInLine + 2,
+						newEndOffset: endOffsetInLine + 2,
+					}
+				}
+			},
+		}
+	}
+}
+
+type MarkdownEditorProps = {
+	value: string
+	onChange: (value: string) => void
+	placeholder?: string
+	rows?: number
+	className?: string
+}
+
+type MarkdownFormatType = "bold" | "italic" | "link" | "heading" | "list"
+
+type WordBounds = {
+	start: number
+	end: number
+}
+
+type FormatResult = {
+	newValue: string
+	newStart: number
+	newEnd: number
+}
+
+type InlineFormatConfig = {
+	toggle: () => FormatResult
+}
+
+type LineFormatResult = {
+	newLine: string
+	newStartOffset: number
+	newEndOffset: number
+}
+
+type LineFormatConfig = {
+	toggle: (
+		startOffsetInLine: number,
+		endOffsetInLine: number,
+	) => LineFormatResult
 }

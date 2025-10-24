@@ -1,4 +1,5 @@
 import { cn } from "#app/lib/utils"
+import type React from "react"
 
 export { Kbd, KbdGroup }
 
