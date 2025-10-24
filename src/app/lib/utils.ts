@@ -7,5 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function isTextSelectionOngoing() {
 	let selection = window.getSelection()
-	return selection !== null && selection.toString().length > 0
+	if (!selection) return false
+	let selectedText = selection.toString()
+	return selectedText.length > 0
 }

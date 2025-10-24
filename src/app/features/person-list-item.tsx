@@ -71,6 +71,7 @@ function PersonListItem({
 			params={{ personID: person.$jazz.id }}
 			className="items-top hover:bg-muted active:bg-accent -mx-3 flex flex-1 gap-3 rounded-lg px-3 py-4 transition-colors duration-150"
 			draggable={false}
+			onDragStart={e => e.preventDefault()}
 			onClick={e => {
 				if (isTextSelectionOngoing()) {
 					e.preventDefault()
@@ -134,7 +135,10 @@ function PersonItemHeader({
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	return (
-		<div className="flex items-center justify-between leading-none select-text">
+		<div
+			className="flex items-center justify-between leading-none select-text"
+			onMouseDown={e => e.stopPropagation()}
+		>
 			<p className={nameColor}>
 				<TextHighlight text={person.name} query={searchQuery} />
 			</p>
@@ -166,7 +170,10 @@ function PersonItemSummary({
 	if (!person.summary) return null
 
 	return (
-		<p className="text-muted-foreground mt-2 line-clamp-2 text-sm select-text">
+		<p
+			className="text-muted-foreground mt-2 line-clamp-2 text-sm select-text"
+			onMouseDown={e => e.stopPropagation()}
+		>
 			<TextHighlight text={person.summary} query={searchQuery} />
 		</p>
 	)
