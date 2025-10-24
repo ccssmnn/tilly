@@ -76,6 +76,14 @@ function MarkdownEditor({
 		}
 	}
 
+	let toolButtons = [
+		{ format: "bold", icon: TypeBold, label: "markdown.bold", key: "B" },
+		{ format: "italic", icon: TypeItalic, label: "markdown.italic", key: "I" },
+		{ format: "link", icon: Link45deg, label: "markdown.link", key: "K" },
+		{ format: "list", icon: ListUl, label: "markdown.list", key: "L" },
+		{ format: "heading", icon: TypeH3, label: "markdown.heading", key: "H" },
+	] as const
+
 	return (
 		<div
 			className="flex flex-col-reverse md:flex-col"
@@ -84,126 +92,37 @@ function MarkdownEditor({
 			<div className="border-border bg-muted/30 flex items-center justify-between gap-2 rounded-b-md border border-t-0 px-2 py-1 md:rounded-t-md md:rounded-b-none md:border-t md:border-b-0">
 				<TooltipProvider>
 					<div className="flex gap-1">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onMouseDown={e => e.preventDefault()}
-									onClick={() =>
-										applyMarkdownFormat(textareaRef, value, onChange, "bold")
-									}
-									className="h-10 w-10 p-0 md:h-7 md:w-7"
-									disabled={showPreview}
-								>
-									<TypeBold className="h-5 w-5 md:h-4 md:w-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<T k="markdown.bold" />{" "}
-								<KbdGroup>
-									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-									<Kbd>B</Kbd>
-								</KbdGroup>
-							</TooltipContent>
-						</Tooltip>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onMouseDown={e => e.preventDefault()}
-									onClick={() =>
-										applyMarkdownFormat(textareaRef, value, onChange, "italic")
-									}
-									className="h-10 w-10 p-0 md:h-7 md:w-7"
-									disabled={showPreview}
-								>
-									<TypeItalic className="h-5 w-5 md:h-4 md:w-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<T k="markdown.italic" />{" "}
-								<KbdGroup>
-									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-									<Kbd>I</Kbd>
-								</KbdGroup>
-							</TooltipContent>
-						</Tooltip>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onMouseDown={e => e.preventDefault()}
-									onClick={() =>
-										applyMarkdownFormat(textareaRef, value, onChange, "link")
-									}
-									className="h-10 w-10 p-0 md:h-7 md:w-7"
-									disabled={showPreview}
-								>
-									<Link45deg className="h-5 w-5 md:h-4 md:w-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<T k="markdown.link" />{" "}
-								<KbdGroup>
-									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-									<Kbd>K</Kbd>
-								</KbdGroup>
-							</TooltipContent>
-						</Tooltip>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onMouseDown={e => e.preventDefault()}
-									onClick={() =>
-										applyMarkdownFormat(textareaRef, value, onChange, "list")
-									}
-									className="h-10 w-10 p-0 md:h-7 md:w-7"
-									disabled={showPreview}
-								>
-									<ListUl className="h-5 w-5 md:h-4 md:w-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<T k="markdown.list" />{" "}
-								<KbdGroup>
-									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-									<Kbd>L</Kbd>
-								</KbdGroup>
-							</TooltipContent>
-						</Tooltip>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									onMouseDown={e => e.preventDefault()}
-									onClick={() =>
-										applyMarkdownFormat(textareaRef, value, onChange, "heading")
-									}
-									className="h-10 w-10 p-0 md:h-7 md:w-7"
-									disabled={showPreview}
-								>
-									<TypeH3 className="h-5 w-5 md:h-4 md:w-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<T k="markdown.heading" />{" "}
-								<KbdGroup>
-									<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
-									<Kbd>H</Kbd>
-								</KbdGroup>
-							</TooltipContent>
-						</Tooltip>
+						{toolButtons.map(tool => (
+							<Tooltip key={tool.format}>
+								<TooltipTrigger asChild>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onMouseDown={e => e.preventDefault()}
+										onClick={() =>
+											applyMarkdownFormat(
+												textareaRef,
+												value,
+												onChange,
+												tool.format,
+											)
+										}
+										className="h-10 w-10 p-0 md:h-7 md:w-7"
+										disabled={showPreview}
+									>
+										<tool.icon className="h-5 w-5 md:h-4 md:w-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>
+									<T k={tool.label} />{" "}
+									<KbdGroup>
+										<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+										<Kbd>{tool.key}</Kbd>
+									</KbdGroup>
+								</TooltipContent>
+							</Tooltip>
+						))}
 					</div>
 				</TooltipProvider>
 				<Button
