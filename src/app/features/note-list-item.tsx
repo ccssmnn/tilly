@@ -22,7 +22,7 @@ import { PencilSquare, Trash, PinFill } from "react-bootstrap-icons"
 import { useState, useRef, useEffect } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow, differenceInDays } from "date-fns"
-import { cn } from "#app/lib/utils"
+import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -57,15 +57,16 @@ function NoteListItem(props: {
 			>
 				<button
 					id={`note-${props.note.$jazz.id}`}
-					onClick={() =>
+					onClick={() => {
+						if (isTextSelectionOngoing()) return
 						setOpenDialog(props.note.deletedAt ? "restore" : "actions")
-					}
+					}}
 					className={cn(
 						"block w-full space-y-2",
 						hasOverflow ? "pt-4" : "py-4",
 					)}
 				>
-					<div className="flex items-center gap-3">
+					<div className="flex items-center gap-3 select-text">
 						{props.note.deletedAt ? (
 							<span className="text-destructive">
 								<T k="note.status.deleted" />
@@ -82,7 +83,7 @@ function NoteListItem(props: {
 						<p
 							ref={contentRef}
 							className={cn(
-								"text-left text-wrap whitespace-pre-line",
+								"text-left text-wrap whitespace-pre-line select-text",
 								props.note.deletedAt && "text-muted-foreground",
 								!isExpanded && "line-clamp-2",
 							)}

@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
 import { Button } from "#shared/ui/button"
 import { TextHighlight } from "#shared/ui/text-highlight"
+import { isTextSelectionOngoing } from "#app/lib/utils"
 import {
 	Dialog,
 	DialogContent,
@@ -69,6 +70,13 @@ function PersonListItem({
 			to="/people/$personID"
 			params={{ personID: person.$jazz.id }}
 			className="items-top hover:bg-muted active:bg-accent -mx-3 flex flex-1 gap-3 rounded-lg px-3 py-4 transition-colors duration-150"
+			draggable={false}
+			onDragStart={e => e.preventDefault()}
+			onClick={e => {
+				if (isTextSelectionOngoing()) {
+					e.preventDefault()
+				}
+			}}
 		>
 			<PersonItemContainer person={person} noLazy={noLazy}>
 				<PersonItemHeader person={person} searchQuery={searchQuery} />
@@ -127,7 +135,10 @@ function PersonItemHeader({
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	return (
-		<div className="flex items-center justify-between leading-none">
+		<div
+			className="flex items-center justify-between leading-none select-text"
+			onMouseDown={e => e.stopPropagation()}
+		>
 			<p className={nameColor}>
 				<TextHighlight text={person.name} query={searchQuery} />
 			</p>
@@ -159,7 +170,10 @@ function PersonItemSummary({
 	if (!person.summary) return null
 
 	return (
-		<p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
+		<p
+			className="text-muted-foreground mt-2 line-clamp-2 text-sm select-text"
+			onMouseDown={e => e.stopPropagation()}
+		>
 			<TextHighlight text={person.summary} query={searchQuery} />
 		</p>
 	)
