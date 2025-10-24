@@ -384,79 +384,144 @@ function getInlineFormatConfig(
 	selectedText: string,
 ): InlineFormatConfig {
 	if (format === "bold") {
-		let before = value.substring(Math.max(0, start - 2), start)
-		let after = value.substring(end, Math.min(value.length, end + 2))
-
-		return {
-			toggle: () => {
-				if (before === "**" && after === "**") {
-					return {
-						newValue:
-							value.substring(0, start - 2) +
-							selectedText +
-							value.substring(end + 2),
-						newStart: start - 2,
-						newEnd: start - 2 + selectedText.length,
-					}
-				} else if (
-					selectedText.startsWith("**") &&
-					selectedText.endsWith("**") &&
-					selectedText.length > 4
-				) {
-					let unwrapped = selectedText.slice(2, -2)
-					return {
-						newValue:
-							value.substring(0, start) + unwrapped + value.substring(end),
-						newStart: start,
-						newEnd: start + unwrapped.length,
-					}
-				} else {
-					let wrapped = "**" + selectedText + "**"
-					return {
-						newValue:
-							value.substring(0, start) + wrapped + value.substring(end),
-						newStart: start + 2,
-						newEnd: start + 2 + selectedText.length,
-					}
-				}
-			},
-		}
+		return getBoldFormatConfig(value, start, end, selectedText)
 	} else if (format === "italic") {
-		let before = value.substring(Math.max(0, start - 1), start)
-		let after = value.substring(end, Math.min(value.length, end + 1))
-		let beforeBold = value.substring(Math.max(0, start - 2), start)
-		let afterBold = value.substring(end, Math.min(value.length, end + 2))
+		return getItalicFormatConfig(value, start, end, selectedText)
+	} else {
+		return getLinkFormatConfig(value, start, end, selectedText)
+	}
+}
 
-		return {
-			toggle: () => {
-				if (
-					before === "*" &&
-					after === "*" &&
-					!(beforeBold === "**" && afterBold === "**")
-				) {
+function getBoldFormatConfig(
+	value: string,
+	start: number,
+	end: number,
+	selectedText: string,
+): InlineFormatConfig {
+	let before = value.substring(Math.max(0, start - 2), start)
+	let after = value.substring(end, Math.min(value.length, end + 2))
+
+	return {
+		toggle: () => {
+			if (before === "**" && after === "**") {
+				return {
+					newValue:
+						value.substring(0, start - 2) +
+						selectedText +
+						value.substring(end + 2),
+					newStart: start - 2,
+					newEnd: start - 2 + selectedText.length,
+				}
+			} else if (
+				selectedText.startsWith("**") &&
+				selectedText.endsWith("**") &&
+				selectedText.length > 4
+			) {
+				let unwrapped = selectedText.slice(2, -2)
+				return {
+					newValue:
+						value.substring(0, start) + unwrapped + value.substring(end),
+					newStart: start,
+					newEnd: start + unwrapped.length,
+				}
+			} else {
+				let wrapped = "**" + selectedText + "**"
+				return {
+					newValue: value.substring(0, start) + wrapped + value.substring(end),
+					newStart: start + 2,
+					newEnd: start + 2 + selectedText.length,
+				}
+			}
+		},
+	}
+}
+
+function getItalicFormatConfig(
+	value: string,
+	start: number,
+	end: number,
+	selectedText: string,
+): InlineFormatConfig {
+	let before = value.substring(Math.max(0, start - 1), start)
+	let after = value.substring(end, Math.min(value.length, end + 1))
+	let beforeBold = value.substring(Math.max(0, start - 2), start)
+	let afterBold = value.substring(end, Math.min(value.length, end + 2))
+
+	return {
+		toggle: () => {
+			if (
+				before === "*" &&
+				after === "*" &&
+				!(beforeBold === "**" && afterBold === "**")
+			) {
+				return {
+					newValue:
+						value.substring(0, start - 1) +
+						selectedText +
+						value.substring(end + 1),
+					newStart: start - 1,
+					newEnd: start - 1 + selectedText.length,
+				}
+			} else if (
+				selectedText.startsWith("*") &&
+				selectedText.endsWith("*") &&
+				!selectedText.startsWith("**") &&
+				selectedText.length > 2
+			) {
+				let unwrapped = selectedText.slice(1, -1)
+				return {
+					newValue:
+						value.substring(0, start) + unwrapped + value.substring(end),
+					newStart: start,
+					newEnd: start + unwrapped.length,
+				}
+			} else {
+				let wrapped = "*" + selectedText + "*"
+				return {
+					newValue: value.substring(0, start) + wrapped + value.substring(end),
+					newStart: start + 1,
+					newEnd: start + 1 + selectedText.length,
+				}
+			}
+		},
+	}
+}
+
+function getLinkFormatConfig(
+	value: string,
+	start: number,
+	end: number,
+	selectedText: string,
+): InlineFormatConfig {
+	let before = value.substring(Math.max(0, start - 1), start)
+	let afterMatch = value.substring(end).match(/^\]\([^)]*\)/)
+
+	return {
+		toggle: () => {
+			if (before === "[" && afterMatch) {
+				let afterLength = afterMatch[0].length
+				return {
+					newValue:
+						value.substring(0, start - 1) +
+						selectedText +
+						value.substring(end + afterLength),
+					newStart: start - 1,
+					newEnd: start - 1 + selectedText.length,
+				}
+			} else {
+				let linkPattern = /^\[(.+)\]\((.+)\)$/
+				let match = selectedText.match(linkPattern)
+
+				if (match) {
+					let linkText = match[1]
 					return {
 						newValue:
-							value.substring(0, start - 1) +
-							selectedText +
-							value.substring(end + 1),
-						newStart: start - 1,
-						newEnd: start - 1 + selectedText.length,
-					}
-				} else if (
-					selectedText.startsWith("*") &&
-					selectedText.endsWith("*") &&
-					!selectedText.startsWith("**") &&
-					selectedText.length > 2
-				) {
-					let unwrapped = selectedText.slice(1, -1)
-					return {
-						newValue:
-							value.substring(0, start) + unwrapped + value.substring(end),
+							value.substring(0, start) + linkText + value.substring(end),
 						newStart: start,
-						newEnd: start + unwrapped.length,
+						newEnd: start + linkText.length,
 					}
 				} else {
-					let wrapped = "*" + selectedText + "*"
+					let wrapped = "[" + selectedText + "](url)"
 					return {
 						newValue:
 							value.substring(0, start) + wrapped + value.substring(end),
@@ -464,48 +529,8 @@ function getInlineFormatConfig(
 						newEnd: start + 1 + selectedText.length,
 					}
 				}
-			},
-		}
-	} else {
-		let before = value.substring(Math.max(0, start - 1), start)
-		let afterMatch = value.substring(end).match(/^\]\([^)]*\)/)
-
-		return {
-			toggle: () => {
-				if (before === "[" && afterMatch) {
-					let afterLength = afterMatch[0].length
-					return {
-						newValue:
-							value.substring(0, start - 1) +
-							selectedText +
-							value.substring(end + afterLength),
-						newStart: start - 1,
-						newEnd: start - 1 + selectedText.length,
-					}
-				} else {
-					let linkPattern = /^\[(.+)\]\((.+)\)$/
-					let match = selectedText.match(linkPattern)
-
-					if (match) {
-						let linkText = match[1]
-						return {
-							newValue:
-								value.substring(0, start) + linkText + value.substring(end),
-							newStart: start,
-							newEnd: start + linkText.length,
-						}
-					} else {
-						let wrapped = "[" + selectedText + "](url)"
-						return {
-							newValue:
-								value.substring(0, start) + wrapped + value.substring(end),
-							newStart: start + 1,
-							newEnd: start + 1 + selectedText.length,
-						}
-					}
-				}
-			},
-		}
+			}
+		},
 	}
 }
 

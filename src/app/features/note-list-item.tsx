@@ -155,7 +155,7 @@ function MarkdownWithHighlight({
 	let parts = content.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
 
 	let highlightedContent = parts
-		.map(part => {
+		.map((part: string) => {
 			let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
 			return isMatch
 				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
@@ -390,11 +390,6 @@ async function editNote(
 	return { success: true }
 }
 
-type MarkdownWithHighlightProps = {
-	content: string
-	searchQuery?: string
-}
-
 async function deleteNote(
 	personId: string,
 	noteId: string,
@@ -432,6 +427,11 @@ async function pinOrUnpinNote(
 	toast.success(
 		currentPinned ? t("note.toast.unpinned") : t("note.toast.pinned"),
 	)
+}
+
+type MarkdownWithHighlightProps = {
+	content: string
+	searchQuery?: string
 }
 
 function RestoreNoteDialog({
