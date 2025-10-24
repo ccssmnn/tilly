@@ -258,7 +258,7 @@ function MarkdownEditor({
 					rows={rows}
 					autoResize={false}
 					className={cn(
-						"max-h-[400px] resize-none overflow-y-auto rounded-t-md rounded-bl-none md:rounded-t-none md:rounded-b-md [&::-webkit-resizer]:hidden",
+						"max-h-[400px] resize-none overflow-y-auto rounded-t-md rounded-b-none md:rounded-t-none md:rounded-b-md [&::-webkit-resizer]:hidden",
 						className,
 					)}
 				/>
