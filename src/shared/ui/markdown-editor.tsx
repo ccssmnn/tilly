@@ -31,6 +31,7 @@ function MarkdownEditor({
 	placeholder,
 	rows = 4,
 	className,
+	onKeyDown,
 }: MarkdownEditorProps) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -50,7 +51,13 @@ function MarkdownEditor({
 		onChange(e.target.value)
 	}
 
-	function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+	function handleKeyDown(e: React.KeyboardEvent) {
+		onKeyDown?.(e)
+
+		if (e.defaultPrevented) return
+
+		if (showPreview) return
+
 		let isModifierPressed = e.metaKey || e.ctrlKey
 		if (!isModifierPressed) return
 
@@ -78,7 +85,10 @@ function MarkdownEditor({
 	}
 
 	return (
-		<div className="flex flex-col-reverse md:flex-col">
+		<div
+			className="flex flex-col-reverse md:flex-col"
+			onKeyDown={handleKeyDown}
+		>
 			<div className="border-border bg-muted/30 flex items-center justify-between gap-2 rounded-b-md border border-t-0 px-2 py-1 md:rounded-t-md md:rounded-b-none md:border-t md:border-b-0">
 				<TooltipProvider>
 					<div className="flex gap-1">
@@ -244,12 +254,11 @@ function MarkdownEditor({
 					ref={textareaRef}
 					value={value}
 					onChange={handleChange}
-					onKeyDown={handleKeyDown}
 					placeholder={placeholder}
 					rows={rows}
 					autoResize={false}
 					className={cn(
-						"max-h-[400px] resize-none overflow-y-auto rounded-t-md rounded-br-none rounded-bl-none md:rounded-t-none md:rounded-b-md md:rounded-br-none [&::-webkit-resizer]:hidden",
+						"max-h-[400px] resize-none overflow-y-auto rounded-t-md rounded-bl-none md:rounded-t-none md:rounded-b-md [&::-webkit-resizer]:hidden",
 						className,
 					)}
 				/>
@@ -549,6 +558,7 @@ type MarkdownEditorProps = {
 	placeholder?: string
 	rows?: number
 	className?: string
+	onKeyDown?: (e: React.KeyboardEvent) => void
 }
 
 type MarkdownFormatType = "bold" | "italic" | "link" | "heading" | "list"

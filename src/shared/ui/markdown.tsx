@@ -26,29 +26,7 @@ const components: Partial<Components> = {
 		)
 	},
 	pre: ({ children }) => <>{children}</>,
-	ol: ({ children, ...props }) => {
-		return <ol {...props}>{children}</ol>
-	},
-	li: ({ children, ...props }) => {
-		return <li {...props}>{children}</li>
-	},
-	ul: ({ children, ...props }) => {
-		return <ul {...props}>{children}</ul>
-	},
-	strong: ({ children, ...props }) => {
-		return (
-			<strong className="font-semibold" {...props}>
-				{children}
-			</strong>
-		)
-	},
-	em: ({ children, ...props }) => {
-		return (
-			<em className="italic" {...props}>
-				{children}
-			</em>
-		)
-	},
+
 	a: ({ children, href, ...props }) => {
 		return (
 			<a
@@ -145,12 +123,7 @@ const components: Partial<Components> = {
 			</div>
 		)
 	},
-	thead: ({ children, ...props }) => {
-		return <thead {...props}>{children}</thead>
-	},
-	tbody: ({ children, ...props }) => {
-		return <tbody {...props}>{children}</tbody>
-	},
+
 	tr: ({ children, ...props }) => {
 		return (
 			<tr className="even:bg-muted m-0 border-t p-0" {...props}>
