@@ -37,7 +37,7 @@ import {
 } from "#shared/ui/accordion"
 import { T, useIntl } from "#shared/intl/setup"
 
-export const Route = createFileRoute("/people/$personID")({
+export const Route = createFileRoute("/_app/people/$personID")({
 	validateSearch: z.object({
 		tab: z.enum(["notes", "reminders"]).optional().default("notes"),
 	}),

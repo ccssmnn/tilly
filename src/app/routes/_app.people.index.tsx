@@ -22,7 +22,7 @@ import { SignInPrompt } from "#app/features/auth-prompt"
 import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 
-export let Route = createFileRoute("/people/")({
+export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
 		let loadedMe = await context.me.$jazz.ensureLoaded({

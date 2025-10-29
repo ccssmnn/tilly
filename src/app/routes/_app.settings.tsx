@@ -56,7 +56,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
 
-export const Route = createFileRoute("/settings")({
+export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
 		let me = context.me
 		let loadedMe = await UserAccount.load(me.$jazz.id, {

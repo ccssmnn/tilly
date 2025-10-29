@@ -41,7 +41,7 @@ import { T, useIntl } from "#shared/intl/setup"
 import { useAuth } from "@clerk/clerk-react"
 import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
 
-export let Route = createFileRoute("/assistant")({
+export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,

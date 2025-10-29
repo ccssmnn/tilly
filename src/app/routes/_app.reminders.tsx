@@ -34,7 +34,7 @@ import { SignInPrompt } from "#app/features/auth-prompt"
 import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 
-export let Route = createFileRoute("/reminders")({
+export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
