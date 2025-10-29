@@ -28,6 +28,9 @@ interface AppState {
 	clearChatHintDismissed: boolean
 	setClearChatHintDismissed: (dismissed: boolean) => void
 
+	tourSkipped: boolean
+	setTourSkipped: (skipped: boolean) => void
+
 	lastAccessDate: string
 }
 
@@ -49,6 +52,7 @@ type PersistedState = Pick<
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
 	| "clearChatHintDismissed"
+	| "tourSkipped"
 	| "lastAccessDate"
 >
 
@@ -59,6 +63,7 @@ let initialPersistedState: PersistedState = {
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
 	clearChatHintDismissed: false,
+	tourSkipped: false,
 	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 }
 
@@ -184,6 +189,9 @@ export let useAppStore = create<AppState>()(
 			setClearChatHintDismissed: (dismissed: boolean) =>
 				set({ clearChatHintDismissed: dismissed }),
 
+			tourSkipped: false,
+			setTourSkipped: (skipped: boolean) => set({ tourSkipped: skipped }),
+
 			lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 		}),
 		{
@@ -198,6 +206,7 @@ export let useAppStore = create<AppState>()(
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
 				clearChatHintDismissed: state.clearChatHintDismissed,
+				tourSkipped: state.tourSkipped,
 				lastAccessDate: state.lastAccessDate,
 			}),
 			onRehydrateStorage: () => state => {
@@ -228,6 +237,7 @@ export function resetAppStore(): void {
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
 		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
+		tourSkipped: initialPersistedState.tourSkipped,
 		lastAccessDate: initialPersistedState.lastAccessDate,
 	})
 

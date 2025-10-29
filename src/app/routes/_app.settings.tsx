@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"
-import { PUBLIC_CLERK_ACCOUNTS_URL } from "astro:env/client"
+import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -58,8 +58,10 @@ import { Person } from "#shared/schema/user"
 
 export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
-		let me = context.me
-		let loadedMe = await UserAccount.load(me.$jazz.id, {
+		if (!context.me) {
+			return { me: null }
+		}
+		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
 		if (!loadedMe) throw notFound()
@@ -84,8 +86,25 @@ function SettingsScreen() {
 	})
 	let currentMe = subscribedMe ?? data.me
 
+	if (!currentMe) {
+		return (
+			<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
+				<title>{t("settings.pageTitle")}</title>
+				<TypographyH1>
+					<T k="settings.title" />
+				</TypographyH1>
+				<div className="divide-border divide-y">
+					<AuthenticationSection />
+					<div className="p-4 text-center">
+						<p>Please sign in to access settings.</p>
+					</div>
+				</div>
+			</div>
+		)
+	}
+
 	return (
-		<div className="md:mt-12">
+		<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
 			<title>{t("settings.pageTitle")}</title>
 			<TypographyH1>
 				<T k="settings.title" />
@@ -111,11 +130,15 @@ function LanguageSection() {
 	})
 	let currentMe = subscribedMe ?? data.me
 
-	let currentLang = currentMe.root?.language || "en"
+	let currentLang = currentMe?.root?.language || "en"
 
 	function setLanguage(lang: "de" | "en") {
-		if (!currentMe.root) return
+		if (!currentMe?.root) return
 		currentMe.root.$jazz.set("language", lang)
+	}
+
+	if (!currentMe) {
+		return null
 	}
 
 	return (
@@ -226,16 +249,12 @@ function AuthenticationSection() {
 						</p>
 						<div className="mt-3 space-x-2">
 							<Button asChild disabled={!isOnline}>
-								<a
-									href={`${getAccountsUrl()}/sign-in?redirect_url=${getCurrentUrl()}/app/settings`}
-								>
+								<a href={getSignInUrl("/app/settings")}>
 									<T k="auth.signIn.button" />
 								</a>
 							</Button>
 							<Button asChild variant="outline" disabled={!isOnline}>
-								<a
-									href={`${getAccountsUrl()}/sign-up?redirect_url=${getCurrentUrl()}/app/settings`}
-								>
+								<a href={getSignUpUrl("/app/settings")}>
 									<T k="auth.signUp.button" />
 								</a>
 							</Button>
@@ -553,6 +572,10 @@ function DataSection() {
 	})
 	let currentMe = subscribedMe ?? data.me
 
+	if (!currentMe) {
+		return null
+	}
+
 	return (
 		<SettingsSection
 			title={t("settings.data.title")}
@@ -743,10 +766,8 @@ function WebsiteSection() {
 	)
 }
 
+import { PUBLIC_CLERK_ACCOUNTS_URL } from "astro:env/client"
+
 function getAccountsUrl(): string {
 	return PUBLIC_CLERK_ACCOUNTS_URL
-}
-
-function getCurrentUrl(): string {
-	return window.location.origin
 }

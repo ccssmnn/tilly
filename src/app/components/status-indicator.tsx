@@ -17,6 +17,7 @@ import { useServiceWorkerUpdate } from "#app/hooks/use-service-worker-update"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { useIsMobile } from "#app/hooks/use-mobile"
 import { T, useIntl } from "#shared/intl/setup"
+import { getSignInUrl } from "#app/lib/auth-utils"
 
 export { StatusIndicator }
 
@@ -175,6 +176,10 @@ function NotSignedInIndicator() {
 	let t = useIntl()
 	let isMobile = useIsMobile()
 
+	function handleSignIn() {
+		window.location.href = getSignInUrl(window.location.pathname)
+	}
+
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
@@ -228,13 +233,20 @@ function NotSignedInIndicator() {
 					<TypographyMuted>
 						<T k="status.notSignedIn.benefits" />
 					</TypographyMuted>
-					<DialogClose asChild>
-						<Button asChild className="w-full">
-							<Link to="/settings">
+					<div className="flex gap-2">
+						<DialogClose asChild>
+							<Button onClick={handleSignIn} className="flex-1">
 								<T k="status.notSignedIn.signIn" />
-							</Link>
-						</Button>
-					</DialogClose>
+							</Button>
+						</DialogClose>
+						<DialogClose asChild>
+							<Button variant="outline" className="flex-1" asChild>
+								<Link to="/settings">
+									<T k="settings.title" />
+								</Link>
+							</Button>
+						</DialogClose>
+					</div>
 				</div>
 			</DialogContent>
 		</Dialog>

@@ -164,8 +164,8 @@ let updateReminderTool = tool({
 
 ```bash
 pnpm check          # TypeScript compilation check
-pnpm dev            # Start development server
 pnpm build          # Build for production
+# NOTE: Never start dev server - use pnpm check for validation
 ```
 
 ### Code Quality
@@ -173,6 +173,7 @@ pnpm build          # Build for production
 ```bash
 # Run these after making changes to ensure code correctness
 pnpm check          # Always run after code changes
+# IMPORTANT: Never use pnpm dev - only use pnpm check for validation
 ```
 
 ## Project Structure Notes

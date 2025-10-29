@@ -25,6 +25,9 @@ import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
+		if (!context.me) {
+			return { me: null, eagerCount }
+		}
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,
 		})

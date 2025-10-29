@@ -76,6 +76,17 @@ function PersonScreen() {
 	let reminders = usePersonReminders(person, deferredSearchQuery)
 	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
 
+	if (!me) {
+		return (
+			<div className="relative space-y-8 pb-20 md:mt-12 md:pb-4">
+				<title>{t("person.detail.pageTitle", { name: person.name })}</title>
+				<div className="text-center">
+					<p>Please sign in to view person details.</p>
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div className="relative space-y-8 pb-20 md:mt-12 md:pb-4">
 			<title>{t("person.detail.pageTitle", { name: person.name })}</title>

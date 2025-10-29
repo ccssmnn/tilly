@@ -37,6 +37,9 @@ import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
+		if (!context.me) {
+			return { me: null, eagerCount }
+		}
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
@@ -65,13 +68,25 @@ function Reminders() {
 	})
 
 	let currentMe = subscribedMe ?? data
+
+	let { remindersSearchQuery } = useAppStore()
+	let deferredSearchQuery = useDeferredValue(remindersSearchQuery)
+
 	let people = (currentMe?.root?.people ?? []).filter(
 		person => person && !isDeleted(person),
 	)
 
-	let { remindersSearchQuery } = useAppStore()
-	let deferredSearchQuery = useDeferredValue(remindersSearchQuery)
 	let reminders = useReminders(people, deferredSearchQuery)
+
+	if (!currentMe) {
+		return (
+			<RemindersLayout>
+				<div className="text-center">
+					<p>Please sign in to view reminders.</p>
+				</div>
+			</RemindersLayout>
+		)
+	}
 
 	// Early return for no people - no controls needed
 	if (people.length === 0) {

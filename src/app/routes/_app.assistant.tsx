@@ -43,6 +43,9 @@ import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
 
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
+		if (!context.me) {
+			return { me: null }
+		}
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,
 		})
@@ -158,6 +161,8 @@ function AuthenticatedChat() {
 		resolve: query,
 	})
 	let currentMe = subscribedMe ?? data.me
+	let t = useIntl()
+
 	let {
 		chat: initialMessages,
 		setChat,
@@ -182,6 +187,7 @@ function AuthenticatedChat() {
 		sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
 		onFinish: ({ messages }) => setChat(messages),
 		onToolCall: async ({ toolCall }) => {
+			if (!currentMe) return
 			let toolName = toolCall.toolName as keyof typeof toolExecutors
 			let executeFn = toolExecutors[toolName]
 			if (executeFn) {
@@ -195,11 +201,25 @@ function AuthenticatedChat() {
 		},
 	})
 
+	if (!currentMe) {
+		return (
+			<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
+				<title>{t("assistant.pageTitle")}</title>
+				<TypographyH1>
+					<T k="assistant.title" />
+				</TypographyH1>
+				<div className="text-center">
+					<p>Please sign in to use the assistant.</p>
+				</div>
+			</div>
+		)
+	}
+
 	function handleSubmit(prompt: string) {
 		let metadata = {
-			userName: currentMe.profile?.name || "Anonymous",
-			timezone: currentMe.root.notificationSettings?.timezone || "UTC",
-			locale: currentMe.root.language || "en",
+			userName: currentMe?.profile?.name || "Anonymous",
+			timezone: currentMe?.root?.notificationSettings?.timezone || "UTC",
+			locale: currentMe?.root?.language || "en",
 			timestamp: Date.now(),
 		}
 
@@ -456,7 +476,7 @@ function UserInput(props: {
 	let data = Route.useLoaderData()
 	let { me: subscribedMe } = useAccount(UserAccount, { resolve: query })
 	let currentMe = subscribedMe ?? data.me
-	let locale = currentMe.root.language || "en"
+	let locale = currentMe?.root?.language || "en"
 	let langCode = locale === "de" ? "de-DE" : "en-US"
 
 	let form = useForm({
