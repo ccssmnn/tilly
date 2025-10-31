@@ -27,11 +27,6 @@ function WelcomeIndex() {
 	let navigate = useNavigate()
 	let setTourSkipped = useAppStore(state => state.setTourSkipped)
 
-	function handleSkip() {
-		setTourSkipped(true)
-		navigate({ to: "/people" })
-	}
-
 	function handleSignIn() {
 		setTourSkipped(true)
 		window.location.href = getSignInUrl("/")

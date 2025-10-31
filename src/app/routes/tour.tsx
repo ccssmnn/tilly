@@ -226,7 +226,7 @@ function AddNoteStep(props: { onSuccess: () => void }) {
 			<TypographyLead>
 				Notes are where you journal what you want to remember about someone.
 			</TypographyLead>
-			{firstPerson !== undefined && (
+			{firstPerson !== undefined ? (
 				<div className="flex justify-end">
 					<NewNote onSuccess={props.onSuccess} personId={firstPerson.$jazz.id}>
 						<Button>
@@ -234,6 +234,15 @@ function AddNoteStep(props: { onSuccess: () => void }) {
 							Add note to {firstPerson.name}
 						</Button>
 					</NewNote>
+				</div>
+			) : (
+				<div className="flex justify-end">
+					<NewPerson>
+						<Button>
+							<PersonPlusFill />
+							Add Person
+						</Button>
+					</NewPerson>
 				</div>
 			)}
 		</div>
@@ -257,7 +266,7 @@ function AddReminderStep(props: { onSuccess: () => void }) {
 			<TypographyLead>
 				Reminders help you stay connected and remember to reach out.
 			</TypographyLead>
-			{firstPerson !== undefined && (
+			{firstPerson !== undefined ? (
 				<div className="flex justify-end">
 					<NewReminder
 						onSuccess={props.onSuccess}
@@ -268,6 +277,15 @@ function AddReminderStep(props: { onSuccess: () => void }) {
 							Add reminder for {firstPerson.name}
 						</Button>
 					</NewReminder>
+				</div>
+			) : (
+				<div className="flex justify-end">
+					<NewPerson>
+						<Button>
+							<PersonPlusFill />
+							Add Person
+						</Button>
+					</NewPerson>
 				</div>
 			)}
 		</div>
