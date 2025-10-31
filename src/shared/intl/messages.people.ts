@@ -31,6 +31,9 @@ const basePeopleMessages = messages({
 	"person.form.name.label": "Name",
 	"person.form.name.required": "Name is required",
 	"person.form.summary.label": "Summary",
+	"person.form.name.placeholder": "Enter their name",
+	"person.form.summary.placeholder":
+		"What should you remember about them? Their interests, job, family, how you met...",
 	"person.form.avatar.upload": "Upload Image",
 	"person.form.avatar.change": "Change Image",
 	"person.form.avatar.remove": "Remove Avatar",
@@ -45,24 +48,6 @@ const basePeopleMessages = messages({
 	"person.detail.reminders.tab": "Reminder ({$count :number})",
 	"person.detail.addNote": "Add Note",
 	"person.detail.addReminder": "Add Reminder",
-	"person.name.placeholder.1": "Alex Johnson",
-	"person.name.placeholder.2": "Maria Garcia",
-	"person.name.placeholder.3": "David Chen",
-	"person.name.placeholder.4": "Sarah Williams",
-	"person.name.placeholder.5": "Michael Brown",
-	"person.name.placeholder.6": "Emma Davis",
-	"person.summary.placeholder.1":
-		"College friend, lives downtown, loves cooking and board games",
-	"person.summary.placeholder.2":
-		"Neighbor from across the street, has two cats and a garden",
-	"person.summary.placeholder.3":
-		"Work colleague, marathon runner, always has great book recommendations",
-	"person.summary.placeholder.4":
-		"Childhood friend, teacher, passionate about environmental causes",
-	"person.summary.placeholder.5":
-		"Cousin from Portland, musician, recently moved back to town",
-	"person.summary.placeholder.6":
-		"Friend from yoga class, freelance designer, travels frequently",
 	"person.actions.title": "Actions",
 	"person.edit.title": "Edit Person",
 	"person.delete.title": "Delete Person",
@@ -126,24 +111,9 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.detail.reminders.tab": "Erinnerungen ({$count :number})",
 	"person.detail.addNote": "Notiz hinzufügen",
 	"person.detail.addReminder": "Erinnerung hinzufügen",
-	"person.name.placeholder.1": "Alex Johnson",
-	"person.name.placeholder.2": "Maria Garcia",
-	"person.name.placeholder.3": "David Chen",
-	"person.name.placeholder.4": "Sarah Williams",
-	"person.name.placeholder.5": "Michael Brown",
-	"person.name.placeholder.6": "Emma Davis",
-	"person.summary.placeholder.1":
-		"College-Freund, wohnt in der Innenstadt, liebt Kochen und Brettspiele",
-	"person.summary.placeholder.2":
-		"Nachbar von gegenüber, hat zwei Katzen und einen Garten",
-	"person.summary.placeholder.3":
-		"Arbeitskollege, Marathonläufer, hat immer tolle Buchempfehlungen",
-	"person.summary.placeholder.4":
-		"Freund aus Kindertagen, Lehrer, engagiert für Umweltschutz",
-	"person.summary.placeholder.5":
-		"Cousin aus Portland, Musiker, kürzlich zurückgezogen",
-	"person.summary.placeholder.6":
-		"Freundin aus dem Yoga, freiberufliche Designerin, reist oft",
+	"person.form.name.placeholder": "Name eingeben",
+	"person.form.summary.placeholder":
+		"Was solltest du über sie/ihn wissen? Interessen, Beruf, Familie, wie ihr euch kennengelernt...",
 	"person.actions.title": "Aktionen",
 	"person.edit.title": "Person bearbeiten",
 	"person.delete.title": "Person löschen",

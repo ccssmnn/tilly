@@ -6,7 +6,11 @@ import {
 } from "@tanstack/react-router"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
-import { TypographyH1, TypographyLarge } from "#shared/ui/typography"
+import {
+	TypographyH1,
+	TypographyLarge,
+	TypographyLead,
+} from "#shared/ui/typography"
 import { useAppStore } from "#app/lib/store"
 import { getSignInUrl } from "#app/lib/auth-utils"
 import { T } from "#shared/intl/setup"
@@ -14,7 +18,6 @@ import { T } from "#shared/intl/setup"
 export const Route = createFileRoute("/")({
 	loader: () => {
 		let tourSkipped = useAppStore.getState().tourSkipped
-		console.log("Loader: tourSkipped =", tourSkipped)
 		if (tourSkipped) {
 			throw redirect({ to: "/people" })
 		}
@@ -25,10 +28,7 @@ export const Route = createFileRoute("/")({
 
 function WelcomeIndex() {
 	let navigate = useNavigate()
-	let tourSkipped = useAppStore(state => state.tourSkipped)
 	let setTourSkipped = useAppStore(state => state.setTourSkipped)
-
-	console.log("Component: tourSkipped =", tourSkipped)
 
 	function handleSkip() {
 		setTourSkipped(true)
@@ -60,9 +60,9 @@ function WelcomeIndex() {
 				animate={{ y: 0, opacity: 1 }}
 				transition={{ delay: 0.4, duration: 0.4 }}
 			>
-				<TypographyLarge>
+				<TypographyLead>
 					<T k="welcome.subtitle" />
-				</TypographyLarge>
+				</TypographyLead>
 			</motion.div>
 
 			<motion.div

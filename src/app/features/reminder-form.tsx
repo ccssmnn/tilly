@@ -25,20 +25,6 @@ import { nanoid } from "nanoid"
 
 import { T, useIntl } from "#shared/intl/setup"
 
-let reminderPlaceholders = [
-	"reminder.placeholder.1",
-	"reminder.placeholder.2",
-	"reminder.placeholder.3",
-	"reminder.placeholder.4",
-	"reminder.placeholder.5",
-	"reminder.placeholder.6",
-] as const
-
-function getRotatingReminderPlaceholder(t: ReturnType<typeof useIntl>) {
-	let index = Math.floor(Date.now() / 7000) % reminderPlaceholders.length
-	return t(reminderPlaceholders[index])
-}
-
 function createReminderFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
 		text: z.string().min(1, t("reminder.form.text.required")),
@@ -80,7 +66,7 @@ export function ReminderForm({
 			repeat: defaultValues?.repeat,
 		},
 	})
-	let [placeholder] = useState(getRotatingReminderPlaceholder(t))
+	let [placeholder] = useState(t("reminder.form.placeholder"))
 	let [selectKey, setSelectKey] = useState(nanoid())
 	let repeat = useWatch({ control: form.control, name: "repeat" })
 

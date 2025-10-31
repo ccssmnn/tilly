@@ -53,19 +53,7 @@ const baseNotesMessages = messages({
 	"note.toast.added": "Note added",
 	"note.toast.removed": "Note removed",
 
-	// Note placeholders
-	"note.placeholder.1":
-		"Great conversation about her new job and weekend plans...",
-	"note.placeholder.2":
-		"Celebrated at that Italian place downtown, he loved the surprise...",
-	"note.placeholder.3":
-		"Lovely afternoon stroll, talked about summer vacation ideas...",
-	"note.placeholder.4":
-		"Long overdue chat about life updates and future goals...",
-	"note.placeholder.5":
-		"Wonderful time catching up on family news and shared notes...",
-	"note.placeholder.6":
-		"Productive discussion about the project and next steps...",
+	"note.form.placeholder": "Document your conversation and what matters most",
 })
 
 const deNotesMessages = translate(baseNotesMessages, {
@@ -119,17 +107,6 @@ const deNotesMessages = translate(baseNotesMessages, {
 	"note.toast.added": "Notiz hinzugefügt",
 	"note.toast.removed": "Notiz entfernt",
 
-	// Note placeholders
-	"note.placeholder.1":
-		"Tolles Gespräch über ihren neuen Job und Wochenendpläne...",
-	"note.placeholder.2":
-		"Im italienischen Restaurant gefeiert, er liebte die Überraschung...",
-	"note.placeholder.3":
-		"Schöner Spaziergang am Nachmittag, über Sommerurlaubs-Ideen gesprochen...",
-	"note.placeholder.4":
-		"Längst überfälliges Gespräch über Neuigkeiten und Ziele...",
-	"note.placeholder.5":
-		"Wunderbares Wiedersehen mit Familiennachrichten und Erinnerungen...",
-	"note.placeholder.6":
-		"Produktive Diskussion über das Projekt und nächste Schritte...",
+	"note.form.placeholder":
+		"Dokumentiere euer Gespräch und was am wichtigsten ist",
 })
