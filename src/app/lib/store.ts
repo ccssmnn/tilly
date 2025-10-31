@@ -35,8 +35,6 @@ interface AppState {
 }
 
 let storeStateSchema = z.object({
-	peopleSearchQuery: z.string(),
-	remindersSearchQuery: z.string(),
 	chat: z.array(z.any()),
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
@@ -47,8 +45,6 @@ let storeStateSchema = z.object({
 
 type PersistedState = Pick<
 	AppState,
-	| "peopleSearchQuery"
-	| "remindersSearchQuery"
 	| "chat"
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
@@ -58,8 +54,6 @@ type PersistedState = Pick<
 >
 
 let initialPersistedState: PersistedState = {
-	peopleSearchQuery: "",
-	remindersSearchQuery: "",
 	chat: [],
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
@@ -199,8 +193,6 @@ export let useAppStore = create<AppState>()(
 			name: "tilly-app-storage",
 			storage: createIdbStorage(storeStateSchema, initialPersistedState),
 			partialize: (state): PersistedState => ({
-				peopleSearchQuery: state.peopleSearchQuery,
-				remindersSearchQuery: state.remindersSearchQuery,
 				chat: state.chat,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
@@ -230,8 +222,8 @@ export let useAppStore = create<AppState>()(
 
 export function resetAppStore(): void {
 	useAppStore.setState({
-		peopleSearchQuery: initialPersistedState.peopleSearchQuery,
-		remindersSearchQuery: initialPersistedState.remindersSearchQuery,
+		peopleSearchQuery: "",
+		remindersSearchQuery: "",
 		chat: initialPersistedState.chat,
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,

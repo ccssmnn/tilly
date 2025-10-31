@@ -50,12 +50,19 @@ function WelcomeIndex() {
 			<div className="relative h-full w-full">
 				<div className="items-top absolute inset-x-0 top-0 flex gap-4">
 					<div className="flex-1" />
-					<Button variant="outline" asChild>
-						<Link to="/people" onClick={() => setTourSkipped(true)}>
-							<SkipForwardFill />
-							<T k="welcome.skip" />
-						</Link>
-					</Button>
+					<motion.div
+						layoutId="skip"
+						initial={{ y: 20, opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ delay: 0.4 }}
+					>
+						<Button variant="outline" asChild>
+							<Link to="/people" onClick={() => setTourSkipped(true)}>
+								<SkipForwardFill />
+								<T k="welcome.skip" />
+							</Link>
+						</Button>
+					</motion.div>
 				</div>
 				<div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
 					<div className="mx-auto flex w-full max-w-md flex-col items-center gap-6">
@@ -83,7 +90,7 @@ function WelcomeIndex() {
 						<motion.div
 							initial={{ y: 20, opacity: 0 }}
 							animate={{ y: 0, opacity: 1 }}
-							transition={{ delay: 0.5, duration: 0.4 }}
+							transition={{ delay: 0.4, duration: 0.4 }}
 							className="flex items-center gap-3"
 						>
 							<Button asChild className="h-12">

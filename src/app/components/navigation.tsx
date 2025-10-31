@@ -61,9 +61,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	function handlePWADialogClose(open: boolean) {
 		setShowPWADialog(open)
 	}
-	let activeProps = {
-		className: "text-foreground",
-	}
+	let activeProps = { className: "text-foreground" }
 	let inactiveProps = {
 		className:
 			"text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",

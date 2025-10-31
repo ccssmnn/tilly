@@ -7,7 +7,7 @@ import { NewPerson } from "#app/features/new-person"
 import { NewNote } from "#app/features/new-note"
 import { NewReminder } from "#app/features/new-reminder"
 import { useAppStore } from "#app/lib/store"
-import { motion } from "motion/react"
+import { motion, AnimatePresence } from "motion/react"
 import { useIsAndroid, useIsIOS, useIsPWAInstalled } from "#app/hooks/use-pwa"
 import {
 	TypographyH1,
@@ -75,11 +75,15 @@ function TourComponent() {
 		}
 	}
 
+	let [direction, setDirection] = useState(1)
+
 	function nextStep() {
+		setDirection(1)
 		setCurrentStep(Math.min(currentStep + 1, steps.length - 1))
 	}
 
 	function prevStep() {
+		setDirection(-1)
 		setCurrentStep(Math.max(currentStep - 1, 0))
 	}
 
@@ -108,16 +112,40 @@ function TourComponent() {
 						</motion.div>
 					</div>
 					<div className="flex-1" />
-					<Button variant="outline" asChild>
-						<Link to="/people" onClick={() => setTourSkipped(true)}>
-							<SkipForwardFill />
-							Skip Tour
-						</Link>
-					</Button>
+					<motion.div layoutId="skip">
+						<Button variant="outline" asChild>
+							<Link to="/people" onClick={() => setTourSkipped(true)}>
+								<SkipForwardFill />
+								<T k="welcome.skip" />
+							</Link>
+						</Button>
+					</motion.div>
 				</div>
 				<div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
 					<div className="mx-auto w-full max-w-md">
-						{getStepComponent(steps[currentStep])}
+						<AnimatePresence mode="wait" custom={direction}>
+							<motion.div
+								key={steps[currentStep]}
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (direction: number) => ({
+										opacity: 0,
+										x: direction > 0 ? 24 : -24,
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (direction: number) => ({
+										opacity: 0,
+										x: direction > 0 ? -24 : 24,
+									}),
+								}}
+								transition={{ duration: 0.1 }}
+							>
+								{getStepComponent(steps[currentStep])}
+							</motion.div>
+						</AnimatePresence>
 					</div>
 				</div>
 				<div className="absolute inset-x-0 bottom-0 flex justify-center">
@@ -252,17 +280,19 @@ function FinishSetupStep() {
 	return (
 		<div className="space-y-8 text-left">
 			<TypographyH2>Finish your Setup</TypographyH2>
-			<div className="flex items-center gap-3">
-				<CheckCircleFill className="text-primary size-4" />
-				<p>Sign up to back up and sync your data</p>
-			</div>
-			<div className="flex items-center gap-3">
-				<CheckCircleFill className="text-primary size-4" />
-				<p>Enable Push Notifications</p>
-			</div>
-			<div className="flex items-center gap-3">
-				<CheckCircleFill className="text-primary size-4" />
-				<p>Get Tilly Plus to have AI assist you</p>
+			<div className="space-y-3">
+				<div className="flex items-center gap-3">
+					<CheckCircleFill className="text-primary size-4" />
+					<p>Sign up to back up and sync your data</p>
+				</div>
+				<div className="flex items-center gap-3">
+					<CheckCircleFill className="text-primary size-4" />
+					<p>Enable Push Notifications</p>
+				</div>
+				<div className="flex items-center gap-3">
+					<CheckCircleFill className="text-primary size-4" />
+					<p>Get Tilly Plus to have AI assist you</p>
+				</div>
 			</div>
 			<TypographyLead>You can do all of that in the settings</TypographyLead>
 			<div className="flex justify-end">

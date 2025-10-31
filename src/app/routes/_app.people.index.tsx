@@ -283,7 +283,6 @@ function NoPeopleState({
 					</Button>
 				</NewPerson>
 			</div>
-			<SignInPrompt />
 		</div>
 	)
 }

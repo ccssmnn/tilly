@@ -21,7 +21,6 @@ import {
 import { NewPerson } from "#app/features/new-person"
 import { NewReminder } from "#app/features/new-reminder"
 import { useAppStore } from "#app/lib/store"
-import { SignInPrompt } from "#app/features/auth-prompt"
 import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 
@@ -91,7 +90,7 @@ function Reminders() {
 	if (reminders.total === 0) {
 		return (
 			<RemindersLayout>
-				<NoRemindersState _people={people} _currentMe={currentMe} />
+				<NoRemindersState />
 			</RemindersLayout>
 		)
 	}
@@ -106,7 +105,7 @@ function Reminders() {
 	if (didSearch && !hasMatches) {
 		return (
 			<RemindersLayout>
-				<RemindersControls _people={people} _currentMe={currentMe} />
+				<RemindersControls />
 				<NoSearchResultsState searchQuery={deferredSearchQuery} />
 			</RemindersLayout>
 		)
@@ -115,7 +114,7 @@ function Reminders() {
 	if (!didSearch && !hasMatches) {
 		return (
 			<RemindersLayout>
-				<RemindersControls _people={people} _currentMe={currentMe} />
+				<RemindersControls />
 				<AllCaughtUpState />
 			</RemindersLayout>
 		)
@@ -123,7 +122,7 @@ function Reminders() {
 
 	return (
 		<RemindersLayout>
-			<RemindersControls _people={people} _currentMe={currentMe} />
+			<RemindersControls />
 			{reminders.open.length > 0 ? (
 				<ul className="divide-border divide-y">
 					{reminders.open.map(({ reminder, person }, index) => (
@@ -264,13 +263,7 @@ function RemindersLayout({ children }: { children: ReactNode }) {
 	)
 }
 
-function RemindersControls({
-	_people,
-	_currentMe,
-}: {
-	_people: Array<co.loaded<typeof Person>>
-	_currentMe: co.loaded<typeof UserAccount>
-}) {
+function RemindersControls() {
 	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
@@ -329,18 +322,11 @@ function NoPeopleState() {
 					</Button>
 				</NewPerson>
 			</div>
-			<SignInPrompt />
 		</div>
 	)
 }
 
-function NoRemindersState({
-	_people,
-	_currentMe,
-}: {
-	_people: Array<co.loaded<typeof Person>>
-	_currentMe: co.loaded<typeof UserAccount>
-}) {
+function NoRemindersState() {
 	return (
 		<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
 			<Bell className="text-muted-foreground size-8" />
