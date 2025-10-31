@@ -9,9 +9,10 @@ import { useDeferredValue, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
 import { TypographyH1 } from "#shared/ui/typography"
-import { Plus, X, Search, People } from "react-bootstrap-icons"
+import { Plus, X, Search } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { NewPerson } from "#app/features/new-person"
+import { PersonTour } from "#app/features/person-tour"
 import {
 	Accordion,
 	AccordionContent,
@@ -49,7 +50,10 @@ function PeopleScreen() {
 	})
 
 	let currentMe = subscribedMe ?? data
-	let allPeople = currentMe?.root.people ?? []
+
+	let allPeople = (currentMe?.root.people ?? []).filter(
+		p => !p.permanentlyDeletedAt,
+	)
 
 	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()
 	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)
@@ -258,31 +262,16 @@ function NoPeopleState({
 	setPeopleSearchQuery: (query: string) => void
 }) {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-around gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
-			<div className="space-y-4">
-				<People className="text-muted-foreground mx-auto size-12" />
-				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">
-						<T k="people.empty.heading" />
-					</h2>
-					<p className="text-muted-foreground">
-						<T k="people.empty.description" />
-					</p>
-				</div>
-				<NewPerson
-					onSuccess={personId => {
-						setPeopleSearchQuery("")
-						navigate({
-							to: "/people/$personID",
-							params: { personID: personId },
-						})
-					}}
-				>
-					<Button className="mt-2">
-						<T k="people.empty.addButton" />
-					</Button>
-				</NewPerson>
-			</div>
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<PersonTour
+				onSuccess={personId => {
+					setPeopleSearchQuery("")
+					navigate({
+						to: "/people/$personID",
+						params: { personID: personId },
+					})
+				}}
+			/>
 		</div>
 	)
 }

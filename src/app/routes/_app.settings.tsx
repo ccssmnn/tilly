@@ -51,7 +51,7 @@ import {
 	AlertDialogTrigger,
 } from "#shared/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
-import { WifiOff, Lightbulb, Compass } from "react-bootstrap-icons"
+import { WifiOff, Lightbulb, Book, Compass } from "react-bootstrap-icons"
 import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
@@ -751,6 +751,12 @@ function DeleteDataButton({
 function AboutSection() {
 	let t = useIntl()
 	let setTourSkipped = useAppStore(s => s.setTourSkipped)
+	let data = Route.useLoaderData()
+	let { me: subscribedMe } = useAccount(UserAccount, {
+		resolve: query,
+	})
+	let currentMe = subscribedMe ?? data.me
+	let currentLang = currentMe?.root?.language || "en"
 
 	return (
 		<SettingsSection
@@ -762,6 +768,16 @@ function AboutSection() {
 					<a href="/" target="_blank" rel="noopener noreferrer">
 						<Compass />
 						<T k="settings.about.visit" />
+					</a>
+				</Button>
+				<Button asChild variant="outline" className="w-full">
+					<a
+						href={`/${currentLang}/blog/pragmatic-relationship-journaling`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Book />
+						<T k="settings.about.learnMore" />
 					</a>
 				</Button>
 				<Button

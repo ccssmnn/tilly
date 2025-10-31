@@ -15,14 +15,19 @@ import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import {
 	Send,
 	Pause,
-	Chat,
 	WifiOff,
 	Mic,
 	MicFill,
 	InfoCircleFill,
+	ChatFill,
 } from "react-bootstrap-icons"
 import { toast } from "sonner"
-import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
+import {
+	TypographyH1,
+	TypographyH2,
+	TypographyLead,
+	TypographyMuted,
+} from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
@@ -109,22 +114,22 @@ function AssistantLoading() {
 
 function SubscribePrompt() {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 md:min-h-[calc(100dvh-6rem)]">
-			<div className="mx-auto w-full max-w-md space-y-6 text-center">
-				<Chat className="text-muted-foreground mx-auto size-12" />
-				<div className="space-y-3">
-					<h2 className="text-xl font-semibold">
-						<T k="assistant.subscribe.title" />
-					</h2>
-					<p className="text-muted-foreground text-sm whitespace-pre-line">
-						<T k="assistant.subscribe.description" />
-					</p>
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<div className="max-w-md space-y-3 text-left">
+				<ChatFill className="text-muted-foreground size-16" />
+				<TypographyH2>
+					<T k="assistant.subscribe.title" />
+				</TypographyH2>
+				<TypographyLead>
+					<T k="assistant.subscribe.description" />
+				</TypographyLead>
+				<div className="mt-8 flex justify-end">
+					<Button asChild>
+						<Link to="/settings">
+							<T k="assistant.subscribe.settings" />
+						</Link>
+					</Button>
 				</div>
-				<Button asChild>
-					<Link to="/settings">
-						<T k="assistant.subscribe.settings" />
-					</Link>
-				</Button>
 			</div>
 		</div>
 	)

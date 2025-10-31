@@ -8,7 +8,7 @@ import { ReminderListItem } from "#app/features/reminder-list-item"
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
-import { Plus, X, Search, Bell, People } from "react-bootstrap-icons"
+import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useDeferredValue, type ReactNode } from "react"
 
@@ -18,8 +18,8 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "#shared/ui/accordion"
-import { NewPerson } from "#app/features/new-person"
 import { NewReminder } from "#app/features/new-reminder"
+import { ReminderTour } from "#app/features/reminder-tour"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
@@ -305,47 +305,16 @@ function RemindersControls() {
 
 function NoPeopleState() {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-around gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
-			<div className="space-y-4">
-				<People className="text-muted-foreground mx-auto size-12" />
-				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">
-						<T k="reminders.noPeople.title" />
-					</h2>
-					<p className="text-muted-foreground">
-						<T k="reminders.noPeople.description" />
-					</p>
-				</div>
-				<NewPerson>
-					<Button className="mt-2">
-						<T k="reminders.noPeople.addButton" />
-					</Button>
-				</NewPerson>
-			</div>
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<ReminderTour />
 		</div>
 	)
 }
 
 function NoRemindersState() {
 	return (
-		<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-			<Bell className="text-muted-foreground size-8" />
-			<div className="space-y-2">
-				<h2 className="text-xl font-semibold">
-					<T k="reminders.noReminders.title" />
-				</h2>
-				<p className="text-muted-foreground">
-					<T k="reminders.noReminders.description" />
-				</p>
-			</div>
-			<NewReminder>
-				<Button>
-					<Plus className="size-4" />
-					<span className="sr-only md:not-sr-only">
-						<T k="reminders.addButton" />
-					</span>
-				</Button>
-			</NewReminder>
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<ReminderTour />
 		</div>
 	)
 }

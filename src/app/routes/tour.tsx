@@ -1,11 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState } from "react"
-import { useAccount } from "jazz-tools/react"
-import { UserAccount, isDeleted } from "#shared/schema/user"
 import { Button } from "#shared/ui/button"
-import { NewPerson } from "#app/features/new-person"
-import { NewNote } from "#app/features/new-note"
-import { NewReminder } from "#app/features/new-reminder"
 import { useAppStore } from "#app/lib/store"
 import { motion, AnimatePresence } from "motion/react"
 import { useIsAndroid, useIsIOS, useIsPWAInstalled } from "#app/hooks/use-pwa"
@@ -16,19 +11,17 @@ import {
 } from "#shared/ui/typography"
 import { T } from "#shared/intl"
 import {
-	PersonPlusFill,
-	PlusCircleFill,
-	BellFill,
 	CheckCircleFill,
 	ChevronLeft,
 	ChevronRight,
 	SkipForwardFill,
-	PeopleFill,
-	Journal,
 	GearFill,
 	Stars,
 	Phone,
 } from "react-bootstrap-icons"
+import { PersonTour } from "#app/features/person-tour"
+import { NoteTour } from "#app/features/note-tour"
+import { ReminderTour } from "#app/features/reminder-tour"
 import { InstallationInstructions } from "#app/components/pwa-install-dialog"
 
 export const Route = createFileRoute("/tour")({
@@ -176,11 +169,11 @@ function renderStep(
 		case "install-pwa":
 			return <InstallPWAStep onSuccess={() => setCurrentStep(s => s + 1)} />
 		case "add-person":
-			return <AddPersonStep onSuccess={() => setCurrentStep(s => s + 1)} />
+			return <PersonTour onSuccess={() => setCurrentStep(s => s + 1)} />
 		case "add-note":
-			return <AddNoteStep onSuccess={() => setCurrentStep(s => s + 1)} />
+			return <NoteTour onSuccess={() => setCurrentStep(s => s + 1)} />
 		case "add-reminder":
-			return <AddReminderStep onSuccess={() => setCurrentStep(s => s + 1)} />
+			return <ReminderTour onSuccess={() => setCurrentStep(s => s + 1)} />
 		case "finish-setup":
 			return <FinishSetupStep />
 		default:
@@ -208,117 +201,6 @@ function InstallPWAStep(props: { onSuccess: () => void }) {
 				<T k="install.title" />
 			</TypographyH2>
 			<InstallationInstructions onInstallComplete={props.onSuccess} />
-		</div>
-	)
-}
-
-function AddPersonStep(props: { onSuccess: () => void }) {
-	return (
-		<div className="space-y-3 text-left">
-			<PeopleFill className="text-muted-foreground size-16" />
-			<TypographyH2>
-				<T k="addPerson.title" />
-			</TypographyH2>
-			<TypographyLead>
-				<T k="addPerson.description" />
-			</TypographyLead>
-			<div className="mt-8 flex justify-end">
-				<NewPerson onSuccess={props.onSuccess}>
-					<Button>
-						<PersonPlusFill />
-						<T k="addPerson.button" />
-					</Button>
-				</NewPerson>
-			</div>
-		</div>
-	)
-}
-
-function AddNoteStep(props: { onSuccess: () => void }) {
-	let { me } = useAccount(UserAccount, {
-		resolve: { root: { people: { $each: true } } },
-	})
-
-	let people = (me?.root?.people ?? []).filter(
-		person => person && !isDeleted(person),
-	)
-
-	let firstPerson = people.at(0)
-
-	return (
-		<div className="space-y-3 text-left">
-			<Journal className="text-muted-foreground size-16" />
-			<TypographyH2>
-				<T k="addNote.title" />
-			</TypographyH2>
-			<TypographyLead>
-				<T k="addNote.description" />
-			</TypographyLead>
-			{firstPerson !== undefined ? (
-				<div className="mt-8 flex justify-end">
-					<NewNote onSuccess={props.onSuccess} personId={firstPerson.$jazz.id}>
-						<Button>
-							<PlusCircleFill />
-							<T k="addNote.button" params={{ name: firstPerson.name }} />
-						</Button>
-					</NewNote>
-				</div>
-			) : (
-				<div className="mt-8 flex justify-end">
-					<NewPerson>
-						<Button>
-							<PersonPlusFill />
-							<T k="addPerson.button" />
-						</Button>
-					</NewPerson>
-				</div>
-			)}
-		</div>
-	)
-}
-
-function AddReminderStep(props: { onSuccess: () => void }) {
-	let { me } = useAccount(UserAccount, {
-		resolve: { root: { people: { $each: true } } },
-	})
-
-	let people = (me?.root?.people ?? []).filter(
-		person => person && !isDeleted(person),
-	)
-
-	let firstPerson = people.at(0)
-
-	return (
-		<div className="space-y-3 text-left">
-			<BellFill className="text-muted-foreground size-16" />
-			<TypographyH2>
-				<T k="addReminder.title" />
-			</TypographyH2>
-			<TypographyLead>
-				<T k="addReminder.description" />
-			</TypographyLead>
-			{firstPerson !== undefined ? (
-				<div className="mt-8 flex justify-end">
-					<NewReminder
-						onSuccess={props.onSuccess}
-						personId={firstPerson.$jazz.id}
-					>
-						<Button>
-							<BellFill />
-							<T k="addReminder.button" params={{ name: firstPerson.name }} />
-						</Button>
-					</NewReminder>
-				</div>
-			) : (
-				<div className="mt-8 flex justify-end">
-					<NewPerson>
-						<Button>
-							<PersonPlusFill />
-							<T k="addPerson.button" />
-						</Button>
-					</NewPerson>
-				</div>
-			)}
 		</div>
 	)
 }
