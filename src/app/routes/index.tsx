@@ -6,14 +6,11 @@ import {
 } from "@tanstack/react-router"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
-import {
-	TypographyH1,
-	TypographyLarge,
-	TypographyLead,
-} from "#shared/ui/typography"
+import { TypographyH1, TypographyLead } from "#shared/ui/typography"
 import { useAppStore } from "#app/lib/store"
 import { getSignInUrl } from "#app/lib/auth-utils"
 import { T } from "#shared/intl/setup"
+import { SkipForwardFill } from "react-bootstrap-icons"
 
 export const Route = createFileRoute("/")({
 	loader: () => {
@@ -41,56 +38,70 @@ function WelcomeIndex() {
 	}
 
 	return (
-		<div className="flex h-[66vh] flex-col items-center justify-center gap-6">
-			<div className="flex items-center gap-4">
-				<motion.img
-					src="/app/icons/icon-192x192.png"
-					className="size-24 rounded-lg"
-					layoutId="logo"
-				/>
-				<motion.div layoutId="title">
-					<TypographyH1>
-						<T k="welcome.title" />
-					</TypographyH1>
-				</motion.div>
+		<div
+			className="absolute inset-0"
+			style={{
+				paddingTop: "max(1.5rem, env(safe-area-inset-top))",
+				paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",
+				paddingRight: "max(0.75rem, env(safe-area-inset-right))",
+				paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
+			}}
+		>
+			<div className="relative h-full w-full">
+				<div className="items-top absolute inset-x-0 top-0 flex gap-4">
+					<div className="flex-1" />
+					<Button variant="outline" asChild>
+						<Link to="/people" onClick={() => setTourSkipped(true)}>
+							<SkipForwardFill />
+							<T k="welcome.skip" />
+						</Link>
+					</Button>
+				</div>
+				<div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
+					<div className="mx-auto flex w-full max-w-md flex-col items-center gap-6">
+						<div className="inline-flex items-center gap-4">
+							<motion.img
+								src="/app/icons/icon-192x192.png"
+								className="size-24 rounded-lg"
+								layoutId="logo"
+							/>
+							<motion.div layoutId="title">
+								<TypographyH1>
+									<T k="welcome.title" />
+								</TypographyH1>
+							</motion.div>
+						</div>
+						<motion.div
+							initial={{ y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ delay: 0.4, duration: 0.4 }}
+						>
+							<TypographyLead>
+								<T k="welcome.subtitle" />
+							</TypographyLead>
+						</motion.div>
+						<motion.div
+							initial={{ y: 20, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							transition={{ delay: 0.5, duration: 0.4 }}
+							className="flex items-center gap-3"
+						>
+							<Button asChild className="h-12">
+								<Link to="/tour">
+									<T k="welcome.takeTour" />
+								</Link>
+							</Button>
+							<Button
+								variant="secondary"
+								onClick={handleSignIn}
+								className="h-12"
+							>
+								<T k="welcome.signIn" />
+							</Button>
+						</motion.div>
+					</div>
+				</div>
 			</div>
-
-			<motion.div
-				initial={{ y: 20, opacity: 0 }}
-				animate={{ y: 0, opacity: 1 }}
-				transition={{ delay: 0.4, duration: 0.4 }}
-			>
-				<TypographyLead>
-					<T k="welcome.subtitle" />
-				</TypographyLead>
-			</motion.div>
-
-			<motion.div
-				initial={{ y: 20, opacity: 0 }}
-				animate={{ y: 0, opacity: 1 }}
-				transition={{ delay: 0.5, duration: 0.4 }}
-			>
-				<Button asChild>
-					<Link to="/tour">
-						<T k="welcome.takeTour" />
-					</Link>
-				</Button>
-			</motion.div>
-
-			<motion.div
-				className="inline-flex items-center gap-3"
-				initial={{ y: 20, opacity: 0 }}
-				animate={{ y: 0, opacity: 1 }}
-				transition={{ delay: 0.5, duration: 0.4 }}
-			>
-				<Button variant="secondary" onClick={handleSkip}>
-					<T k="welcome.skip" />
-				</Button>
-
-				<Button variant="secondary" onClick={handleSignIn}>
-					<T k="welcome.signIn" />
-				</Button>
-			</motion.div>
 		</div>
 	)
 }

@@ -31,9 +31,8 @@ const basePeopleMessages = messages({
 	"person.form.name.label": "Name",
 	"person.form.name.required": "Name is required",
 	"person.form.summary.label": "Summary",
-	"person.form.name.placeholder": "Enter their name",
-	"person.form.summary.placeholder":
-		"What should you remember about them? Their interests, job, family, how you met...",
+	"person.form.name.placeholder": "How do you call this person",
+	"person.form.summary.placeholder": "A few key facts that help you find them",
 	"person.form.avatar.upload": "Upload Image",
 	"person.form.avatar.change": "Change Image",
 	"person.form.avatar.remove": "Remove Avatar",
@@ -111,9 +110,9 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.detail.reminders.tab": "Erinnerungen ({$count :number})",
 	"person.detail.addNote": "Notiz hinzufügen",
 	"person.detail.addReminder": "Erinnerung hinzufügen",
-	"person.form.name.placeholder": "Name eingeben",
+	"person.form.name.placeholder": "Wie nennst du diese Person",
 	"person.form.summary.placeholder":
-		"Was solltest du über sie/ihn wissen? Interessen, Beruf, Familie, wie ihr euch kennengelernt...",
+		"Einige wichtige Fakten, die dir helfen, sie/ihn wiederzufinden",
 	"person.actions.title": "Aktionen",
 	"person.edit.title": "Person bearbeiten",
 	"person.delete.title": "Person löschen",

@@ -12,8 +12,9 @@ import {
 	usePWAInstallPrompt,
 	useIsMobileDevice,
 } from "#app/hooks/use-pwa"
-import { BoxArrowUp, Share } from "react-bootstrap-icons"
+import { BoxArrowUp, InfoCircleFill, Share } from "react-bootstrap-icons"
 import { T } from "#shared/intl/setup"
+import { Alert, AlertTitle } from "#shared/ui/alert"
 
 export { PWAInstallDialog }
 export type { PWAInstallDialogProps }
@@ -108,7 +109,7 @@ function AndroidChromeInstructions({
 
 	return (
 		<div className="space-y-3">
-			<p className="text-muted-foreground text-sm">
+			<p className="text-muted-foreground">
 				<T k="pwa.install.dialog.browser.title" />
 			</p>
 			<Button onClick={handleInstall} className="w-full">
@@ -121,10 +122,10 @@ function AndroidChromeInstructions({
 function AndroidManualInstructions() {
 	return (
 		<div className="space-y-3">
-			<p className="text-muted-foreground text-sm">
+			<p className="text-muted-foreground">
 				<T k="pwa.install.android.title" />
 			</p>
-			<ol className="text-muted-foreground list-inside list-decimal space-y-2 pl-2 text-sm">
+			<ol className="text-muted-foreground list-inside list-decimal space-y-2">
 				<li>
 					<T
 						k="pwa.install.android.menuStep"
@@ -150,11 +151,11 @@ function AndroidManualInstructions() {
 
 function IOSInstructions() {
 	return (
-		<div className="space-y-3">
-			<p className="text-muted-foreground text-sm">
+		<div className="text-muted-foreground space-y-3">
+			<p>
 				<T k="pwa.install.ios.title" />
 			</p>
-			<ol className="text-muted-foreground list-inside list-decimal space-y-2 pl-2 text-sm">
+			<ol className="list-inside list-decimal space-y-2">
 				<li>
 					<T
 						k="pwa.install.ios.shareStep"
@@ -174,9 +175,12 @@ function IOSInstructions() {
 					<T k="pwa.install.ios.step2" />
 				</li>
 			</ol>
-			<p className="text-muted-foreground bg-muted/50 rounded p-2 text-xs">
-				<T k="pwa.install.ios.note" />
-			</p>
+			<Alert>
+				<InfoCircleFill />
+				<AlertTitle>
+					<T k="pwa.install.ios.note" />
+				</AlertTitle>
+			</Alert>
 		</div>
 	)
 }
@@ -260,5 +264,45 @@ function GenericInstructions() {
 				</li>
 			</ol>
 		</div>
+	)
+}
+
+export function InstallationInstructions({
+	onInstallComplete,
+}: {
+	onInstallComplete?: () => void
+} = {}) {
+	let isAndroid = useIsAndroid()
+	let isIOS = useIsIOS()
+	let isMobileDevice = useIsMobileDevice()
+	let { canInstall, promptInstall } = usePWAInstallPrompt()
+
+	if (isAndroid && canInstall) {
+		return (
+			<AndroidChromeInstructions
+				onInstall={promptInstall}
+				onInstallComplete={onInstallComplete}
+			/>
+		)
+	}
+
+	if (isAndroid && !canInstall) {
+		return <AndroidManualInstructions />
+	}
+
+	if (isIOS) {
+		return <IOSInstructions />
+	}
+
+	if (!isAndroid && !isIOS && isMobileDevice) {
+		return <GenericInstructions />
+	}
+
+	return (
+		<DesktopInstructions
+			canInstall={canInstall}
+			onInstall={promptInstall}
+			onInstallComplete={onInstallComplete}
+		/>
 	)
 }

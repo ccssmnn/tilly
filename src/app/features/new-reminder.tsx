@@ -3,7 +3,6 @@ import { UserAccount, isDeleted } from "#shared/schema/user"
 import { type ReactNode } from "react"
 import {
 	Dialog,
-	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
@@ -11,22 +10,22 @@ import {
 	DialogTrigger,
 } from "#shared/ui/dialog"
 import { Combobox } from "#shared/ui/combobox"
-import { NoteForm } from "#app/features/note-form"
-import { createNote } from "#shared/tools/note-create"
+import { ReminderForm } from "#app/features/reminder-form"
+import { createReminder } from "#shared/tools/reminder-create"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
 import { useState } from "react"
 
-export { NewNote }
+export { NewReminder }
 
-function NewNote({
+function NewReminder({
 	children,
 	onSuccess,
 	personId: initialPersonId,
 }: {
 	children: ReactNode
-	onSuccess?: (noteId: string) => void
+	onSuccess?: (reminderId: string) => void
 	personId?: string
 }) {
 	let { me } = useAccount(UserAccount, {
@@ -51,19 +50,33 @@ function NewNote({
 		label: person.name,
 	}))
 
+	let selectedPersonLabel =
+		peopleOptions.find(personOption => personOption.value === selectedPersonId)
+			?.label ?? ""
+
 	function handlePersonSelected(personId: string) {
 		setSelectedPersonId(personId)
 	}
 
-	async function handleSave(values: { content: string; pinned: boolean }) {
+	async function handleSave(values: {
+		text: string
+		dueAtDate: string
+		repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
+	}) {
 		if (!me || !selectedPersonId) return
 
 		let result = await tryCatch(
-			createNote(selectedPersonId, {
-				title: "",
-				content: values.content,
-				pinned: values.pinned,
-			}),
+			createReminder(
+				{
+					text: values.text,
+					dueAtDate: values.dueAtDate,
+					repeat: values.repeat,
+				},
+				{
+					personId: selectedPersonId,
+					userId: me.$jazz.id,
+				},
+			),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -72,8 +85,8 @@ function NewNote({
 			return
 		}
 
-		onSuccess?.(result.data.noteID)
-		toast.success(t("notes.created.success"))
+		onSuccess?.(result.data.reminderID)
+		toast.success(t("reminders.created.success"))
 		setDialogOpen(false)
 	}
 
@@ -109,10 +122,13 @@ function NewNote({
 						>
 							<DialogHeader>
 								<DialogTitle>
-									<T k="note.add.title" />
+									<T k="reminder.add.title" />
 								</DialogTitle>
 								<DialogDescription>
-									<T k="note.add.description" />
+									<T
+										k="reminder.add.description"
+										params={{ person: selectedPersonLabel }}
+									/>
 								</DialogDescription>
 							</DialogHeader>
 						</div>
@@ -149,8 +165,11 @@ function NewNote({
 								: "absolute inset-0 translate-x-full opacity-0"
 						}`}
 					>
-						<NoteForm
-							defaultValues={{ content: "", pinned: false }}
+						<ReminderForm
+							defaultValues={{
+								text: "",
+								dueAtDate: new Date().toISOString().substring(0, 10),
+							}}
 							onSubmit={handleSave}
 							onCancel={() => {
 								setSelectedPersonId(initialPersonId ?? "")
