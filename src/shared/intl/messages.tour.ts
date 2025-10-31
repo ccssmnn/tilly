@@ -30,7 +30,7 @@ const baseTourMessages = messages({
 	"finish.notifications": "Enable Push Notifications",
 	"finish.plus": "Get Tilly Plus to have AI assist you",
 	"finish.description": "You can do all of that in the settings",
-	"finish.button": "Go to Settings",
+	"finish.button": "Let's go",
 	// Navigation
 	"navigation.previous": "Previous",
 	"navigation.next": "Next",
@@ -65,7 +65,7 @@ const deTourMessages = translate(baseTourMessages, {
 	"finish.notifications": "Push-Benachrichtigungen aktivieren",
 	"finish.plus": "Hole dir Tilly Plus, um KI-Unterstützung zu erhalten",
 	"finish.description": "All das kannst du in den Einstellungen tun",
-	"finish.button": "Zu den Einstellungen",
+	"finish.button": "Los geht's",
 	// Navigation
 	"navigation.previous": "Zurück",
 	"navigation.next": "Weiter",

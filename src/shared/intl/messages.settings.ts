@@ -83,10 +83,11 @@ const baseSettingsMessages = messages({
 	"settings.data.delete.success": "All data deleted successfully",
 	"settings.data.delete.error.load": "Failed to load account data",
 	"settings.data.delete.error.rootMissing": "Account root missing",
-	"settings.website.title": "Website",
-	"settings.website.description":
-		"Visit the website to learn more about Tilly.",
-	"settings.website.visit": "Visit Website",
+	"settings.about.title": "About",
+	"settings.about.description":
+		"Learn more about Tilly or redo the welcome tour.",
+	"settings.about.visit": "Visit Website",
+	"settings.about.redoTour": "Take the Tour",
 	"settings.language.title": "Language",
 	"settings.language.description": "Choose your preferred language.",
 	"settings.language.select.label": "Language",
@@ -431,10 +432,11 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.data.delete.success": "Alle Daten wurden erfolgreich gelöscht",
 	"settings.data.delete.error.load": "Kontodaten konnten nicht geladen werden",
 	"settings.data.delete.error.rootMissing": "Konto-Stammdaten fehlen",
-	"settings.website.title": "Webseite",
-	"settings.website.description":
-		"Besuche die Webseite, um mehr über Tilly zu erfahren.",
-	"settings.website.visit": "Webseite besuchen",
+	"settings.about.title": "Über",
+	"settings.about.description":
+		"Erfahre mehr über Tilly oder wiederhole die Willkommens-Tour.",
+	"settings.about.visit": "Webseite besuchen",
+	"settings.about.redoTour": "Tour starten",
 	"settings.language.title": "Sprache",
 	"settings.language.description": "Wähle deine bevorzugte Sprache.",
 	"settings.language.select.label": "Sprache",

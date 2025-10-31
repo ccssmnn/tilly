@@ -10,7 +10,11 @@ import { TypographyH1, TypographyLead } from "#shared/ui/typography"
 import { useAppStore } from "#app/lib/store"
 import { getSignInUrl } from "#app/lib/auth-utils"
 import { T } from "#shared/intl/setup"
-import { SkipForwardFill } from "react-bootstrap-icons"
+import {
+	SkipForwardFill,
+	LightbulbFill,
+	PersonCircle,
+} from "react-bootstrap-icons"
 
 export const Route = createFileRoute("/")({
 	loader: () => {
@@ -89,6 +93,7 @@ function WelcomeIndex() {
 						>
 							<Button asChild className="h-12">
 								<Link to="/tour">
+									<LightbulbFill />
 									<T k="welcome.takeTour" />
 								</Link>
 							</Button>
@@ -97,6 +102,7 @@ function WelcomeIndex() {
 								onClick={handleSignIn}
 								className="h-12"
 							>
+								<PersonCircle />
 								<T k="welcome.signIn" />
 							</Button>
 						</motion.div>

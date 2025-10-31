@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import { createFileRoute, notFound, Link } from "@tanstack/react-router"
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"
 import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
@@ -51,7 +51,7 @@ import {
 	AlertDialogTrigger,
 } from "#shared/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
-import { WifiOff } from "react-bootstrap-icons"
+import { WifiOff, Lightbulb, Compass } from "react-bootstrap-icons"
 import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
@@ -116,7 +116,7 @@ function SettingsScreen() {
 				<NotificationSettings me={currentMe} />
 				<PWASection />
 				<DataSection />
-				<WebsiteSection />
+				<AboutSection />
 			</div>
 		</div>
 	)
@@ -748,18 +748,32 @@ function DeleteDataButton({
 	)
 }
 
-function WebsiteSection() {
+function AboutSection() {
 	let t = useIntl()
+	let setTourSkipped = useAppStore(s => s.setTourSkipped)
+
 	return (
 		<SettingsSection
-			title={t("settings.website.title")}
-			description={t("settings.website.description")}
+			title={t("settings.about.title")}
+			description={t("settings.about.description")}
 		>
-			<div>
-				<Button asChild variant="outline">
+			<div className="space-y-3">
+				<Button asChild variant="outline" className="w-full">
 					<a href="/" target="_blank" rel="noopener noreferrer">
-						<T k="settings.website.visit" />
+						<Compass />
+						<T k="settings.about.visit" />
 					</a>
+				</Button>
+				<Button
+					variant="outline"
+					className="w-full"
+					onClick={() => setTourSkipped(false)}
+					asChild
+				>
+					<Link to="/tour">
+						<Lightbulb />
+						<T k="settings.about.redoTour" />
+					</Link>
 				</Button>
 			</div>
 		</SettingsSection>

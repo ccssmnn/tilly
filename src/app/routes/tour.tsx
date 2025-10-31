@@ -23,6 +23,11 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	SkipForwardFill,
+	PeopleFill,
+	Journal,
+	GearFill,
+	Stars,
+	Phone,
 } from "react-bootstrap-icons"
 import { InstallationInstructions } from "#app/components/pwa-install-dialog"
 
@@ -38,6 +43,8 @@ function TourComponent() {
 
 	function nextStep() {
 		setDirection("right")
+		// this timeout helps setting the diretion before we set the step
+		// so we can avoid the transition delay for the first "next" press
 		setTimeout(
 			() => setCurrentStep(Math.min(currentStep + 1, steps.length - 1)),
 			10,
@@ -61,7 +68,7 @@ function TourComponent() {
 		>
 			<div className="relative h-full w-full">
 				<div className="items-top absolute inset-x-0 top-0 flex gap-4">
-					<div className="inline-flex items-center gap-4">
+					<Link to="/" className="inline-flex items-center gap-4">
 						<motion.img
 							src="/app/icons/icon-192x192.png"
 							className="size-16 rounded-md"
@@ -72,7 +79,7 @@ function TourComponent() {
 								<T k="welcome.title" />
 							</TypographyH1>
 						</motion.div>
-					</div>
+					</Link>
 					<div className="flex-1" />
 					<motion.div layoutId="skip">
 						<Button variant="outline" asChild>
@@ -184,7 +191,8 @@ function renderStep(
 function WelcomeStep() {
 	return (
 		<div className="space-y-8 text-left">
-			<TypographyH2>Welcome to Tilly ✨</TypographyH2>
+			<Stars className="text-muted-foreground size-16" />
+			<TypographyH2>Welcome to Tilly</TypographyH2>
 			<TypographyLead>
 				<T k="welcome.description" />
 			</TypographyLead>
@@ -195,6 +203,7 @@ function WelcomeStep() {
 function InstallPWAStep(props: { onSuccess: () => void }) {
 	return (
 		<div className="text-muted-foreground space-y-8 text-left">
+			<Phone className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="install.title" />
 			</TypographyH2>
@@ -206,6 +215,7 @@ function InstallPWAStep(props: { onSuccess: () => void }) {
 function AddPersonStep(props: { onSuccess: () => void }) {
 	return (
 		<div className="space-y-8 text-left">
+			<PeopleFill className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="addPerson.title" />
 			</TypographyH2>
@@ -237,6 +247,7 @@ function AddNoteStep(props: { onSuccess: () => void }) {
 
 	return (
 		<div className="space-y-8 text-left">
+			<Journal className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="addNote.title" />
 			</TypographyH2>
@@ -279,6 +290,7 @@ function AddReminderStep(props: { onSuccess: () => void }) {
 
 	return (
 		<div className="space-y-8 text-left">
+			<BellFill className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="addReminder.title" />
 			</TypographyH2>
@@ -316,6 +328,7 @@ function FinishSetupStep() {
 
 	return (
 		<div className="space-y-8 text-left">
+			<GearFill className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="finish.title" />
 			</TypographyH2>
