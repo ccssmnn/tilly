@@ -14,7 +14,7 @@ const baseRemindersMessages = messages({
 	"reminders.noPeople.addButton": "Add Person",
 	"reminders.noReminders.title": "Stay connected",
 	"reminders.noReminders.description":
-		"Set reminders to follow up, check in, or remember important things",
+		"Reminders help you stay connected and remember to reach out.",
 	"reminders.noResults.message": 'No reminders found matching "{$query}"',
 	"reminders.noResults.suggestion": "Try adjusting your search terms",
 	"reminders.allCaughtUp.title": "All caught up!",
@@ -31,7 +31,7 @@ const baseRemindersMessages = messages({
 	"reminders.empty.noSearch": "No reminders set",
 	"reminders.empty.suggestion.withSearch": "Try adjusting your search terms",
 	"reminders.empty.suggestion.noSearch":
-		"Set reminders to follow up, check in, or remember important things",
+		"Reminders help you stay connected and remember to reach out.",
 	"reminders.add.title": "Reminder",
 	"reminders.add.description":
 		"Set a reminder to follow up, check in, or remember something important about them.",
@@ -105,7 +105,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminders.noPeople.addButton": "Person hinzufügen",
 	"reminders.noReminders.title": "Verbunden bleiben",
 	"reminders.noReminders.description":
-		"Lege Erinnerungen fest, um nachzufassen, einzuchecken oder Wichtiges nicht zu vergessen",
+		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
 	"reminders.noResults.message":
 		'Keine passenden Erinnerungen zu "{$query}" gefunden',
 	"reminders.noResults.suggestion": "Passe deine Suchbegriffe an",
@@ -124,7 +124,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminders.empty.noSearch": "Noch keine Erinnerungen",
 	"reminders.empty.suggestion.withSearch": "Passe deine Suchbegriffe an",
 	"reminders.empty.suggestion.noSearch":
-		"Lege Erinnerungen fest, um nachzufassen, einzuchecken oder Wichtiges zu notieren",
+		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
 	"reminders.add.title": "Erinnerung",
 	"reminders.add.description":
 		"Lege eine Erinnerung fest – zum Nachfassen, Einchecken oder um etwas Wichtiges nicht zu vergessen.",

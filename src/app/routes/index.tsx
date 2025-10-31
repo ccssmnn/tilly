@@ -1,9 +1,4 @@
-import {
-	createFileRoute,
-	Link,
-	useNavigate,
-	redirect,
-} from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
 import { TypographyH1, TypographyLead } from "#shared/ui/typography"
@@ -50,7 +45,7 @@ function WelcomeIndex() {
 					<div className="flex-1" />
 					<motion.div
 						layoutId="skip"
-						initial={{ y: 20, opacity: 0 }}
+						initial={{ y: 12, opacity: 0 }}
 						animate={{ y: 0, opacity: 1 }}
 						transition={{ delay: 0.4 }}
 					>
@@ -71,13 +66,11 @@ function WelcomeIndex() {
 								layoutId="logo"
 							/>
 							<motion.div layoutId="title">
-								<TypographyH1>
-									<T k="welcome.title" />
-								</TypographyH1>
+								<TypographyH1>Tilly</TypographyH1>
 							</motion.div>
 						</div>
 						<motion.div
-							initial={{ y: 20, opacity: 0 }}
+							initial={{ y: 12, opacity: 0 }}
 							animate={{ y: 0, opacity: 1 }}
 							transition={{ delay: 0.4, duration: 0.4 }}
 						>
@@ -86,7 +79,7 @@ function WelcomeIndex() {
 							</TypographyLead>
 						</motion.div>
 						<motion.div
-							initial={{ y: 20, opacity: 0 }}
+							initial={{ y: 12, opacity: 0 }}
 							animate={{ y: 0, opacity: 1 }}
 							transition={{ delay: 0.4, duration: 0.4 }}
 							className="flex items-center gap-3"

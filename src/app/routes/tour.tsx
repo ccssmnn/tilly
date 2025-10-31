@@ -190,7 +190,7 @@ function renderStep(
 
 function WelcomeStep() {
 	return (
-		<div className="space-y-8 text-left">
+		<div className="space-y-3 text-left">
 			<Stars className="text-muted-foreground size-16" />
 			<TypographyH2>Welcome to Tilly</TypographyH2>
 			<TypographyLead>
@@ -202,7 +202,7 @@ function WelcomeStep() {
 
 function InstallPWAStep(props: { onSuccess: () => void }) {
 	return (
-		<div className="text-muted-foreground space-y-8 text-left">
+		<div className="text-muted-foreground space-y-3 text-left">
 			<Phone className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="install.title" />
@@ -214,7 +214,7 @@ function InstallPWAStep(props: { onSuccess: () => void }) {
 
 function AddPersonStep(props: { onSuccess: () => void }) {
 	return (
-		<div className="space-y-8 text-left">
+		<div className="space-y-3 text-left">
 			<PeopleFill className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="addPerson.title" />
@@ -222,7 +222,7 @@ function AddPersonStep(props: { onSuccess: () => void }) {
 			<TypographyLead>
 				<T k="addPerson.description" />
 			</TypographyLead>
-			<div className="flex justify-end">
+			<div className="mt-8 flex justify-end">
 				<NewPerson onSuccess={props.onSuccess}>
 					<Button>
 						<PersonPlusFill />
@@ -246,7 +246,7 @@ function AddNoteStep(props: { onSuccess: () => void }) {
 	let firstPerson = people.at(0)
 
 	return (
-		<div className="space-y-8 text-left">
+		<div className="space-y-3 text-left">
 			<Journal className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="addNote.title" />
@@ -255,7 +255,7 @@ function AddNoteStep(props: { onSuccess: () => void }) {
 				<T k="addNote.description" />
 			</TypographyLead>
 			{firstPerson !== undefined ? (
-				<div className="flex justify-end">
+				<div className="mt-8 flex justify-end">
 					<NewNote onSuccess={props.onSuccess} personId={firstPerson.$jazz.id}>
 						<Button>
 							<PlusCircleFill />
@@ -264,7 +264,7 @@ function AddNoteStep(props: { onSuccess: () => void }) {
 					</NewNote>
 				</div>
 			) : (
-				<div className="flex justify-end">
+				<div className="mt-8 flex justify-end">
 					<NewPerson>
 						<Button>
 							<PersonPlusFill />
@@ -289,7 +289,7 @@ function AddReminderStep(props: { onSuccess: () => void }) {
 	let firstPerson = people.at(0)
 
 	return (
-		<div className="space-y-8 text-left">
+		<div className="space-y-3 text-left">
 			<BellFill className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="addReminder.title" />
@@ -298,7 +298,7 @@ function AddReminderStep(props: { onSuccess: () => void }) {
 				<T k="addReminder.description" />
 			</TypographyLead>
 			{firstPerson !== undefined ? (
-				<div className="flex justify-end">
+				<div className="mt-8 flex justify-end">
 					<NewReminder
 						onSuccess={props.onSuccess}
 						personId={firstPerson.$jazz.id}
@@ -310,7 +310,7 @@ function AddReminderStep(props: { onSuccess: () => void }) {
 					</NewReminder>
 				</div>
 			) : (
-				<div className="flex justify-end">
+				<div className="mt-8 flex justify-end">
 					<NewPerson>
 						<Button>
 							<PersonPlusFill />
@@ -327,7 +327,7 @@ function FinishSetupStep() {
 	let setTourSkipped = useAppStore(s => s.setTourSkipped)
 
 	return (
-		<div className="space-y-8 text-left">
+		<div className="space-y-3 text-left">
 			<GearFill className="text-muted-foreground size-16" />
 			<TypographyH2>
 				<T k="finish.title" />
@@ -355,7 +355,7 @@ function FinishSetupStep() {
 			<TypographyLead>
 				<T k="finish.description" />
 			</TypographyLead>
-			<div className="flex justify-end">
+			<div className="mt-8 flex justify-end">
 				<Button asChild>
 					<Link to="/settings" onClick={() => setTourSkipped(true)}>
 						<T k="finish.button" />

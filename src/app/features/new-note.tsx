@@ -3,7 +3,6 @@ import { UserAccount, isDeleted } from "#shared/schema/user"
 import { type ReactNode } from "react"
 import {
 	Dialog,
-	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
