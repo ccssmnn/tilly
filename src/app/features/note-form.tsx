@@ -16,20 +16,6 @@ import { z } from "zod"
 import { T, useIntl } from "#shared/intl/setup"
 import { useState } from "react"
 
-let noteContentPlaceholders = [
-	"note.placeholder.1",
-	"note.placeholder.2",
-	"note.placeholder.3",
-	"note.placeholder.4",
-	"note.placeholder.5",
-	"note.placeholder.6",
-] as const
-
-function getRotatingNotePlaceholder(t: ReturnType<typeof useIntl>) {
-	let index = Math.floor(Date.now() / 9000) % noteContentPlaceholders.length
-	return t(noteContentPlaceholders[index])
-}
-
 function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
 		content: z.string().min(1, t("note.form.content.required")),
@@ -53,7 +39,7 @@ export function NoteForm({
 }) {
 	let t = useIntl()
 	let noteFormSchema = createNoteFormSchema(t)
-	let [placeholder] = useState(getRotatingNotePlaceholder(t))
+	let [placeholder] = useState(t("note.form.placeholder"))
 	let form = useForm<NoteFormValues>({
 		resolver: zodResolver(noteFormSchema),
 		defaultValues: {

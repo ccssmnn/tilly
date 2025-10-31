@@ -9,26 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as RemindersRouteImport } from './routes/reminders'
-import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as TourRouteImport } from './routes/tour'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PeopleIndexRouteImport } from './routes/people.index'
-import { Route as PeoplePersonIDRouteImport } from './routes/people.$personID'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRemindersRouteImport } from './routes/_app.reminders'
+import { Route as AppAssistantRouteImport } from './routes/_app.assistant'
+import { Route as AppPeopleIndexRouteImport } from './routes/_app.people.index'
+import { Route as AppPeoplePersonIDRouteImport } from './routes/_app.people.$personID'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const TourRoute = TourRouteImport.update({
+  id: '/tour',
+  path: '/tour',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RemindersRoute = RemindersRouteImport.update({
-  id: '/reminders',
-  path: '/reminders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssistantRoute = AssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -36,46 +32,66 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PeopleIndexRoute = PeopleIndexRouteImport.update({
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRemindersRoute = AppRemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssistantRoute = AppAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPeopleIndexRoute = AppPeopleIndexRouteImport.update({
   id: '/people/',
   path: '/people/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const PeoplePersonIDRoute = PeoplePersonIDRouteImport.update({
+const AppPeoplePersonIDRoute = AppPeoplePersonIDRouteImport.update({
   id: '/people/$personID',
   path: '/people/$personID',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/assistant': typeof AssistantRoute
-  '/reminders': typeof RemindersRoute
-  '/settings': typeof SettingsRoute
-  '/people/$personID': typeof PeoplePersonIDRoute
-  '/people': typeof PeopleIndexRoute
+  '/tour': typeof TourRoute
+  '/assistant': typeof AppAssistantRoute
+  '/reminders': typeof AppRemindersRoute
+  '/settings': typeof AppSettingsRoute
+  '/people/$personID': typeof AppPeoplePersonIDRoute
+  '/people': typeof AppPeopleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/assistant': typeof AssistantRoute
-  '/reminders': typeof RemindersRoute
-  '/settings': typeof SettingsRoute
-  '/people/$personID': typeof PeoplePersonIDRoute
-  '/people': typeof PeopleIndexRoute
+  '/tour': typeof TourRoute
+  '/assistant': typeof AppAssistantRoute
+  '/reminders': typeof AppRemindersRoute
+  '/settings': typeof AppSettingsRoute
+  '/people/$personID': typeof AppPeoplePersonIDRoute
+  '/people': typeof AppPeopleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/assistant': typeof AssistantRoute
-  '/reminders': typeof RemindersRoute
-  '/settings': typeof SettingsRoute
-  '/people/$personID': typeof PeoplePersonIDRoute
-  '/people/': typeof PeopleIndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/tour': typeof TourRoute
+  '/_app/assistant': typeof AppAssistantRoute
+  '/_app/reminders': typeof AppRemindersRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/people/$personID': typeof AppPeoplePersonIDRoute
+  '/_app/people/': typeof AppPeopleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/tour'
     | '/assistant'
     | '/reminders'
     | '/settings'
@@ -84,6 +100,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/tour'
     | '/assistant'
     | '/reminders'
     | '/settings'
@@ -92,43 +109,35 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/assistant'
-    | '/reminders'
-    | '/settings'
-    | '/people/$personID'
-    | '/people/'
+    | '/_app'
+    | '/tour'
+    | '/_app/assistant'
+    | '/_app/reminders'
+    | '/_app/settings'
+    | '/_app/people/$personID'
+    | '/_app/people/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AssistantRoute: typeof AssistantRoute
-  RemindersRoute: typeof RemindersRoute
-  SettingsRoute: typeof SettingsRoute
-  PeoplePersonIDRoute: typeof PeoplePersonIDRoute
-  PeopleIndexRoute: typeof PeopleIndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  TourRoute: typeof TourRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/tour': {
+      id: '/tour'
+      path: '/tour'
+      fullPath: '/tour'
+      preLoaderRoute: typeof TourRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reminders': {
-      id: '/reminders'
-      path: '/reminders'
-      fullPath: '/reminders'
-      preLoaderRoute: typeof RemindersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assistant': {
-      id: '/assistant'
-      path: '/assistant'
-      fullPath: '/assistant'
-      preLoaderRoute: typeof AssistantRouteImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -138,30 +147,66 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/people/': {
-      id: '/people/'
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reminders': {
+      id: '/_app/reminders'
+      path: '/reminders'
+      fullPath: '/reminders'
+      preLoaderRoute: typeof AppRemindersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assistant': {
+      id: '/_app/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AppAssistantRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/people/': {
+      id: '/_app/people/'
       path: '/people'
       fullPath: '/people'
-      preLoaderRoute: typeof PeopleIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppPeopleIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/people/$personID': {
-      id: '/people/$personID'
+    '/_app/people/$personID': {
+      id: '/_app/people/$personID'
       path: '/people/$personID'
       fullPath: '/people/$personID'
-      preLoaderRoute: typeof PeoplePersonIDRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppPeoplePersonIDRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppAssistantRoute: typeof AppAssistantRoute
+  AppRemindersRoute: typeof AppRemindersRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppPeoplePersonIDRoute: typeof AppPeoplePersonIDRoute
+  AppPeopleIndexRoute: typeof AppPeopleIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAssistantRoute: AppAssistantRoute,
+  AppRemindersRoute: AppRemindersRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppPeoplePersonIDRoute: AppPeoplePersonIDRoute,
+  AppPeopleIndexRoute: AppPeopleIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AssistantRoute: AssistantRoute,
-  RemindersRoute: RemindersRoute,
-  SettingsRoute: SettingsRoute,
-  PeoplePersonIDRoute: PeoplePersonIDRoute,
-  PeopleIndexRoute: PeopleIndexRoute,
+  AppRoute: AppRouteWithChildren,
+  TourRoute: TourRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

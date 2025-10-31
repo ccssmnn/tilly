@@ -1,7 +1,13 @@
 import { useState } from "react"
-import { CloudSlash, ArrowClockwise, PersonX } from "react-bootstrap-icons"
+import {
+	CloudSlash,
+	ArrowClockwise,
+	PersonX,
+	Check,
+	ExclamationTriangleFill,
+} from "react-bootstrap-icons"
 import { useAuth } from "@clerk/clerk-react"
-import { Link } from "@tanstack/react-router"
+
 import { Button } from "#shared/ui/button"
 import {
 	Dialog,
@@ -9,14 +15,15 @@ import {
 	DialogTitle,
 	DialogTrigger,
 	DialogClose,
-	DialogDescription,
 	DialogHeader,
 } from "#shared/ui/dialog"
-import { TypographyMuted } from "#shared/ui/typography"
+import { TypographyP, TypographyMuted } from "#shared/ui/typography"
 import { useServiceWorkerUpdate } from "#app/hooks/use-service-worker-update"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { useIsMobile } from "#app/hooks/use-mobile"
 import { T, useIntl } from "#shared/intl/setup"
+import { getSignInUrl } from "#app/lib/auth-utils"
+import { Alert, AlertTitle } from "#shared/ui/alert"
 
 export { StatusIndicator }
 
@@ -73,33 +80,22 @@ function OfflineIndicator() {
 					</DialogTitle>
 				}
 			>
-				<div className="space-y-4">
-					<TypographyMuted>
+				<div className="space-y-3">
+					<TypographyP className="leading-none">
 						<T k="status.offline.description" />
-					</TypographyMuted>
-					<ul className="space-y-1">
-						<TypographyMuted className="text-xs">
-							<T k="status.offline.feature.people" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.offline.feature.notes" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.offline.feature.history" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.offline.feature.chat.disabled" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.offline.feature.sync.disabled" />
-						</TypographyMuted>
-						<TypographyMuted className="text-xs">
-							<T k="status.offline.feature.notifications.disabled" />
-						</TypographyMuted>
-					</ul>
-					<TypographyMuted className="text-xs">
-						<T k="status.offline.sync.message" />
-					</TypographyMuted>
+					</TypographyP>
+					<Alert>
+						<Check />
+						<AlertTitle>
+							<T k="status.offline.feature.core" />
+						</AlertTitle>
+					</Alert>
+					<Alert>
+						<ExclamationTriangleFill />
+						<AlertTitle>
+							<T k="status.offline.feature.requiresInternet" />
+						</AlertTitle>
+					</Alert>
 				</div>
 			</DialogContent>
 		</Dialog>
@@ -175,6 +171,10 @@ function NotSignedInIndicator() {
 	let t = useIntl()
 	let isMobile = useIsMobile()
 
+	function handleSignIn() {
+		window.location.href = getSignInUrl(window.location.pathname)
+	}
+
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
@@ -203,36 +203,19 @@ function NotSignedInIndicator() {
 						<DialogTitle>
 							<T k="status.notSignedIn.dialog.title" />
 						</DialogTitle>
-						<DialogDescription>
-							<T k="status.notSignedIn.description" />
-						</DialogDescription>
 					</DialogHeader>
 				}
 			>
-				<div className="space-y-4">
-					<TypographyMuted className="text-xs">
-						<T k="status.notSignedIn.warning" />
-					</TypographyMuted>
-					<ul className="space-y-1">
-						<T
-							k="status.notSignedIn.features"
-							components={{
-								li: ({ children }: { children: React.ReactNode }) => (
-									<TypographyMuted className="text-xs">
-										{children}
-									</TypographyMuted>
-								),
-							}}
-						/>
-					</ul>
-					<TypographyMuted>
+				<div className="space-y-3">
+					<TypographyP className="leading-none">
+						<T k="status.notSignedIn.browserOnly" />
+					</TypographyP>
+					<TypographyP className="leading-none">
 						<T k="status.notSignedIn.benefits" />
-					</TypographyMuted>
+					</TypographyP>
 					<DialogClose asChild>
-						<Button asChild className="w-full">
-							<Link to="/settings">
-								<T k="status.notSignedIn.signIn" />
-							</Link>
+						<Button onClick={handleSignIn} className="h-12 w-full">
+							<T k="status.notSignedIn.signIn" />
 						</Button>
 					</DialogClose>
 				</div>

@@ -48,19 +48,23 @@ function JazzWithClerk() {
 function RouterWithJazz() {
 	let { me } = useAccount(UserAccount)
 
-	if (!me) return <SplashScreen />
+	// Only show splash screen if account is still loading
+	if (me === undefined) return <SplashScreen />
 
-	let locale = me.root?.language || "en"
+	// Pass null for unauthenticated users, me object for authenticated users
+	let contextMe = me ? me : null
+	let locale = me?.root?.language || "en"
+
 	if (locale === "de") {
 		return (
 			<IntlProvider messages={messagesDe} locale="de">
-				<RouterProvider router={router} context={{ me }} />
+				<RouterProvider router={router} context={{ me: contextMe }} />
 			</IntlProvider>
 		)
 	}
 	return (
 		<IntlProvider>
-			<RouterProvider router={router} context={{ me }} />
+			<RouterProvider router={router} context={{ me: contextMe }} />
 		</IntlProvider>
 	)
 }

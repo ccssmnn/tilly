@@ -28,37 +28,37 @@ interface AppState {
 	clearChatHintDismissed: boolean
 	setClearChatHintDismissed: (dismissed: boolean) => void
 
+	tourSkipped: boolean
+	setTourSkipped: (skipped: boolean) => void
+
 	lastAccessDate: string
 }
 
 let storeStateSchema = z.object({
-	peopleSearchQuery: z.string(),
-	remindersSearchQuery: z.string(),
 	chat: z.array(z.any()),
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
 	clearChatHintDismissed: z.boolean(),
+	tourSkipped: z.boolean(),
 	lastAccessDate: z.string(),
 })
 
 type PersistedState = Pick<
 	AppState,
-	| "peopleSearchQuery"
-	| "remindersSearchQuery"
 	| "chat"
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
 	| "clearChatHintDismissed"
+	| "tourSkipped"
 	| "lastAccessDate"
 >
 
 let initialPersistedState: PersistedState = {
-	peopleSearchQuery: "",
-	remindersSearchQuery: "",
 	chat: [],
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
 	clearChatHintDismissed: false,
+	tourSkipped: false,
 	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 }
 
@@ -184,20 +184,20 @@ export let useAppStore = create<AppState>()(
 			setClearChatHintDismissed: (dismissed: boolean) =>
 				set({ clearChatHintDismissed: dismissed }),
 
+			tourSkipped: false,
+			setTourSkipped: (skipped: boolean) => set({ tourSkipped: skipped }),
+
 			lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 		}),
 		{
 			name: "tilly-app-storage",
 			storage: createIdbStorage(storeStateSchema, initialPersistedState),
 			partialize: (state): PersistedState => ({
-				peopleSearchQuery: state.peopleSearchQuery,
-				remindersSearchQuery: state.remindersSearchQuery,
 				chat: state.chat,
-				// Temporarily disable persistence during development
-				// pwaInstallHintDismissed: state.pwaInstallHintDismissed,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
 				clearChatHintDismissed: state.clearChatHintDismissed,
+				tourSkipped: state.tourSkipped,
 				lastAccessDate: state.lastAccessDate,
 			}),
 			onRehydrateStorage: () => state => {
@@ -222,12 +222,13 @@ export let useAppStore = create<AppState>()(
 
 export function resetAppStore(): void {
 	useAppStore.setState({
-		peopleSearchQuery: initialPersistedState.peopleSearchQuery,
-		remindersSearchQuery: initialPersistedState.remindersSearchQuery,
+		peopleSearchQuery: "",
+		remindersSearchQuery: "",
 		chat: initialPersistedState.chat,
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
 		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
+		tourSkipped: initialPersistedState.tourSkipped,
 		lastAccessDate: initialPersistedState.lastAccessDate,
 	})
 

@@ -1,51 +1,47 @@
 import * as React from "react"
 import { cn } from "#app/lib/utils"
+import { useEffect, useRef, useImperativeHandle } from "react"
 
 export { Textarea, useResizeTextarea }
 
 let Textarea = React.forwardRef<
 	HTMLTextAreaElement,
-	React.ComponentProps<"textarea"> & { autoResize?: boolean }
+	React.ComponentProps<"textarea"> & {
+		autoResize?: boolean
+		maxHeight?: number
+	}
 >(
 	(
-		{ className, autoResize: enableAutoResize = true, onInput, ...props },
+		{
+			className,
+			autoResize: enableAutoResize = true,
+			maxHeight,
+			onInput,
+			...props
+		},
 		ref,
 	) => {
-		let internalRef = React.useRef<HTMLTextAreaElement>(null)
+		let internalRef = useRef<HTMLTextAreaElement>(null)
 
-		function autoResizeElement(element: HTMLTextAreaElement) {
-			element.style.height = "auto"
-			element.style.height = element.scrollHeight + "px"
-		}
+		// Use the resize hook with disabled flag
+		useResizeTextarea(internalRef, String(props.value || ""), {
+			maxHeight,
+			disabled: !enableAutoResize,
+		})
 
 		// Combine external ref with internal ref
-		React.useImperativeHandle(ref, () => internalRef.current!, [])
-
-		React.useEffect(() => {
-			let element = internalRef.current
-			if (!element || !enableAutoResize) return
-			requestAnimationFrame(() => autoResizeElement(element))
-		}, [props.value, enableAutoResize])
-
-		// Handle ref assignment and initial resize
-		function handleRef(element: HTMLTextAreaElement | null) {
-			internalRef.current = element
-		}
+		useImperativeHandle(ref, () => internalRef.current!, [])
 
 		return (
 			<textarea
-				ref={handleRef}
+				ref={internalRef}
 				data-slot="textarea"
 				className={cn(
 					"border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-none aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-input flex field-sizing-content min-h-16 w-full rounded-md border px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+					enableAutoResize ? "resize-none" : "resize-y rounded-br-none",
 					className,
 				)}
-				onInput={event => {
-					if (enableAutoResize) {
-						autoResizeElement(event.target as HTMLTextAreaElement)
-					}
-					onInput?.(event)
-				}}
+				onInput={onInput}
 				{...props}
 			/>
 		)
@@ -57,13 +53,13 @@ Textarea.displayName = "Textarea"
 function useResizeTextarea(
 	ref: React.RefObject<HTMLTextAreaElement | null>,
 	value: string,
-	options?: { maxHeight?: number },
+	options?: { maxHeight?: number; disabled?: boolean },
 ) {
-	let { maxHeight } = options || {}
+	let { maxHeight, disabled = false } = options || {}
 
-	React.useEffect(() => {
+	useEffect(() => {
 		let textarea = ref.current
-		if (!textarea) return
+		if (!textarea || disabled) return
 
 		textarea.style.height = "auto"
 		let scrollHeight = textarea.scrollHeight
@@ -74,5 +70,5 @@ function useResizeTextarea(
 		}
 
 		textarea.scrollTop = textarea.scrollHeight
-	}, [value, maxHeight, ref])
+	}, [value, maxHeight, disabled, ref])
 }
