@@ -24,7 +24,6 @@ export const Route = createFileRoute("/")({
 })
 
 function WelcomeIndex() {
-	let navigate = useNavigate()
 	let setTourSkipped = useAppStore(state => state.setTourSkipped)
 
 	function handleSignIn() {
