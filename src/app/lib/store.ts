@@ -41,6 +41,7 @@ let storeStateSchema = z.object({
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
 	clearChatHintDismissed: z.boolean(),
+	tourSkipped: z.boolean(),
 	lastAccessDate: z.string(),
 })
 
@@ -201,8 +202,6 @@ export let useAppStore = create<AppState>()(
 				peopleSearchQuery: state.peopleSearchQuery,
 				remindersSearchQuery: state.remindersSearchQuery,
 				chat: state.chat,
-				// Temporarily disable persistence during development
-				// pwaInstallHintDismissed: state.pwaInstallHintDismissed,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
 				clearChatHintDismissed: state.clearChatHintDismissed,

@@ -1,17 +1,34 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import {
+	createFileRoute,
+	Link,
+	useNavigate,
+	redirect,
+} from "@tanstack/react-router"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
 import { TypographyH1, TypographyLarge } from "#shared/ui/typography"
 import { useAppStore } from "#app/lib/store"
 import { getSignInUrl } from "#app/lib/auth-utils"
+import { T } from "#shared/intl/setup"
 
 export const Route = createFileRoute("/")({
+	loader: () => {
+		let tourSkipped = useAppStore.getState().tourSkipped
+		console.log("Loader: tourSkipped =", tourSkipped)
+		if (tourSkipped) {
+			throw redirect({ to: "/people" })
+		}
+		return null
+	},
 	component: WelcomeIndex,
 })
 
 function WelcomeIndex() {
 	let navigate = useNavigate()
+	let tourSkipped = useAppStore(state => state.tourSkipped)
 	let setTourSkipped = useAppStore(state => state.setTourSkipped)
+
+	console.log("Component: tourSkipped =", tourSkipped)
 
 	function handleSkip() {
 		setTourSkipped(true)
@@ -32,7 +49,9 @@ function WelcomeIndex() {
 					layoutId="logo"
 				/>
 				<motion.div layoutId="title">
-					<TypographyH1>Tilly</TypographyH1>
+					<TypographyH1>
+						<T k="welcome.title" />
+					</TypographyH1>
 				</motion.div>
 			</div>
 
@@ -41,7 +60,9 @@ function WelcomeIndex() {
 				animate={{ y: 0, opacity: 1 }}
 				transition={{ delay: 0.4, duration: 0.4 }}
 			>
-				<TypographyLarge>Welcome to your relationship journal!</TypographyLarge>
+				<TypographyLarge>
+					<T k="welcome.subtitle" />
+				</TypographyLarge>
 			</motion.div>
 
 			<motion.div
@@ -50,7 +71,9 @@ function WelcomeIndex() {
 				transition={{ delay: 0.5, duration: 0.4 }}
 			>
 				<Button asChild>
-					<Link to="/tour">Take the Tour</Link>
+					<Link to="/tour">
+						<T k="welcome.takeTour" />
+					</Link>
 				</Button>
 			</motion.div>
 
@@ -61,11 +84,11 @@ function WelcomeIndex() {
 				transition={{ delay: 0.5, duration: 0.4 }}
 			>
 				<Button variant="secondary" onClick={handleSkip}>
-					Skip
+					<T k="welcome.skip" />
 				</Button>
 
 				<Button variant="secondary" onClick={handleSignIn}>
-					Sign In
+					<T k="welcome.signIn" />
 				</Button>
 			</motion.div>
 		</div>
