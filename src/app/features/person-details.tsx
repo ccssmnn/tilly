@@ -26,6 +26,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
+import { isTextSelectionOngoing } from "#app/lib/utils"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
@@ -130,7 +131,10 @@ export function PersonDetails({
 			<div className="flex flex-col items-center gap-6 md:flex-row">
 				<Avatar
 					className="size-48 cursor-pointer"
-					onClick={() => setActionsDialogOpen(true)}
+					onClick={() => {
+						if (isTextSelectionOngoing()) return
+						setActionsDialogOpen(true)
+					}}
 				>
 					{person.avatar ? (
 						<JazzImage
@@ -146,7 +150,7 @@ export function PersonDetails({
 				</Avatar>
 				<div className="w-full flex-1 md:w-auto">
 					<div className="flex items-center justify-between gap-3">
-						<h1 className="text-3xl font-bold">{person.name}</h1>
+						<h1 className="text-3xl font-bold select-text">{person.name}</h1>
 						<Button
 							variant="secondary"
 							size="sm"
@@ -157,10 +161,12 @@ export function PersonDetails({
 					</div>
 
 					{person.summary && (
-						<p className="text-muted-foreground my-3">{person.summary}</p>
+						<p className="text-muted-foreground my-3 select-text">
+							{person.summary}
+						</p>
 					)}
 
-					<p className="text-muted-foreground space-y-1 text-sm">
+					<p className="text-muted-foreground space-y-1 text-sm select-text">
 						{t("person.added.suffix", {
 							ago: formatDistanceToNow(
 								person.createdAt || new Date(person.$jazz.createdAt),

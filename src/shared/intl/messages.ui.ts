@@ -126,6 +126,16 @@ const baseUiMessages = messages({
 	// Splash screen messages
 	"splash.title": "Tilly",
 	"splash.logoAlt": "Tilly logo",
+
+	// Markdown editor messages
+	"markdown.preview": "Preview",
+	"markdown.edit": "Edit",
+	"markdown.bold": "Bold",
+	"markdown.italic": "Italic",
+	"markdown.link": "Link",
+	"markdown.list": "List",
+	"markdown.heading": "Heading",
+	"markdown.noPreview": "Nothing to preview",
 })
 
 const deUiMessages = translate(baseUiMessages, {
@@ -253,4 +263,14 @@ const deUiMessages = translate(baseUiMessages, {
 	// Splash screen messages
 	"splash.title": "Tilly",
 	"splash.logoAlt": "Tilly-Logo",
+
+	// Markdown editor messages
+	"markdown.preview": "Vorschau",
+	"markdown.edit": "Bearbeiten",
+	"markdown.bold": "Fett",
+	"markdown.italic": "Kursiv",
+	"markdown.link": "Link",
+	"markdown.list": "Liste",
+	"markdown.heading": "Überschrift",
+	"markdown.noPreview": "Nichts zum Anzeigen",
 })

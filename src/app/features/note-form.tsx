@@ -1,5 +1,5 @@
 import { Button } from "#shared/ui/button"
-import { Textarea } from "#shared/ui/textarea"
+import { MarkdownEditor } from "#shared/ui/markdown-editor"
 import { Switch } from "#shared/ui/switch"
 import {
 	Form,
@@ -16,20 +16,6 @@ import { z } from "zod"
 import { T, useIntl } from "#shared/intl/setup"
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
-
-let noteContentPlaceholders = [
-	"note.placeholder.1",
-	"note.placeholder.2",
-	"note.placeholder.3",
-	"note.placeholder.4",
-	"note.placeholder.5",
-	"note.placeholder.6",
-] as const
-
-function getRotatingNotePlaceholder(t: ReturnType<typeof useIntl>) {
-	let index = Math.floor(Date.now() / 9000) % noteContentPlaceholders.length
-	return t(noteContentPlaceholders[index])
-}
 
 function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
@@ -54,7 +40,7 @@ export function NoteForm({
 }) {
 	let t = useIntl()
 	let noteFormSchema = createNoteFormSchema(t)
-	let [placeholder] = useState(getRotatingNotePlaceholder(t))
+	let [placeholder] = useState(t("note.form.placeholder"))
 	let form = useForm<NoteFormValues>({
 		resolver: zodResolver(noteFormSchema),
 		defaultValues: {
@@ -63,17 +49,13 @@ export function NoteForm({
 		},
 	})
 
-	function handleTextareaKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-		if (e.repeat || e.shiftKey || e.altKey || (!e.metaKey && !e.ctrlKey) || e.key !== "Enter") {
-			return
-		}
+	function handleTextareaKeyDown(e: KeyboardEvent) {
+		if (form.formState.isSubmitting) return
+		if (e.repeat || e.shiftKey || e.altKey) return
+		if (!e.metaKey && !e.ctrlKey) return
+		if (e.key !== "Enter") return
 
 		e.preventDefault()
-
-		if (form.formState.isSubmitting) {
-			return
-		}
-
 		form.handleSubmit(onSubmit)()
 	}
 
@@ -89,12 +71,13 @@ export function NoteForm({
 								<T k="note.form.content.label" />
 							</FormLabel>
 							<FormControl>
-									<Textarea
-										onKeyDown={handleTextareaKeyDown}
-										placeholder={placeholder}
-										rows={4}
-										{...field}
-									/>
+								<MarkdownEditor
+									onChange={field.onChange}
+									onKeyDown={handleTextareaKeyDown}
+									placeholder={placeholder}
+									rows={4}
+									value={field.value}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>

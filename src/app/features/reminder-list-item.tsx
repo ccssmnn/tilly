@@ -42,7 +42,7 @@ import {
 import { toast } from "sonner"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale, useIntl, T } from "#shared/intl/setup"
-import { cn } from "#app/lib/utils"
+import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { NoteForm } from "#app/features/note-form"
@@ -85,18 +85,20 @@ function ReminderListItem({
 					onClick={() => setDialogOpen("restore")}
 					noLazy={noLazy}
 				>
-					<ReminderItemHeader
-						person={person}
-						reminder={reminder}
-						showPerson={showPerson}
-						searchQuery={searchQuery}
-					/>
-					<ReminderItemText
-						reminder={reminder}
-						statusText={t("reminder.status.deleted")}
-						statusColor="text-destructive text-muted-foreground"
-						searchQuery={searchQuery}
-					/>
+					<div className="select-text">
+						<ReminderItemHeader
+							person={person}
+							reminder={reminder}
+							showPerson={showPerson}
+							searchQuery={searchQuery}
+						/>
+						<ReminderItemText
+							reminder={reminder}
+							statusText={t("reminder.status.deleted")}
+							statusColor="text-destructive text-muted-foreground"
+							searchQuery={searchQuery}
+						/>
+					</div>
 				</ReminderItemContainer>
 				<RestoreReminderDialog
 					reminder={reminder}
@@ -120,18 +122,20 @@ function ReminderListItem({
 					onClick={() => setDialogOpen("done")}
 					noLazy={noLazy}
 				>
-					<ReminderItemHeader
-						person={person}
-						reminder={reminder}
-						showPerson={showPerson}
-						searchQuery={searchQuery}
-					/>
-					<ReminderItemText
-						reminder={reminder}
-						statusText={t("reminder.status.done")}
-						statusColor="text-primary text-muted-foreground"
-						searchQuery={searchQuery}
-					/>
+					<div className="select-text">
+						<ReminderItemHeader
+							person={person}
+							reminder={reminder}
+							showPerson={showPerson}
+							searchQuery={searchQuery}
+						/>
+						<ReminderItemText
+							reminder={reminder}
+							statusText={t("reminder.status.done")}
+							statusColor="text-primary text-muted-foreground"
+							searchQuery={searchQuery}
+						/>
+					</div>
 				</ReminderItemContainer>
 				<DoneReminderActionsDialog
 					open={dialogOpen === "done"}
@@ -153,7 +157,7 @@ function ReminderListItem({
 				onClick={() => setDialogOpen("actions")}
 				noLazy={noLazy}
 			>
-				<div className="flex items-start gap-3">
+				<div className="flex items-start gap-3 select-text">
 					<div
 						className={cn(
 							"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
@@ -172,7 +176,7 @@ function ReminderListItem({
 						</p>
 					)}
 				</div>
-				<p className="text-md/tight text-left">
+				<p className="text-md/tight text-left select-text">
 					<TextHighlight text={reminder.text} query={searchQuery} />
 				</p>
 			</ReminderItemContainer>
@@ -228,7 +232,10 @@ function ReminderItemContainer({
 					"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
 					className,
 				)}
-				onClick={onClick}
+				onClick={() => {
+					if (isTextSelectionOngoing()) return
+					onClick()
+				}}
 			>
 				{showPerson ? (
 					<Avatar

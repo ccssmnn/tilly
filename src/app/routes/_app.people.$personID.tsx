@@ -35,9 +35,12 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "#shared/ui/accordion"
-import { T, useIntl } from "#shared/intl/setup"
 
-export const Route = createFileRoute("/people/$personID")({
+import { T, useIntl } from "#shared/intl/setup"
+import { NoteTour } from "#app/features/note-tour"
+import { ReminderTour } from "#app/features/reminder-tour"
+
+export const Route = createFileRoute("/_app/people/$personID")({
 	validateSearch: z.object({
 		tab: z.enum(["notes", "reminders"]).optional().default("notes"),
 	}),
@@ -75,6 +78,17 @@ function PersonScreen() {
 
 	let reminders = usePersonReminders(person, deferredSearchQuery)
 	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
+
+	if (!me) {
+		return (
+			<div className="relative space-y-8 pb-20 md:mt-12 md:pb-4">
+				<title>{t("person.detail.pageTitle", { name: person.name })}</title>
+				<div className="text-center">
+					<p>Please sign in to view person details.</p>
+				</div>
+			</div>
+		)
+	}
 
 	return (
 		<div className="relative space-y-8 pb-20 md:mt-12 md:pb-4">
@@ -206,22 +220,18 @@ function NotesList({
 	let hasMoreNotes = notes.deleted.length > 0
 
 	if (notes.active.length === 0 && notes.deleted.length === 0) {
+		if (!searchQuery) {
+			return <NoteTour onSuccess={() => {}} personId={person.$jazz.id} />
+		}
+
 		return (
 			<div className="flex flex-col items-center justify-center py-12 text-center">
 				<Journal className="text-muted-foreground size-8" />
 				<p className="text-muted-foreground mt-4 text-lg">
-					{searchQuery ? (
-						<T k="notes.empty.withSearch" params={{ query: searchQuery }} />
-					) : (
-						<T k="notes.empty.noSearch" />
-					)}
+					<T k="notes.empty.withSearch" params={{ query: searchQuery }} />
 				</p>
 				<p className="text-muted-foreground text-sm">
-					{searchQuery ? (
-						<T k="notes.empty.suggestion.withSearch" />
-					) : (
-						<T k="notes.empty.suggestion.noSearch" />
-					)}
+					<T k="notes.empty.suggestion.withSearch" />
 				</p>
 			</div>
 		)
@@ -313,22 +323,18 @@ function RemindersList({
 		reminders.done.length === 0 &&
 		reminders.deleted.length === 0
 	) {
+		if (!searchQuery) {
+			return <ReminderTour onSuccess={() => {}} personId={person.$jazz.id} />
+		}
+
 		return (
 			<div className="flex flex-col items-center justify-center py-12 text-center">
 				<Bell className="text-muted-foreground size-8" />
 				<p className="text-muted-foreground mt-4 text-lg">
-					{searchQuery ? (
-						<T k="reminders.empty.withSearch" params={{ query: searchQuery }} />
-					) : (
-						<T k="reminders.empty.noSearch" />
-					)}
+					<T k="reminders.empty.withSearch" params={{ query: searchQuery }} />
 				</p>
 				<p className="text-muted-foreground text-sm">
-					{searchQuery ? (
-						<T k="reminders.empty.suggestion.withSearch" />
-					) : (
-						<T k="reminders.empty.suggestion.noSearch" />
-					)}
+					<T k="reminders.empty.suggestion.withSearch" />
 				</p>
 			</div>
 		)
@@ -510,7 +516,14 @@ function AddItemButton(props: {
 
 	return (
 		<>
-			<Button onClick={handleButtonClick}>
+			<Button
+				onClick={handleButtonClick}
+				data-testid={
+					props.activeTab === "notes"
+						? "add-note-button"
+						: "add-reminder-button"
+				}
+			>
 				<Plus />
 				<span className="hidden md:inline">
 					{props.activeTab === "notes" ? (

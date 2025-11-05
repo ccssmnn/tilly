@@ -9,9 +9,9 @@ const basePeopleMessages = messages({
 	"people.search.placeholder": "Find someone...",
 	"people.search.clearLabel": "Clear Search",
 	"people.newPersonLabel": "New Person",
-	"people.empty.heading": "Stay close to the people you love",
+	"people.empty.heading": "Each Person has their own space",
 	"people.empty.description":
-		"Add the people who matter to you and nurture your relationships",
+		"Tilly organizes your journal by person. Get started by adding someone important.",
 	"people.empty.addButton": "Add someone special",
 	"people.noActive.message": "Start adding the people who matter to you.",
 	"people.noActive.addButton": "Add someone special",
@@ -31,6 +31,8 @@ const basePeopleMessages = messages({
 	"person.form.name.label": "Name",
 	"person.form.name.required": "Name is required",
 	"person.form.summary.label": "Summary",
+	"person.form.name.placeholder": "How do you call this person",
+	"person.form.summary.placeholder": "A few key facts that help you find them",
 	"person.form.avatar.upload": "Upload Image",
 	"person.form.avatar.change": "Change Image",
 	"person.form.avatar.remove": "Remove Avatar",
@@ -45,24 +47,6 @@ const basePeopleMessages = messages({
 	"person.detail.reminders.tab": "Reminder ({$count :number})",
 	"person.detail.addNote": "Add Note",
 	"person.detail.addReminder": "Add Reminder",
-	"person.name.placeholder.1": "Alex Johnson",
-	"person.name.placeholder.2": "Maria Garcia",
-	"person.name.placeholder.3": "David Chen",
-	"person.name.placeholder.4": "Sarah Williams",
-	"person.name.placeholder.5": "Michael Brown",
-	"person.name.placeholder.6": "Emma Davis",
-	"person.summary.placeholder.1":
-		"College friend, lives downtown, loves cooking and board games",
-	"person.summary.placeholder.2":
-		"Neighbor from across the street, has two cats and a garden",
-	"person.summary.placeholder.3":
-		"Work colleague, marathon runner, always has great book recommendations",
-	"person.summary.placeholder.4":
-		"Childhood friend, teacher, passionate about environmental causes",
-	"person.summary.placeholder.5":
-		"Cousin from Portland, musician, recently moved back to town",
-	"person.summary.placeholder.6":
-		"Friend from yoga class, freelance designer, travels frequently",
 	"person.actions.title": "Actions",
 	"person.edit.title": "Edit Person",
 	"person.delete.title": "Delete Person",
@@ -88,9 +72,9 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"people.search.placeholder": "Jemanden finden...",
 	"people.search.clearLabel": "Suche löschen",
 	"people.newPersonLabel": "Neue Person",
-	"people.empty.heading": "Bleib verbunden mit den Menschen, die du liebst",
+	"people.empty.heading": "Jede Person hat ihren eigenen Bereich",
 	"people.empty.description":
-		"Füge Personen hinzu, die dir wichtig sind, und bleib auf dem laufenden",
+		"Tilly organisiert dein Journal nach Personen. Beginne, indem du jemand Wichtiges hinzufügst.",
 	"people.empty.addButton": "Jemand Besonderes hinzufügen",
 	"people.noActive.message":
 		"Fang an, die Menschen hinzuzufügen, die dir wichtig sind.",
@@ -126,24 +110,9 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.detail.reminders.tab": "Erinnerungen ({$count :number})",
 	"person.detail.addNote": "Notiz hinzufügen",
 	"person.detail.addReminder": "Erinnerung hinzufügen",
-	"person.name.placeholder.1": "Alex Johnson",
-	"person.name.placeholder.2": "Maria Garcia",
-	"person.name.placeholder.3": "David Chen",
-	"person.name.placeholder.4": "Sarah Williams",
-	"person.name.placeholder.5": "Michael Brown",
-	"person.name.placeholder.6": "Emma Davis",
-	"person.summary.placeholder.1":
-		"College-Freund, wohnt in der Innenstadt, liebt Kochen und Brettspiele",
-	"person.summary.placeholder.2":
-		"Nachbar von gegenüber, hat zwei Katzen und einen Garten",
-	"person.summary.placeholder.3":
-		"Arbeitskollege, Marathonläufer, hat immer tolle Buchempfehlungen",
-	"person.summary.placeholder.4":
-		"Freund aus Kindertagen, Lehrer, engagiert für Umweltschutz",
-	"person.summary.placeholder.5":
-		"Cousin aus Portland, Musiker, kürzlich zurückgezogen",
-	"person.summary.placeholder.6":
-		"Freundin aus dem Yoga, freiberufliche Designerin, reist oft",
+	"person.form.name.placeholder": "Wie nennst du diese Person",
+	"person.form.summary.placeholder":
+		"Einige wichtige Fakten, die dir helfen, sie/ihn wiederzufinden",
 	"person.actions.title": "Aktionen",
 	"person.edit.title": "Person bearbeiten",
 	"person.delete.title": "Person löschen",

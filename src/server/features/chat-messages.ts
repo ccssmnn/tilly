@@ -123,6 +123,7 @@ CONVERSATION vs NOTE CREATION:
 
 NOTE SYSTEM: 
 - Notes are flexible content that can be short facts ("Job: Manager at Google") or longer stories
+- Notes support markdown formatting: **bold**, *italic*, [links](url), lists, etc.
 - Pin important notes that should be prominently displayed
 - Use pinning for key details like job, relationship status, important preferences, or significant life events
 - IMPORTANT: When writing notes that are not short facts, write them in first person (ego perspective) as if the user is writing in their journal. For example: "I had coffee with Lisa today. She got promoted to manager and her daughter Emma just started kindergarten. She seemed stressed about the new responsibilities."

@@ -1,42 +1,35 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
-import { UserAccount, Person, isDeleted } from "#shared/schema/user"
+import { UserAccount, isDeleted } from "#shared/schema/user"
 import { useReminders } from "#app/features/reminder-hooks"
 import { useAccount } from "jazz-tools/react"
-import { co, type ResolveQuery } from "jazz-tools"
+import { type ResolveQuery } from "jazz-tools"
 import { ReminderListItem } from "#app/features/reminder-list-item"
-import { ReminderForm } from "#app/features/reminder-form"
+
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
-import { Plus, X, Search, Bell, People } from "react-bootstrap-icons"
+import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
-import { useState, useDeferredValue, type ReactNode } from "react"
-import { Combobox } from "#shared/ui/combobox"
-import { useAppStore } from "#app/lib/store"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+import { useDeferredValue, type ReactNode } from "react"
+
 import {
 	Accordion,
 	AccordionContent,
 	AccordionItem,
 	AccordionTrigger,
 } from "#shared/ui/accordion"
-import { createReminder } from "#shared/tools/reminder-create"
-import { tryCatch } from "#shared/lib/trycatch"
-import { toast } from "sonner"
-import { NewPerson } from "#app/features/new-person"
-import { SignInPrompt } from "#app/features/auth-prompt"
+import { NewReminder } from "#app/features/new-reminder"
+import { ReminderTour } from "#app/features/reminder-tour"
+import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 
-export let Route = createFileRoute("/reminders")({
+export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
+		if (!context.me) {
+			return { me: null, eagerCount }
+		}
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
@@ -65,13 +58,25 @@ function Reminders() {
 	})
 
 	let currentMe = subscribedMe ?? data
+
+	let { remindersSearchQuery } = useAppStore()
+	let deferredSearchQuery = useDeferredValue(remindersSearchQuery)
+
 	let people = (currentMe?.root?.people ?? []).filter(
 		person => person && !isDeleted(person),
 	)
 
-	let { remindersSearchQuery } = useAppStore()
-	let deferredSearchQuery = useDeferredValue(remindersSearchQuery)
 	let reminders = useReminders(people, deferredSearchQuery)
+
+	if (!currentMe) {
+		return (
+			<RemindersLayout>
+				<div className="text-center">
+					<p>Please sign in to view reminders.</p>
+				</div>
+			</RemindersLayout>
+		)
+	}
 
 	// Early return for no people - no controls needed
 	if (people.length === 0) {
@@ -85,7 +90,7 @@ function Reminders() {
 	if (reminders.total === 0) {
 		return (
 			<RemindersLayout>
-				<NoRemindersState people={people} currentMe={currentMe} />
+				<NoRemindersState />
 			</RemindersLayout>
 		)
 	}
@@ -100,7 +105,7 @@ function Reminders() {
 	if (didSearch && !hasMatches) {
 		return (
 			<RemindersLayout>
-				<RemindersControls people={people} currentMe={currentMe} />
+				<RemindersControls />
 				<NoSearchResultsState searchQuery={deferredSearchQuery} />
 			</RemindersLayout>
 		)
@@ -109,7 +114,7 @@ function Reminders() {
 	if (!didSearch && !hasMatches) {
 		return (
 			<RemindersLayout>
-				<RemindersControls people={people} currentMe={currentMe} />
+				<RemindersControls />
 				<AllCaughtUpState />
 			</RemindersLayout>
 		)
@@ -117,7 +122,7 @@ function Reminders() {
 
 	return (
 		<RemindersLayout>
-			<RemindersControls people={people} currentMe={currentMe} />
+			<RemindersControls />
 			{reminders.open.length > 0 ? (
 				<ul className="divide-border divide-y">
 					{reminders.open.map(({ reminder, person }, index) => (
@@ -258,13 +263,7 @@ function RemindersLayout({ children }: { children: ReactNode }) {
 	)
 }
 
-function RemindersControls({
-	people,
-	currentMe,
-}: {
-	people: Array<co.loaded<typeof Person>>
-	currentMe: co.loaded<typeof UserAccount>
-}) {
+function RemindersControls() {
 	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
@@ -292,54 +291,30 @@ function RemindersControls({
 					</span>
 				</Button>
 			) : null}
-			<AddReminder people={people} currentMe={currentMe} />
+			<NewReminder>
+				<Button>
+					<Plus className="size-4" />
+					<span className="sr-only md:not-sr-only">
+						<T k="reminders.addButton" />
+					</span>
+				</Button>
+			</NewReminder>
 		</div>
 	)
 }
 
 function NoPeopleState() {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-around gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
-			<div className="space-y-4">
-				<People className="text-muted-foreground mx-auto size-12" />
-				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">
-						<T k="reminders.noPeople.title" />
-					</h2>
-					<p className="text-muted-foreground">
-						<T k="reminders.noPeople.description" />
-					</p>
-				</div>
-				<NewPerson>
-					<Button className="mt-2">
-						<T k="reminders.noPeople.addButton" />
-					</Button>
-				</NewPerson>
-			</div>
-			<SignInPrompt />
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<ReminderTour />
 		</div>
 	)
 }
 
-function NoRemindersState({
-	people,
-	currentMe,
-}: {
-	people: Array<co.loaded<typeof Person>>
-	currentMe: co.loaded<typeof UserAccount>
-}) {
+function NoRemindersState() {
 	return (
-		<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-			<Bell className="text-muted-foreground size-8" />
-			<div className="space-y-2">
-				<h2 className="text-xl font-semibold">
-					<T k="reminders.noReminders.title" />
-				</h2>
-				<p className="text-muted-foreground">
-					<T k="reminders.noReminders.description" />
-				</p>
-			</div>
-			<AddReminder people={people} currentMe={currentMe} />
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<ReminderTour />
 		</div>
 	)
 }
@@ -373,178 +348,5 @@ function AllCaughtUpState() {
 				</p>
 			</div>
 		</div>
-	)
-}
-
-function AddReminder({
-	people,
-	currentMe,
-}: {
-	people: Array<co.loaded<typeof Person>>
-	currentMe: co.loaded<typeof UserAccount>
-}) {
-	let t = useIntl()
-	let { setRemindersSearchQuery } = useAppStore()
-	let [selectedPersonId, setSelectedPersonId] = useState<string>("")
-	let [addReminderDialogOpen, setAddReminderDialogOpen] = useState(false)
-
-	// Prepare people options for combobox
-	let peopleOptions = people
-		.filter(person => person && !isDeleted(person))
-		.map(person => ({
-			value: person.$jazz.id,
-			label: person.name,
-		}))
-
-	let selectedPersonLabel =
-		peopleOptions.find(personOption => personOption.value === selectedPersonId)
-			?.label ?? ""
-
-	function handleAddReminder() {
-		if (peopleOptions.length === 0) return
-		setSelectedPersonId("")
-		setAddReminderDialogOpen(true)
-	}
-
-	function handlePersonSelected(personId: string) {
-		setSelectedPersonId(personId)
-	}
-
-	async function handleReminderSubmit(data: {
-		text: string
-		dueAtDate: string
-		repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
-	}) {
-		let reminderData = {
-			text: data.text,
-			dueAtDate: data.dueAtDate,
-			repeat: data.repeat,
-		}
-
-		let result = await tryCatch(
-			createReminder(reminderData, {
-				personId: selectedPersonId,
-				userId: currentMe?.$jazz.id ?? "",
-			}),
-		)
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
-		}
-
-		setAddReminderDialogOpen(false)
-		setSelectedPersonId("")
-		setRemindersSearchQuery("")
-		toast.success(t("reminders.created.success"))
-	}
-
-	return (
-		<>
-			<Button onClick={handleAddReminder} disabled={peopleOptions.length === 0}>
-				<Plus className="size-4" />
-				<span className="sr-only md:not-sr-only">
-					<T k="reminders.addButton" />
-				</span>
-			</Button>
-
-			<Dialog
-				open={addReminderDialogOpen}
-				onOpenChange={setAddReminderDialogOpen}
-			>
-				<DialogContent
-					titleSlot={
-						<div className="relative overflow-hidden">
-							<div
-								className={`transition-all duration-300 ease-out ${
-									!selectedPersonId
-										? "translate-x-0 opacity-100"
-										: "absolute inset-0 -translate-x-full opacity-0"
-								}`}
-							>
-								<DialogHeader>
-									<DialogTitle>
-										<T k="reminder.select.title" />
-									</DialogTitle>
-									<DialogDescription>
-										<T k="reminder.select.description" />
-									</DialogDescription>
-								</DialogHeader>
-							</div>
-
-							<div
-								className={`transition-all duration-300 ease-out ${
-									selectedPersonId
-										? "translate-x-0 opacity-100"
-										: "absolute inset-0 translate-x-full opacity-0"
-								}`}
-							>
-								<DialogHeader>
-									<DialogTitle>
-										<T k="reminder.add.title" />
-									</DialogTitle>
-									<DialogDescription>
-										<T
-											k="reminder.add.description"
-											params={{ person: selectedPersonLabel }}
-										/>
-									</DialogDescription>
-								</DialogHeader>
-							</div>
-						</div>
-					}
-				>
-					<div className="relative overflow-hidden">
-						<div
-							className={`transition-all duration-300 ease-out ${
-								!selectedPersonId
-									? "translate-x-0 opacity-100"
-									: "absolute inset-0 -translate-x-full opacity-0"
-							}`}
-						>
-							<div className="space-y-4">
-								<Combobox
-									items={peopleOptions}
-									value={selectedPersonId}
-									onValueChange={handlePersonSelected}
-									placeholder={t("reminder.select.placeholder")}
-									emptyText={t("reminder.select.empty")}
-									searchPlaceholder={t("reminder.select.search")}
-								/>
-								<div className="flex justify-end gap-2">
-									<Button
-										variant="outline"
-										onClick={() => setAddReminderDialogOpen(false)}
-									>
-										<T k="common.cancel" />
-									</Button>
-								</div>
-							</div>
-						</div>
-
-						<div
-							className={`transition-all duration-300 ease-out ${
-								selectedPersonId
-									? "translate-x-0 opacity-100"
-									: "absolute inset-0 translate-x-full opacity-0"
-							}`}
-						>
-							<ReminderForm
-								defaultValues={{
-									text: "",
-									dueAtDate: new Date().toISOString().substring(0, 10),
-								}}
-								onSubmit={handleReminderSubmit}
-								onCancel={() => {
-									setAddReminderDialogOpen(false)
-									setSelectedPersonId("")
-								}}
-							/>
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
-		</>
 	)
 }

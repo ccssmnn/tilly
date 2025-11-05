@@ -14,7 +14,7 @@ const baseRemindersMessages = messages({
 	"reminders.noPeople.addButton": "Add Person",
 	"reminders.noReminders.title": "Stay connected",
 	"reminders.noReminders.description":
-		"Set reminders to follow up, check in, or remember important things",
+		"Reminders help you stay connected and remember to reach out.",
 	"reminders.noResults.message": 'No reminders found matching "{$query}"',
 	"reminders.noResults.suggestion": "Try adjusting your search terms",
 	"reminders.allCaughtUp.title": "All caught up!",
@@ -31,7 +31,7 @@ const baseRemindersMessages = messages({
 	"reminders.empty.noSearch": "No reminders set",
 	"reminders.empty.suggestion.withSearch": "Try adjusting your search terms",
 	"reminders.empty.suggestion.noSearch":
-		"Set reminders to follow up, check in, or remember important things",
+		"Reminders help you stay connected and remember to reach out.",
 	"reminders.add.title": "Reminder",
 	"reminders.add.description":
 		"Set a reminder to follow up, check in, or remember something important about them.",
@@ -44,12 +44,7 @@ const baseRemindersMessages = messages({
 	"reminder.select.search": "Search people...",
 	"reminder.add.title": "Add Reminder",
 	"reminder.add.description": "Set a reminder for {$person}.",
-	"reminder.placeholder.1": "Ask about the job interview results",
-	"reminder.placeholder.2": "Check how the presentation went",
-	"reminder.placeholder.3": "Remember to wish them luck on their marathon",
-	"reminder.placeholder.4": "Follow up on their house hunting progress",
-	"reminder.placeholder.5": "See how the new medication is working",
-	"reminder.placeholder.6": "Ask about their daughter's first day at school",
+	"reminder.form.placeholder": "Set a reminder to follow up when it matters",
 	"reminder.actions.title": "Reminder Actions",
 	"reminder.actions.description":
 		"What would you like to do with this reminder?",
@@ -110,7 +105,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminders.noPeople.addButton": "Person hinzufügen",
 	"reminders.noReminders.title": "Verbunden bleiben",
 	"reminders.noReminders.description":
-		"Lege Erinnerungen fest, um nachzufassen, einzuchecken oder Wichtiges nicht zu vergessen",
+		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
 	"reminders.noResults.message":
 		'Keine passenden Erinnerungen zu "{$query}" gefunden',
 	"reminders.noResults.suggestion": "Passe deine Suchbegriffe an",
@@ -129,7 +124,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminders.empty.noSearch": "Noch keine Erinnerungen",
 	"reminders.empty.suggestion.withSearch": "Passe deine Suchbegriffe an",
 	"reminders.empty.suggestion.noSearch":
-		"Lege Erinnerungen fest, um nachzufassen, einzuchecken oder Wichtiges zu notieren",
+		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
 	"reminders.add.title": "Erinnerung",
 	"reminders.add.description":
 		"Lege eine Erinnerung fest – zum Nachfassen, Einchecken oder um etwas Wichtiges nicht zu vergessen.",
@@ -142,13 +137,8 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminder.select.search": "Personen suchen...",
 	"reminder.add.title": "Erinnerung hinzufügen",
 	"reminder.add.description": "Lege eine Erinnerung für {$person} fest.",
-	"reminder.placeholder.1":
-		"Nach den Ergebnissen des Vorstellungsgesprächs fragen",
-	"reminder.placeholder.2": "Nachfragen, wie die Präsentation lief",
-	"reminder.placeholder.3": "Viel Erfolg für den Marathon wünschen",
-	"reminder.placeholder.4": "Wegen der Haussuche nachfassen",
-	"reminder.placeholder.5": "Nachfragen, wie die neue Medikation wirkt",
-	"reminder.placeholder.6": "Nach dem ersten Schultag der Tochter fragen",
+	"reminder.form.placeholder":
+		"Erinnerung setzen, um nachzufassen, wenn es wichtig ist",
 	"reminder.actions.title": "Aktionen zur Erinnerung",
 	"reminder.actions.description": "Was möchtest du mit dieser Erinnerung tun?",
 	"reminder.actions.markDone": "Als erledigt markieren",

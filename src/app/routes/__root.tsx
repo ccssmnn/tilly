@@ -1,59 +1,25 @@
-import {
-	createRootRouteWithContext,
-	Link,
-	Outlet,
-	redirect,
-	useLocation,
-} from "@tanstack/react-router"
-import { useAccount } from "jazz-tools/react"
-import type { ResolveQuery } from "jazz-tools"
-import { useEffect } from "react"
-import { toast } from "sonner"
-import { UserAccount, isDeleted, isDueToday } from "#shared/schema/user"
-import { Navigation } from "#app/components/navigation"
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
 import { co } from "jazz-tools"
-import { Button } from "#shared/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "#shared/ui/card"
-import { T, useIntl, useLocale } from "#shared/intl/setup"
-import { StatusIndicator } from "#app/components/status-indicator"
+import { UserAccount } from "#shared/schema/user"
 import { ScrollReset } from "#app/components/scroll-reset"
 import { ErrorUI } from "#app/components/error-ui"
+import { Button } from "#shared/ui/button"
+import { Card, CardContent, CardFooter, CardHeader } from "#shared/ui/card"
+import { Link } from "@tanstack/react-router"
+import { T, useIntl, useLocale } from "#shared/intl/setup"
+import { toast } from "sonner"
 
 export interface MyRouterContext {
 	me: co.loaded<typeof UserAccount> | null
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	beforeLoad: ({ context, location }) => {
-		if (location.pathname === "/app") {
-			throw redirect({ to: "/people" })
-		}
-		if (!context.me) {
-			throw redirect({ to: "/" })
-		}
-
-		return { me: context.me }
-	},
 	component: RootComponent,
 	errorComponent: ErrorComponent,
 	notFoundComponent: NotFoundComponent,
 })
 
 function RootComponent() {
-	let { me } = useAccount(UserAccount, { resolve: query })
-
-	let people = me?.root?.people ?? []
-	let dueReminderCount = people
-		.filter(person => !isDeleted(person))
-		.flatMap(person => person.reminders)
-		.filter(reminder => reminder != null)
-		.filter(reminder => !reminder.done && !isDeleted(reminder))
-		.filter(reminder => isDueToday(reminder)).length
-
-	useEffect(() => {
-		setAppBadge(dueReminderCount)
-	}, [dueReminderCount])
-
 	return (
 		<>
 			<main
@@ -68,12 +34,9 @@ function RootComponent() {
 			>
 				<div className="container mx-auto max-w-6xl">
 					<Outlet />
-					<StatusIndicator />
-					<div className="h-20 md:h-0" />
 				</div>
 			</main>
 			<ScrollReset containerId="scroll-area" />
-			<Navigation dueReminderCount={dueReminderCount} />
 		</>
 	)
 }
@@ -116,18 +79,6 @@ function ErrorComponent({ error }: { error?: Error }) {
 }
 
 function NotFoundComponent() {
-	let location = useLocation()
-	useEffect(() => {
-		console.log("404 Page Not Found:", {
-			pathname: location.pathname,
-			search: location.search,
-			hash: location.hash,
-			href: location.href,
-			userAgent: navigator.userAgent,
-			timestamp: new Date().toISOString(),
-		})
-	}, [location.pathname, location.search, location.hash, location.href])
-
 	return (
 		<main className="container mx-auto max-w-6xl px-3 py-6 pb-20 md:pt-20 md:pb-0">
 			<Card className="mx-auto max-w-lg">
@@ -161,32 +112,4 @@ function NotFoundComponent() {
 			</Card>
 		</main>
 	)
-}
-
-let query = {
-	root: {
-		people: {
-			$each: {
-				avatar: true,
-				notes: { $each: true },
-				reminders: { $each: true },
-			},
-		},
-	},
-} as const satisfies ResolveQuery<typeof UserAccount>
-
-async function setAppBadge(count: number) {
-	let isAppBadgeSupported =
-		"setAppBadge" in navigator && "clearAppBadge" in navigator
-	if (!isAppBadgeSupported) return
-
-	try {
-		if (count > 0) {
-			await navigator.setAppBadge(count)
-		} else {
-			await navigator.clearAppBadge()
-		}
-	} catch (error) {
-		console.warn("Failed to set app badge:", error)
-	}
 }

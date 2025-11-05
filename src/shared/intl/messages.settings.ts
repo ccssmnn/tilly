@@ -83,10 +83,12 @@ const baseSettingsMessages = messages({
 	"settings.data.delete.success": "All data deleted successfully",
 	"settings.data.delete.error.load": "Failed to load account data",
 	"settings.data.delete.error.rootMissing": "Account root missing",
-	"settings.website.title": "Website",
-	"settings.website.description":
-		"Visit the website to learn more about Tilly.",
-	"settings.website.visit": "Visit Website",
+	"settings.about.title": "About",
+	"settings.about.description":
+		"Learn more about Tilly or redo the welcome tour.",
+	"settings.about.visit": "Visit Website",
+	"settings.about.learnMore": "Read About Journaling",
+	"settings.about.redoTour": "Take the Tour",
 	"settings.language.title": "Language",
 	"settings.language.description": "Choose your preferred language.",
 	"settings.language.select.label": "Language",
@@ -319,16 +321,10 @@ const baseSettingsMessages = messages({
 	"status.update.title": "Update available",
 	"status.offline.tooltip": "You're offline",
 	"status.offline.dialog.title": "Offline Mode",
-	"status.offline.description":
-		"You're currently offline, but most features still work:",
-	"status.offline.feature.people": "✅ View and edit people and reminders",
-	"status.offline.feature.notes": "✅ Add notes and photos",
-	"status.offline.feature.history": "✅ Browse your relationship history",
-	"status.offline.feature.chat.disabled": "❌ Tilly chat (requires internet)",
-	"status.offline.feature.sync.disabled": "❌ Account sync across devices",
-	"status.offline.feature.notifications.disabled": "❌ Push notifications",
-	"status.offline.sync.message":
-		"Your changes will sync automatically when you're back online.",
+	"status.offline.description": "Most of Tilly works offline.",
+	"status.offline.feature.core": "View and edit people, notes, and reminders",
+	"status.offline.feature.requiresInternet":
+		"Sync, push notifications, and Tilly Assistant require internet",
 	"status.update.tooltip": "Update available",
 	"status.update.dialog.title": "Update Available",
 	"status.update.description":
@@ -338,15 +334,11 @@ const baseSettingsMessages = messages({
 	"status.update.later": "Later",
 	"status.notSignedIn.tooltip": "Not signed in",
 	"status.notSignedIn.dialog.title": "Not Signed In",
-	"status.notSignedIn.description":
-		"You're using Tilly without an account. Your data is stored only in this browser and may be lost.",
-	"status.notSignedIn.warning":
-		"⚠️ Browser storage is not guaranteed to be persistent. Export your data regularly or sign in to prevent data loss.",
-	"status.notSignedIn.features":
-		"{#li}✅ All core features work locally{/li}{#li}❌ Tilly Agent (requires Plus subscription){/li}{#li}❌ Sync across devices{/li}{#li}❌ Push notifications{/li}",
-	"status.notSignedIn.signIn": "Sign In (Free)",
+	"status.notSignedIn.browserOnly":
+		"Without sign in, the data is only stored in the browser",
 	"status.notSignedIn.benefits":
-		"👉 Sign in to sync your data across devices and never lose it. It's free!",
+		"Sign in to back up and sync your data, and receive push notifications",
+	"status.notSignedIn.signIn": "Sign In",
 })
 
 const deSettingsMessages = translate(baseSettingsMessages, {
@@ -431,10 +423,12 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.data.delete.success": "Alle Daten wurden erfolgreich gelöscht",
 	"settings.data.delete.error.load": "Kontodaten konnten nicht geladen werden",
 	"settings.data.delete.error.rootMissing": "Konto-Stammdaten fehlen",
-	"settings.website.title": "Webseite",
-	"settings.website.description":
-		"Besuche die Webseite, um mehr über Tilly zu erfahren.",
-	"settings.website.visit": "Webseite besuchen",
+	"settings.about.title": "Über",
+	"settings.about.description":
+		"Erfahre mehr über Tilly oder wiederhole die Willkommens-Tour.",
+	"settings.about.visit": "Webseite besuchen",
+	"settings.about.learnMore": "Über Journaling lesen",
+	"settings.about.redoTour": "Tour starten",
 	"settings.language.title": "Sprache",
 	"settings.language.description": "Wähle deine bevorzugte Sprache.",
 	"settings.language.select.label": "Sprache",
@@ -677,16 +671,10 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"status.offline.dialog.title": "Offline-Modus",
 	"status.offline.description":
 		"Du bist gerade offline, aber die meisten Funktionen funktionieren trotzdem:",
-	"status.offline.feature.people":
-		"✅ Personen und Erinnerungen ansehen und bearbeiten",
-	"status.offline.feature.notes": "✅ Notizen und Fotos hinzufügen",
-	"status.offline.feature.history": "✅ Beziehungsverlauf durchsuchen",
-	"status.offline.feature.chat.disabled": "❌ Tilly-Chat (benötigt Internet)",
-	"status.offline.feature.sync.disabled":
-		"❌ Kontosynchronisierung über Geräte hinweg",
-	"status.offline.feature.notifications.disabled": "❌ Push-Benachrichtigungen",
-	"status.offline.sync.message":
-		"Deine Änderungen werden automatisch synchronisiert, sobald du wieder online bist.",
+	"status.offline.feature.core":
+		"Personen, Notizen und Erinnerungen ansehen und bearbeiten",
+	"status.offline.feature.requiresInternet":
+		"Sync, Push-Benachrichtigungen und Tilly-Assistent benötigen Internet",
 	"status.update.tooltip": "Update verfügbar",
 	"status.update.dialog.title": "Update verfügbar",
 	"status.update.description":
@@ -696,13 +684,9 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"status.update.later": "Später",
 	"status.notSignedIn.tooltip": "Nicht angemeldet",
 	"status.notSignedIn.dialog.title": "Nicht angemeldet",
-	"status.notSignedIn.description":
-		"Du nutzt Tilly ohne Konto. Deine Daten werden nur in diesem Browser gespeichert und könnten verloren gehen.",
-	"status.notSignedIn.warning":
-		"⚠️ Browser-Speicher kann vom Betriebssystem zurückgesetzt werden. Exportiere deine Daten regelmäßig oder melde dich an, um Datenverlust zu vermeiden.",
-	"status.notSignedIn.features":
-		"{#li}✅ Alle Kernfunktionen funktionieren lokal{/li}{#li}❌ Tilly-Agent (benötigt Plus-Abo){/li}{#li}❌ Synchronisierung über Geräte hinweg{/li}{#li}❌ Push-Benachrichtigungen{/li}",
-	"status.notSignedIn.signIn": "Anmelden (kostenlos)",
+	"status.notSignedIn.browserOnly":
+		"Ohne Anmeldung werden die Daten nur im Browser gespeichert",
 	"status.notSignedIn.benefits":
-		"👉 Melde dich an, um deine Daten über Geräte hinweg zu synchronisieren und nie zu verlieren. Es ist kostenlos!",
+		"Melde dich an, um deine Daten zu sichern, zu synchronisieren und Push-Benachrichtigungen zu erhalten",
+	"status.notSignedIn.signIn": "Anmelden",
 })

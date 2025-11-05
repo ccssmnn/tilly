@@ -14,6 +14,7 @@ import {
 } from "./messages.assistant"
 import { baseUiMessages, deUiMessages } from "./messages.ui"
 import { baseServerMessages, deServerMessages } from "./messages.server"
+import { baseTourMessages, deTourMessages } from "./messages.tour"
 
 export { messagesEn, messagesDe }
 
@@ -25,6 +26,7 @@ let messagesEn = merge(
 	baseAssistantMessages,
 	baseUiMessages,
 	baseServerMessages,
+	baseTourMessages,
 )
 
 let messagesDe = check(
@@ -36,4 +38,5 @@ let messagesDe = check(
 	deAssistantMessages,
 	deUiMessages,
 	deServerMessages,
+	deTourMessages,
 )

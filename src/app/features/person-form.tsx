@@ -200,7 +200,7 @@ function PersonForm({
 							</FormLabel>
 							<FormControl>
 								<Input
-									placeholder={getRotatingPersonPlaceholder("name", t)}
+									placeholder={t("person.form.name.placeholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -219,7 +219,7 @@ function PersonForm({
 							</FormLabel>
 							<FormControl>
 								<Textarea
-									placeholder={getRotatingPersonPlaceholder("summary", t)}
+									placeholder={t("person.form.summary.placeholder")}
 									rows={4}
 									{...field}
 								/>
@@ -379,30 +379,4 @@ async function getCroppedImg(
 		image.onerror = reject
 		image.src = imageSrc
 	})
-}
-
-function getRotatingPersonPlaceholder(
-	type: "name" | "summary",
-	t: ReturnType<typeof useIntl>,
-) {
-	let placeholders =
-		type === "name"
-			? ([
-					"person.name.placeholder.1",
-					"person.name.placeholder.2",
-					"person.name.placeholder.3",
-					"person.name.placeholder.4",
-					"person.name.placeholder.5",
-					"person.name.placeholder.6",
-				] as const)
-			: ([
-					"person.summary.placeholder.1",
-					"person.summary.placeholder.2",
-					"person.summary.placeholder.3",
-					"person.summary.placeholder.4",
-					"person.summary.placeholder.5",
-					"person.summary.placeholder.6",
-				] as const)
-	let index = Math.floor(Date.now() / 6000) % placeholders.length
-	return t(placeholders[index])
 }
