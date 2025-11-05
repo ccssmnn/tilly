@@ -87,7 +87,7 @@ Deploy to Vercel with your own:
 
 ## Contributing
 
-⚠️ I still have to decide how I want to handle contributions regarding copyright and ownership. Please don't hesitate filing Bug Reports or Feature Requests.
+Feel free to file Issues to suggest features or report bugs. PR's are welcome!
 
 ## Security
 
