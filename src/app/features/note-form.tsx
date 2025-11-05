@@ -16,6 +16,9 @@ import { z } from "zod"
 import { T, useIntl } from "#shared/intl/setup"
 import type { KeyboardEvent } from "react"
 import { useState } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
+import { Kbd, KbdGroup } from "#shared/ui/kbd"
+import { useIsMac } from "#app/hooks/use-pwa"
 
 function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
@@ -39,6 +42,7 @@ export function NoteForm({
 	onSubmit: (data: NoteFormValues) => void
 }) {
 	let t = useIntl()
+	let isMac = useIsMac()
 	let noteFormSchema = createNoteFormSchema(t)
 	let [placeholder] = useState(t("note.form.placeholder"))
 	let form = useForm<NoteFormValues>({
@@ -49,14 +53,21 @@ export function NoteForm({
 		},
 	})
 
-	function handleTextareaKeyDown(e: KeyboardEvent) {
-		if (form.formState.isSubmitting) return
-		if (e.repeat || e.shiftKey || e.altKey) return
-		if (!e.metaKey && !e.ctrlKey) return
-		if (e.key !== "Enter") return
+	function submitOnCtrlEnter(e: KeyboardEvent) {
+		if (form.formState.isSubmitting) {
+			return
+		}
 
-		e.preventDefault()
-		form.handleSubmit(onSubmit)()
+		if (e.repeat || e.shiftKey || e.altKey) {
+			return
+		}
+
+		let isCtrlOrMetaEnter = (e.metaKey || e.ctrlKey) && e.key === "Enter"
+
+		if (isCtrlOrMetaEnter) {
+			e.preventDefault()
+			form.handleSubmit(onSubmit)()
+		}
 	}
 
 	return (
@@ -73,7 +84,7 @@ export function NoteForm({
 							<FormControl>
 								<MarkdownEditor
 									onChange={field.onChange}
-									onKeyDown={handleTextareaKeyDown}
+									onKeyDown={submitOnCtrlEnter}
 									placeholder={placeholder}
 									rows={4}
 									value={field.value}
@@ -114,17 +125,28 @@ export function NoteForm({
 					>
 						<T k="form.cancel" />
 					</Button>
-					<Button
-						type="submit"
-						disabled={form.formState.isSubmitting}
-						className="flex-1"
-					>
-						{form.formState.isSubmitting ? (
-							<T k="form.saving" />
-						) : (
-							<T k="form.save" />
-						)}
-					</Button>
+					<Tooltip>
+						<TooltipTrigger>
+							<Button
+								type="submit"
+								disabled={form.formState.isSubmitting}
+								className="flex-1"
+							>
+								{form.formState.isSubmitting ? (
+									<T k="form.saving" />
+								) : (
+									<T k="form.save" />
+								)}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<KbdGroup>
+								<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+								<span>+</span>
+								<Kbd>Enter</Kbd>
+							</KbdGroup>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</form>
 		</Form>
