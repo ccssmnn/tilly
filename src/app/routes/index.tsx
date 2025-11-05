@@ -27,7 +27,7 @@ function WelcomeIndex() {
 
 	function handleSignIn() {
 		setTourSkipped(true)
-		window.location.href = getSignInUrl("/")
+		window.location.href = getSignInUrl()
 	}
 
 	return (
