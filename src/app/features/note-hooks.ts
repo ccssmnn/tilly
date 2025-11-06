@@ -6,7 +6,7 @@ import {
 } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
 
-export { usePersonNotes }
+export { usePersonNotes, useNotes }
 
 function usePersonNotes<Q extends ResolveQuery<typeof Person>>(
 	person: co.loaded<typeof Person, Q>,
@@ -74,4 +74,71 @@ function sortByPriorityAndDate(
 		if (b.priority === "high" && a.priority !== "high") return 1
 		return b.timestamp.getTime() - a.timestamp.getTime()
 	})
+}
+
+function useNotes<Q extends ResolveQuery<typeof Person>>(
+	people: Array<co.loaded<typeof Person, Q>>,
+	searchQuery: string,
+) {
+	let allNotePairs: Array<{
+		note: co.loaded<typeof Note>
+		person: co.loaded<typeof Person>
+	}> = []
+
+	for (let person of people) {
+		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
+		if (!person.notes) continue
+
+		for (let note of person.notes) {
+			if (!note || isPermanentlyDeleted(note)) continue
+			allNotePairs.push({ note, person })
+		}
+	}
+
+	let filteredPairs = searchQuery
+		? allNotePairs.filter(({ note, person }) => {
+				let searchLower = searchQuery.toLowerCase()
+				return (
+					note.content.toLowerCase().includes(searchLower) ||
+					person.name.toLowerCase().includes(searchLower)
+				)
+			})
+		: allNotePairs
+
+	let active: typeof allNotePairs = []
+	let deleted: typeof allNotePairs = []
+
+	for (let { note, person } of filteredPairs) {
+		if (isDeleted(note) && !isPermanentlyDeleted(note)) {
+			deleted.push({ note, person })
+		} else if (!isDeleted(note)) {
+			active.push({ note, person })
+		}
+	}
+
+	active.sort((a, b) => {
+		let aTime = (a.note.updatedAt || a.note.createdAt).getTime()
+		let bTime = (b.note.updatedAt || b.note.createdAt).getTime()
+		return bTime - aTime
+	})
+
+	deleted.sort((a, b) => {
+		let aTime =
+			a.note.deletedAt?.getTime() ??
+			(
+				a.note.updatedAt ||
+				a.note.createdAt ||
+				new Date(a.note.$jazz.lastUpdatedAt || a.note.$jazz.createdAt)
+			).getTime()
+		let bTime =
+			b.note.deletedAt?.getTime() ??
+			(
+				b.note.updatedAt ||
+				b.note.createdAt ||
+				new Date(b.note.$jazz.lastUpdatedAt || b.note.$jazz.createdAt)
+			).getTime()
+		return bTime - aTime
+	})
+
+	return { active, deleted, total: allNotePairs.length }
 }

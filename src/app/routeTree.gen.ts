@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppRemindersRouteImport } from './routes/_app.reminders'
+import { Route as AppNotesRouteImport } from './routes/_app.notes'
 import { Route as AppAssistantRouteImport } from './routes/_app.assistant'
 import { Route as AppPeopleIndexRouteImport } from './routes/_app.people.index'
 import { Route as AppPeoplePersonIDRouteImport } from './routes/_app.people.$personID'
@@ -42,6 +43,11 @@ const AppRemindersRoute = AppRemindersRouteImport.update({
   path: '/reminders',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNotesRoute = AppNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAssistantRoute = AppAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/tour': typeof TourRoute
   '/assistant': typeof AppAssistantRoute
+  '/notes': typeof AppNotesRoute
   '/reminders': typeof AppRemindersRoute
   '/settings': typeof AppSettingsRoute
   '/people/$personID': typeof AppPeoplePersonIDRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/tour': typeof TourRoute
   '/assistant': typeof AppAssistantRoute
+  '/notes': typeof AppNotesRoute
   '/reminders': typeof AppRemindersRoute
   '/settings': typeof AppSettingsRoute
   '/people/$personID': typeof AppPeoplePersonIDRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/tour': typeof TourRoute
   '/_app/assistant': typeof AppAssistantRoute
+  '/_app/notes': typeof AppNotesRoute
   '/_app/reminders': typeof AppRemindersRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/people/$personID': typeof AppPeoplePersonIDRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
     | '/'
     | '/tour'
     | '/assistant'
+    | '/notes'
     | '/reminders'
     | '/settings'
     | '/people/$personID'
@@ -102,6 +112,7 @@ export interface FileRouteTypes {
     | '/'
     | '/tour'
     | '/assistant'
+    | '/notes'
     | '/reminders'
     | '/settings'
     | '/people/$personID'
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/tour'
     | '/_app/assistant'
+    | '/_app/notes'
     | '/_app/reminders'
     | '/_app/settings'
     | '/_app/people/$personID'
@@ -161,6 +173,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRemindersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/notes': {
+      id: '/_app/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof AppNotesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/assistant': {
       id: '/_app/assistant'
       path: '/assistant'
@@ -187,6 +206,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAssistantRoute: typeof AppAssistantRoute
+  AppNotesRoute: typeof AppNotesRoute
   AppRemindersRoute: typeof AppRemindersRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppPeoplePersonIDRoute: typeof AppPeoplePersonIDRoute
@@ -195,6 +215,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAssistantRoute: AppAssistantRoute,
+  AppNotesRoute: AppNotesRoute,
   AppRemindersRoute: AppRemindersRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppPeoplePersonIDRoute: AppPeoplePersonIDRoute,

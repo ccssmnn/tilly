@@ -48,6 +48,7 @@ const baseUiMessages = messages({
 
 	// Navigation messages
 	"nav.people": "People",
+	"nav.notes": "Notes",
 	"nav.reminders": "Reminder",
 	"nav.assistant": "Tilly",
 	"nav.settings": "Settings",
@@ -184,6 +185,7 @@ const deUiMessages = translate(baseUiMessages, {
 
 	// Navigation messages
 	"nav.people": "Personen",
+	"nav.notes": "Notizen",
 	"nav.reminders": "Erinnerungen",
 	"nav.assistant": "Tilly",
 	"nav.settings": "Einstellungen",

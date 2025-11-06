@@ -10,6 +10,7 @@ import {
 	Gear,
 	GearFill,
 	AppIndicator,
+	Journal,
 } from "react-bootstrap-icons"
 import { cn } from "#app/lib/utils"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
@@ -108,8 +109,34 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								) : (
 									<People className="mb-1 size-6 md:mb-0" />
 								)}
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.people" />
+								</span>
+							</>
+						)}
+					</Link>
+					<Link
+						key="/notes"
+						to="/notes"
+						activeProps={activeProps}
+						inactiveProps={inactiveProps}
+						className={linkClassName}
+						onClick={() => handleNavClick("notes", "/notes")}
+					>
+						{({ isActive }) => (
+							<>
+								{isActive ? (
+									<Journal
+										className={cn(
+											"mb-1 size-6 md:mb-0",
+											animatingIcon === "notes" && "animate-pulse-scale",
+										)}
+									/>
+								) : (
+									<Journal className="mb-1 size-6 md:mb-0" />
+								)}
+								<span className="sr-only sm:not-sr-only">
+									<T k="nav.notes" />
 								</span>
 							</>
 						)}
@@ -149,7 +176,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 										</span>
 									) : null}
 								</div>
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.reminders" />
 								</span>
 							</>
@@ -175,7 +202,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								) : (
 									<Chat className="mb-1 size-6 md:mb-0" />
 								)}
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.assistant" />
 								</span>
 							</>
@@ -201,7 +228,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								) : (
 									<Gear className="mb-1 size-6 md:mb-0" />
 								)}
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.settings" />
 								</span>
 							</>
@@ -224,7 +251,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 									animatingIcon === "pwa-install" && "animate-pulse-scale",
 								)}
 							/>
-							<span>
+							<span className="sr-only sm:not-sr-only">
 								<T k="nav.install" />
 							</span>
 						</button>

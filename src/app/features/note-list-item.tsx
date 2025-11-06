@@ -16,9 +16,10 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
+
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
-import { PencilSquare, Trash, PinFill } from "react-bootstrap-icons"
+import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
 import { useState, useRef, useEffect } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow, differenceInDays } from "date-fns"
@@ -31,16 +32,21 @@ import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
 
+import { Link } from "@tanstack/react-router"
+import { TextHighlight } from "#shared/ui/text-highlight"
+
 export { NoteListItem }
 
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
 	searchQuery?: string
+	showPerson?: boolean
 }) {
 	let t = useIntl()
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let [isExpanded, setIsExpanded] = useState(false)
+	let showPerson = props.showPerson ?? true
 
 	let { contentRef, hasOverflow } = useContentOverflow(
 		props.note.content,
@@ -73,6 +79,14 @@ function NoteListItem(props: {
 							</span>
 						) : (
 							<>
+								{showPerson && (
+									<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+										<TextHighlight
+											text={props.person.name}
+											query={props.searchQuery}
+										/>
+									</p>
+								)}
 								<Pinned pinned={props.note.pinned} />
 								<div className="flex-1" />
 								<TimeStamp record={props.note} />
@@ -110,6 +124,7 @@ function NoteListItem(props: {
 			<ActionsDialog
 				note={props.note}
 				person={props.person}
+				showPerson={showPerson}
 				open={openDialog === "actions"}
 				onOpenChange={() => setOpenDialog(undefined)}
 				onDelete={async () => {
@@ -175,7 +190,7 @@ function Pinned(props: { pinned?: boolean }) {
 	return (
 		<Badge>
 			<PinFill />
-			<span>
+			<span className="sr-only">
 				<T k="note.status.pinned" />
 			</span>
 		</Badge>
@@ -187,10 +202,8 @@ function TimeStamp({
 }: {
 	record: {
 		createdAt?: Date
-		updatedAt?: Date
 		$jazz: {
 			createdAt: number
-			lastUpdatedAt: number
 		}
 	}
 }) {
@@ -203,26 +216,8 @@ function TimeStamp({
 			locale: dfnsLocale,
 		},
 	)
-	let updatedText = formatDistanceToNow(
-		record.updatedAt || new Date(record.$jazz.lastUpdatedAt),
-		{
-			addSuffix: true,
-			locale: dfnsLocale,
-		},
-	)
 
-	let shouldShowUpdated =
-		(record.updatedAt || new Date(record.$jazz.lastUpdatedAt)).getTime() !==
-		(record.createdAt || new Date(record.$jazz.createdAt)).getTime()
-
-	let t = useIntl()
-	return (
-		<div className="text-muted-foreground text-xs">
-			{createdText}
-			{shouldShowUpdated &&
-				t("note.timestamp.editedSuffix", { ago: updatedText })}
-		</div>
-	)
+	return <div className="text-muted-foreground text-xs">{createdText}</div>
 }
 
 function ActionsDialog(props: {
@@ -231,6 +226,7 @@ function ActionsDialog(props: {
 
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
+	showPerson: boolean
 
 	onEdit: () => void
 	onDelete: () => void
@@ -256,9 +252,28 @@ function ActionsDialog(props: {
 						<T k="note.actions.edit" />
 					</Button>
 					<div className="flex items-center gap-3">
+						{props.showPerson && (
+							<Button
+								variant="outline"
+								className="h-12 flex-1"
+								onClick={() => props.onOpenChange(false)}
+								asChild
+							>
+								<Link
+									to="/people/$personID"
+									params={{ personID: props.person.$jazz.id }}
+								>
+									<PersonFill />
+									<T k="note.actions.viewPerson" />
+								</Link>
+							</Button>
+						)}
 						<Button
 							variant="destructive"
-							className="h-12 flex-1"
+							className={cn(
+								"h-12 flex-1",
+								props.showPerson && "max-w-[calc(50%-6px)]",
+							)}
 							onClick={props.onDelete}
 						>
 							<Trash />
@@ -266,7 +281,10 @@ function ActionsDialog(props: {
 						</Button>
 						<Button
 							variant="secondary"
-							className="h-12 flex-1"
+							className={cn(
+								"h-12 flex-1",
+								props.showPerson && "max-w-[calc(50%-6px)]",
+							)}
 							onClick={props.onPin}
 						>
 							<PinFill />

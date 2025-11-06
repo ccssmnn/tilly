@@ -14,6 +14,9 @@ interface AppState {
 	remindersSearchQuery: string
 	setRemindersSearchQuery: (query: string) => void
 
+	notesSearchQuery: string
+	setNotesSearchQuery: (query: string) => void
+
 	chat: TillyUIMessage[]
 	setChat: (messages: Array<TillyUIMessage>) => void
 	addChatMessage: (message: TillyUIMessage) => void
@@ -167,6 +170,9 @@ export let useAppStore = create<AppState>()(
 			setRemindersSearchQuery: (query: string) =>
 				set({ remindersSearchQuery: query }),
 
+			notesSearchQuery: "",
+			setNotesSearchQuery: (query: string) => set({ notesSearchQuery: query }),
+
 			chat: [],
 			setChat: msgs => set({ chat: msgs }),
 			addChatMessage: msg => set(s => ({ chat: [...s.chat, msg] })),
@@ -211,6 +217,7 @@ export let useAppStore = create<AppState>()(
 					useAppStore.setState({
 						peopleSearchQuery: "",
 						remindersSearchQuery: "",
+						notesSearchQuery: "",
 						chat: [],
 						lastAccessDate: today,
 					})
@@ -224,6 +231,7 @@ export function resetAppStore(): void {
 	useAppStore.setState({
 		peopleSearchQuery: "",
 		remindersSearchQuery: "",
+		notesSearchQuery: "",
 		chat: initialPersistedState.chat,
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,

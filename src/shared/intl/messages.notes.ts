@@ -4,6 +4,15 @@ export { baseNotesMessages, deNotesMessages }
 
 const baseNotesMessages = messages({
 	// Notes collection messages
+	"notes.pageTitle": "Notes - Tilly",
+	"notes.title": "Notes",
+	"notes.search.placeholder": "Search notes...",
+	"notes.noPeople.title": "No People Yet",
+	"notes.noPeople.description":
+		"Add people to start creating and viewing notes.",
+	"notes.empty.title": "No Notes Yet",
+	"notes.empty.description":
+		"Notes are where you journal what you want to remember about someone.",
 	"notes.empty.withSearch": 'No notes found matching "{$query}"',
 	"notes.empty.noSearch": "No notes yet",
 	"notes.empty.suggestion.withSearch": "Try adjusting your search terms",
@@ -13,6 +22,11 @@ const baseNotesMessages = messages({
 		".input {$count :number} .match $count one {{{$count} deleted note}} * {{{$count} deleted notes}}",
 	"notes.deleted.heading": "Deleted ({$count :number})",
 	"notes.created.success": "Note created",
+	"notes.noResults.message": 'No notes found matching "{$query}"',
+	"notes.noResults.suggestion": "Try adjusting your search terms",
+	"notes.allCaughtUp.title": "All Caught Up",
+	"notes.allCaughtUp.description":
+		"You've seen all your notes. Create more by adding notes to people!",
 
 	// Individual note messages
 	"note.add.title": "Add a Note",
@@ -24,6 +38,7 @@ const baseNotesMessages = messages({
 	"note.actions.delete": "Delete",
 	"note.actions.pin": "Pin",
 	"note.actions.unpin": "Unpin",
+	"note.actions.viewPerson": "View Person",
 	"note.status.pinned": "Pinned",
 	"note.status.deleted": "Deleted",
 	"note.showMore": "Show more",
@@ -58,6 +73,15 @@ const baseNotesMessages = messages({
 
 const deNotesMessages = translate(baseNotesMessages, {
 	// Notes collection messages
+	"notes.pageTitle": "Notizen - Tilly",
+	"notes.title": "Notizen",
+	"notes.search.placeholder": "Notizen durchsuchen...",
+	"notes.noPeople.title": "Noch keine Personen",
+	"notes.noPeople.description":
+		"Füge Personen hinzu, um Notizen zu erstellen und anzusehen.",
+	"notes.empty.title": "Noch keine Notizen",
+	"notes.empty.description":
+		"Notizen sind der Ort, an dem du aufschreibst, woran du dich über jemanden erinnern möchtest.",
 	"notes.empty.withSearch": 'Keine passenden Notizen zu "{$query}" gefunden',
 	"notes.empty.noSearch": "Noch keine Notizen",
 	"notes.empty.suggestion.withSearch": "Passe deine Suchbegriffe an",
@@ -67,6 +91,11 @@ const deNotesMessages = translate(baseNotesMessages, {
 		".input {$count :number} .match $count one {{{$count} gelöschte Notiz}} * {{{$count} gelöschte Notizen}}",
 	"notes.deleted.heading": "Gelöscht ({$count :number})",
 	"notes.created.success": "Notiz erstellt",
+	"notes.noResults.message": 'Keine passenden Notizen zu "{$query}" gefunden',
+	"notes.noResults.suggestion": "Passe deine Suchbegriffe an",
+	"notes.allCaughtUp.title": "Alles erledigt",
+	"notes.allCaughtUp.description":
+		"Du hast alle deine Notizen gesehen. Erstelle mehr, indem du Personen Notizen hinzufügst!",
 
 	// Individual note messages
 	"note.add.title": "Notiz hinzufügen",
@@ -78,6 +107,7 @@ const deNotesMessages = translate(baseNotesMessages, {
 	"note.actions.delete": "Löschen",
 	"note.actions.pin": "Anheften",
 	"note.actions.unpin": "Lösen",
+	"note.actions.viewPerson": "Person ansehen",
 	"note.status.pinned": "Angeheftet",
 	"note.status.deleted": "Gelöscht",
 	"note.showMore": "Mehr anzeigen",
