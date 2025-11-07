@@ -16,9 +16,11 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
+import { Avatar, AvatarFallback } from "#shared/ui/avatar"
+
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
-import { PencilSquare, Trash, PinFill } from "react-bootstrap-icons"
+import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
 import { useState, useRef, useEffect } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow, differenceInDays } from "date-fns"
@@ -30,6 +32,10 @@ import { Badge } from "#shared/ui/badge"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
+import { Image as JazzImage } from "jazz-tools/react"
+
+import { Link } from "@tanstack/react-router"
+import { TextHighlight } from "#shared/ui/text-highlight"
 
 export { NoteListItem }
 
@@ -37,10 +43,12 @@ function NoteListItem(props: {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
 	searchQuery?: string
+	showPerson?: boolean
 }) {
 	let t = useIntl()
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let [isExpanded, setIsExpanded] = useState(false)
+	let showPerson = props.showPerson ?? true
 
 	let { contentRef, hasOverflow } = useContentOverflow(
 		props.note.content,
@@ -52,7 +60,7 @@ function NoteListItem(props: {
 			<div
 				className={cn(
 					openDialog !== undefined && "bg-accent",
-					"-mx-3 rounded-md px-3",
+					"hover:bg-muted has-active:bg-accent -mx-3 rounded-md px-3",
 				)}
 			>
 				<button
@@ -62,41 +70,72 @@ function NoteListItem(props: {
 						setOpenDialog(props.note.deletedAt ? "restore" : "actions")
 					}}
 					className={cn(
-						"block w-full space-y-2",
-						hasOverflow ? "pt-4" : "py-4",
+						"flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
+						hasOverflow && "pt-4 pb-0",
 					)}
 				>
-					<div className="flex items-center gap-3 select-text">
-						{props.note.deletedAt ? (
-							<span className="text-destructive">
-								<T k="note.status.deleted" />
-							</span>
-						) : (
-							<>
-								<Pinned pinned={props.note.pinned} />
-								<div className="flex-1" />
-								<TimeStamp record={props.note} />
-							</>
-						)}
-					</div>
-					<div>
-						<div
-							ref={contentRef}
-							className={cn(
-								"text-left text-wrap select-text",
-								props.note.deletedAt && "text-muted-foreground",
-								!isExpanded && "line-clamp-2",
-							)}
+					{showPerson && (
+						<Avatar
+							className={props.note.deletedAt ? "size-16 grayscale" : "size-16"}
 						>
-							<MarkdownWithHighlight
-								content={props.note.content}
-								searchQuery={props.searchQuery}
-							/>
+							{props.person.avatar ? (
+								<JazzImage
+									imageId={props.person.avatar.$jazz.id}
+									loading="lazy"
+									alt={props.person.name}
+									width={64}
+									data-slot="avatar-image"
+									className="aspect-square size-full object-cover shadow-inner"
+								/>
+							) : (
+								<AvatarFallback>{props.person.name.slice(0, 1)}</AvatarFallback>
+							)}
+						</Avatar>
+					)}
+					<div className="min-w-0 flex-1 space-y-1">
+						<div className="flex items-center gap-3 select-text">
+							{props.note.deletedAt ? (
+								<span className="text-destructive">
+									<T k="note.status.deleted" />
+								</span>
+							) : (
+								<>
+									{showPerson && (
+										<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+											<TextHighlight
+												text={props.person.name}
+												query={props.searchQuery}
+											/>
+										</p>
+									)}
+									<Pinned pinned={props.note.pinned} />
+									<div className="flex-1" />
+									<TimeStamp record={props.note} />
+								</>
+							)}
+						</div>
+						<div>
+							<div
+								ref={contentRef}
+								className={cn(
+									"text-left text-wrap select-text",
+									props.note.deletedAt && "text-muted-foreground",
+									!isExpanded && "line-clamp-2",
+								)}
+							>
+								<MarkdownWithHighlight
+									content={props.note.content}
+									searchQuery={props.searchQuery}
+								/>
+							</div>
 						</div>
 					</div>
 				</button>
 				<div
-					className="hidden pb-4 data-[overflow=true]:block"
+					className={cn(
+						"hidden pb-4 text-right data-[overflow=true]:block",
+						showPerson && "ml-[76px]",
+					)}
 					data-overflow={hasOverflow}
 				>
 					<button
@@ -110,6 +149,7 @@ function NoteListItem(props: {
 			<ActionsDialog
 				note={props.note}
 				person={props.person}
+				showPerson={showPerson}
 				open={openDialog === "actions"}
 				onOpenChange={() => setOpenDialog(undefined)}
 				onDelete={async () => {
@@ -173,12 +213,12 @@ function escapeRegExp(s: string) {
 function Pinned(props: { pinned?: boolean }) {
 	if (!props.pinned) return null
 	return (
-		<Badge>
-			<PinFill />
-			<span>
+		<div>
+			<PinFill className="text-primary size-3" />
+			<span className="sr-only">
 				<T k="note.status.pinned" />
 			</span>
-		</Badge>
+		</div>
 	)
 }
 
@@ -187,10 +227,8 @@ function TimeStamp({
 }: {
 	record: {
 		createdAt?: Date
-		updatedAt?: Date
 		$jazz: {
 			createdAt: number
-			lastUpdatedAt: number
 		}
 	}
 }) {
@@ -203,26 +241,8 @@ function TimeStamp({
 			locale: dfnsLocale,
 		},
 	)
-	let updatedText = formatDistanceToNow(
-		record.updatedAt || new Date(record.$jazz.lastUpdatedAt),
-		{
-			addSuffix: true,
-			locale: dfnsLocale,
-		},
-	)
 
-	let shouldShowUpdated =
-		(record.updatedAt || new Date(record.$jazz.lastUpdatedAt)).getTime() !==
-		(record.createdAt || new Date(record.$jazz.createdAt)).getTime()
-
-	let t = useIntl()
-	return (
-		<div className="text-muted-foreground text-xs">
-			{createdText}
-			{shouldShowUpdated &&
-				t("note.timestamp.editedSuffix", { ago: updatedText })}
-		</div>
-	)
+	return <div className="text-muted-foreground text-xs">{createdText}</div>
 }
 
 function ActionsDialog(props: {
@@ -231,6 +251,7 @@ function ActionsDialog(props: {
 
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
+	showPerson: boolean
 
 	onEdit: () => void
 	onDelete: () => void
@@ -256,25 +277,32 @@ function ActionsDialog(props: {
 						<T k="note.actions.edit" />
 					</Button>
 					<div className="flex items-center gap-3">
+						{props.showPerson && (
+							<Button
+								variant="outline"
+								className="h-12 flex-1"
+								onClick={() => props.onOpenChange(false)}
+								asChild
+							>
+								<Link
+									to="/people/$personID"
+									params={{ personID: props.person.$jazz.id }}
+								>
+									<PersonFill />
+									<T k="note.actions.viewPerson" />
+								</Link>
+							</Button>
+						)}
 						<Button
 							variant="destructive"
-							className="h-12 flex-1"
+							className={cn(
+								"h-12 flex-1",
+								props.showPerson && "max-w-[calc(50%-6px)]",
+							)}
 							onClick={props.onDelete}
 						>
 							<Trash />
 							<T k="note.actions.delete" />
-						</Button>
-						<Button
-							variant="secondary"
-							className="h-12 flex-1"
-							onClick={props.onPin}
-						>
-							<PinFill />
-							{props.note.pinned ? (
-								<T k="note.actions.unpin" />
-							) : (
-								<T k="note.actions.pin" />
-							)}
 						</Button>
 					</div>
 				</div>
@@ -320,6 +348,9 @@ function EditDialog(props: {
 					defaultValues={{
 						content: props.note.content,
 						pinned: props.note.pinned || false,
+						createdAt: props.note.createdAt
+							? new Date(props.note.createdAt).toISOString().slice(0, 10)
+							: new Date(props.note.$jazz.createdAt).toISOString().slice(0, 10),
 					}}
 					onSubmit={handleSubmit}
 					onCancel={() => props.onOpenChange(false)}

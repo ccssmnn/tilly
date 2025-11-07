@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "#shared/ui/button"
 import { useAppStore } from "#app/lib/store"
 import { motion, AnimatePresence } from "motion/react"
@@ -48,6 +48,19 @@ function TourComponent() {
 		setDirection("left")
 		setCurrentStep(Math.max(currentStep - 1, 0))
 	}
+
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "ArrowRight") {
+				nextStep()
+			} else if (event.key === "ArrowLeft") {
+				prevStep()
+			}
+		}
+
+		window.addEventListener("keydown", handleKeyDown)
+		return () => window.removeEventListener("keydown", handleKeyDown)
+	}, [currentStep, steps.length])
 
 	return (
 		<div

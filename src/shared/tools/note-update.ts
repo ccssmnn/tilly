@@ -18,7 +18,7 @@ async function updateNote(
 	personId: string,
 	noteId: string,
 	updates: Partial<
-		Pick<NoteData, "title" | "content" | "pinned"> & {
+		Pick<NoteData, "title" | "content" | "pinned" | "createdAt"> & {
 			deletedAt: Date | string | undefined
 			permanentlyDeletedAt: Date | string | undefined
 		}
@@ -40,6 +40,18 @@ async function updateNote(
 	}
 	if (updates.pinned !== undefined) {
 		note.$jazz.set("pinned", updates.pinned)
+	}
+
+	if (updates.createdAt !== undefined) {
+		let createdDate = new Date(updates.createdAt)
+		let now = new Date()
+		createdDate.setHours(
+			now.getHours(),
+			now.getMinutes(),
+			now.getSeconds(),
+			now.getMilliseconds(),
+		)
+		note.$jazz.set("createdAt", createdDate)
 	}
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
@@ -99,6 +111,10 @@ let editNoteTool = tool({
 			.describe(
 				"Whether the note should be pinned. Pinned notes appear at the top of the note list.",
 			),
+		createdAt: z
+			.string()
+			.optional()
+			.describe("Updated creation date (date string)"),
 	}),
 	outputSchema: z.union([
 		z.object({
@@ -133,7 +149,11 @@ async function editNoteExecute(
 	_userId: string,
 	input: _EditNoteTool["input"],
 ): Promise<_EditNoteTool["output"]> {
-	let { personId, noteId, ...updates } = input
+	let { personId, noteId, createdAt, ...otherUpdates } = input
+	let updates = {
+		...otherUpdates,
+		...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
+	}
 
 	let res = await tryCatch(updateNote(personId, noteId, updates))
 	if (!res.ok) return { error: `${res.error}` }

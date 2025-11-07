@@ -13,25 +13,23 @@ import {
 	CommandList,
 } from "#shared/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "#shared/ui/popover"
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
 
-interface ComboboxProps {
-	items: Array<{ value: string; label: string }>
+interface ComboboxProps<T = unknown> {
+	items: Array<{ value: string; label: string; person?: T }>
 	value?: string
 	onValueChange?: (value: string) => void
 	placeholder?: string
 	emptyText?: string
 	searchPlaceholder?: string
 	className?: string
+	renderItem?: (
+		item: { value: string; label: string; person?: T },
+		isSelected: boolean,
+	) => React.ReactNode
+	height?: string
 }
 
-export function Combobox({
+export function Combobox<T = unknown>({
 	items,
 	value,
 	onValueChange,
@@ -39,7 +37,9 @@ export function Combobox({
 	emptyText = "No item found.",
 	searchPlaceholder = "Search items...",
 	className,
-}: ComboboxProps) {
+	renderItem,
+	height = "300px",
+}: ComboboxProps<T>) {
 	const [open, setOpen] = React.useState(false)
 	let isMobile = useIsMobile()
 
@@ -58,7 +58,7 @@ export function Combobox({
 	let commandContent = (
 		<Command>
 			<CommandInput placeholder={searchPlaceholder} />
-			<CommandList>
+			<CommandList style={{ height, overflowY: "auto" }}>
 				<CommandEmpty>{emptyText}</CommandEmpty>
 				<CommandGroup>
 					{items.map(item => (
@@ -70,13 +70,19 @@ export function Combobox({
 								setOpen(false)
 							}}
 						>
-							<Check
-								className={cn(
-									"mr-2 h-4 w-4",
-									value === item.value ? "opacity-100" : "opacity-0",
-								)}
-							/>
-							{item.label}
+							{renderItem ? (
+								renderItem(item, value === item.value)
+							) : (
+								<>
+									<Check
+										className={cn(
+											"mr-2 h-4 w-4",
+											value === item.value ? "opacity-100" : "opacity-0",
+										)}
+									/>
+									{item.label}
+								</>
+							)}
 						</CommandItem>
 					))}
 				</CommandGroup>
@@ -84,27 +90,15 @@ export function Combobox({
 		</Command>
 	)
 
-	if (isMobile) {
-		return (
-			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogTrigger asChild>{triggerButton}</DialogTrigger>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>{searchPlaceholder}</DialogTitle>
-						</DialogHeader>
-					}
-				>
-					{commandContent}
-				</DialogContent>
-			</Dialog>
-		)
-	}
-
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-			<PopoverContent className="w-full p-0" align="start">
+			<PopoverContent
+				className="w-full p-0"
+				align="start"
+				side={isMobile ? "bottom" : "bottom"}
+				sideOffset={4}
+			>
 				{commandContent}
 			</PopoverContent>
 		</Popover>

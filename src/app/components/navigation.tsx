@@ -10,6 +10,8 @@ import {
 	Gear,
 	GearFill,
 	AppIndicator,
+	FileEarmarkText,
+	FileEarmarkTextFill,
 } from "react-bootstrap-icons"
 import { cn } from "#app/lib/utils"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
@@ -101,15 +103,41 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								{isActive ? (
 									<PeopleFill
 										className={cn(
-											"mb-1 size-6 md:mb-0",
+											"size-6 sm:mb-1 md:mb-0",
 											animatingIcon === "people" && "animate-pulse-scale",
 										)}
 									/>
 								) : (
-									<People className="mb-1 size-6 md:mb-0" />
+									<People className="size-6 sm:mb-1 md:mb-0" />
 								)}
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.people" />
+								</span>
+							</>
+						)}
+					</Link>
+					<Link
+						key="/notes"
+						to="/notes"
+						activeProps={activeProps}
+						inactiveProps={inactiveProps}
+						className={linkClassName}
+						onClick={() => handleNavClick("notes", "/notes")}
+					>
+						{({ isActive }) => (
+							<>
+								{isActive ? (
+									<FileEarmarkTextFill
+										className={cn(
+											"size-6 sm:mb-1 md:mb-0",
+											animatingIcon === "notes" && "animate-pulse-scale",
+										)}
+									/>
+								) : (
+									<FileEarmarkText className="size-6 sm:mb-1 md:mb-0" />
+								)}
+								<span className="sr-only sm:not-sr-only">
+									<T k="nav.notes" />
 								</span>
 							</>
 						)}
@@ -128,12 +156,12 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 									{isActive ? (
 										<BellFill
 											className={cn(
-												"mb-1 size-6 md:mb-0",
+												"size-6 sm:mb-1 md:mb-0",
 												animatingIcon === "reminders" && "animate-pulse-scale",
 											)}
 										/>
 									) : (
-										<Bell className="mb-1 size-6 md:mb-0" />
+										<Bell className="size-6 sm:mb-1 md:mb-0" />
 									)}
 									{dueReminderCount > 0 ? (
 										<span
@@ -149,7 +177,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 										</span>
 									) : null}
 								</div>
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.reminders" />
 								</span>
 							</>
@@ -168,14 +196,14 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								{isActive ? (
 									<ChatFill
 										className={cn(
-											"mb-1 size-6 md:mb-0",
+											"size-6 sm:mb-1 md:mb-0",
 											animatingIcon === "assistant" && "animate-pulse-scale",
 										)}
 									/>
 								) : (
-									<Chat className="mb-1 size-6 md:mb-0" />
+									<Chat className="size-6 sm:mb-1 md:mb-0" />
 								)}
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.assistant" />
 								</span>
 							</>
@@ -194,14 +222,14 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								{isActive ? (
 									<GearFill
 										className={cn(
-											"mb-1 size-6 md:mb-0",
+											"size-6 sm:mb-1 md:mb-0",
 											animatingIcon === "settings" && "animate-pulse-scale",
 										)}
 									/>
 								) : (
-									<Gear className="mb-1 size-6 md:mb-0" />
+									<Gear className="size-6 sm:mb-1 md:mb-0" />
 								)}
-								<span>
+								<span className="sr-only sm:not-sr-only">
 									<T k="nav.settings" />
 								</span>
 							</>
@@ -219,12 +247,12 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						>
 							<AppIndicator
 								className={cn(
-									"mb-1 size-6 md:mb-0",
+									"size-6 sm:mb-1 md:mb-0",
 									shouldPulse && "animate-pulse",
 									animatingIcon === "pwa-install" && "animate-pulse-scale",
 								)}
 							/>
-							<span>
+							<span className="sr-only sm:not-sr-only">
 								<T k="nav.install" />
 							</span>
 						</button>

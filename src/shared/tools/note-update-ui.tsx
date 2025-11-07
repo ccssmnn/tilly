@@ -10,7 +10,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
-import { ArrowCounterclockwise, Pause, Journal } from "react-bootstrap-icons"
+import {
+	ArrowCounterclockwise,
+	Pause,
+	FileEarmarkText,
+} from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -46,7 +50,18 @@ function EditNoteResult({ result }: { result: _EditNoteTool["output"] }) {
 		setDialogOpen(false)
 		try {
 			if (result.previous) {
-				await updateNote(result.personId, result.noteId, result.previous)
+				await updateNote(result.personId, result.noteId, {
+					title: result.previous.title,
+					content: result.previous.content,
+					pinned: result.previous.pinned,
+					createdAt: result.previous.createdAt
+						? new Date(result.previous.createdAt)
+						: undefined,
+					deletedAt: result.previous.deletedAt
+						? new Date(result.previous.deletedAt)
+						: undefined,
+					permanentlyDeletedAt: undefined,
+				})
 			}
 			setIsUndone(true)
 			addChatMessage({
@@ -313,7 +328,7 @@ function ToolMessageWrapper({
 				dialogOpen && "bg-accent",
 			)}
 		>
-			<Journal className="h-4 w-4" />
+			<FileEarmarkText className="h-4 w-4" />
 			<AlertDescription className="text-sm" onClick={onClick}>
 				{children}
 			</AlertDescription>

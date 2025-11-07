@@ -9,49 +9,53 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#shared/ui/dialog"
-import { Combobox } from "#shared/ui/combobox"
+import { Button } from "#shared/ui/button"
 import { NoteForm } from "#app/features/note-form"
+import { PersonSelector } from "#app/features/person-selector"
 import { createNote } from "#shared/tools/note-create"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
 import { useState } from "react"
+import { motion, AnimatePresence } from "motion/react"
 
 export { NewNote }
 
-function NewNote({
-	children,
-	onSuccess,
-	personId: initialPersonId,
-}: {
+function NewNote(props: {
 	children: ReactNode
 	onSuccess?: (noteId: string) => void
 	personId?: string
 }) {
-	let { me } = useAccount(UserAccount, {
-		resolve: {
-			root: {
-				people: {
-					$each: true,
-				},
-			},
-		},
-	})
 	let t = useIntl()
-	let [selectedPersonId, setSelectedPersonId] = useState(initialPersonId ?? "")
+	let { me } = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: true } } },
+	})
+	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
 	let [dialogOpen, setDialogOpen] = useState(false)
+	let [direction, setDirection] = useState<"left" | "right">()
 
 	let people = (me?.root?.people ?? []).filter(
 		person => person && !isDeleted(person),
 	)
 
-	let peopleOptions = people.map(person => ({
-		value: person.$jazz.id,
-		label: person.name,
-	}))
+	let selectedPersonLabel =
+		people.find(person => person.$jazz.id === selectedPersonId)?.name ?? ""
+
+	function handleDialogOpenChange(open: boolean) {
+		if (!open) {
+			setSelectedPersonId(props.personId ?? "")
+		}
+		setDialogOpen(open)
+	}
 
 	function handlePersonSelected(personId: string) {
+		setDirection("right")
 		setSelectedPersonId(personId)
+	}
+
+	function handleBackToPersonSelection() {
+		setDirection("left")
+		setSelectedPersonId("")
 	}
 
 	async function handleSave(values: { content: string; pinned: boolean }) {
@@ -71,92 +75,155 @@ function NewNote({
 			return
 		}
 
-		onSuccess?.(result.data.noteID)
+		props.onSuccess?.(result.data.noteID)
 		toast.success(t("notes.created.success"))
 		setDialogOpen(false)
 	}
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+			<DialogTrigger asChild>{props.children}</DialogTrigger>
 			<DialogContent
 				titleSlot={
 					<div className="relative overflow-hidden">
-						<div
-							className={`transition-all duration-300 ease-out ${
-								!selectedPersonId
-									? "translate-x-0 opacity-100"
-									: "absolute inset-0 -translate-x-full opacity-0"
-							}`}
-						>
-							<DialogHeader>
-								<DialogTitle>
-									<T k="reminder.select.title" />
-								</DialogTitle>
-								<DialogDescription>
-									<T k="reminder.select.description" />
-								</DialogDescription>
-							</DialogHeader>
-						</div>
-
-						<div
-							className={`transition-all duration-300 ease-out ${
-								selectedPersonId
-									? "translate-x-0 opacity-100"
-									: "absolute inset-0 translate-x-full opacity-0"
-							}`}
-						>
-							<DialogHeader>
-								<DialogTitle>
-									<T k="note.add.title" />
-								</DialogTitle>
-								<DialogDescription>
-									<T k="note.add.description" />
-								</DialogDescription>
-							</DialogHeader>
-						</div>
+						<AnimatePresence mode="wait" custom={direction}>
+							{!selectedPersonId ? (
+								<motion.div
+									key="select"
+									custom={direction}
+									initial="enter"
+									animate="center"
+									exit="exit"
+									variants={{
+										enter: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: -12, right: 12 }[dir],
+										}),
+										center: { opacity: 1, x: 0 },
+										exit: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: 12, right: -12 }[dir],
+										}),
+									}}
+									transition={{ duration: 0.075 }}
+								>
+									<DialogHeader>
+										<DialogTitle>
+											<T k="note.select.title" />
+										</DialogTitle>
+										<DialogDescription>
+											<T k="note.select.description" />
+										</DialogDescription>
+									</DialogHeader>
+								</motion.div>
+							) : (
+								<motion.div
+									key="form"
+									custom={direction}
+									initial="enter"
+									animate="center"
+									exit="exit"
+									variants={{
+										enter: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: -12, right: 12 }[dir],
+										}),
+										center: { opacity: 1, x: 0 },
+										exit: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: 12, right: -12 }[dir],
+										}),
+									}}
+									transition={{ duration: 0.075 }}
+								>
+									<DialogHeader>
+										<DialogTitle>
+											<T k="note.add.title" />
+										</DialogTitle>
+										<DialogDescription>
+											<T
+												k="note.add.description"
+												params={{ person: selectedPersonLabel }}
+											/>
+										</DialogDescription>
+									</DialogHeader>
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</div>
 				}
 			>
 				<div className="relative overflow-hidden">
-					<div
-						className={`transition-all duration-300 ease-out ${
-							!selectedPersonId
-								? "translate-x-0 opacity-100"
-								: "absolute inset-0 -translate-x-full opacity-0"
-						}`}
-					>
-						<div className="space-y-4">
-							<Combobox
-								items={peopleOptions}
-								value={selectedPersonId}
-								onValueChange={handlePersonSelected}
-								placeholder={t("reminder.select.placeholder")}
-								emptyText={t("reminder.select.empty")}
-								searchPlaceholder={t("reminder.select.search")}
-							/>
-							<div className="flex justify-end gap-2">
-								{/* No cancel button needed on first step */}
-							</div>
-						</div>
-					</div>
-
-					<div
-						className={`transition-all duration-300 ease-out ${
-							selectedPersonId
-								? "translate-x-0 opacity-100"
-								: "absolute inset-0 translate-x-full opacity-0"
-						}`}
-					>
-						<NoteForm
-							defaultValues={{ content: "", pinned: false }}
-							onSubmit={handleSave}
-							onCancel={() => {
-								setSelectedPersonId(initialPersonId ?? "")
-								setDialogOpen(false)
-							}}
-						/>
-					</div>
+					<AnimatePresence mode="wait" custom={direction}>
+						{!selectedPersonId ? (
+							<motion.div
+								key="select-content"
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: -12, right: 12 }[dir],
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: 12, right: -12 }[dir],
+									}),
+								}}
+								transition={{ duration: 0.075 }}
+							>
+								<div className="space-y-4">
+									<PersonSelector
+										onPersonSelected={handlePersonSelected}
+										searchPlaceholder={t("note.select.search")}
+										emptyMessage={t("note.select.empty")}
+										selectedPersonId={selectedPersonId}
+									/>
+									<div className="flex justify-end gap-2">
+										<Button
+											variant="outline"
+											onClick={() => handleDialogOpenChange(false)}
+										>
+											<T k="common.cancel" />
+										</Button>
+									</div>
+								</div>
+							</motion.div>
+						) : (
+							<motion.div
+								key="form-content"
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: -12, right: 12 }[dir],
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: 12, right: -12 }[dir],
+									}),
+								}}
+								transition={{ duration: 0.075 }}
+							>
+								<NoteForm
+									defaultValues={{
+										content: "",
+										pinned: false,
+										createdAt: new Date().toISOString().slice(0, 10),
+									}}
+									onSubmit={handleSave}
+									onCancel={handleBackToPersonSelection}
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</div>
 			</DialogContent>
 		</Dialog>

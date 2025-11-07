@@ -37,7 +37,7 @@ function MarkdownEditor({
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
 	let isMac = useIsMac()
 
-	useResizeTextarea(textareaRef, value, { maxHeight: 400 })
+	useResizeTextarea(textareaRef, value, { maxHeight: 400, minHeight: 80 })
 
 	function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
 		onChange(e.target.value)

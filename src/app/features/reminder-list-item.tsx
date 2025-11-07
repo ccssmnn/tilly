@@ -24,7 +24,7 @@ import {
 	PencilSquare,
 	ArrowRepeat,
 	Trash,
-	Journal,
+	FileEarmarkText,
 	PersonFill,
 	CheckLg,
 	ArrowCounterclockwise,
@@ -394,7 +394,7 @@ function ActionsDialog({
 							className="h-12 flex-1"
 							onClick={onAddNoteClick}
 						>
-							<Journal />
+							<FileEarmarkText />
 							<T k="reminder.actions.addNote" />
 						</Button>
 					</div>
@@ -715,6 +715,7 @@ type ReminderUpdateInput = {
 type NoteFormInput = {
 	content: string
 	pinned: boolean
+	createdAt: string
 }
 
 type ReminderItemOperations = {
