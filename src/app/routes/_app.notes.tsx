@@ -7,7 +7,7 @@ import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useDeferredValue, type ReactNode } from "react"
-import { TypographyH1 } from "#shared/ui/typography"
+import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { X, Search, FileEarmarkText, Plus } from "react-bootstrap-icons"
@@ -80,9 +80,16 @@ function NotesScreen() {
 		notes.active.forEach(({ note, person }) => {
 			virtualItems.push({ type: "note", note, person })
 		})
-		notes.deleted.forEach(({ note, person }) => {
-			virtualItems.push({ type: "note", note, person })
-		})
+		if (notes.deleted.length > 0) {
+			virtualItems.push({
+				type: "deleted-notes-heading",
+				count: notes.deleted.length,
+			})
+			notes.deleted.forEach(({ note, person }) => {
+				virtualItems.push({ type: "note", note, person })
+			})
+		}
+		virtualItems.push({ type: "spacer" })
 	}
 
 	// eslint-disable-next-line react-hooks/incompatible-library
@@ -144,6 +151,8 @@ type VirtualItem =
 	| { type: "all-caught-up" }
 	| { type: "no-notes" }
 	| { type: "no-people" }
+	| { type: "deleted-notes-heading"; count: number }
+	| { type: "spacer" }
 
 function renderVirtualItem(item: VirtualItem, searchQuery: string): ReactNode {
 	switch (item.type) {
@@ -170,6 +179,12 @@ function renderVirtualItem(item: VirtualItem, searchQuery: string): ReactNode {
 
 		case "no-people":
 			return <NoPeopleState />
+
+		case "deleted-notes-heading":
+			return <DeletedNotesHeading count={item.count} />
+
+		case "spacer":
+			return <Spacer />
 
 		default:
 			return null
@@ -290,4 +305,16 @@ function AllCaughtUpState() {
 			</div>
 		</div>
 	)
+}
+
+function DeletedNotesHeading({ count }: { count: number }) {
+	return (
+		<TypographyH2 className="text-xl first:mt-10">
+			<T k="notes.deleted.heading" params={{ count }} />
+		</TypographyH2>
+	)
+}
+
+function Spacer() {
+	return <div className="h-20" />
 }
