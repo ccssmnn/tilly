@@ -17,6 +17,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
 import { useState } from "react"
+import { motion, AnimatePresence } from "motion/react"
 
 export { NewNote }
 
@@ -31,6 +32,7 @@ function NewNote(props: {
 	})
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
 	let [dialogOpen, setDialogOpen] = useState(false)
+	let [direction, setDirection] = useState<"left" | "right">()
 
 	let people = (me?.root?.people ?? []).filter(
 		person => person && !isDeleted(person),
@@ -44,6 +46,16 @@ function NewNote(props: {
 			setSelectedPersonId(props.personId ?? "")
 		}
 		setDialogOpen(open)
+	}
+
+	function handlePersonSelected(personId: string) {
+		setDirection("right")
+		setSelectedPersonId(personId)
+	}
+
+	function handleBackToPersonSelection() {
+		setDirection("left")
+		setSelectedPersonId("")
 	}
 
 	async function handleSave(values: { content: string; pinned: boolean }) {
@@ -74,88 +86,144 @@ function NewNote(props: {
 			<DialogContent
 				titleSlot={
 					<div className="relative overflow-hidden">
-						<div
-							className={`transition-all duration-75 ease-out ${
-								!selectedPersonId
-									? "translate-x-0 opacity-100"
-									: "absolute inset-0 -translate-x-full opacity-0"
-							}`}
-						>
-							<DialogHeader>
-								<DialogTitle>
-									<T k="note.select.title" />
-								</DialogTitle>
-								<DialogDescription>
-									<T k="note.select.description" />
-								</DialogDescription>
-							</DialogHeader>
-						</div>
-
-						<div
-							className={`transition-all duration-75 ease-out ${
-								selectedPersonId
-									? "translate-x-0 opacity-100"
-									: "absolute inset-0 translate-x-full opacity-0"
-							}`}
-						>
-							<DialogHeader>
-								<DialogTitle>
-									<T k="note.add.title" />
-								</DialogTitle>
-								<DialogDescription>
-									<T
-										k="note.add.description"
-										params={{ person: selectedPersonLabel }}
-									/>
-								</DialogDescription>
-							</DialogHeader>
-						</div>
+						<AnimatePresence mode="wait" custom={direction}>
+							{!selectedPersonId ? (
+								<motion.div
+									key="select"
+									custom={direction}
+									initial="enter"
+									animate="center"
+									exit="exit"
+									variants={{
+										enter: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: -12, right: 12 }[dir],
+										}),
+										center: { opacity: 1, x: 0 },
+										exit: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: 12, right: -12 }[dir],
+										}),
+									}}
+									transition={{ duration: 0.075 }}
+								>
+									<DialogHeader>
+										<DialogTitle>
+											<T k="note.select.title" />
+										</DialogTitle>
+										<DialogDescription>
+											<T k="note.select.description" />
+										</DialogDescription>
+									</DialogHeader>
+								</motion.div>
+							) : (
+								<motion.div
+									key="form"
+									custom={direction}
+									initial="enter"
+									animate="center"
+									exit="exit"
+									variants={{
+										enter: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: -12, right: 12 }[dir],
+										}),
+										center: { opacity: 1, x: 0 },
+										exit: (dir: "left" | "right") => ({
+											opacity: 0,
+											x: { left: 12, right: -12 }[dir],
+										}),
+									}}
+									transition={{ duration: 0.075 }}
+								>
+									<DialogHeader>
+										<DialogTitle>
+											<T k="note.add.title" />
+										</DialogTitle>
+										<DialogDescription>
+											<T
+												k="note.add.description"
+												params={{ person: selectedPersonLabel }}
+											/>
+										</DialogDescription>
+									</DialogHeader>
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</div>
 				}
 			>
 				<div className="relative overflow-hidden">
-					<div
-						className={`transition-all duration-75 ease-out ${
-							!selectedPersonId
-								? "translate-x-0 opacity-100"
-								: "absolute inset-0 -translate-x-full opacity-0"
-						}`}
-					>
-						<div className="space-y-4">
-							<PersonSelector
-								onPersonSelected={id => setSelectedPersonId(id)}
-								searchPlaceholder={t("note.select.search")}
-								emptyMessage={t("note.select.empty")}
-								selectedPersonId={selectedPersonId}
-							/>
-							<div className="flex justify-end gap-2">
-								<Button
-									variant="outline"
-									onClick={() => handleDialogOpenChange(false)}
-								>
-									<T k="common.cancel" />
-								</Button>
-							</div>
-						</div>
-					</div>
-
-					<div
-						className={`transition-all duration-75 ease-out ${
-							selectedPersonId
-								? "translate-x-0 opacity-100"
-								: "absolute inset-0 translate-x-full opacity-0"
-						}`}
-					>
-						<NoteForm
-							defaultValues={{
-								content: "",
-								pinned: false,
-								createdAt: new Date().toISOString().slice(0, 10),
-							}}
-							onSubmit={handleSave}
-							onCancel={() => setSelectedPersonId("")}
-						/>
-					</div>
+					<AnimatePresence mode="wait" custom={direction}>
+						{!selectedPersonId ? (
+							<motion.div
+								key="select-content"
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: -12, right: 12 }[dir],
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: 12, right: -12 }[dir],
+									}),
+								}}
+								transition={{ duration: 0.075 }}
+							>
+								<div className="space-y-4">
+									<PersonSelector
+										onPersonSelected={handlePersonSelected}
+										searchPlaceholder={t("note.select.search")}
+										emptyMessage={t("note.select.empty")}
+										selectedPersonId={selectedPersonId}
+									/>
+									<div className="flex justify-end gap-2">
+										<Button
+											variant="outline"
+											onClick={() => handleDialogOpenChange(false)}
+										>
+											<T k="common.cancel" />
+										</Button>
+									</div>
+								</div>
+							</motion.div>
+						) : (
+							<motion.div
+								key="form-content"
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: -12, right: 12 }[dir],
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: 12, right: -12 }[dir],
+									}),
+								}}
+								transition={{ duration: 0.075 }}
+							>
+								<NoteForm
+									defaultValues={{
+										content: "",
+										pinned: false,
+										createdAt: new Date().toISOString().slice(0, 10),
+									}}
+									onSubmit={handleSave}
+									onCancel={handleBackToPersonSelection}
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</div>
 			</DialogContent>
 		</Dialog>

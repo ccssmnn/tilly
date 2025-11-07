@@ -53,7 +53,7 @@ function PersonSelector(props: {
 						<button
 							key={person.$jazz.id}
 							onClick={() => props.onPersonSelected(person.$jazz.id)}
-							className={`hover:bg-muted flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors ${
+							className={`hover:bg-muted active:bg-accent flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors ${
 								props.selectedPersonId === person.$jazz.id
 									? "bg-muted border-border border"
 									: ""
