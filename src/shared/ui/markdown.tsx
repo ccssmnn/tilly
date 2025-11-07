@@ -10,7 +10,7 @@ const components: Partial<Components> = {
 		if (isInline) {
 			return (
 				<code
-					className="bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
+					className="bg-muted relative rounded px-[0.2rem] py-[0.1rem] font-mono text-xs font-semibold"
 					{...props}
 				>
 					{children}
@@ -19,11 +19,11 @@ const components: Partial<Components> = {
 		}
 
 		return (
-			<pre className="bg-muted overflow-x-auto rounded-lg p-4">
-				<code className="font-mono text-sm" {...props}>
-					{children}
-				</code>
-			</pre>
+		<pre className="bg-muted overflow-x-auto rounded p-2">
+			<code className="font-mono text-xs" {...props}>
+				{children}
+			</code>
+		</pre>
 		)
 	},
 	pre: ({ children }) => <>{children}</>,
@@ -44,7 +44,7 @@ const components: Partial<Components> = {
 	h1: ({ children, ...props }) => {
 		return (
 			<h1
-				className="mt-6 mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight text-balance first:mt-0"
+				className="mt-3 mb-2 scroll-m-20 text-xl font-bold tracking-tight first:mt-0"
 				{...props}
 			>
 				{children}
@@ -54,7 +54,7 @@ const components: Partial<Components> = {
 	h2: ({ children, ...props }) => {
 		return (
 			<h2
-				className="mt-6 mb-4 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0"
+				className="mt-3 mb-2 scroll-m-20 text-lg font-semibold tracking-tight first:mt-0"
 				{...props}
 			>
 				{children}
@@ -64,7 +64,7 @@ const components: Partial<Components> = {
 	h3: ({ children, ...props }) => {
 		return (
 			<h3
-				className="mt-6 mb-4 scroll-m-20 text-2xl font-semibold tracking-tight"
+				className="mt-3 mb-2 scroll-m-20 text-base font-semibold tracking-tight"
 				{...props}
 			>
 				{children}
@@ -74,7 +74,7 @@ const components: Partial<Components> = {
 	h4: ({ children, ...props }) => {
 		return (
 			<h4
-				className="mt-6 mb-4 scroll-m-20 text-xl font-semibold tracking-tight"
+				className="mt-3 mb-2 scroll-m-20 text-sm font-semibold tracking-tight"
 				{...props}
 			>
 				{children}
@@ -84,7 +84,7 @@ const components: Partial<Components> = {
 	h5: ({ children, ...props }) => {
 		return (
 			<h5
-				className="mt-6 mb-4 scroll-m-20 text-lg font-semibold tracking-tight"
+				className="mt-3 mb-2 scroll-m-20 text-sm font-semibold tracking-tight"
 				{...props}
 			>
 				{children}
@@ -94,7 +94,7 @@ const components: Partial<Components> = {
 	h6: ({ children, ...props }) => {
 		return (
 			<h6
-				className="mt-6 mb-4 scroll-m-20 text-base font-semibold tracking-tight"
+				className="mt-3 mb-2 scroll-m-20 text-sm font-semibold tracking-tight"
 				{...props}
 			>
 				{children}
@@ -103,22 +103,22 @@ const components: Partial<Components> = {
 	},
 	p: ({ children, ...props }) => {
 		return (
-			<p className="leading-7 [&:not(:first-child)]:mt-3" {...props}>
+			<p className="leading-6 [&:not(:first-child)]:mt-2" {...props}>
 				{children}
 			</p>
 		)
 	},
 	blockquote: ({ children, ...props }) => {
 		return (
-			<blockquote className="mt-3 border-l-2 pl-3 italic" {...props}>
+			<blockquote className="mt-2 border-l-2 pl-2 italic text-sm" {...props}>
 				{children}
 			</blockquote>
 		)
 	},
 	table: ({ children, ...props }) => {
 		return (
-			<div className="my-3 w-full overflow-y-auto">
-				<table className="w-full" {...props}>
+			<div className="my-2 w-full overflow-y-auto">
+				<table className="w-full text-sm" {...props}>
 					{children}
 				</table>
 			</div>
@@ -135,7 +135,7 @@ const components: Partial<Components> = {
 	th: ({ children, ...props }) => {
 		return (
 			<th
-				className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right"
+				className="border px-2 py-1 text-left font-semibold [&[align=center]]:text-center [&[align=right]]:text-right"
 				{...props}
 			>
 				{children}
@@ -145,7 +145,7 @@ const components: Partial<Components> = {
 	td: ({ children, ...props }) => {
 		return (
 			<td
-				className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
+				className="border px-2 py-1 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
 				{...props}
 			>
 				{children}
@@ -153,7 +153,7 @@ const components: Partial<Components> = {
 		)
 	},
 	hr: ({ ...props }) => {
-		return <hr className="border-border my-6" {...props} />
+		return <hr className="border-border my-3" {...props} />
 	},
 }
 
@@ -169,7 +169,7 @@ const NonMemoizedMarkdown = ({ children, className }: MarkdownProps) => {
 	return (
 		<div
 			className={cn(
-				"prose prose-neutral dark:prose-invert max-w-none",
+				"prose prose-neutral dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5",
 				className,
 			)}
 		>
