@@ -3,7 +3,7 @@ import { UserAccount, isDeleted } from "#shared/schema/user"
 import { useNotes } from "#app/features/note-hooks"
 import { useAccount } from "jazz-tools/react"
 import { type ResolveQuery } from "jazz-tools"
-import { useVirtualizer } from "@tanstack/react-virtual"
+import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useDeferredValue, type ReactNode } from "react"
@@ -89,6 +89,10 @@ function NotesScreen() {
 	let virtualizer = useVirtualizer({
 		count: virtualItems.length,
 		getScrollElement: () => document.getElementById("scroll-area"),
+		rangeExtractor: range => {
+			// NOTE: always render the headersection
+			return [0, ...defaultRangeExtractor(range).filter(i => i !== 0)]
+		},
 		estimateSize: () => 100,
 		overscan: 5,
 	})
