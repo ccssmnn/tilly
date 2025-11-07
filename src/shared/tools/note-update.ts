@@ -45,7 +45,12 @@ async function updateNote(
 	if (updates.createdAt !== undefined) {
 		let createdDate = new Date(updates.createdAt)
 		let now = new Date()
-		createdDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds())
+		createdDate.setHours(
+			now.getHours(),
+			now.getMinutes(),
+			now.getSeconds(),
+			now.getMilliseconds(),
+		)
 		note.$jazz.set("createdAt", createdDate)
 	}
 
@@ -106,7 +111,10 @@ let editNoteTool = tool({
 			.describe(
 				"Whether the note should be pinned. Pinned notes appear at the top of the note list.",
 			),
-		createdAt: z.string().optional().describe("Updated creation date (date string)"),
+		createdAt: z
+			.string()
+			.optional()
+			.describe("Updated creation date (date string)"),
 	}),
 	outputSchema: z.union([
 		z.object({

@@ -72,5 +72,5 @@ function useResizeTextarea(
 		}
 
 		textarea.scrollTop = textarea.scrollHeight
-	}, [value, maxHeight, disabled, ref])
+	}, [value, maxHeight, minHeight, disabled, ref])
 }

@@ -55,7 +55,8 @@ export function NoteForm({
 			content: defaultValues?.content || "",
 			pinned: defaultValues?.pinned || false,
 			createdAt:
-				defaultValues?.createdAt || new Date().toISOString().slice(0, 11) + "12:00",
+				defaultValues?.createdAt ||
+				new Date().toISOString().slice(0, 11) + "12:00",
 		},
 	})
 

@@ -50,7 +50,18 @@ function EditNoteResult({ result }: { result: _EditNoteTool["output"] }) {
 		setDialogOpen(false)
 		try {
 			if (result.previous) {
-				await updateNote(result.personId, result.noteId, result.previous)
+				await updateNote(result.personId, result.noteId, {
+					title: result.previous.title,
+					content: result.previous.content,
+					pinned: result.previous.pinned,
+					createdAt: result.previous.createdAt
+						? new Date(result.previous.createdAt)
+						: undefined,
+					deletedAt: result.previous.deletedAt
+						? new Date(result.previous.deletedAt)
+						: undefined,
+					permanentlyDeletedAt: undefined,
+				})
 			}
 			setIsUndone(true)
 			addChatMessage({
