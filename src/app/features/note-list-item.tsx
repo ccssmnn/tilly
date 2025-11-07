@@ -304,21 +304,6 @@ function ActionsDialog(props: {
 							<Trash />
 							<T k="note.actions.delete" />
 						</Button>
-						<Button
-							variant="secondary"
-							className={cn(
-								"h-12 flex-1",
-								props.showPerson && "max-w-[calc(50%-6px)]",
-							)}
-							onClick={props.onPin}
-						>
-							<PinFill />
-							{props.note.pinned ? (
-								<T k="note.actions.unpin" />
-							) : (
-								<T k="note.actions.pin" />
-							)}
-						</Button>
 					</div>
 				</div>
 			</DialogContent>

@@ -100,7 +100,7 @@ function NotesScreen() {
 			// NOTE: always render the headersection
 			return [0, ...defaultRangeExtractor(range).filter(i => i !== 0)]
 		},
-		estimateSize: () => 100,
+		estimateSize: () => 112,
 		overscan: 5,
 	})
 
