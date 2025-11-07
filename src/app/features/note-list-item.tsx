@@ -71,7 +71,7 @@ function NoteListItem(props: {
 					}}
 					className={cn(
 						"flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
-						hasOverflow && "pt-4",
+						hasOverflow && "pt-4 pb-0",
 					)}
 				>
 					{showPerson && (
@@ -213,12 +213,12 @@ function escapeRegExp(s: string) {
 function Pinned(props: { pinned?: boolean }) {
 	if (!props.pinned) return null
 	return (
-		<Badge>
-			<PinFill />
+		<div>
+			<PinFill className="text-primary size-3" />
 			<span className="sr-only">
 				<T k="note.status.pinned" />
 			</span>
-		</Badge>
+		</div>
 	)
 }
 

@@ -9,24 +9,18 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#shared/ui/dialog"
-import { Button } from "#shared/ui/button"
-import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { Image as JazzImage } from "jazz-tools/react"
-import { Input } from "#shared/ui/input"
 import { ReminderForm } from "#app/features/reminder-form"
+import { PersonSelector } from "#app/features/person-selector"
 import { createReminder } from "#shared/tools/reminder-create"
 import { tryCatch } from "#shared/lib/trycatch"
+import { Button } from "#shared/ui/button"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
-import { useState, useMemo } from "react"
+import { useState } from "react"
 
 export { NewReminder }
 
-function NewReminder({
-	children,
-	onSuccess,
-	personId: initialPersonId,
-}: {
+function NewReminder(props: {
 	children: ReactNode
 	onSuccess?: (reminderId: string) => void
 	personId?: string
@@ -41,21 +35,12 @@ function NewReminder({
 		},
 	})
 	let t = useIntl()
-	let [selectedPersonId, setSelectedPersonId] = useState(initialPersonId ?? "")
+	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
 	let [dialogOpen, setDialogOpen] = useState(false)
 
 	let people = (me?.root?.people ?? []).filter(
 		person => person && !isDeleted(person),
 	)
-
-	let [searchQuery, setSearchQuery] = useState("")
-
-	let filteredPeople = useMemo(() => {
-		if (!searchQuery) return people
-		return people.filter(person =>
-			person.name.toLowerCase().includes(searchQuery.toLowerCase()),
-		)
-	}, [people, searchQuery])
 
 	let selectedPersonLabel =
 		people.find(person => person.$jazz.id === selectedPersonId)?.name ?? ""
@@ -66,8 +51,7 @@ function NewReminder({
 
 	function handleDialogOpenChange(open: boolean) {
 		if (!open) {
-			setSelectedPersonId(initialPersonId ?? "")
-			setSearchQuery("")
+			setSelectedPersonId(props.personId ?? "")
 		}
 		setDialogOpen(open)
 	}
@@ -99,14 +83,14 @@ function NewReminder({
 			return
 		}
 
-		onSuccess?.(result.data.reminderID)
+		props.onSuccess?.(result.data.reminderID)
 		toast.success(t("reminders.created.success"))
 		setDialogOpen(false)
 	}
 
 	return (
 		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogTrigger asChild>{props.children}</DialogTrigger>
 			<DialogContent
 				titleSlot={
 					<div className="relative overflow-hidden">
@@ -158,44 +142,12 @@ function NewReminder({
 						}`}
 					>
 						<div className="space-y-4">
-							<Input
-								placeholder={t("reminder.select.search")}
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-								autoFocus
+							<PersonSelector
+								onPersonSelected={handlePersonSelected}
+								searchPlaceholder={t("reminder.select.search")}
+								emptyMessage={t("reminder.select.empty")}
+								selectedPersonId={selectedPersonId}
 							/>
-							<div className="h-[300px] space-y-1 overflow-y-auto">
-								{filteredPeople.length === 0 ? (
-									<div className="text-muted-foreground py-8 text-center">
-										{t("reminder.select.empty")}
-									</div>
-								) : (
-									filteredPeople.map(person => (
-										<button
-											key={person.$jazz.id}
-											onClick={() => handlePersonSelected(person.$jazz.id)}
-											className="hover:bg-muted flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors"
-										>
-											<Avatar className="size-8">
-												{person.avatar ? (
-													<JazzImage
-														imageId={person.avatar.$jazz.id}
-														alt={person.name}
-														width={32}
-														data-slot="avatar-image"
-														className="aspect-square size-full object-cover"
-													/>
-												) : (
-													<AvatarFallback className="text-xs">
-														{person.name.slice(0, 1)}
-													</AvatarFallback>
-												)}
-											</Avatar>
-											<span className="flex-1">{person.name}</span>
-										</button>
-									))
-								)}
-							</div>
 							<div className="flex justify-end gap-2">
 								<Button
 									variant="outline"
