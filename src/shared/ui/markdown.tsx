@@ -19,11 +19,11 @@ const components: Partial<Components> = {
 		}
 
 		return (
-		<pre className="bg-muted overflow-x-auto rounded p-2">
-			<code className="font-mono text-xs" {...props}>
-				{children}
-			</code>
-		</pre>
+			<pre className="bg-muted overflow-x-auto rounded p-2">
+				<code className="font-mono text-xs" {...props}>
+					{children}
+				</code>
+			</pre>
 		)
 	},
 	pre: ({ children }) => <>{children}</>,
@@ -110,7 +110,7 @@ const components: Partial<Components> = {
 	},
 	blockquote: ({ children, ...props }) => {
 		return (
-			<blockquote className="mt-2 border-l-2 pl-2 italic text-sm" {...props}>
+			<blockquote className="mt-2 border-l-2 pl-2 text-sm italic" {...props}>
 				{children}
 			</blockquote>
 		)
@@ -169,7 +169,7 @@ const NonMemoizedMarkdown = ({ children, className }: MarkdownProps) => {
 	return (
 		<div
 			className={cn(
-				"prose prose-neutral dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5",
+				"prose prose-neutral dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 max-w-none",
 				className,
 			)}
 		>

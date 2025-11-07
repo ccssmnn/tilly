@@ -10,7 +10,7 @@ import { useDeferredValue, type ReactNode } from "react"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
-import { X, Search, FileEarmarkText, Plus } from "react-bootstrap-icons"
+import { X, Search, Plus } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -68,7 +68,7 @@ function NotesScreen() {
 	let virtualItems: VirtualItem[] = []
 
 	virtualItems.push({ type: "heading" })
-	
+
 	if (notes.total > 0) {
 		virtualItems.push({ type: "search" })
 	}
