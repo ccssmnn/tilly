@@ -16,6 +16,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
+import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
@@ -31,6 +32,7 @@ import { Badge } from "#shared/ui/badge"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
+import { Image as JazzImage } from "jazz-tools/react"
 
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
@@ -68,49 +70,72 @@ function NoteListItem(props: {
 						setOpenDialog(props.note.deletedAt ? "restore" : "actions")
 					}}
 					className={cn(
-						"block w-full space-y-2",
-						hasOverflow ? "pt-4" : "py-4",
+						"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
+						hasOverflow && "pt-4",
 					)}
 				>
-					<div className="flex items-center gap-3 select-text">
-						{props.note.deletedAt ? (
-							<span className="text-destructive">
-								<T k="note.status.deleted" />
-							</span>
-						) : (
-							<>
-								{showPerson && (
-									<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-										<TextHighlight
-											text={props.person.name}
-											query={props.searchQuery}
-										/>
-									</p>
-								)}
-								<Pinned pinned={props.note.pinned} />
-								<div className="flex-1" />
-								<TimeStamp record={props.note} />
-							</>
-						)}
-					</div>
-					<div>
-						<div
-							ref={contentRef}
-							className={cn(
-								"text-left text-wrap select-text",
-								props.note.deletedAt && "text-muted-foreground",
-								!isExpanded && "line-clamp-2",
-							)}
+					{showPerson && (
+						<Avatar
+							className={props.note.deletedAt ? "size-16 grayscale" : "size-16"}
 						>
-							<MarkdownWithHighlight
-								content={props.note.content}
-								searchQuery={props.searchQuery}
-							/>
+							{props.person.avatar ? (
+								<JazzImage
+									imageId={props.person.avatar.$jazz.id}
+									loading="lazy"
+									alt={props.person.name}
+									width={64}
+									data-slot="avatar-image"
+									className="aspect-square size-full object-cover shadow-inner"
+								/>
+							) : (
+								<AvatarFallback>{props.person.name.slice(0, 1)}</AvatarFallback>
+							)}
+						</Avatar>
+					)}
+					<div className="min-w-0 flex-1 space-y-1">
+						<div className="flex items-center gap-3 select-text">
+							{props.note.deletedAt ? (
+								<span className="text-destructive">
+									<T k="note.status.deleted" />
+								</span>
+							) : (
+								<>
+									{showPerson && (
+										<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+											<TextHighlight
+												text={props.person.name}
+												query={props.searchQuery}
+											/>
+										</p>
+									)}
+									<Pinned pinned={props.note.pinned} />
+									<div className="flex-1" />
+									<TimeStamp record={props.note} />
+								</>
+							)}
+						</div>
+						<div>
+							<div
+								ref={contentRef}
+								className={cn(
+									"text-left text-wrap select-text",
+									props.note.deletedAt && "text-muted-foreground",
+									!isExpanded && "line-clamp-2",
+								)}
+							>
+								<MarkdownWithHighlight
+									content={props.note.content}
+									searchQuery={props.searchQuery}
+								/>
+							</div>
 						</div>
 					</div>
 				</button>
 				<div
-					className="hidden pb-4 data-[overflow=true]:block"
+					className={cn(
+						"hidden pb-4 data-[overflow=true]:block",
+						showPerson && "ml-[76px]",
+					)}
 					data-overflow={hasOverflow}
 				>
 					<button

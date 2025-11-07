@@ -245,6 +245,7 @@ function NotesList({
 					note={entry.item}
 					person={person}
 					searchQuery={searchQuery}
+					showPerson={false}
 				/>
 			))}
 
@@ -265,6 +266,7 @@ function NotesList({
 										note={entry.item}
 										person={person}
 										searchQuery={searchQuery}
+										showPerson={false}
 									/>
 								))}
 							</AccordionContent>
@@ -289,6 +291,7 @@ function NotesList({
 									note={entry.item}
 									person={person}
 									searchQuery={searchQuery}
+									showPerson={false}
 								/>
 							))}
 						</>
