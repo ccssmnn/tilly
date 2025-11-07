@@ -39,7 +39,7 @@ const baseNotesMessages = messages({
 	// Individual note messages
 	"note.add.title": "Add a Note",
 	"note.add.description":
-		"Capture a moment, conversation, or experience you shared together.",
+		"Capture a moment, conversation, or experience you shared with {$person}.",
 	"note.actions.title": "Note Actions",
 	"note.actions.description": "What would you like to do with this note?",
 	"note.actions.edit": "Edit",
@@ -116,7 +116,7 @@ const deNotesMessages = translate(baseNotesMessages, {
 	// Individual note messages
 	"note.add.title": "Notiz hinzufügen",
 	"note.add.description":
-		"Halte einen Moment, ein Gespräch oder eine gemeinsame Erfahrung fest.",
+		"Halte einen Moment, ein Gespräch oder eine gemeinsame Erfahrung mit {$person} fest.",
 	"note.actions.title": "Notizaktionen",
 	"note.actions.description": "Was möchtest du mit dieser Notiz tun?",
 	"note.actions.edit": "Bearbeiten",

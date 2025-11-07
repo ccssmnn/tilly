@@ -220,7 +220,7 @@ function NewReminder({
 								dueAtDate: new Date().toISOString().substring(0, 10),
 							}}
 							onSubmit={handleSave}
-							onCancel={() => handleDialogOpenChange(false)}
+							onCancel={() => setSelectedPersonId("")}
 						/>
 					</div>
 				</div>

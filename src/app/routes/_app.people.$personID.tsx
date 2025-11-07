@@ -542,7 +542,10 @@ function AddItemButton(props: {
 								<T k="note.add.title" />
 							</DialogTitle>
 							<DialogDescription>
-								<T k="note.add.description" />
+								<T
+									k="note.add.description"
+									params={{ person: props.person.name }}
+								/>
 							</DialogDescription>
 						</DialogHeader>
 					}

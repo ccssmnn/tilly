@@ -126,7 +126,7 @@ export function NoteForm({
 						<T k="form.cancel" />
 					</Button>
 					<Tooltip>
-						<TooltipTrigger>
+						<TooltipTrigger asChild>
 							<Button
 								type="submit"
 								disabled={form.formState.isSubmitting}

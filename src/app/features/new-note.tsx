@@ -57,6 +57,9 @@ function NewNote({
 		)
 	}, [people, searchQuery])
 
+	let selectedPersonLabel =
+		people.find(person => person.$jazz.id === selectedPersonId)?.name ?? ""
+
 	function handlePersonSelected(personId: string) {
 		setSelectedPersonId(personId)
 	}
@@ -126,7 +129,10 @@ function NewNote({
 									<T k="note.add.title" />
 								</DialogTitle>
 								<DialogDescription>
-									<T k="note.add.description" />
+									<T
+										k="note.add.description"
+										params={{ person: selectedPersonLabel }}
+									/>
 								</DialogDescription>
 							</DialogHeader>
 						</div>
@@ -201,7 +207,7 @@ function NewNote({
 						<NoteForm
 							defaultValues={{ content: "", pinned: false }}
 							onSubmit={handleSave}
-							onCancel={() => handleDialogOpenChange(false)}
+							onCancel={() => setSelectedPersonId("")}
 						/>
 					</div>
 				</div>

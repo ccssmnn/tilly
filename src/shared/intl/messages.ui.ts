@@ -11,6 +11,7 @@ const baseUiMessages = messages({
 	"common.add": "Add",
 	"common.close": "Close",
 	"common.undo": "Undo",
+	"common.back": "Back",
 
 	// Authentication messages
 	"auth.signIn.title": "Sync Across Devices",
@@ -148,6 +149,7 @@ const deUiMessages = translate(baseUiMessages, {
 	"common.add": "Hinzufügen",
 	"common.close": "Schließen",
 	"common.undo": "Rückgängig",
+	"common.back": "Zurück",
 
 	// Authentication messages
 	"auth.signIn.title": "Über Geräte hinweg synchronisieren",
