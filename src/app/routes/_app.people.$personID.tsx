@@ -7,7 +7,7 @@ import { usePersonNotes } from "#app/features/note-hooks"
 import { usePersonReminders } from "#app/features/reminder-hooks"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useState, useDeferredValue } from "react"
-import { Journal, Plus, Bell, X, Search } from "react-bootstrap-icons"
+import { FileEarmarkText, Plus, Bell, X, Search } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
 import { NoteListItem } from "#app/features/note-list-item"
@@ -131,7 +131,7 @@ function PersonScreen() {
 									replace
 									resetScroll={false}
 								>
-									<Journal />
+									<FileEarmarkText />
 									<span className={cn(isMobile && tab !== "notes" && "hidden")}>
 										<T
 											k="person.detail.notes.tab"
@@ -226,7 +226,7 @@ function NotesList({
 
 		return (
 			<div className="flex flex-col items-center justify-center py-12 text-center">
-				<Journal className="text-muted-foreground size-8" />
+				<FileEarmarkText className="text-muted-foreground size-8" />
 				<p className="text-muted-foreground mt-4 text-lg">
 					<T k="notes.empty.withSearch" params={{ query: searchQuery }} />
 				</p>

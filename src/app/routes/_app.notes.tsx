@@ -10,7 +10,7 @@ import { useDeferredValue, type ReactNode } from "react"
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
-import { X, Search, Journal } from "react-bootstrap-icons"
+import { X, Search, FileEarmarkText } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -84,6 +84,7 @@ function NotesScreen() {
 		})
 	}
 
+	// eslint-disable-next-line react-hooks/incompatible-library
 	let virtualizer = useVirtualizer({
 		count: virtualItems.length,
 		getScrollElement: () => document.getElementById("scroll-area"),
@@ -210,7 +211,7 @@ function NoPeopleState() {
 	return (
 		<div className="container mx-auto max-w-6xl px-3 py-6">
 			<div className="flex items-center justify-center gap-8 text-center">
-				<Journal className="text-muted-foreground size-16" />
+				<FileEarmarkText className="text-muted-foreground size-16" />
 				<div className="space-y-2">
 					<h2 className="text-xl font-semibold">
 						<T k="notes.noPeople.title" />
@@ -228,7 +229,7 @@ function NoNotesState() {
 	return (
 		<div className="container mx-auto max-w-6xl px-3 py-6">
 			<div className="flex items-center justify-center gap-8 text-center">
-				<Journal className="text-muted-foreground size-16" />
+				<FileEarmarkText className="text-muted-foreground size-16" />
 				<div className="space-y-2">
 					<h2 className="text-xl font-semibold">
 						<T k="notes.empty.title" />
@@ -264,7 +265,7 @@ function AllCaughtUpState() {
 	return (
 		<div className="container mx-auto max-w-6xl px-3 py-6">
 			<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-				<Journal className="text-muted-foreground size-8" />
+				<FileEarmarkText className="text-muted-foreground size-8" />
 				<div className="space-y-2">
 					<h2 className="text-xl font-semibold">
 						<T k="notes.allCaughtUp.title" />

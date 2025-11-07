@@ -10,7 +10,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
-import { ArrowCounterclockwise, Pause, Journal } from "react-bootstrap-icons"
+import {
+	ArrowCounterclockwise,
+	Pause,
+	FileEarmarkText,
+} from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -313,7 +317,7 @@ function ToolMessageWrapper({
 				dialogOpen && "bg-accent",
 			)}
 		>
-			<Journal className="h-4 w-4" />
+			<FileEarmarkText className="h-4 w-4" />
 			<AlertDescription className="text-sm" onClick={onClick}>
 				{children}
 			</AlertDescription>
