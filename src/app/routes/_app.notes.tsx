@@ -67,7 +67,11 @@ function NotesScreen() {
 
 	let virtualItems: VirtualItem[] = []
 
-	virtualItems.push({ type: "header" })
+	virtualItems.push({ type: "heading" })
+	
+	if (notes.total > 0) {
+		virtualItems.push({ type: "search" })
+	}
 
 	if (notes.total === 0 || (!didSearch && !hasMatches)) {
 		virtualItems.push({ type: "no-notes" })
@@ -94,8 +98,8 @@ function NotesScreen() {
 		count: virtualItems.length,
 		getScrollElement: () => document.getElementById("scroll-area"),
 		rangeExtractor: range => {
-			// NOTE: always render the headersection
-			return [0, ...defaultRangeExtractor(range).filter(i => i !== 0)]
+			// NOTE: always render the first two elements (heading and search)
+			return [0, 1, ...defaultRangeExtractor(range).filter(i => i > 1)]
 		},
 		estimateSize: () => 112,
 		overscan: 5,
@@ -138,7 +142,8 @@ function NotesScreen() {
 }
 
 type VirtualItem =
-	| { type: "header" }
+	| { type: "heading" }
+	| { type: "search" }
 	| {
 			type: "note"
 			note: co.loaded<typeof Note>
@@ -151,8 +156,11 @@ type VirtualItem =
 
 function renderVirtualItem(item: VirtualItem, searchQuery: string): ReactNode {
 	switch (item.type) {
-		case "header":
-			return <HeaderSection />
+		case "heading":
+			return <HeadingSection />
+
+		case "search":
+			return <SearchSection />
 
 		case "note":
 			return (
@@ -180,9 +188,7 @@ function renderVirtualItem(item: VirtualItem, searchQuery: string): ReactNode {
 	}
 }
 
-function HeaderSection() {
-	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
-	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
+function HeadingSection() {
 	let t = useIntl()
 
 	return (
@@ -191,36 +197,45 @@ function HeaderSection() {
 			<TypographyH1>
 				<T k="notes.title" />
 			</TypographyH1>
-			<div className="my-6 flex items-center justify-end gap-3">
-				<div className="relative w-full">
-					<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
-					<Input
-						ref={autoFocusRef}
-						type="text"
-						placeholder={t("notes.search.placeholder")}
-						value={notesSearchQuery}
-						onChange={e => setNotesSearchQuery(e.target.value)}
-						className="w-full pl-10"
-					/>
-				</div>
-				{notesSearchQuery !== "" ? (
-					<Button variant="outline" onClick={() => setNotesSearchQuery("")}>
-						<X className="size-4" />
-						<span className="sr-only md:not-sr-only">
-							<T k="common.clear" />
-						</span>
-					</Button>
-				) : null}
-				<NewNote>
-					<Button>
-						<Plus className="size-4" />
-						<span className="sr-only md:not-sr-only">
-							<T k="notes.addButton" />
-						</span>
-					</Button>
-				</NewNote>
-			</div>
 		</>
+	)
+}
+
+function SearchSection() {
+	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
+	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
+	let t = useIntl()
+
+	return (
+		<div className="my-6 flex items-center justify-end gap-3">
+			<div className="relative w-full">
+				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
+				<Input
+					ref={autoFocusRef}
+					type="text"
+					placeholder={t("notes.search.placeholder")}
+					value={notesSearchQuery}
+					onChange={e => setNotesSearchQuery(e.target.value)}
+					className="w-full pl-10"
+				/>
+			</div>
+			{notesSearchQuery !== "" ? (
+				<Button variant="outline" onClick={() => setNotesSearchQuery("")}>
+					<X className="size-4" />
+					<span className="sr-only md:not-sr-only">
+						<T k="common.clear" />
+					</span>
+				</Button>
+			) : null}
+			<NewNote>
+				<Button>
+					<Plus className="size-4" />
+					<span className="sr-only md:not-sr-only">
+						<T k="notes.addButton" />
+					</span>
+				</Button>
+			</NewNote>
+		</div>
 	)
 }
 
