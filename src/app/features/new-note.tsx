@@ -10,6 +10,7 @@ import {
 	DialogTrigger,
 } from "#shared/ui/dialog"
 import { Combobox } from "#shared/ui/combobox"
+import { Button } from "#shared/ui/button"
 import { NoteForm } from "#app/features/note-form"
 import { createNote } from "#shared/tools/note-create"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -83,7 +84,7 @@ function NewNote({
 				titleSlot={
 					<div className="relative overflow-hidden">
 						<div
-							className={`transition-all duration-300 ease-out ${
+							className={`transition-all duration-75 ease-out ${
 								!selectedPersonId
 									? "translate-x-0 opacity-100"
 									: "absolute inset-0 -translate-x-full opacity-0"
@@ -91,16 +92,16 @@ function NewNote({
 						>
 							<DialogHeader>
 								<DialogTitle>
-									<T k="reminder.select.title" />
+									<T k="note.select.title" />
 								</DialogTitle>
 								<DialogDescription>
-									<T k="reminder.select.description" />
+									<T k="note.select.description" />
 								</DialogDescription>
 							</DialogHeader>
 						</div>
 
 						<div
-							className={`transition-all duration-300 ease-out ${
+							className={`transition-all duration-75 ease-out ${
 								selectedPersonId
 									? "translate-x-0 opacity-100"
 									: "absolute inset-0 translate-x-full opacity-0"
@@ -120,7 +121,7 @@ function NewNote({
 			>
 				<div className="relative overflow-hidden">
 					<div
-						className={`transition-all duration-300 ease-out ${
+						className={`transition-all duration-75 ease-out ${
 							!selectedPersonId
 								? "translate-x-0 opacity-100"
 								: "absolute inset-0 -translate-x-full opacity-0"
@@ -131,18 +132,20 @@ function NewNote({
 								items={peopleOptions}
 								value={selectedPersonId}
 								onValueChange={handlePersonSelected}
-								placeholder={t("reminder.select.placeholder")}
-								emptyText={t("reminder.select.empty")}
-								searchPlaceholder={t("reminder.select.search")}
+								placeholder={t("note.select.placeholder")}
+								emptyText={t("note.select.empty")}
+								searchPlaceholder={t("note.select.search")}
 							/>
 							<div className="flex justify-end gap-2">
-								{/* No cancel button needed on first step */}
+								<Button variant="outline" onClick={() => setDialogOpen(false)}>
+									<T k="common.cancel" />
+								</Button>
 							</div>
 						</div>
 					</div>
 
 					<div
-						className={`transition-all duration-300 ease-out ${
+						className={`transition-all duration-75 ease-out ${
 							selectedPersonId
 								? "translate-x-0 opacity-100"
 								: "absolute inset-0 translate-x-full opacity-0"

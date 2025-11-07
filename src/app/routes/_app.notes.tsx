@@ -10,11 +10,12 @@ import { useDeferredValue, type ReactNode } from "react"
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
-import { X, Search, FileEarmarkText } from "react-bootstrap-icons"
+import { X, Search, FileEarmarkText, Plus } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { NoteListItem } from "#app/features/note-list-item"
+import { NewNote } from "#app/features/new-note"
 
 export let Route = createFileRoute("/_app/notes")({
 	loader: async ({ context }) => {
@@ -202,6 +203,14 @@ function HeaderSection() {
 						</span>
 					</Button>
 				) : null}
+				<NewNote>
+					<Button>
+						<Plus className="size-4" />
+						<span className="sr-only md:not-sr-only">
+							<T k="notes.addButton" />
+						</span>
+					</Button>
+				</NewNote>
 			</div>
 		</>
 	)

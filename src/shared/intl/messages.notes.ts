@@ -6,6 +6,7 @@ const baseNotesMessages = messages({
 	// Notes collection messages
 	"notes.pageTitle": "Notes - Tilly",
 	"notes.title": "Notes",
+	"notes.addButton": "Add Note",
 	"notes.search.placeholder": "Search notes...",
 	"notes.noPeople.title": "No People Yet",
 	"notes.noPeople.description":
@@ -27,6 +28,13 @@ const baseNotesMessages = messages({
 	"notes.allCaughtUp.title": "All Caught Up",
 	"notes.allCaughtUp.description":
 		"You've seen all your notes. Create more by adding notes to people!",
+
+	// Person selection for notes
+	"note.select.title": "Select Person",
+	"note.select.description": "Choose who this note is about.",
+	"note.select.placeholder": "Select a person...",
+	"note.select.empty": "No people found.",
+	"note.select.search": "Search people...",
 
 	// Individual note messages
 	"note.add.title": "Add a Note",
@@ -75,6 +83,7 @@ const deNotesMessages = translate(baseNotesMessages, {
 	// Notes collection messages
 	"notes.pageTitle": "Notizen - Tilly",
 	"notes.title": "Notizen",
+	"notes.addButton": "Notiz hinzufügen",
 	"notes.search.placeholder": "Notizen durchsuchen...",
 	"notes.noPeople.title": "Noch keine Personen",
 	"notes.noPeople.description":
@@ -96,6 +105,13 @@ const deNotesMessages = translate(baseNotesMessages, {
 	"notes.allCaughtUp.title": "Alles erledigt",
 	"notes.allCaughtUp.description":
 		"Du hast alle deine Notizen gesehen. Erstelle mehr, indem du Personen Notizen hinzufügst!",
+
+	// Person selection for notes
+	"note.select.title": "Person auswählen",
+	"note.select.description": "Wähle, über wen diese Notiz ist.",
+	"note.select.placeholder": "Person auswählen...",
+	"note.select.empty": "Keine Personen gefunden.",
+	"note.select.search": "Personen suchen...",
 
 	// Individual note messages
 	"note.add.title": "Notiz hinzufügen",
