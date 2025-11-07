@@ -1,6 +1,7 @@
 import { memo } from "react"
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
 import { cn } from "#app/lib/utils"
 
 const components: Partial<Components> = {
@@ -157,6 +158,7 @@ const components: Partial<Components> = {
 }
 
 const remarkPlugins = [remarkGfm]
+const rehypePlugins = [rehypeRaw]
 
 interface MarkdownProps {
 	children: string
@@ -171,7 +173,11 @@ const NonMemoizedMarkdown = ({ children, className }: MarkdownProps) => {
 				className,
 			)}
 		>
-			<ReactMarkdown remarkPlugins={remarkPlugins} components={components}>
+			<ReactMarkdown
+				remarkPlugins={remarkPlugins}
+				rehypePlugins={rehypePlugins}
+				components={components}
+			>
 				{children}
 			</ReactMarkdown>
 		</div>
