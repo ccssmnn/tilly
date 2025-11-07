@@ -9,14 +9,16 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#shared/ui/dialog"
-import { Combobox } from "#shared/ui/combobox"
 import { Button } from "#shared/ui/button"
+import { Avatar, AvatarFallback } from "#shared/ui/avatar"
+import { Image as JazzImage } from "jazz-tools/react"
+import { Input } from "#shared/ui/input"
 import { NoteForm } from "#app/features/note-form"
 import { createNote } from "#shared/tools/note-create"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 
 export { NewNote }
 
@@ -46,13 +48,25 @@ function NewNote({
 		person => person && !isDeleted(person),
 	)
 
-	let peopleOptions = people.map(person => ({
-		value: person.$jazz.id,
-		label: person.name,
-	}))
+	let [searchQuery, setSearchQuery] = useState("")
+
+	let filteredPeople = useMemo(() => {
+		if (!searchQuery) return people
+		return people.filter(person =>
+			person.name.toLowerCase().includes(searchQuery.toLowerCase()),
+		)
+	}, [people, searchQuery])
 
 	function handlePersonSelected(personId: string) {
 		setSelectedPersonId(personId)
+	}
+
+	function handleDialogOpenChange(open: boolean) {
+		if (!open) {
+			setSelectedPersonId(initialPersonId ?? "")
+			setSearchQuery("")
+		}
+		setDialogOpen(open)
 	}
 
 	async function handleSave(values: { content: string; pinned: boolean }) {
@@ -78,7 +92,7 @@ function NewNote({
 	}
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent
 				titleSlot={
@@ -128,16 +142,49 @@ function NewNote({
 						}`}
 					>
 						<div className="space-y-4">
-							<Combobox
-								items={peopleOptions}
-								value={selectedPersonId}
-								onValueChange={handlePersonSelected}
-								placeholder={t("note.select.placeholder")}
-								emptyText={t("note.select.empty")}
-								searchPlaceholder={t("note.select.search")}
+							<Input
+								placeholder={t("note.select.search")}
+								value={searchQuery}
+								onChange={e => setSearchQuery(e.target.value)}
+								autoFocus
 							/>
+							<div className="h-[300px] space-y-1 overflow-y-auto">
+								{filteredPeople.length === 0 ? (
+									<div className="text-muted-foreground py-8 text-center">
+										{t("note.select.empty")}
+									</div>
+								) : (
+									filteredPeople.map(person => (
+										<button
+											key={person.$jazz.id}
+											onClick={() => handlePersonSelected(person.$jazz.id)}
+											className="hover:bg-muted flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors"
+										>
+											<Avatar className="size-8">
+												{person.avatar ? (
+													<JazzImage
+														imageId={person.avatar.$jazz.id}
+														alt={person.name}
+														width={32}
+														data-slot="avatar-image"
+														className="aspect-square size-full object-cover"
+													/>
+												) : (
+													<AvatarFallback className="text-xs">
+														{person.name.slice(0, 1)}
+													</AvatarFallback>
+												)}
+											</Avatar>
+											<span className="flex-1">{person.name}</span>
+										</button>
+									))
+								)}
+							</div>
 							<div className="flex justify-end gap-2">
-								<Button variant="outline" onClick={() => setDialogOpen(false)}>
+								<Button
+									variant="outline"
+									onClick={() => handleDialogOpenChange(false)}
+								>
 									<T k="common.cancel" />
 								</Button>
 							</div>
@@ -154,10 +201,7 @@ function NewNote({
 						<NoteForm
 							defaultValues={{ content: "", pinned: false }}
 							onSubmit={handleSave}
-							onCancel={() => {
-								setSelectedPersonId(initialPersonId ?? "")
-								setDialogOpen(false)
-							}}
+							onCancel={() => handleDialogOpenChange(false)}
 						/>
 					</div>
 				</div>
