@@ -25,9 +25,6 @@ const baseNotesMessages = messages({
 	"notes.created.success": "Note created",
 	"notes.noResults.message": 'No notes found matching "{$query}"',
 	"notes.noResults.suggestion": "Try adjusting your search terms",
-	"notes.allCaughtUp.title": "All Caught Up",
-	"notes.allCaughtUp.description":
-		"You've seen all your notes. Create more by adding notes to people!",
 
 	// Person selection for notes
 	"note.select.title": "Select Person",
@@ -102,9 +99,6 @@ const deNotesMessages = translate(baseNotesMessages, {
 	"notes.created.success": "Notiz erstellt",
 	"notes.noResults.message": 'Keine passenden Notizen zu "{$query}" gefunden',
 	"notes.noResults.suggestion": "Passe deine Suchbegriffe an",
-	"notes.allCaughtUp.title": "Alles erledigt",
-	"notes.allCaughtUp.description":
-		"Du hast alle deine Notizen gesehen. Erstelle mehr, indem du Personen Notizen hinzufügst!",
 
 	// Person selection for notes
 	"note.select.title": "Person auswählen",

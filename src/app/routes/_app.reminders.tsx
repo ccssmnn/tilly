@@ -78,15 +78,6 @@ function Reminders() {
 		)
 	}
 
-	// Early return for no people - no controls needed
-	if (people.length === 0) {
-		return (
-			<RemindersLayout>
-				<NoPeopleState />
-			</RemindersLayout>
-		)
-	}
-
 	if (reminders.total === 0) {
 		return (
 			<RemindersLayout>
@@ -299,14 +290,6 @@ function RemindersControls() {
 					</span>
 				</Button>
 			</NewReminder>
-		</div>
-	)
-}
-
-function NoPeopleState() {
-	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
-			<ReminderTour />
 		</div>
 	)
 }

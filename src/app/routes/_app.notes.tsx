@@ -16,6 +16,7 @@ import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { NoteListItem } from "#app/features/note-list-item"
 import { NewNote } from "#app/features/new-note"
+import { NoteTour } from "#app/features/note-tour"
 
 export let Route = createFileRoute("/_app/notes")({
 	loader: async ({ context }) => {
@@ -68,14 +69,10 @@ function NotesScreen() {
 
 	virtualItems.push({ type: "header" })
 
-	if (people.length === 0) {
-		virtualItems.push({ type: "no-people" })
-	} else if (notes.total === 0) {
+	if (notes.total === 0 || (!didSearch && !hasMatches)) {
 		virtualItems.push({ type: "no-notes" })
 	} else if (didSearch && !hasMatches) {
 		virtualItems.push({ type: "no-results", searchQuery })
-	} else if (!didSearch && !hasMatches) {
-		virtualItems.push({ type: "all-caught-up" })
 	} else {
 		notes.active.forEach(({ note, person }) => {
 			virtualItems.push({ type: "note", note, person })
@@ -148,9 +145,7 @@ type VirtualItem =
 			person: co.loaded<typeof Person>
 	  }
 	| { type: "no-results"; searchQuery: string }
-	| { type: "all-caught-up" }
 	| { type: "no-notes" }
-	| { type: "no-people" }
 	| { type: "deleted-notes-heading"; count: number }
 	| { type: "spacer" }
 
@@ -171,14 +166,8 @@ function renderVirtualItem(item: VirtualItem, searchQuery: string): ReactNode {
 		case "no-results":
 			return <NoSearchResultsState searchQuery={item.searchQuery} />
 
-		case "all-caught-up":
-			return <AllCaughtUpState />
-
 		case "no-notes":
 			return <NoNotesState />
-
-		case "no-people":
-			return <NoPeopleState />
 
 		case "deleted-notes-heading":
 			return <DeletedNotesHeading count={item.count} />
@@ -235,38 +224,10 @@ function HeaderSection() {
 	)
 }
 
-function NoPeopleState() {
-	return (
-		<div className="container mx-auto max-w-6xl px-3 py-6">
-			<div className="flex items-center justify-center gap-8 text-center">
-				<FileEarmarkText className="text-muted-foreground size-16" />
-				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">
-						<T k="notes.noPeople.title" />
-					</h2>
-					<p className="text-muted-foreground">
-						<T k="notes.noPeople.description" />
-					</p>
-				</div>
-			</div>
-		</div>
-	)
-}
-
 function NoNotesState() {
 	return (
-		<div className="container mx-auto max-w-6xl px-3 py-6">
-			<div className="flex items-center justify-center gap-8 text-center">
-				<FileEarmarkText className="text-muted-foreground size-16" />
-				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">
-						<T k="notes.empty.title" />
-					</h2>
-					<p className="text-muted-foreground">
-						<T k="notes.empty.description" />
-					</p>
-				</div>
-			</div>
+		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+			<NoteTour />
 		</div>
 	)
 }
@@ -282,24 +243,6 @@ function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 					</p>
 					<p className="text-muted-foreground text-sm">
 						<T k="notes.noResults.suggestion" />
-					</p>
-				</div>
-			</div>
-		</div>
-	)
-}
-
-function AllCaughtUpState() {
-	return (
-		<div className="container mx-auto max-w-6xl px-3 py-6">
-			<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-				<FileEarmarkText className="text-muted-foreground size-8" />
-				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">
-						<T k="notes.allCaughtUp.title" />
-					</h2>
-					<p className="text-muted-foreground">
-						<T k="notes.allCaughtUp.description" />
 					</p>
 				</div>
 			</div>
