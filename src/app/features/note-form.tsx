@@ -4,6 +4,7 @@ import { Switch } from "#shared/ui/switch"
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -19,17 +20,20 @@ import { useState } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { useIsMac } from "#app/hooks/use-pwa"
+import { Input } from "#shared/ui/input"
 
 function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
 		content: z.string().min(1, t("note.form.content.required")),
 		pinned: z.boolean(),
+		createdAt: z.string().min(1, t("note.form.createdAt.required")),
 	})
 }
 
 type NoteFormValues = {
 	content: string
 	pinned: boolean
+	createdAt: string
 }
 
 export function NoteForm({
@@ -50,6 +54,8 @@ export function NoteForm({
 		defaultValues: {
 			content: defaultValues?.content || "",
 			pinned: defaultValues?.pinned || false,
+			createdAt:
+				defaultValues?.createdAt || new Date().toISOString().slice(0, 11) + "12:00",
 		},
 	})
 
@@ -72,7 +78,7 @@ export function NoteForm({
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 				<FormField
 					control={form.control}
 					name="content"
@@ -96,23 +102,38 @@ export function NoteForm({
 				/>
 				<FormField
 					control={form.control}
+					name="createdAt"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>
+								<T k="note.form.createdAt.label" />
+							</FormLabel>
+							<FormControl>
+								<Input type="date" {...field} />
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<FormField
+					control={form.control}
 					name="pinned"
 					render={({ field }) => (
-						<FormItem className="border-border flex flex-row items-center justify-between rounded-lg border p-3">
-							<div className="space-y-0.5">
-								<FormLabel className="text-base">
-									<T k="note.form.pin.label" />
-								</FormLabel>
-								<div className="text-muted-foreground text-sm">
+						<FormItem>
+							<FormLabel>
+								<T k="note.form.pin.label" />
+							</FormLabel>
+							<div className="flex items-start gap-3">
+								<FormDescription>
 									<T k="note.form.pin.description" />
-								</div>
+								</FormDescription>
+								<FormControl>
+									<Switch
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								</FormControl>
 							</div>
-							<FormControl>
-								<Switch
-									checked={field.value}
-									onCheckedChange={field.onChange}
-								/>
-							</FormControl>
 						</FormItem>
 					)}
 				/>

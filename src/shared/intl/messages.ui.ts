@@ -40,7 +40,9 @@ const baseUiMessages = messages({
 	"reminder.form.repeatUnit.year": "Year(s)",
 	"note.form.content.label": "Note",
 	"note.form.content.required": "Content is required",
-	"note.form.pin.label": "Pin this note",
+	"note.form.createdAt.label": "Date",
+	"note.form.createdAt.required": "Date is required",
+	"note.form.pin.label": "Pin",
 	"note.form.pin.description":
 		"Pinned notes always appear at the top of the list",
 	"form.cancel": "Cancel",
@@ -178,7 +180,9 @@ const deUiMessages = translate(baseUiMessages, {
 	"reminder.form.repeatUnit.year": "Jahr(e)",
 	"note.form.content.label": "Notiz",
 	"note.form.content.required": "Inhalt ist erforderlich",
-	"note.form.pin.label": "Diese Notiz anheften",
+	"note.form.createdAt.label": "Datum",
+	"note.form.createdAt.required": "Datum ist erforderlich",
+	"note.form.pin.label": "Anheften",
 	"note.form.pin.description":
 		"Angeheftete Notizen erscheinen immer oben in der Liste",
 	"form.cancel": "Abbrechen",

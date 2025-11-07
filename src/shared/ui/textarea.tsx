@@ -53,9 +53,9 @@ Textarea.displayName = "Textarea"
 function useResizeTextarea(
 	ref: React.RefObject<HTMLTextAreaElement | null>,
 	value: string,
-	options?: { maxHeight?: number; disabled?: boolean },
+	options?: { maxHeight?: number; minHeight?: number; disabled?: boolean },
 ) {
-	let { maxHeight, disabled = false } = options || {}
+	let { maxHeight, minHeight, disabled = false } = options || {}
 
 	useEffect(() => {
 		let textarea = ref.current
@@ -63,8 +63,10 @@ function useResizeTextarea(
 
 		textarea.style.height = "auto"
 		let scrollHeight = textarea.scrollHeight
-		if (maxHeight) {
-			textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`
+		if (maxHeight && maxHeight < scrollHeight) {
+			textarea.style.height = `${maxHeight}px`
+		} else if (minHeight && minHeight > scrollHeight) {
+			textarea.style.height = `${minHeight}px`
 		} else {
 			textarea.style.height = `${scrollHeight}px`
 		}

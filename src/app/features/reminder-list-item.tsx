@@ -715,6 +715,7 @@ type ReminderUpdateInput = {
 type NoteFormInput = {
 	content: string
 	pinned: boolean
+	createdAt: string
 }
 
 type ReminderItemOperations = {

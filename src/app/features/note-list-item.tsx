@@ -60,7 +60,7 @@ function NoteListItem(props: {
 			<div
 				className={cn(
 					openDialog !== undefined && "bg-accent",
-					"-mx-3 rounded-md px-3",
+					"hover:bg-muted has-active:bg-accent -mx-3 rounded-md px-3",
 				)}
 			>
 				<button
@@ -70,7 +70,7 @@ function NoteListItem(props: {
 						setOpenDialog(props.note.deletedAt ? "restore" : "actions")
 					}}
 					className={cn(
-						"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
+						"flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
 						hasOverflow && "pt-4",
 					)}
 				>
@@ -133,7 +133,7 @@ function NoteListItem(props: {
 				</button>
 				<div
 					className={cn(
-						"hidden pb-4 data-[overflow=true]:block",
+						"hidden pb-4 text-right data-[overflow=true]:block",
 						showPerson && "ml-[76px]",
 					)}
 					data-overflow={hasOverflow}
@@ -348,6 +348,9 @@ function EditDialog(props: {
 					defaultValues={{
 						content: props.note.content,
 						pinned: props.note.pinned || false,
+						createdAt: props.note.createdAt
+							? new Date(props.note.createdAt).toISOString().slice(0, 10)
+							: new Date(props.note.$jazz.createdAt).toISOString().slice(0, 10),
 					}}
 					onSubmit={handleSubmit}
 					onCancel={() => props.onOpenChange(false)}

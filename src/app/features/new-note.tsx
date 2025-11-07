@@ -205,7 +205,11 @@ function NewNote({
 						}`}
 					>
 						<NoteForm
-							defaultValues={{ content: "", pinned: false }}
+							defaultValues={{
+								content: "",
+								pinned: false,
+								createdAt: new Date().toISOString().slice(0, 10),
+							}}
 							onSubmit={handleSave}
 							onCancel={() => setSelectedPersonId("")}
 						/>

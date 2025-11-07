@@ -117,26 +117,18 @@ function useNotes<Q extends ResolveQuery<typeof Person>>(
 	}
 
 	active.sort((a, b) => {
-		let aTime = (a.note.updatedAt || a.note.createdAt).getTime()
-		let bTime = (b.note.updatedAt || b.note.createdAt).getTime()
+		let aTime = (a.note.createdAt || new Date(a.note.$jazz.createdAt)).getTime()
+		let bTime = (b.note.createdAt || new Date(b.note.$jazz.createdAt)).getTime()
 		return bTime - aTime
 	})
 
 	deleted.sort((a, b) => {
 		let aTime =
 			a.note.deletedAt?.getTime() ??
-			(
-				a.note.updatedAt ||
-				a.note.createdAt ||
-				new Date(a.note.$jazz.lastUpdatedAt || a.note.$jazz.createdAt)
-			).getTime()
+			(a.note.createdAt || new Date(a.note.$jazz.createdAt)).getTime()
 		let bTime =
 			b.note.deletedAt?.getTime() ??
-			(
-				b.note.updatedAt ||
-				b.note.createdAt ||
-				new Date(b.note.$jazz.lastUpdatedAt || b.note.$jazz.createdAt)
-			).getTime()
+			(b.note.createdAt || new Date(b.note.$jazz.createdAt)).getTime()
 		return bTime - aTime
 	})
 
