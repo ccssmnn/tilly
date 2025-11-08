@@ -103,6 +103,18 @@ function NotesScreen() {
 		},
 		estimateSize: () => 112,
 		overscan: 5,
+		measureElement: (element, _entry, instance) => {
+			const direction = instance.scrollDirection
+			if (direction === "forward" || direction === null) {
+				// Allow remeasuring when scrolling down or direction is null
+				return element.getBoundingClientRect().height
+			} else {
+				// When scrolling up, use cached measurement to prevent stuttering
+				const indexKey = Number(element.getAttribute("data-index"))
+				const cachedMeasurement = instance.measurementsCache[indexKey]?.size
+				return cachedMeasurement || element.getBoundingClientRect().height
+			}
+		},
 	})
 
 	let virtualRows = virtualizer.getVirtualItems()
