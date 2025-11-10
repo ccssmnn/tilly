@@ -4,14 +4,12 @@ import { useReminders } from "#app/features/reminder-hooks"
 import { useAccount } from "jazz-tools/react"
 import { type ResolveQuery } from "jazz-tools"
 import { ReminderListItem } from "#app/features/reminder-list-item"
-
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useDeferredValue, type ReactNode } from "react"
-
 import {
 	Accordion,
 	AccordionContent,
@@ -27,9 +25,7 @@ import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
-		if (!context.me) {
-			return { me: null, eagerCount }
-		}
+		if (!context.me) throw notFound()
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
@@ -62,21 +58,11 @@ function Reminders() {
 	let { remindersSearchQuery } = useAppStore()
 	let deferredSearchQuery = useDeferredValue(remindersSearchQuery)
 
-	let people = (currentMe?.root?.people ?? []).filter(
+	let people = currentMe.root.people.filter(
 		person => person && !isDeleted(person),
 	)
 
 	let reminders = useReminders(people, deferredSearchQuery)
-
-	if (!currentMe) {
-		return (
-			<RemindersLayout>
-				<div className="text-center">
-					<p>Please sign in to view reminders.</p>
-				</div>
-			</RemindersLayout>
-		)
-	}
 
 	if (reminders.total === 0) {
 		return (

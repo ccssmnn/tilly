@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, notFound } from "@tanstack/react-router"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { useAccount } from "jazz-tools/react"
@@ -26,9 +26,7 @@ import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
-		if (!context.me) {
-			return { me: null, eagerCount }
-		}
+		if (!context.me) throw notFound()
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,
 		})
@@ -51,9 +49,7 @@ function PeopleScreen() {
 
 	let currentMe = subscribedMe ?? data
 
-	let allPeople = (currentMe?.root.people ?? []).filter(
-		p => !p.permanentlyDeletedAt,
-	)
+	let allPeople = currentMe.root.people.filter(p => !p.permanentlyDeletedAt)
 
 	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()
 	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)

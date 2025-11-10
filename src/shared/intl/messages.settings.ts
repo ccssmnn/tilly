@@ -6,26 +6,26 @@ const baseSettingsMessages = messages({
 	// Settings page messages
 	"settings.title": "Settings",
 	"settings.pageTitle": "Settings - Tilly",
-	"settings.auth.title": "Authentication",
-	"settings.auth.description.signedIn":
-		"Manage your account settings, change email/password, or sign out.",
-	"settings.auth.description.signedOut.online":
-		"Sign in to sync your relationships and enable Tilly across all your devices.",
-	"settings.auth.description.signedOut.offline":
-		"Sign in requires an internet connection to sync your data across devices.",
-	"settings.auth.status.label": "Status",
-	"settings.auth.status.signedIn": "Signed in as {$email}",
-	"settings.auth.status.signedOut": "Not signed in",
-	"settings.auth.tier.label": "Plan",
-	"settings.auth.tier.plus": "Tilly Plus",
-	"settings.auth.tier.free": "Free",
-	"settings.auth.requiresInternet":
+	"settings.account.title": "Account",
+	"settings.account.description.signedIn":
+		"Manage your authentication status, access account settings, and handle your subscription.",
+	"settings.account.description.signedOut.online":
+		"Sign in to sync your data, manage your account, and access subscription features.",
+	"settings.account.description.signedOut.offline":
+		"Sign in requires an internet connection to access account and subscription features.",
+	"settings.account.status.label": "Status",
+	"settings.account.status.signedIn": "Signed in as {$email}",
+	"settings.account.status.signedOut": "Not signed in",
+	"settings.account.tier.label": "Plan",
+	"settings.account.tier.plus": "Tilly Plus",
+	"settings.account.tier.free": "Free",
+	"settings.account.requiresInternet":
 		"Account features require internet connection",
-	"settings.auth.offlineDescription":
+	"settings.account.offlineDescription":
 		"Please connect to the internet to sign in or manage your account.",
-	"settings.auth.manageAccount": "Manage Account",
-	"settings.auth.manageSubscription": "Manage Subscription",
-	"settings.auth.signOut": "Sign Out",
+	"settings.account.manageAccount": "Manage Account",
+	"settings.account.manageSubscription": "Manage Subscription",
+	"settings.account.signOut": "Sign Out",
 	"settings.profile.title": "About You",
 	"settings.profile.description": "Update your personal information.",
 	"settings.profile.displayName.label": "Display Name",
@@ -345,26 +345,26 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	// Settings page messages
 	"settings.title": "Einstellungen",
 	"settings.pageTitle": "Einstellungen - Tilly",
-	"settings.auth.title": "Authentifizierung",
-	"settings.auth.description.signedIn":
-		"Verwalte deine Kontoeinstellungen, ändere E-Mail/Passwort oder melde dich ab.",
-	"settings.auth.description.signedOut.online":
-		"Melde dich an, um deine Beziehungen zu synchronisieren und Tilly auf all deinen Geräten zu aktivieren.",
-	"settings.auth.description.signedOut.offline":
-		"Für die Anmeldung ist eine Internetverbindung erforderlich, um deine Daten über Geräte hinweg zu synchronisieren.",
-	"settings.auth.status.label": "Status",
-	"settings.auth.status.signedIn": "Angemeldet als {$email}",
-	"settings.auth.status.signedOut": "Nicht angemeldet",
-	"settings.auth.tier.label": "Tarif",
-	"settings.auth.tier.plus": "Tilly Plus",
-	"settings.auth.tier.free": "Kostenlos",
-	"settings.auth.requiresInternet":
+	"settings.account.title": "Konto",
+	"settings.account.description.signedIn":
+		"Verwalte deinen Authentifizierungsstatus, greife auf Kontoeinstellungen zu und verwalte dein Abonnement.",
+	"settings.account.description.signedOut.online":
+		"Melde dich an, um deine Daten zu synchronisieren, dein Konto zu verwalten und auf Abonnement-Funktionen zuzugreifen.",
+	"settings.account.description.signedOut.offline":
+		"Für die Anmeldung ist eine Internetverbindung erforderlich, um auf Konto- und Abonnement-Funktionen zuzugreifen.",
+	"settings.account.status.label": "Status",
+	"settings.account.status.signedIn": "Angemeldet als {$email}",
+	"settings.account.status.signedOut": "Nicht angemeldet",
+	"settings.account.tier.label": "Tarif",
+	"settings.account.tier.plus": "Tilly Plus",
+	"settings.account.tier.free": "Kostenlos",
+	"settings.account.requiresInternet":
 		"Kontofunktionen erfordern eine Internetverbindung",
-	"settings.auth.offlineDescription":
+	"settings.account.offlineDescription":
 		"Bitte stelle eine Internetverbindung her, um dich anzumelden oder dein Konto zu verwalten.",
-	"settings.auth.manageAccount": "Konto verwalten",
-	"settings.auth.manageSubscription": "Abonnement verwalten",
-	"settings.auth.signOut": "Abmelden",
+	"settings.account.manageAccount": "Konto verwalten",
+	"settings.account.manageSubscription": "Abonnement verwalten",
+	"settings.account.signOut": "Abmelden",
 	"settings.profile.title": "Über dich",
 	"settings.profile.description":
 		"Aktualisiere deine persönlichen Informationen.",

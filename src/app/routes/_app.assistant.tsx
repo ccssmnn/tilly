@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { useRef, useState, useEffect, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
@@ -47,9 +47,8 @@ import { useAssistantAccess } from "#app/features/plus"
 
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
-		if (!context.me) {
-			return { me: null }
-		}
+		if (!context.me) throw notFound()
+
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,
 		})
@@ -179,20 +178,6 @@ function AuthenticatedChat() {
 			}
 		},
 	})
-
-	if (!currentMe) {
-		return (
-			<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
-				<title>{t("assistant.pageTitle")}</title>
-				<TypographyH1>
-					<T k="assistant.title" />
-				</TypographyH1>
-				<div className="text-center">
-					<p>Please sign in to use the assistant.</p>
-				</div>
-			</div>
-		)
-	}
 
 	function handleSubmit(prompt: string) {
 		let metadata = {

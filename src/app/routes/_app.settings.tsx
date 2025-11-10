@@ -59,9 +59,8 @@ import { useAssistantAccess } from "#app/features/plus"
 
 export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
-		if (!context.me) {
-			return { me: null }
-		}
+		if (!context.me) throw notFound()
+
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
@@ -88,23 +87,6 @@ function SettingsScreen() {
 	let currentMe = subscribedMe ?? data.me
 	let { status: accessStatus } = useAssistantAccess()
 
-	if (!currentMe) {
-		return (
-			<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
-				<title>{t("settings.pageTitle")}</title>
-				<TypographyH1>
-					<T k="settings.title" />
-				</TypographyH1>
-				<div className="divide-border divide-y">
-					<AuthenticationSection />
-					<div className="p-4 text-center">
-						<p>Please sign in to access settings.</p>
-					</div>
-				</div>
-			</div>
-		)
-	}
-
 	return (
 		<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
 			<title>{t("settings.pageTitle")}</title>
@@ -112,7 +94,7 @@ function SettingsScreen() {
 				<T k="settings.title" />
 			</TypographyH1>
 			<div className="divide-border divide-y">
-				<AuthenticationSection />
+				<AccountSection />
 				{accessStatus === "granted" && <AgentSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
@@ -173,7 +155,7 @@ function LanguageSection() {
 	)
 }
 
-function AuthenticationSection() {
+function AccountSection() {
 	let t = useIntl()
 	let isAuthenticated = useIsAuthenticated()
 	let auth = useAuth()
@@ -183,13 +165,13 @@ function AuthenticationSection() {
 
 	return (
 		<SettingsSection
-			title={t("settings.auth.title")}
+			title={t("settings.account.title")}
 			description={
 				isAuthenticated
-					? t("settings.auth.description.signedIn")
+					? t("settings.account.description.signedIn")
 					: isOnline
-						? t("settings.auth.description.signedOut.online")
-						: t("settings.auth.description.signedOut.offline")
+						? t("settings.account.description.signedOut.online")
+						: t("settings.account.description.signedOut.offline")
 			}
 		>
 			<div className="space-y-6">
@@ -197,17 +179,17 @@ function AuthenticationSection() {
 					<>
 						<div>
 							<p className="mb-1 text-sm font-medium">
-								<T k="settings.auth.status.label" />
+								<T k="settings.account.status.label" />
 							</p>
 							<p className="text-muted-foreground text-sm">
-								{t("settings.auth.status.signedIn", {
+								{t("settings.account.status.signedIn", {
 									email: user?.emailAddresses[0]?.emailAddress || "",
 								})}
 							</p>
 							<div className="mt-3 inline-flex flex-wrap gap-3">
 								<Button asChild variant="secondary" disabled={!isOnline}>
 									<a href={`${getAccountsUrl()}/user`}>
-										<T k="settings.auth.manageAccount" />
+										<T k="settings.account.manageAccount" />
 									</a>
 								</Button>
 								<SignOutButton redirectUrl="/app">
@@ -216,7 +198,7 @@ function AuthenticationSection() {
 										variant="outline"
 										disabled={!isOnline}
 									>
-										<T k="settings.auth.signOut" />
+										<T k="settings.account.signOut" />
 									</Button>
 								</SignOutButton>
 							</div>
@@ -224,17 +206,17 @@ function AuthenticationSection() {
 						{auth.isLoaded && auth.isSignedIn && (
 							<div>
 								<p className="mb-1 text-sm font-medium">
-									<T k="settings.auth.tier.label" />
+									<T k="settings.account.tier.label" />
 								</p>
 								<p className="text-muted-foreground text-sm">
 									{auth.has({ plan: "plus" })
-										? t("settings.auth.tier.plus")
-										: t("settings.auth.tier.free")}
+										? t("settings.account.tier.plus")
+										: t("settings.account.tier.free")}
 								</p>
 								<div className="mt-3">
 									<Button asChild variant="secondary" disabled={!isOnline}>
 										<a href={`${getAccountsUrl()}/user/billing`}>
-											<T k="settings.auth.manageSubscription" />
+											<T k="settings.account.manageSubscription" />
 										</a>
 									</Button>
 								</div>
@@ -244,10 +226,10 @@ function AuthenticationSection() {
 				) : (
 					<div>
 						<p className="mb-1 text-sm font-medium">
-							<T k="settings.auth.status.label" />
+							<T k="settings.account.status.label" />
 						</p>
 						<p className="text-muted-foreground text-sm">
-							{t("settings.auth.status.signedOut")}
+							{t("settings.account.status.signedOut")}
 						</p>
 						<div className="mt-3 space-x-2">
 							<Button asChild disabled={!isOnline}>
@@ -268,10 +250,10 @@ function AuthenticationSection() {
 						<Alert variant="destructive">
 							<WifiOff className="h-4 w-4" />
 							<AlertTitle>
-								<T k="settings.auth.requiresInternet" />
+								<T k="settings.account.requiresInternet" />
 							</AlertTitle>
 							<AlertDescription>
-								<T k="settings.auth.offlineDescription" />
+								<T k="settings.account.offlineDescription" />
 							</AlertDescription>
 						</Alert>
 					)}
