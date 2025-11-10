@@ -179,6 +179,7 @@ function PeopleScreen() {
 					)}
 				</>
 			)}
+			<div className="h-8" />
 		</PeopleLayout>
 	)
 }

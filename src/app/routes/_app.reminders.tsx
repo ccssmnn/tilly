@@ -117,7 +117,6 @@ function Reminders() {
 			) : (
 				<AllCaughtUpState />
 			)}
-
 			{hasMore && !didSearch && (
 				<Accordion type="single" collapsible className="w-full">
 					{reminders.done.length > 0 && (
@@ -172,7 +171,6 @@ function Reminders() {
 					)}
 				</Accordion>
 			)}
-
 			{didSearch && hasMore && (
 				<>
 					{reminders.done.length > 0 && (
@@ -223,6 +221,7 @@ function Reminders() {
 					)}
 				</>
 			)}
+			<div className="h-8" />
 		</RemindersLayout>
 	)
 }
