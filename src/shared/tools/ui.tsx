@@ -3,6 +3,7 @@ import { UpdatePersonResult, DeletePersonResult } from "./person-update-ui"
 import { ListPeopleResult, GetPersonDetailsResult } from "./person-read-ui"
 import { AddNoteResult } from "./note-create-ui"
 import { EditNoteResult, DeleteNoteResult } from "./note-update-ui"
+import { ListNotesResult } from "./note-read-ui"
 import { AddReminderResult } from "./reminder-create-ui"
 import {
 	UpdateReminderResult,
@@ -34,6 +35,8 @@ function ToolResultRenderer({ toolName, result, userId }: ToolResultProps) {
 			return <DeletePersonResult result={result} />
 		case "addNote":
 			return <AddNoteResult result={result} />
+		case "listNotes":
+			return <ListNotesResult result={result} />
 		case "editNote":
 			return <EditNoteResult result={result} />
 		case "deleteNote":

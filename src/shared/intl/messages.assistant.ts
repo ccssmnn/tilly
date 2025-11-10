@@ -134,6 +134,25 @@ const baseAssistantMessages = messages({
 		"Details of the note that was deleted.",
 	"tool.note.deleted.dialog.section": "Deleted Note",
 	"tool.note.deleted.undo.success": "✅ Undo: Restored note",
+	"tool.note.list.message.none": "No notes found",
+	"tool.note.list.message.count":
+		".input {$count :number} .match $count one {{Found {$count} note}} * {{Found {$count} notes}}",
+	"tool.note.list.message.withQuery":
+		'.input {$count :number} .match $count one {{Found {$count} note matching "{$query}"}} * {{Found {$count} notes matching "{$query}"}}',
+	"tool.note.list.dialog.title": "Notes",
+	"tool.note.list.dialog.description": "Notes across all people.",
+	"tool.note.list.empty.noNotes": "No notes available yet.",
+	"tool.note.list.empty.noMatch": "No notes match your search.",
+	"tool.note.list.dialog.results": "Results",
+	"tool.note.list.results.count":
+		".input {$count :number} .match $count one {{Showing {$count} note}} * {{Showing {$count} notes}}",
+	"tool.note.list.results.withQuery":
+		'.input {$count :number} .match $count one {{Showing {$count} note matching "{$query}"}} * {{Showing {$count} notes matching "{$query}"}}',
+	"tool.note.list.preview.more":
+		".input {$count :number} .match $count one {{and {$count} more note}} * {{and {$count} more notes}}",
+	"tool.note.list.tag.deleted": "Deleted",
+	"tool.note.list.viewNotes": "View Notes",
+	"tool.note.list.viewSearchResults": "View Search Results",
 	"tool.reminder.created.message": "Added reminder: {$text}",
 	"tool.reminder.created.undone": "Added reminder {$text} (undone)",
 	"tool.reminder.created.dialog.title": "Reminder Added",
@@ -340,6 +359,25 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.note.deleted.dialog.description": "Details zur gelöschten Notiz.",
 	"tool.note.deleted.dialog.section": "Gelöschte Notiz",
 	"tool.note.deleted.undo.success": "✅ Rückgängig: Notiz wiederhergestellt",
+	"tool.note.list.message.none": "Keine Notizen gefunden",
+	"tool.note.list.message.count":
+		".input {$count :number} .match $count one {{Gefunden {$count} Notiz}} * {{Gefunden {$count} Notizen}}",
+	"tool.note.list.message.withQuery":
+		'.input {$count :number} .match $count one {{Gefunden {$count} Notiz zu "{$query}"}} * {{Gefunden {$count} Notizen zu "{$query}"}}',
+	"tool.note.list.dialog.title": "Notizen",
+	"tool.note.list.dialog.description": "Notizen über alle Personen hinweg.",
+	"tool.note.list.empty.noNotes": "Noch keine Notizen verfügbar.",
+	"tool.note.list.empty.noMatch": "Keine Notizen entsprechen deiner Suche.",
+	"tool.note.list.dialog.results": "Ergebnisse",
+	"tool.note.list.results.count":
+		".input {$count :number} .match $count one {{Zeige {$count} Notiz}} * {{Zeige {$count} Notizen}}",
+	"tool.note.list.results.withQuery":
+		'.input {$count :number} .match $count one {{Zeige {$count} Notiz zu "{$query}"}} * {{Zeige {$count} Notizen zu "{$query}"}}',
+	"tool.note.list.preview.more":
+		".input {$count :number} .match $count one {{und {$count} weitere Notiz}} * {{und {$count} weitere Notizen}}",
+	"tool.note.list.viewNotes": "Notizen ansehen",
+	"tool.note.list.viewSearchResults": "Suchergebnisse anzeigen",
+	"tool.note.list.tag.deleted": "Gelöscht",
 	"tool.reminder.created.message": "Erinnerung hinzugefügt: {$text}",
 	"tool.reminder.created.undone":
 		"Erinnerung {$text} hinzugefügt (rückgängig gemacht)",
