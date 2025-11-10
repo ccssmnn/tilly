@@ -300,7 +300,7 @@ function AuthenticatedChat() {
 						</div>
 					)}
 					<ScrollIntoView trigger={messages} />
-					<div className="h-16" />
+					<div className="h-22" />
 				</div>
 			)}
 			<UserInput
