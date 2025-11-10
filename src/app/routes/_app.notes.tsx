@@ -17,6 +17,7 @@ import { T, useIntl } from "#shared/intl/setup"
 import { NoteListItem } from "#app/features/note-list-item"
 import { NewNote } from "#app/features/new-note"
 import { NoteTour } from "#app/features/note-tour"
+import { cn } from "#app/lib/utils"
 
 export let Route = createFileRoute("/_app/notes")({
 	loader: async ({ context }) => {
@@ -132,18 +133,20 @@ function NotesScreen() {
 				let item = virtualItems.at(virtualRow.index)
 				if (!item) return null
 
+				let itemIsNote = item.type === "note"
+				let nextItemIsNote =
+					virtualItems.at(virtualRow.index + 1)?.type === "note"
+
 				return (
 					<div
 						key={virtualRow.key}
 						data-index={virtualRow.index}
 						ref={virtualizer.measureElement}
-						style={{
-							position: "absolute",
-							top: 0,
-							left: 0,
-							width: "100%",
-							transform: `translateY(${virtualRow.start}px)`,
-						}}
+						className={cn(
+							"absolute top-0 left-0 w-full",
+							itemIsNote && nextItemIsNote && "border-border border-b",
+						)}
+						style={{ transform: `translateY(${virtualRow.start}px)` }}
 					>
 						{renderVirtualItem(item, searchQuery)}
 					</div>
