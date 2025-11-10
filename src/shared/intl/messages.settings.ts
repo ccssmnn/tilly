@@ -100,25 +100,13 @@ const baseSettingsMessages = messages({
 		"Get the best experience with push notifications and faster access.",
 	"settings.pwa.description.desktop":
 		"Install Tilly as an app for a cleaner interface and quick access.",
-	"settings.pwa.status.label": "Status",
-	"settings.pwa.status.installed": "✅ Tilly is installed as an app",
-	"settings.pwa.status.browser": "📱 Tilly is running in browser",
+
 	"settings.pwa.install.button": "Install App",
 	"settings.pwa.install.description.mobile":
 		"Add Tilly to your home screen for faster access. Push notifications require signing in.",
 	"settings.pwa.install.description.desktop":
 		"Install Tilly as an app to remove browser UI and launch it like any other app.",
-	"settings.pwa.benefits.title": "Benefits you're enjoying:",
-	"settings.pwa.benefits.mobile.notifications":
-		"• Push notifications (when signed in)",
-	"settings.pwa.benefits.mobile.startup": "• Faster app startup",
-	"settings.pwa.benefits.mobile.experience": "• Native app-like experience",
-	"settings.pwa.benefits.mobile.icon": "• Dedicated app icon on home screen",
-	"settings.pwa.benefits.desktop.interface":
-		"• Clean interface without browser UI",
-	"settings.pwa.benefits.desktop.launch": "• Launch like any other desktop app",
-	"settings.pwa.benefits.desktop.startup": "• Faster app startup",
-	"settings.pwa.benefits.desktop.window": "• Dedicated app window",
+
 	"settings.pwa.hideInstall.label": "Hide Install Button",
 	"settings.pwa.hideInstall.description":
 		"Hide the install button from the navigation menu",
@@ -440,26 +428,13 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Erhalte die beste Erfahrung mit Push-Benachrichtigungen und schnellerem Zugriff.",
 	"settings.pwa.description.desktop":
 		"Installiere Tilly als App für eine sauberere Oberfläche und schnellen Zugriff.",
-	"settings.pwa.status.label": "Status",
-	"settings.pwa.status.installed": "✅ Tilly ist als App installiert",
-	"settings.pwa.status.browser": "📱 Tilly läuft im Browser",
+
 	"settings.pwa.install.button": "App installieren",
 	"settings.pwa.install.description.mobile":
 		"Füge Tilly deinem Startbildschirm hinzu. Push-Benachrichtigungen erfordern eine Anmeldung.",
 	"settings.pwa.install.description.desktop":
 		"Installiere Tilly als App, um die Browser-UI zu entfernen und sie wie jede andere App zu starten.",
-	"settings.pwa.benefits.title": "Vorteile:",
-	"settings.pwa.benefits.mobile.notifications":
-		"• Push-Benachrichtigungen (bei Anmeldung)",
-	"settings.pwa.benefits.mobile.startup": "• Schnellere App-Starts",
-	"settings.pwa.benefits.mobile.experience": "• App-ähnliche Erfahrung",
-	"settings.pwa.benefits.mobile.icon":
-		"• Eigenes App-Icon auf dem Startbildschirm",
-	"settings.pwa.benefits.desktop.interface":
-		"• Aufgeräumte Oberfläche ohne Browser-UI",
-	"settings.pwa.benefits.desktop.launch": "• Start wie jede andere Desktop-App",
-	"settings.pwa.benefits.desktop.startup": "• Schnellere App-Starts",
-	"settings.pwa.benefits.desktop.window": "• Eigenes App-Fenster",
+
 	"settings.pwa.hideInstall.label": "Installationsknopf ausblenden",
 	"settings.pwa.hideInstall.description":
 		"Blendet den Installationsknopf aus dem Navigationsmenü aus",

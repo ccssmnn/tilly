@@ -86,6 +86,7 @@ function SettingsScreen() {
 	})
 	let currentMe = subscribedMe ?? data.me
 	let { status: accessStatus } = useAssistantAccess()
+	let isPWAInstalled = useIsPWAInstalled()
 
 	return (
 		<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
@@ -98,7 +99,7 @@ function SettingsScreen() {
 				{accessStatus === "granted" && <AgentSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
-				<PWASection />
+				{!isPWAInstalled && <PWASection />}
 				<DataSection />
 				<AboutSection />
 			</div>
@@ -460,6 +461,10 @@ function PWASection() {
 	let isMobileDevice = useIsMobileDevice()
 	let [showInstallDialog, setShowInstallDialog] = useState(false)
 
+	if (isPWAInstalled) {
+		return null
+	}
+
 	return (
 		<>
 			<SettingsSection
@@ -472,71 +477,17 @@ function PWASection() {
 			>
 				<div className="space-y-6">
 					<div>
-						<p className="mb-1 text-sm font-medium">
-							<T k="settings.pwa.status.label" />
-						</p>
-						<p className="text-muted-foreground text-sm">
-							{isPWAInstalled ? (
-								<T k="settings.pwa.status.installed" />
+						<Button onClick={() => setShowInstallDialog(true)}>
+							<T k="settings.pwa.install.button" />
+						</Button>
+						<p className="text-muted-foreground mt-2 text-xs">
+							{isMobileDevice ? (
+								<T k="settings.pwa.install.description.mobile" />
 							) : (
-								<T k="settings.pwa.status.browser" />
+								<T k="settings.pwa.install.description.desktop" />
 							)}
 						</p>
 					</div>
-					{!isPWAInstalled && (
-						<div>
-							<Button onClick={() => setShowInstallDialog(true)}>
-								<T k="settings.pwa.install.button" />
-							</Button>
-							<p className="text-muted-foreground mt-2 text-xs">
-								{isMobileDevice ? (
-									<T k="settings.pwa.install.description.mobile" />
-								) : (
-									<T k="settings.pwa.install.description.desktop" />
-								)}
-							</p>
-						</div>
-					)}
-					{isPWAInstalled && (
-						<div className="space-y-2">
-							<p className="text-sm font-medium">
-								<T k="settings.pwa.benefits.title" />
-							</p>
-							<ul className="text-muted-foreground space-y-1 text-sm">
-								{isMobileDevice ? (
-									<>
-										<li>
-											<T k="settings.pwa.benefits.mobile.notifications" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.mobile.startup" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.mobile.experience" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.mobile.icon" />
-										</li>
-									</>
-								) : (
-									<>
-										<li>
-											<T k="settings.pwa.benefits.desktop.interface" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.desktop.launch" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.desktop.startup" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.desktop.window" />
-										</li>
-									</>
-								)}
-							</ul>
-						</div>
-					)}
 				</div>
 			</SettingsSection>
 			<PWAInstallDialog

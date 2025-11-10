@@ -139,7 +139,6 @@ function AuthenticatedChat() {
 		resolve: query,
 	})
 	let currentMe = subscribedMe ?? data.me
-	let t = useIntl()
 
 	let {
 		chat: initialMessages,
