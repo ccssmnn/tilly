@@ -55,6 +55,7 @@ import { WifiOff, Lightbulb, Book, Compass } from "react-bootstrap-icons"
 import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
+import { useAssistantAccess } from "#app/features/plus"
 
 export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
@@ -85,6 +86,7 @@ function SettingsScreen() {
 		resolve: query,
 	})
 	let currentMe = subscribedMe ?? data.me
+	let { status: accessStatus } = useAssistantAccess()
 
 	if (!currentMe) {
 		return (
@@ -111,7 +113,7 @@ function SettingsScreen() {
 			</TypographyH1>
 			<div className="divide-border divide-y">
 				<AuthenticationSection />
-				<AgentSection me={currentMe} />
+				{accessStatus === "granted" && <AgentSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
 				<PWASection />

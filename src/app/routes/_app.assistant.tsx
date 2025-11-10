@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
-import { useAccount, useIsAuthenticated } from "jazz-tools/react"
+import { useAccount } from "jazz-tools/react"
 import {
 	Send,
 	Pause,
@@ -43,8 +43,7 @@ import { useAppStore } from "#app/lib/store"
 import { nanoid } from "nanoid"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
-import { useAuth } from "@clerk/clerk-react"
-import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
+import { useAssistantAccess } from "#app/features/plus"
 
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
@@ -133,31 +132,6 @@ function SubscribePrompt() {
 			</div>
 		</div>
 	)
-}
-
-function useAssistantAccess() {
-	let clerkAuth = useAuth()
-	let isSignedIn = useIsAuthenticated()
-	let isOnline = useOnlineStatus()
-
-	if (!isSignedIn) return { status: "denied", isSignedIn }
-
-	if (!PUBLIC_ENABLE_PAYWALL) return { status: "granted", isSignedIn }
-
-	// When offline, allow access to interface but chat will be disabled by canUseChat
-	if (!isOnline) {
-		// If auth is loaded, we can determine access status
-		if (clerkAuth.isLoaded) {
-			let status = determineAccessStatus({ auth: clerkAuth })
-			return { status, isSignedIn }
-		}
-		// If auth isn't loaded yet, assume granted to avoid infinite loading
-		return { status: "granted", isSignedIn }
-	}
-
-	let status = determineAccessStatus({ auth: clerkAuth })
-
-	return { status, isSignedIn }
 }
 
 function AuthenticatedChat() {
@@ -663,14 +637,6 @@ function UserInput(props: {
 			</div>
 		</div>
 	)
-}
-
-function determineAccessStatus({ auth }: { auth: ReturnType<typeof useAuth> }) {
-	if (!auth.isLoaded) return "loading"
-
-	if (!auth.isSignedIn) return "denied"
-
-	return auth.has({ plan: "plus" }) ? "granted" : "denied"
 }
 
 function isUsageLimitError(error: unknown): boolean {
