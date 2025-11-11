@@ -5,7 +5,7 @@ import { Input } from "#shared/ui/input"
 import { useAccount } from "jazz-tools/react"
 import { co } from "jazz-tools"
 import { usePeople } from "#app/features/person-hooks"
-import { useDeferredValue, type ReactNode } from "react"
+import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
@@ -257,16 +257,23 @@ function PeopleControls({
 	let { peopleSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
+	let searchInputId = useId()
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
 			<div className="relative w-full">
+				<label htmlFor={searchInputId} className="sr-only">
+					{t("people.search.placeholder")}
+				</label>
 				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
 				<Input
 					ref={input => {
 						autoFocusRef.current = input
 					}}
-					type="text"
+					id={searchInputId}
+					name="people-search"
+					type="search"
+					enterKeyHint="search"
 					placeholder={t("people.search.placeholder")}
 					value={peopleSearchQuery}
 					onChange={event => setPeopleSearchQuery(event.target.value)}

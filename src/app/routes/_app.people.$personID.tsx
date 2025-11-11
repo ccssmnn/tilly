@@ -6,7 +6,7 @@ import { Person, Note, Reminder, isDueToday } from "#shared/schema/user"
 import { usePersonNotes } from "#app/features/note-hooks"
 import { usePersonReminders } from "#app/features/reminder-hooks"
 import { co, type ResolveQuery } from "jazz-tools"
-import { useState, useDeferredValue } from "react"
+import { useState, useDeferredValue, useId } from "react"
 import { FileEarmarkText, Plus, Bell, X, Search } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
@@ -75,6 +75,7 @@ function PersonScreen() {
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
 	let notes = usePersonNotes(person, deferredSearchQuery)
+	let searchInputId = useId()
 
 	let reminders = usePersonReminders(person, deferredSearchQuery)
 	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
@@ -98,12 +99,18 @@ function PersonScreen() {
 			<div className="space-y-6">
 				<div className="flex flex-1 items-center gap-2">
 					<div className="relative flex-1">
+						<label htmlFor={searchInputId} className="sr-only">
+							{t("person.detail.search.placeholder")}
+						</label>
 						<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
 						<Input
 							ref={r => {
 								autoFocusRef.current = r
 							}}
-							type="text"
+							id={searchInputId}
+							name="person-detail-search"
+							type="search"
+							enterKeyHint="search"
 							placeholder={t("person.detail.search.placeholder")}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}

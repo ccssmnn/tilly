@@ -9,7 +9,7 @@ import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
-import { useDeferredValue, type ReactNode, type RefObject } from "react"
+import { useDeferredValue, useId, type ReactNode, type RefObject } from "react"
 import { NewReminder } from "#app/features/new-reminder"
 import { ReminderTour } from "#app/features/reminder-tour"
 import { useAppStore } from "#app/lib/store"
@@ -263,14 +263,21 @@ function SearchSection() {
 	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput() as RefObject<HTMLInputElement>
 	let t = useIntl()
+	let searchInputId = useId()
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
 			<div className="relative w-full">
+				<label htmlFor={searchInputId} className="sr-only">
+					{t("reminders.search.placeholder")}
+				</label>
 				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
 				<Input
 					ref={autoFocusRef}
-					type="text"
+					id={searchInputId}
+					name="reminders-search"
+					type="search"
+					enterKeyHint="search"
 					placeholder={t("reminders.search.placeholder")}
 					value={remindersSearchQuery}
 					onChange={e => setRemindersSearchQuery(e.target.value)}
