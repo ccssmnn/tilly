@@ -1,6 +1,7 @@
 import { createLink, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
-import { motion } from "motion/react"
+import { motion, useAnimationControls } from "motion/react"
+import type { AnimationDefinition } from "motion/react"
 import {
 	People,
 	PeopleFill,
@@ -23,18 +24,19 @@ import { T } from "#shared/intl/setup"
 
 export { Navigation }
 
-let iconVariants = {
-	press: { scale: 1.2 },
-}
-
-let MotionLink = createLink(motion.a)
-
 function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	let location = useLocation()
 	let [showPWADialog, setShowPWADialog] = useState(false)
 	let isInputFocused = useInputFocusState()
 	let isPWAInstalled = useIsPWAInstalled()
 	let isMobileDevice = useIsMobileDevice()
+
+	let peopleIcon = useIconTapAnimation()
+	let notesIcon = useIconTapAnimation()
+	let remindersIcon = useIconTapAnimation()
+	let assistantIcon = useIconTapAnimation()
+	let settingsIcon = useIconTapAnimation()
+	let installIcon = useIconTapAnimation()
 
 	let pwaInstallHintDismissed = useAppStore(
 		state => state.pwaInstallHintDismissed,
@@ -101,11 +103,11 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						inactiveProps={inactiveProps}
 						className={linkClassName}
 						onClick={() => handleNavClick("/people")}
-						whileTap="press"
+						{...peopleIcon.handlers}
 					>
 						{({ isActive }) => (
 							<>
-								<motion.div variants={iconVariants}>
+								<motion.div animate={peopleIcon.controls}>
 									{isActive ? (
 										<PeopleFill className="size-6 sm:mb-1 md:mb-0" />
 									) : (
@@ -125,11 +127,11 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						inactiveProps={inactiveProps}
 						className={linkClassName}
 						onClick={() => handleNavClick("/notes")}
-						whileTap="press"
+						{...notesIcon.handlers}
 					>
 						{({ isActive }) => (
 							<>
-								<motion.div variants={iconVariants}>
+								<motion.div animate={notesIcon.controls}>
 									{isActive ? (
 										<FileEarmarkTextFill className="size-6 sm:mb-1 md:mb-0" />
 									) : (
@@ -149,12 +151,12 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						inactiveProps={inactiveProps}
 						className={linkClassName}
 						onClick={() => handleNavClick("/reminders")}
-						whileTap="press"
+						{...remindersIcon.handlers}
 					>
 						{({ isActive }) => (
 							<>
 								<div className="relative">
-									<motion.div variants={iconVariants}>
+									<motion.div animate={remindersIcon.controls}>
 										{isActive ? (
 											<BellFill className="size-6 sm:mb-1 md:mb-0" />
 										) : (
@@ -188,11 +190,11 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						inactiveProps={inactiveProps}
 						className={linkClassName}
 						onClick={() => handleNavClick("/assistant")}
-						whileTap="press"
+						{...assistantIcon.handlers}
 					>
 						{({ isActive }) => (
 							<>
-								<motion.div variants={iconVariants}>
+								<motion.div animate={assistantIcon.controls}>
 									{isActive ? (
 										<ChatFill className="size-6 sm:mb-1 md:mb-0" />
 									) : (
@@ -212,11 +214,11 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						inactiveProps={inactiveProps}
 						className={linkClassName}
 						onClick={() => handleNavClick("/settings")}
-						whileTap="press"
+						{...settingsIcon.handlers}
 					>
 						{({ isActive }) => (
 							<>
-								<motion.div variants={iconVariants}>
+								<motion.div animate={settingsIcon.controls}>
 									{isActive ? (
 										<GearFill className="size-6 sm:mb-1 md:mb-0" />
 									) : (
@@ -238,9 +240,9 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
 							)}
 							onClick={handlePWAInstallClick}
-							whileTap="press"
+							{...installIcon.handlers}
 						>
-							<motion.div variants={iconVariants}>
+							<motion.div animate={installIcon.controls}>
 								<AppIndicator
 									className={cn(
 										"size-6 sm:mb-1 md:mb-0",
@@ -263,4 +265,46 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 			/>
 		</>
 	)
+}
+
+let MotionLink = createLink(motion.a)
+
+let tapAnimations: Record<"press" | "release", AnimationDefinition> = {
+	press: {
+		scale: 0.8,
+		rotate: -3,
+		transition: { duration: 0.12, ease: "easeOut" },
+	},
+	release: {
+		scale: [0.8, 1.2, 1],
+		rotate: [-3, 3, 0],
+		transition: {
+			duration: 0.32,
+			times: [0, 0.5, 1],
+			ease: ["easeOut", "easeInOut"],
+		},
+	},
+}
+
+function useIconTapAnimation() {
+	let controls = useAnimationControls()
+
+	function handleTapStart() {
+		controls.stop()
+		void controls.start(tapAnimations.press)
+	}
+
+	function handleTapEnd() {
+		controls.stop()
+		void controls.start(tapAnimations.release)
+	}
+
+	return {
+		controls,
+		handlers: {
+			onTapStart: handleTapStart,
+			onTap: handleTapEnd,
+			onTapCancel: handleTapEnd,
+		},
+	}
 }
