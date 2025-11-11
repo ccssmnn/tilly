@@ -8,6 +8,7 @@ import { ExclamationTriangle } from "react-bootstrap-icons"
 import { Label } from "#shared/ui/label"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import { DisplayField } from "#shared/ui/display-field"
 import { Badge } from "#shared/ui/badge"
 import {
 	Select,
@@ -229,11 +230,11 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 	return (
 		<>
 			<div className="space-y-2">
-				<Label>
+				<p className="text-sm font-medium">
 					<T k="notifications.timezone.label" />
-				</Label>
+				</p>
 				<div className="flex items-center gap-2">
-					<Input value={currentTimezone} readOnly className="flex-1" />
+					<DisplayField value={currentTimezone} className="flex-1" />
 					<Button variant="outline" onClick={handleOpenTimezoneDialog}>
 						<T k="notifications.timezone.change" />
 					</Button>
@@ -370,18 +371,17 @@ function NotificationTimeSection({
 	return (
 		<>
 			<div className="space-y-2">
-				<Label>
+				<p className="text-sm font-medium">
 					<T k="notifications.time.label" />
-				</Label>
+				</p>
 				<div className="flex items-center gap-2">
-					<Input
+					<DisplayField
 						value={new Date(
 							`1970-01-01T${currentNotificationTime}:00`,
 						).toLocaleTimeString(locale, {
 							hour: "2-digit",
 							minute: "2-digit",
 						})}
-						readOnly
 						className="flex-1"
 					/>
 					<Button variant="outline" onClick={handleOpenNotificationTimeDialog}>
@@ -504,20 +504,19 @@ function LastDeliveredSection({
 
 	return (
 		<div className="space-y-2">
-			<Label>
+			<p className="text-sm font-medium">
 				<T k="notifications.lastDelivery.label" />
-			</Label>
+			</p>
 			<div className="flex items-center gap-2">
-				<Input
+				<DisplayField
 					value={
 						notifications?.lastDeliveredAt
 							? formatDistanceToNow(new Date(notifications.lastDeliveredAt), {
 									addSuffix: true,
 									locale: dfnsLocale,
 								})
-							: ""
+							: "-"
 					}
-					readOnly
 					className="flex-1"
 				/>
 				<Button

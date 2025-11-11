@@ -170,6 +170,7 @@ type NavBarButtonProps = {
 }
 
 let MotionLink = createLink(motion.a)
+
 let tapAnimations: Record<"press" | "release", AnimationDefinition> = {
 	press: {
 		scale: 0.8,

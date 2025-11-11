@@ -4,6 +4,7 @@ import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import { DisplayField } from "#shared/ui/display-field"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useForm } from "react-hook-form"
@@ -298,15 +299,14 @@ function AgentSection({
 		>
 			<div className="space-y-6">
 				<div className="space-y-2">
-					<Label>
+					<p className="text-sm font-medium">
 						<T k="settings.agent.displayName.label" />
-					</Label>
+					</p>
 					<div className="flex items-center gap-2">
-						<Input
-							value={me?.profile?.name || ""}
-							readOnly
+						<DisplayField
+							value={me?.profile?.name ?? ""}
+							placeholder={<T k="settings.agent.displayName.placeholder" />}
 							className="flex-1"
-							placeholder={t("settings.agent.displayName.placeholder")}
 						/>
 						<Button
 							variant="outline"
