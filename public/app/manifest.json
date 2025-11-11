@@ -1,7 +1,7 @@
 {
-	"name": "Tilly Remembers",
+	"name": "Tilly",
 	"short_name": "Tilly",
-	"description": "Tilly helps you remember what matters and stay in touch with your loved ones. ",
+	"description": "Tilly is a relationship journal that helps you remember what matters and stay in touch with your loved ones.",
 	"start_url": "/app/",
 	"display": "standalone",
 	"background_color": "#000202",
