@@ -1,5 +1,6 @@
-import { Link, useLocation } from "@tanstack/react-router"
-import { useEffect, useRef, useState } from "react"
+import { createLink, useLocation } from "@tanstack/react-router"
+import { useState } from "react"
+import { motion } from "motion/react"
 import {
 	People,
 	PeopleFill,
@@ -22,9 +23,14 @@ import { T } from "#shared/intl/setup"
 
 export { Navigation }
 
+let iconVariants = {
+	press: { scale: 1.2 },
+}
+
+let MotionLink = createLink(motion.a)
+
 function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	let location = useLocation()
-	let { animatingIcon, triggerAnimation } = useIconAnimation()
 	let [showPWADialog, setShowPWADialog] = useState(false)
 	let isInputFocused = useInputFocusState()
 	let isPWAInstalled = useIsPWAInstalled()
@@ -43,8 +49,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 		isMobileDevice && !isPWAInstalled && !hideInstallNavItem
 	let shouldPulse = shouldShowPWAButton && !pwaInstallHintDismissed
 
-	function handleNavClick(iconKey: string, routePath: string) {
-		triggerAnimation(iconKey)
+	function handleNavClick(routePath: string) {
 		if (location.pathname.endsWith(routePath)) {
 			window.scrollTo({ top: 0, behavior: "smooth" })
 		}
@@ -52,7 +57,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 
 	function handlePWAInstallClick() {
 		setShowPWADialog(true)
-		triggerAnimation("pwa-install")
 	}
 
 	function handlePWAInstallComplete() {
@@ -90,79 +94,73 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						"md:h-12 md:gap-1 md:p-1",
 					)}
 				>
-					<Link
+					<MotionLink
 						key="/people"
 						to="/people"
 						activeProps={activeProps}
 						inactiveProps={inactiveProps}
 						className={linkClassName}
-						onClick={() => handleNavClick("people", "/people")}
+						onClick={() => handleNavClick("/people")}
+						whileTap="press"
 					>
 						{({ isActive }) => (
 							<>
-								{isActive ? (
-									<PeopleFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "people" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<People className="size-6 sm:mb-1 md:mb-0" />
-								)}
+								<motion.div variants={iconVariants}>
+									{isActive ? (
+										<PeopleFill className="size-6 sm:mb-1 md:mb-0" />
+									) : (
+										<People className="size-6 sm:mb-1 md:mb-0" />
+									)}
+								</motion.div>
 								<span className="sr-only sm:not-sr-only">
 									<T k="nav.people" />
 								</span>
 							</>
 						)}
-					</Link>
-					<Link
+					</MotionLink>
+					<MotionLink
 						key="/notes"
 						to="/notes"
 						activeProps={activeProps}
 						inactiveProps={inactiveProps}
 						className={linkClassName}
-						onClick={() => handleNavClick("notes", "/notes")}
+						onClick={() => handleNavClick("/notes")}
+						whileTap="press"
 					>
 						{({ isActive }) => (
 							<>
-								{isActive ? (
-									<FileEarmarkTextFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "notes" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<FileEarmarkText className="size-6 sm:mb-1 md:mb-0" />
-								)}
+								<motion.div variants={iconVariants}>
+									{isActive ? (
+										<FileEarmarkTextFill className="size-6 sm:mb-1 md:mb-0" />
+									) : (
+										<FileEarmarkText className="size-6 sm:mb-1 md:mb-0" />
+									)}
+								</motion.div>
 								<span className="sr-only sm:not-sr-only">
 									<T k="nav.notes" />
 								</span>
 							</>
 						)}
-					</Link>
-					<Link
+					</MotionLink>
+					<MotionLink
 						key="/reminders"
 						to="/reminders"
 						activeProps={activeProps}
 						inactiveProps={inactiveProps}
 						className={linkClassName}
-						onClick={() => handleNavClick("reminders", "/reminders")}
+						onClick={() => handleNavClick("/reminders")}
+						whileTap="press"
 					>
 						{({ isActive }) => (
 							<>
 								<div className="relative">
-									{isActive ? (
-										<BellFill
-											className={cn(
-												"size-6 sm:mb-1 md:mb-0",
-												animatingIcon === "reminders" && "animate-pulse-scale",
-											)}
-										/>
-									) : (
-										<Bell className="size-6 sm:mb-1 md:mb-0" />
-									)}
+									<motion.div variants={iconVariants}>
+										{isActive ? (
+											<BellFill className="size-6 sm:mb-1 md:mb-0" />
+										) : (
+											<Bell className="size-6 sm:mb-1 md:mb-0" />
+										)}
+									</motion.div>
 									{dueReminderCount > 0 ? (
 										<span
 											className={cn(
@@ -182,61 +180,57 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 								</span>
 							</>
 						)}
-					</Link>
-					<Link
+					</MotionLink>
+					<MotionLink
 						key="/assistant"
 						to="/assistant"
 						activeProps={activeProps}
 						inactiveProps={inactiveProps}
 						className={linkClassName}
-						onClick={() => handleNavClick("assistant", "/assistant")}
+						onClick={() => handleNavClick("/assistant")}
+						whileTap="press"
 					>
 						{({ isActive }) => (
 							<>
-								{isActive ? (
-									<ChatFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "assistant" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<Chat className="size-6 sm:mb-1 md:mb-0" />
-								)}
+								<motion.div variants={iconVariants}>
+									{isActive ? (
+										<ChatFill className="size-6 sm:mb-1 md:mb-0" />
+									) : (
+										<Chat className="size-6 sm:mb-1 md:mb-0" />
+									)}
+								</motion.div>
 								<span className="sr-only sm:not-sr-only">
 									<T k="nav.assistant" />
 								</span>
 							</>
 						)}
-					</Link>
-					<Link
+					</MotionLink>
+					<MotionLink
 						key="/settings"
 						to="/settings"
 						activeProps={activeProps}
 						inactiveProps={inactiveProps}
 						className={linkClassName}
-						onClick={() => handleNavClick("settings", "/settings")}
+						onClick={() => handleNavClick("/settings")}
+						whileTap="press"
 					>
 						{({ isActive }) => (
 							<>
-								{isActive ? (
-									<GearFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "settings" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<Gear className="size-6 sm:mb-1 md:mb-0" />
-								)}
+								<motion.div variants={iconVariants}>
+									{isActive ? (
+										<GearFill className="size-6 sm:mb-1 md:mb-0" />
+									) : (
+										<Gear className="size-6 sm:mb-1 md:mb-0" />
+									)}
+								</motion.div>
 								<span className="sr-only sm:not-sr-only">
 									<T k="nav.settings" />
 								</span>
 							</>
 						)}
-					</Link>
+					</MotionLink>
 					{shouldShowPWAButton && (
-						<button
+						<motion.button
 							className={cn(
 								linkClassName,
 								shouldPulse
@@ -244,18 +238,20 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
 							)}
 							onClick={handlePWAInstallClick}
+							whileTap="press"
 						>
-							<AppIndicator
-								className={cn(
-									"size-6 sm:mb-1 md:mb-0",
-									shouldPulse && "animate-pulse",
-									animatingIcon === "pwa-install" && "animate-pulse-scale",
-								)}
-							/>
+							<motion.div variants={iconVariants}>
+								<AppIndicator
+									className={cn(
+										"size-6 sm:mb-1 md:mb-0",
+										shouldPulse && "animate-pulse",
+									)}
+								/>
+							</motion.div>
 							<span className="sr-only sm:not-sr-only">
 								<T k="nav.install" />
 							</span>
-						</button>
+						</motion.button>
 					)}
 				</div>
 			</nav>
@@ -267,29 +263,4 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 			/>
 		</>
 	)
-}
-
-function useIconAnimation() {
-	let [animatingIcon, setAnimatingIcon] = useState<string | null>(null)
-	let timeoutRef = useRef<number | null>(null)
-
-	function triggerAnimation(key: string) {
-		if (timeoutRef.current !== null) {
-			window.clearTimeout(timeoutRef.current)
-			timeoutRef.current = null
-		}
-		setAnimatingIcon(key)
-		timeoutRef.current = window.setTimeout(() => {
-			setAnimatingIcon(null)
-			timeoutRef.current = null
-		}, 500)
-	}
-
-	useEffect(() => {
-		return () => {
-			if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
-		}
-	}, [])
-
-	return { animatingIcon, triggerAnimation }
 }
