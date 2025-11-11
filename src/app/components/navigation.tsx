@@ -1,5 +1,6 @@
 import { createLink, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
+import type { ComponentType, ReactNode } from "react"
 import { motion, useAnimationControls } from "motion/react"
 import type { AnimationDefinition } from "motion/react"
 import {
@@ -30,13 +31,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	let isInputFocused = useInputFocusState()
 	let isPWAInstalled = useIsPWAInstalled()
 	let isMobileDevice = useIsMobileDevice()
-
-	let peopleIcon = useIconTapAnimation()
-	let notesIcon = useIconTapAnimation()
-	let remindersIcon = useIconTapAnimation()
-	let assistantIcon = useIconTapAnimation()
-	let settingsIcon = useIconTapAnimation()
-	let installIcon = useIconTapAnimation()
 
 	let pwaInstallHintDismissed = useAppStore(
 		state => state.pwaInstallHintDismissed,
@@ -69,15 +63,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	function handlePWADialogClose(open: boolean) {
 		setShowPWADialog(open)
 	}
-	let activeProps = { className: "text-foreground" }
-	let inactiveProps = {
-		className:
-			"text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
-	}
-	let linkClassName = cn(
-		"transition-colors flex h-full flex-1 flex-col items-center justify-center text-xs",
-		"md:rounded-md md:flex-row md:gap-2 md:px-3 md:py-2 md:text-sm md:flex-none",
-	)
 	return (
 		<>
 			<nav
@@ -96,164 +81,68 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						"md:h-12 md:gap-1 md:p-1",
 					)}
 				>
-					<MotionLink
+					<NavBarButton
 						key="/people"
 						to="/people"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
+						label={<T k="nav.people" />}
 						onClick={() => handleNavClick("/people")}
-						{...peopleIcon.handlers}
-					>
-						{({ isActive }) => (
-							<>
-								<motion.div animate={peopleIcon.controls}>
-									{isActive ? (
-										<PeopleFill className="size-6 sm:mb-1 md:mb-0" />
-									) : (
-										<People className="size-6 sm:mb-1 md:mb-0" />
-									)}
-								</motion.div>
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.people" />
-								</span>
-							</>
-						)}
-					</MotionLink>
-					<MotionLink
+						activeIcon={PeopleFill}
+						inactiveIcon={People}
+					/>
+					<NavBarButton
 						key="/notes"
 						to="/notes"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
+						label={<T k="nav.notes" />}
 						onClick={() => handleNavClick("/notes")}
-						{...notesIcon.handlers}
-					>
-						{({ isActive }) => (
-							<>
-								<motion.div animate={notesIcon.controls}>
-									{isActive ? (
-										<FileEarmarkTextFill className="size-6 sm:mb-1 md:mb-0" />
-									) : (
-										<FileEarmarkText className="size-6 sm:mb-1 md:mb-0" />
-									)}
-								</motion.div>
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.notes" />
-								</span>
-							</>
-						)}
-					</MotionLink>
-					<MotionLink
+						activeIcon={FileEarmarkTextFill}
+						inactiveIcon={FileEarmarkText}
+					/>
+					<NavBarButton
 						key="/reminders"
 						to="/reminders"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
+						label={<T k="nav.reminders" />}
 						onClick={() => handleNavClick("/reminders")}
-						{...remindersIcon.handlers}
-					>
-						{({ isActive }) => (
-							<>
-								<div className="relative">
-									<motion.div animate={remindersIcon.controls}>
-										{isActive ? (
-											<BellFill className="size-6 sm:mb-1 md:mb-0" />
-										) : (
-											<Bell className="size-6 sm:mb-1 md:mb-0" />
-										)}
-									</motion.div>
-									{dueReminderCount > 0 ? (
-										<span
-											className={cn(
-												"bg-primary text-primary-foreground absolute -top-1.5 -right-1.5 min-w-[20px] rounded-full px-1 py-0.5 text-center text-xs font-bold",
-											)}
-										>
-											{dueReminderCount > 9 ? (
-												<T k="nav.notifications.count.max" />
-											) : (
-												dueReminderCount
-											)}
-										</span>
-									) : null}
-								</div>
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.reminders" />
-								</span>
-							</>
-						)}
-					</MotionLink>
-					<MotionLink
+						activeIcon={BellFill}
+						inactiveIcon={Bell}
+						badgeContent={
+							dueReminderCount > 0 ? (
+								dueReminderCount > 9 ? (
+									<T k="nav.notifications.count.max" />
+								) : (
+									dueReminderCount
+								)
+							) : null
+						}
+					/>
+					<NavBarButton
 						key="/assistant"
 						to="/assistant"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
+						label={<T k="nav.assistant" />}
 						onClick={() => handleNavClick("/assistant")}
-						{...assistantIcon.handlers}
-					>
-						{({ isActive }) => (
-							<>
-								<motion.div animate={assistantIcon.controls}>
-									{isActive ? (
-										<ChatFill className="size-6 sm:mb-1 md:mb-0" />
-									) : (
-										<Chat className="size-6 sm:mb-1 md:mb-0" />
-									)}
-								</motion.div>
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.assistant" />
-								</span>
-							</>
-						)}
-					</MotionLink>
-					<MotionLink
+						activeIcon={ChatFill}
+						inactiveIcon={Chat}
+					/>
+					<NavBarButton
 						key="/settings"
 						to="/settings"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
+						label={<T k="nav.settings" />}
 						onClick={() => handleNavClick("/settings")}
-						{...settingsIcon.handlers}
-					>
-						{({ isActive }) => (
-							<>
-								<motion.div animate={settingsIcon.controls}>
-									{isActive ? (
-										<GearFill className="size-6 sm:mb-1 md:mb-0" />
-									) : (
-										<Gear className="size-6 sm:mb-1 md:mb-0" />
-									)}
-								</motion.div>
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.settings" />
-								</span>
-							</>
-						)}
-					</MotionLink>
+						activeIcon={GearFill}
+						inactiveIcon={Gear}
+					/>
 					{shouldShowPWAButton && (
-						<motion.button
-							className={cn(
-								linkClassName,
+						<NavBarButton
+							label={<T k="nav.install" />}
+							className={
 								shouldPulse
 									? "text-primary hover:text-primary/80 md:hover:bg-primary/10 transition-color"
-									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
-							)}
+									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color"
+							}
 							onClick={handlePWAInstallClick}
-							{...installIcon.handlers}
-						>
-							<motion.div animate={installIcon.controls}>
-								<AppIndicator
-									className={cn(
-										"size-6 sm:mb-1 md:mb-0",
-										shouldPulse && "animate-pulse",
-									)}
-								/>
-							</motion.div>
-							<span className="sr-only sm:not-sr-only">
-								<T k="nav.install" />
-							</span>
-						</motion.button>
+							inactiveIcon={AppIndicator}
+							activeIcon={AppIndicator}
+							iconClassName={shouldPulse ? "animate-pulse" : undefined}
+						/>
 					)}
 				</div>
 			</nav>
@@ -267,8 +156,20 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	)
 }
 
-let MotionLink = createLink(motion.a)
+type NavIconComponent = ComponentType<{ className?: string }>
 
+type NavBarButtonProps = {
+	to?: Parameters<typeof MotionLink>[0]["to"]
+	onClick?: () => void
+	className?: string
+	label: ReactNode
+	activeIcon?: NavIconComponent
+	inactiveIcon: NavIconComponent
+	badgeContent?: ReactNode
+	iconClassName?: string
+}
+
+let MotionLink = createLink(motion.a)
 let tapAnimations: Record<"press" | "release", AnimationDefinition> = {
 	press: {
 		scale: 0.8,
@@ -286,8 +187,23 @@ let tapAnimations: Record<"press" | "release", AnimationDefinition> = {
 	},
 }
 
-function useIconTapAnimation() {
+function NavBarButton({
+	to,
+	onClick,
+	className,
+	label,
+	activeIcon,
+	inactiveIcon,
+	badgeContent,
+	iconClassName,
+}: NavBarButtonProps) {
 	let controls = useAnimationControls()
+	let buttonClassName = cn(
+		"transition-colors flex h-full flex-1 flex-col items-center justify-center text-xs",
+		"md:rounded-md md:flex-row md:gap-2 md:px-3 md:py-2 md:text-sm md:flex-none",
+		className,
+	)
+	let iconClasses = cn("size-6 sm:mb-1 md:mb-0", iconClassName)
 
 	function handleTapStart() {
 		controls.stop()
@@ -299,12 +215,53 @@ function useIconTapAnimation() {
 		void controls.start(tapAnimations.release)
 	}
 
-	return {
-		controls,
-		handlers: {
-			onTapStart: handleTapStart,
-			onTap: handleTapEnd,
-			onTapCancel: handleTapEnd,
-		},
+	function renderContent(isActive: boolean) {
+		let IconComponent = isActive ? (activeIcon ?? inactiveIcon) : inactiveIcon
+		let hasBadge = badgeContent !== null && badgeContent !== undefined
+		return (
+			<>
+				<div className={cn(hasBadge && "relative")}>
+					<motion.div animate={controls}>
+						<IconComponent className={iconClasses} />
+					</motion.div>
+					{hasBadge ? (
+						<span className="bg-primary text-primary-foreground absolute -top-1.5 -right-1.5 min-w-[20px] rounded-full px-1 py-0.5 text-center text-xs font-bold">
+							{badgeContent}
+						</span>
+					) : null}
+				</div>
+				<span className="sr-only sm:not-sr-only">{label}</span>
+			</>
+		)
 	}
+
+	let sharedProps = {
+		className: buttonClassName,
+		onClick,
+		onTapStart: handleTapStart,
+		onTap: handleTapEnd,
+		onTapCancel: handleTapEnd,
+	}
+
+	if (to) {
+		return (
+			<MotionLink
+				to={to}
+				activeProps={{ className: "text-foreground" }}
+				inactiveProps={{
+					className:
+						"text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
+				}}
+				{...sharedProps}
+			>
+				{({ isActive }: { isActive: boolean }) => renderContent(isActive)}
+			</MotionLink>
+		)
+	}
+
+	return (
+		<motion.button type="button" {...sharedProps}>
+			{renderContent(false)}
+		</motion.button>
+	)
 }
