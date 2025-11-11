@@ -38,7 +38,16 @@ registerRoute(
 		let cache = await caches.open(APP_SHELL_CACHE)
 		let appShellRequest = new Request("/app", { credentials: "same-origin" })
 
+		// Cache-first strategy: serve cached version if available
+		let cachedResponse = await cache.match(appShellRequest)
+		if (cachedResponse) {
+			console.log("[SW] Serving navigation from cache")
+			return cachedResponse
+		}
+
+		// No cache available, fetch from network
 		try {
+			console.log("[SW] No cache, fetching navigation from network")
 			let preloadPromise = Reflect.get(event, "preloadResponse")
 			let preload =
 				preloadPromise &&
@@ -50,11 +59,9 @@ registerRoute(
 			return networkResponse
 		} catch (error) {
 			console.log(
-				"[SW] Navigation request failed, serving cached shell:",
+				"[SW] Navigation request failed, no cache available:",
 				error,
 			)
-			let cachedResponse = await cache.match(appShellRequest)
-			if (cachedResponse) return cachedResponse
 			return new Response("Offline", { status: 503 })
 		}
 	},
@@ -65,7 +72,13 @@ sw.addEventListener("install", () => {
 })
 
 sw.addEventListener("activate", event => {
-	event.waitUntil(sw.clients.claim())
+	console.log("[SW] Activated")
+	// Clear the app shell cache so the new SW fetches the new version
+	event.waitUntil(
+		caches.delete(APP_SHELL_CACHE).then(() => {
+			console.log("[SW] Cleared app shell cache")
+		}),
+	)
 })
 
 sw.addEventListener("message", event => {
