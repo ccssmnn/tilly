@@ -1,5 +1,8 @@
-import { Link, useLocation } from "@tanstack/react-router"
-import { useEffect, useRef, useState } from "react"
+import { createLink, useLocation } from "@tanstack/react-router"
+import { useState } from "react"
+import type { ComponentType, ReactNode } from "react"
+import { motion, useAnimationControls } from "motion/react"
+import type { AnimationDefinition } from "motion/react"
 import {
 	People,
 	PeopleFill,
@@ -24,7 +27,6 @@ export { Navigation }
 
 function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	let location = useLocation()
-	let { animatingIcon, triggerAnimation } = useIconAnimation()
 	let [showPWADialog, setShowPWADialog] = useState(false)
 	let isInputFocused = useInputFocusState()
 	let isPWAInstalled = useIsPWAInstalled()
@@ -43,8 +45,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 		isMobileDevice && !isPWAInstalled && !hideInstallNavItem
 	let shouldPulse = shouldShowPWAButton && !pwaInstallHintDismissed
 
-	function handleNavClick(iconKey: string, routePath: string) {
-		triggerAnimation(iconKey)
+	function handleNavClick(routePath: string) {
 		if (location.pathname.endsWith(routePath)) {
 			window.scrollTo({ top: 0, behavior: "smooth" })
 		}
@@ -52,7 +53,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 
 	function handlePWAInstallClick() {
 		setShowPWADialog(true)
-		triggerAnimation("pwa-install")
 	}
 
 	function handlePWAInstallComplete() {
@@ -63,15 +63,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	function handlePWADialogClose(open: boolean) {
 		setShowPWADialog(open)
 	}
-	let activeProps = { className: "text-foreground" }
-	let inactiveProps = {
-		className:
-			"text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
-	}
-	let linkClassName = cn(
-		"transition-colors flex h-full flex-1 flex-col items-center justify-center text-xs",
-		"md:rounded-md md:flex-row md:gap-2 md:px-3 md:py-2 md:text-sm md:flex-none",
-	)
 	return (
 		<>
 			<nav
@@ -90,172 +81,68 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 						"md:h-12 md:gap-1 md:p-1",
 					)}
 				>
-					<Link
+					<NavBarButton
 						key="/people"
 						to="/people"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
-						onClick={() => handleNavClick("people", "/people")}
-					>
-						{({ isActive }) => (
-							<>
-								{isActive ? (
-									<PeopleFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "people" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<People className="size-6 sm:mb-1 md:mb-0" />
-								)}
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.people" />
-								</span>
-							</>
-						)}
-					</Link>
-					<Link
+						label={<T k="nav.people" />}
+						onClick={() => handleNavClick("/people")}
+						activeIcon={PeopleFill}
+						inactiveIcon={People}
+					/>
+					<NavBarButton
 						key="/notes"
 						to="/notes"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
-						onClick={() => handleNavClick("notes", "/notes")}
-					>
-						{({ isActive }) => (
-							<>
-								{isActive ? (
-									<FileEarmarkTextFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "notes" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<FileEarmarkText className="size-6 sm:mb-1 md:mb-0" />
-								)}
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.notes" />
-								</span>
-							</>
-						)}
-					</Link>
-					<Link
+						label={<T k="nav.notes" />}
+						onClick={() => handleNavClick("/notes")}
+						activeIcon={FileEarmarkTextFill}
+						inactiveIcon={FileEarmarkText}
+					/>
+					<NavBarButton
 						key="/reminders"
 						to="/reminders"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
-						onClick={() => handleNavClick("reminders", "/reminders")}
-					>
-						{({ isActive }) => (
-							<>
-								<div className="relative">
-									{isActive ? (
-										<BellFill
-											className={cn(
-												"size-6 sm:mb-1 md:mb-0",
-												animatingIcon === "reminders" && "animate-pulse-scale",
-											)}
-										/>
-									) : (
-										<Bell className="size-6 sm:mb-1 md:mb-0" />
-									)}
-									{dueReminderCount > 0 ? (
-										<span
-											className={cn(
-												"bg-primary text-primary-foreground absolute -top-1.5 -right-1.5 min-w-[20px] rounded-full px-1 py-0.5 text-center text-xs font-bold",
-											)}
-										>
-											{dueReminderCount > 9 ? (
-												<T k="nav.notifications.count.max" />
-											) : (
-												dueReminderCount
-											)}
-										</span>
-									) : null}
-								</div>
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.reminders" />
-								</span>
-							</>
-						)}
-					</Link>
-					<Link
+						label={<T k="nav.reminders" />}
+						onClick={() => handleNavClick("/reminders")}
+						activeIcon={BellFill}
+						inactiveIcon={Bell}
+						badgeContent={
+							dueReminderCount > 0 ? (
+								dueReminderCount > 9 ? (
+									<T k="nav.notifications.count.max" />
+								) : (
+									dueReminderCount
+								)
+							) : null
+						}
+					/>
+					<NavBarButton
 						key="/assistant"
 						to="/assistant"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
-						onClick={() => handleNavClick("assistant", "/assistant")}
-					>
-						{({ isActive }) => (
-							<>
-								{isActive ? (
-									<ChatFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "assistant" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<Chat className="size-6 sm:mb-1 md:mb-0" />
-								)}
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.assistant" />
-								</span>
-							</>
-						)}
-					</Link>
-					<Link
+						label={<T k="nav.assistant" />}
+						onClick={() => handleNavClick("/assistant")}
+						activeIcon={ChatFill}
+						inactiveIcon={Chat}
+					/>
+					<NavBarButton
 						key="/settings"
 						to="/settings"
-						activeProps={activeProps}
-						inactiveProps={inactiveProps}
-						className={linkClassName}
-						onClick={() => handleNavClick("settings", "/settings")}
-					>
-						{({ isActive }) => (
-							<>
-								{isActive ? (
-									<GearFill
-										className={cn(
-											"size-6 sm:mb-1 md:mb-0",
-											animatingIcon === "settings" && "animate-pulse-scale",
-										)}
-									/>
-								) : (
-									<Gear className="size-6 sm:mb-1 md:mb-0" />
-								)}
-								<span className="sr-only sm:not-sr-only">
-									<T k="nav.settings" />
-								</span>
-							</>
-						)}
-					</Link>
+						label={<T k="nav.settings" />}
+						onClick={() => handleNavClick("/settings")}
+						activeIcon={GearFill}
+						inactiveIcon={Gear}
+					/>
 					{shouldShowPWAButton && (
-						<button
-							className={cn(
-								linkClassName,
+						<NavBarButton
+							label={<T k="nav.install" />}
+							className={
 								shouldPulse
 									? "text-primary hover:text-primary/80 md:hover:bg-primary/10 transition-color"
-									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
-							)}
+									: "text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color"
+							}
 							onClick={handlePWAInstallClick}
-						>
-							<AppIndicator
-								className={cn(
-									"size-6 sm:mb-1 md:mb-0",
-									shouldPulse && "animate-pulse",
-									animatingIcon === "pwa-install" && "animate-pulse-scale",
-								)}
-							/>
-							<span className="sr-only sm:not-sr-only">
-								<T k="nav.install" />
-							</span>
-						</button>
+							inactiveIcon={AppIndicator}
+							activeIcon={AppIndicator}
+							iconClassName={shouldPulse ? "animate-pulse" : undefined}
+						/>
 					)}
 				</div>
 			</nav>
@@ -269,27 +156,113 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	)
 }
 
-function useIconAnimation() {
-	let [animatingIcon, setAnimatingIcon] = useState<string | null>(null)
-	let timeoutRef = useRef<number | null>(null)
+type NavIconComponent = ComponentType<{ className?: string }>
 
-	function triggerAnimation(key: string) {
-		if (timeoutRef.current !== null) {
-			window.clearTimeout(timeoutRef.current)
-			timeoutRef.current = null
-		}
-		setAnimatingIcon(key)
-		timeoutRef.current = window.setTimeout(() => {
-			setAnimatingIcon(null)
-			timeoutRef.current = null
-		}, 500)
+type NavBarButtonProps = {
+	to?: Parameters<typeof MotionLink>[0]["to"]
+	onClick?: () => void
+	className?: string
+	label: ReactNode
+	activeIcon?: NavIconComponent
+	inactiveIcon: NavIconComponent
+	badgeContent?: ReactNode
+	iconClassName?: string
+}
+
+let MotionLink = createLink(motion.a)
+
+let tapAnimations: Record<"press" | "release", AnimationDefinition> = {
+	press: {
+		scale: 0.8,
+		rotate: -3,
+		transition: { duration: 0.12, ease: "easeOut" },
+	},
+	release: {
+		scale: [0.8, 1.2, 1],
+		rotate: [-3, 3, 0],
+		transition: {
+			duration: 0.32,
+			times: [0, 0.5, 1],
+			ease: ["easeOut", "easeInOut"],
+		},
+	},
+}
+
+function NavBarButton({
+	to,
+	onClick,
+	className,
+	label,
+	activeIcon,
+	inactiveIcon,
+	badgeContent,
+	iconClassName,
+}: NavBarButtonProps) {
+	let controls = useAnimationControls()
+	let buttonClassName = cn(
+		"transition-colors flex h-full flex-1 flex-col items-center justify-center text-xs",
+		"md:rounded-md md:flex-row md:gap-2 md:px-3 md:py-2 md:text-sm md:flex-none",
+		className,
+	)
+	let iconClasses = cn("size-6 sm:mb-1 md:mb-0", iconClassName)
+
+	function handleTapStart() {
+		controls.stop()
+		void controls.start(tapAnimations.press)
 	}
 
-	useEffect(() => {
-		return () => {
-			if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
-		}
-	}, [])
+	function handleTapEnd() {
+		controls.stop()
+		void controls.start(tapAnimations.release)
+	}
 
-	return { animatingIcon, triggerAnimation }
+	function renderContent(isActive: boolean) {
+		let IconComponent = isActive ? (activeIcon ?? inactiveIcon) : inactiveIcon
+		let hasBadge = badgeContent !== null && badgeContent !== undefined
+		return (
+			<>
+				<div className={cn(hasBadge && "relative")}>
+					<motion.div animate={controls}>
+						<IconComponent className={iconClasses} />
+					</motion.div>
+					{hasBadge ? (
+						<span className="bg-primary text-primary-foreground absolute -top-1.5 -right-1.5 min-w-[20px] rounded-full px-1 py-0.5 text-center text-xs font-bold">
+							{badgeContent}
+						</span>
+					) : null}
+				</div>
+				<span className="sr-only sm:not-sr-only">{label}</span>
+			</>
+		)
+	}
+
+	let sharedProps = {
+		className: buttonClassName,
+		onClick,
+		onTapStart: handleTapStart,
+		onTap: handleTapEnd,
+		onTapCancel: handleTapEnd,
+	}
+
+	if (to) {
+		return (
+			<MotionLink
+				to={to}
+				activeProps={{ className: "text-foreground" }}
+				inactiveProps={{
+					className:
+						"text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
+				}}
+				{...sharedProps}
+			>
+				{({ isActive }: { isActive: boolean }) => renderContent(isActive)}
+			</MotionLink>
+		)
+	}
+
+	return (
+		<motion.button type="button" {...sharedProps}>
+			{renderContent(false)}
+		</motion.button>
+	)
 }

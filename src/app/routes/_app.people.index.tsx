@@ -1,202 +1,249 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, notFound } from "@tanstack/react-router"
+import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { useAccount } from "jazz-tools/react"
-import { UserAccount } from "#shared/schema/user"
+import { co } from "jazz-tools"
 import { usePeople } from "#app/features/person-hooks"
-import { type ResolveQuery } from "jazz-tools"
-import { useDeferredValue, type ReactNode } from "react"
+import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
-import { TypographyH1 } from "#shared/ui/typography"
+import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Plus, X, Search } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { NewPerson } from "#app/features/new-person"
 import { PersonTour } from "#app/features/person-tour"
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "#shared/ui/accordion"
-
 import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
+import { cn } from "#app/lib/utils"
+import { UserAccount } from "#shared/schema/user"
+import { personListQuery } from "#app/features/person-query"
+import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
 
 export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
 		let eagerCount = calculateEagerLoadCount()
-		if (!context.me) {
-			return { me: null, eagerCount }
-		}
+		if (!context.me) throw notFound()
 		let loadedMe = await context.me.$jazz.ensureLoaded({
-			resolve: query,
+			resolve: personListQuery,
 		})
 		return { me: loadedMe, eagerCount }
 	},
 	component: PeopleScreen,
 })
 
-let query = {
-	root: { people: { $each: { avatar: true, reminders: { $each: true } } } },
-} as const satisfies ResolveQuery<typeof UserAccount>
+type LoadedAccount = co.loaded<typeof UserAccount, typeof personListQuery>
+type LoadedPeopleList = LoadedAccount["root"]["people"]
+type LoadedPerson = PersonListLoadedPerson
 
 function PeopleScreen() {
 	let { me: data, eagerCount } = Route.useLoaderData()
 	let navigate = Route.useNavigate()
 
 	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
+		resolve: personListQuery,
 	})
 
-	let currentMe = subscribedMe ?? data
-
-	let allPeople = (currentMe?.root.people ?? []).filter(
-		p => !p.permanentlyDeletedAt,
-	)
+	let currentMe: LoadedAccount = subscribedMe ?? data
+	let allPeople = filterVisiblePeople(currentMe.root?.people)
 
 	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()
 	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)
 
-	let people = usePeople(allPeople, deferredSearchQuery)
+	let people = usePeople<LoadedPerson[], LoadedPerson>(
+		allPeople,
+		deferredSearchQuery,
+	)
 
-	let didSearch = !!deferredSearchQuery
+	let didSearch = deferredSearchQuery !== ""
 	let hasMatches = people.active.length > 0 || people.deleted.length > 0
-	let hasMore = people.deleted.length > 0
+	let hasPeople = allPeople.length > 0
+	let hasDeleted = people.deleted.length > 0
+	let hasActive = people.active.length > 0
 
-	if (allPeople.length === 0) {
-		return (
-			<PeopleLayout>
-				<NoPeopleState
-					navigate={navigate}
-					setPeopleSearchQuery={setPeopleSearchQuery}
-				/>
-			</PeopleLayout>
-		)
+	let virtualItems: Array<VirtualItem> = []
+	virtualItems.push({ type: "heading" })
+
+	if (hasPeople) {
+		virtualItems.push({ type: "controls" })
 	}
 
-	if (didSearch && !hasMatches) {
-		return (
-			<PeopleLayout>
-				<PeopleControls
-					setPeopleSearchQuery={setPeopleSearchQuery}
-					navigate={navigate}
-				/>
-				<NoSearchResultsState searchQuery={deferredSearchQuery} />
-			</PeopleLayout>
-		)
+	if (!hasPeople) {
+		virtualItems.push({ type: "no-people" })
+	} else if (didSearch && !hasMatches) {
+		virtualItems.push({ type: "no-results", searchQuery: deferredSearchQuery })
+	} else {
+		if (hasActive) {
+			people.active.forEach((person, index) => {
+				virtualItems.push({
+					type: "person",
+					person,
+					noLazy: index < eagerCount,
+				})
+			})
+		} else {
+			virtualItems.push({ type: "no-active" })
+		}
+
+		if (hasDeleted) {
+			virtualItems.push({
+				type: "deleted-heading",
+				count: people.deleted.length,
+			})
+			people.deleted.forEach((person, index) => {
+				virtualItems.push({
+					type: "person",
+					person,
+					noLazy: index < eagerCount,
+				})
+			})
+		}
+
+		virtualItems.push({ type: "spacer" })
 	}
+
+	// eslint-disable-next-line react-hooks/incompatible-library
+	let virtualizer = useVirtualizer({
+		count: virtualItems.length,
+		getScrollElement: () => document.getElementById("scroll-area"),
+		rangeExtractor: range => {
+			return [0, 1, ...defaultRangeExtractor(range).filter(index => index > 1)]
+		},
+		estimateSize: () => 112,
+		overscan: 5,
+		measureElement: (element, _entry, instance) => {
+			let direction = instance.scrollDirection
+			if (direction === "forward" || direction === null) {
+				return element.getBoundingClientRect().height
+			}
+
+			let indexKey = Number(element.getAttribute("data-index"))
+			let cachedMeasurement = instance.measurementsCache[indexKey]?.size
+			return cachedMeasurement || element.getBoundingClientRect().height
+		},
+	})
+
+	let virtualRows = virtualizer.getVirtualItems()
 
 	return (
-		<PeopleLayout>
-			<PeopleControls
-				setPeopleSearchQuery={setPeopleSearchQuery}
-				navigate={navigate}
-			/>
+		<div
+			className="md:mt-12"
+			style={{
+				height: virtualizer.getTotalSize(),
+				width: "100%",
+				position: "relative",
+			}}
+		>
+			{virtualRows.map(virtualRow => {
+				let item = virtualItems.at(virtualRow.index)
+				if (!item) return null
 
-			{people.active.length > 0 ? (
-				<ul className="divide-border divide-y">
-					{people.active.map((person, index) => (
-						<li key={person.$jazz.id}>
-							<PersonListItem
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								person={person as any} // TODO: ouch :(
-								searchQuery={deferredSearchQuery}
-								noLazy={index < eagerCount}
-							/>
-						</li>
-					))}
-				</ul>
-			) : (
-				<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-					<p className="text-muted-foreground text-lg">
-						<T k="people.noActive.message" />
-					</p>
-					<NewPerson
-						onSuccess={personId => {
-							setPeopleSearchQuery("")
-							navigate({
-								to: "/people/$personID",
-								params: { personID: personId },
-							})
-						}}
+				let itemIsPerson = item.type === "person"
+				let nextItemIsPerson =
+					virtualItems.at(virtualRow.index + 1)?.type === "person"
+
+				return (
+					<div
+						key={virtualRow.key}
+						data-index={virtualRow.index}
+						ref={virtualizer.measureElement}
+						className={cn(
+							"absolute top-0 left-0 w-full",
+							itemIsPerson && nextItemIsPerson && "border-border border-b",
+						)}
+						style={{ transform: `translateY(${virtualRow.start}px)` }}
 					>
-						<Button>
-							<T k="people.noActive.addButton" />
-						</Button>
-					</NewPerson>
-				</div>
-			)}
-
-			{hasMore && !didSearch && (
-				<Accordion type="single" collapsible className="w-full">
-					{people.deleted.length > 0 && (
-						<AccordionItem value="deleted">
-							<AccordionTrigger>
-								<T
-									k="people.deleted.count"
-									params={{ count: people.deleted.length }}
-								/>
-							</AccordionTrigger>
-							<AccordionContent>
-								<ul className="divide-border divide-y">
-									{people.deleted.map((person, index) => (
-										<li key={person.$jazz.id}>
-											<PersonListItem
-												// eslint-disable-next-line @typescript-eslint/no-explicit-any
-												person={person as any} // TODO: ouch :(
-												searchQuery={deferredSearchQuery}
-												noLazy={index < eagerCount}
-											/>
-										</li>
-									))}
-								</ul>
-							</AccordionContent>
-						</AccordionItem>
-					)}
-				</Accordion>
-			)}
-
-			{didSearch && hasMore && (
-				<>
-					{people.deleted.length > 0 && (
-						<>
-							<h3 className="text-muted-foreground mt-8 text-sm font-medium">
-								<T
-									k="people.deleted.heading"
-									params={{ count: people.deleted.length }}
-								/>
-							</h3>
-							<ul className="divide-border divide-y">
-								{people.deleted.map((person, index) => (
-									<li key={person.$jazz.id}>
-										<PersonListItem
-											// eslint-disable-next-line @typescript-eslint/no-explicit-any
-											person={person as any} // TODO: ouch :(
-											searchQuery={deferredSearchQuery}
-											noLazy={index < eagerCount}
-										/>
-									</li>
-								))}
-							</ul>
-						</>
-					)}
-				</>
-			)}
-		</PeopleLayout>
+						{renderVirtualItem(item, {
+							searchQuery: deferredSearchQuery,
+							navigate,
+							setPeopleSearchQuery,
+						})}
+					</div>
+				)
+			})}
+		</div>
 	)
 }
 
-function PeopleLayout({ children }: { children: ReactNode }) {
+type VirtualItem =
+	| { type: "heading" }
+	| { type: "controls" }
+	| { type: "person"; person: LoadedPerson; noLazy: boolean }
+	| { type: "no-results"; searchQuery: string }
+	| { type: "no-people" }
+	| { type: "no-active" }
+	| { type: "deleted-heading"; count: number }
+	| { type: "spacer" }
+
+function renderVirtualItem(
+	item: VirtualItem,
+	options: {
+		searchQuery: string
+		navigate: ReturnType<typeof Route.useNavigate>
+		setPeopleSearchQuery: (query: string) => void
+	},
+): ReactNode {
+	switch (item.type) {
+		case "heading":
+			return <HeadingSection />
+
+		case "controls":
+			return (
+				<PeopleControls
+					setPeopleSearchQuery={options.setPeopleSearchQuery}
+					navigate={options.navigate}
+				/>
+			)
+
+		case "person":
+			return (
+				<PersonListItem
+					person={item.person}
+					searchQuery={options.searchQuery}
+					noLazy={item.noLazy}
+				/>
+			)
+
+		case "no-results":
+			return <NoSearchResultsState searchQuery={item.searchQuery} />
+
+		case "no-people":
+			return (
+				<NoPeopleState
+					setPeopleSearchQuery={options.setPeopleSearchQuery}
+					navigate={options.navigate}
+				/>
+			)
+
+		case "no-active":
+			return (
+				<NoActivePeopleState
+					navigate={options.navigate}
+					setPeopleSearchQuery={options.setPeopleSearchQuery}
+				/>
+			)
+
+		case "deleted-heading":
+			return <DeletedHeading count={item.count} />
+
+		case "spacer":
+			return <Spacer />
+
+		default:
+			return null
+	}
+}
+
+function HeadingSection() {
 	let t = useIntl()
+
 	return (
-		<div className="space-y-6 md:mt-12">
+		<>
 			<title>{t("people.pageTitle")}</title>
 			<TypographyH1>
 				<T k="people.title" />
 			</TypographyH1>
-			{children}
-		</div>
+		</>
 	)
 }
 
@@ -210,19 +257,26 @@ function PeopleControls({
 	let { peopleSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
+	let searchInputId = useId()
 
 	return (
-		<div className="flex items-center justify-end gap-3">
+		<div className="my-6 flex items-center justify-end gap-3">
 			<div className="relative w-full">
+				<label htmlFor={searchInputId} className="sr-only">
+					{t("people.search.placeholder")}
+				</label>
 				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
 				<Input
-					ref={r => {
-						autoFocusRef.current = r
+					ref={input => {
+						autoFocusRef.current = input
 					}}
-					type="text"
+					id={searchInputId}
+					name="people-search"
+					type="search"
+					enterKeyHint="search"
 					placeholder={t("people.search.placeholder")}
 					value={peopleSearchQuery}
-					onChange={e => setPeopleSearchQuery(e.target.value)}
+					onChange={event => setPeopleSearchQuery(event.target.value)}
 					className="w-full pl-10"
 				/>
 			</div>
@@ -262,7 +316,7 @@ function NoPeopleState({
 	setPeopleSearchQuery: (query: string) => void
 }) {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+		<div className="mt-6 flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
 			<PersonTour
 				onSuccess={personId => {
 					setPeopleSearchQuery("")
@@ -276,21 +330,77 @@ function NoPeopleState({
 	)
 }
 
-function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
+function NoActivePeopleState({
+	navigate,
+	setPeopleSearchQuery,
+}: {
+	navigate: ReturnType<typeof Route.useNavigate>
+	setPeopleSearchQuery: (query: string) => void
+}) {
 	return (
 		<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-			<Search className="text-muted-foreground size-8" />
-			<div className="space-y-2">
-				<p className="text-muted-foreground text-lg">
-					<T
-						k="people.search.noResults.message"
-						params={{ query: searchQuery }}
-					/>
-				</p>
-				<p className="text-muted-foreground text-sm">
-					<T k="people.search.noResults.suggestion" />
-				</p>
+			<p className="text-muted-foreground text-lg">
+				<T k="people.noActive.message" />
+			</p>
+			<NewPerson
+				onSuccess={personId => {
+					setPeopleSearchQuery("")
+					navigate({
+						to: "/people/$personID",
+						params: { personID: personId },
+					})
+				}}
+			>
+				<Button>
+					<T k="people.noActive.addButton" />
+				</Button>
+			</NewPerson>
+		</div>
+	)
+}
+
+function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
+	return (
+		<div className="container mx-auto mt-6 max-w-6xl px-3 py-6">
+			<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
+				<Search className="text-muted-foreground size-8" />
+				<div className="space-y-2">
+					<p className="text-muted-foreground text-lg">
+						<T
+							k="people.search.noResults.message"
+							params={{ query: searchQuery }}
+						/>
+					</p>
+					<p className="text-muted-foreground text-sm">
+						<T k="people.search.noResults.suggestion" />
+					</p>
+				</div>
 			</div>
 		</div>
 	)
+}
+
+function DeletedHeading({ count }: { count: number }) {
+	return (
+		<TypographyH2 className="text-xl first:mt-10">
+			<T k="people.deleted.heading" params={{ count }} />
+		</TypographyH2>
+	)
+}
+
+function filterVisiblePeople(
+	people: LoadedPeopleList | undefined,
+): LoadedPerson[] {
+	if (!people) return []
+	return people.filter(isVisiblePerson)
+}
+
+function isVisiblePerson(
+	person: LoadedPeopleList[number],
+): person is LoadedPerson {
+	return Boolean(person && !person.permanentlyDeletedAt)
+}
+
+function Spacer() {
+	return <div className="h-20" />
 }

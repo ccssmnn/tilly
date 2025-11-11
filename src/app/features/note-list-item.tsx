@@ -28,7 +28,7 @@ import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
 import { tryCatch } from "#shared/lib/trycatch"
-import { Badge } from "#shared/ui/badge"
+
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"

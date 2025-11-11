@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { useIsMac } from "#app/hooks/use-pwa"
 import { Input } from "#shared/ui/input"
+import { format } from "date-fns"
 
 function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
@@ -54,9 +55,7 @@ export function NoteForm({
 		defaultValues: {
 			content: defaultValues?.content || "",
 			pinned: defaultValues?.pinned || false,
-			createdAt:
-				defaultValues?.createdAt ||
-				new Date().toISOString().slice(0, 11) + "12:00",
+			createdAt: defaultValues?.createdAt || format(new Date(), "yyyy-MM-dd"),
 		},
 	})
 
@@ -85,7 +84,7 @@ export function NoteForm({
 					name="content"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>
+							<FormLabel htmlFor={field.name}>
 								<T k="note.form.content.label" />
 							</FormLabel>
 							<FormControl>
@@ -95,6 +94,7 @@ export function NoteForm({
 									placeholder={placeholder}
 									rows={4}
 									value={field.value}
+									id={field.name}
 								/>
 							</FormControl>
 							<FormMessage />
@@ -124,7 +124,7 @@ export function NoteForm({
 							<FormLabel>
 								<T k="note.form.pin.label" />
 							</FormLabel>
-							<div className="flex items-start gap-3">
+							<div className="flex items-start justify-between gap-3">
 								<FormDescription>
 									<T k="note.form.pin.description" />
 								</FormDescription>

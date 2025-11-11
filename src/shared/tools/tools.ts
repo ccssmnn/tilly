@@ -19,6 +19,7 @@ import {
 	deleteNoteTool,
 	deleteNoteExecute,
 } from "./note-update"
+import { listNotesTool, listNotesExecute } from "./note-read"
 import { addReminderTool, addReminderExecute } from "./reminder-create"
 import {
 	updateReminderTool,
@@ -38,6 +39,7 @@ export let tools = {
 	deletePerson: deletePersonTool,
 
 	// Note tools
+	listNotes: listNotesTool,
 	addNote: addNoteTool,
 	editNote: editNoteTool,
 	deleteNote: deleteNoteTool,
@@ -57,6 +59,7 @@ export let toolExecutors = {
 	getPersonDetails: getPersonDetailsExecute,
 	updatePerson: updatePersonExecute,
 	deletePerson: deletePersonExecute,
+	listNotes: listNotesExecute,
 	addNote: addNoteExecute,
 	editNote: editNoteExecute,
 	deleteNote: deleteNoteExecute,

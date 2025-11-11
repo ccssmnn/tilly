@@ -4,6 +4,7 @@ import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -387,6 +388,9 @@ export function UploadButton({ userID }: { userID: string }) {
 						<DialogTitle>
 							<T k="data.import.dialog.title" />
 						</DialogTitle>
+						<DialogDescription>
+							<T k="data.import.dialog.description" />
+						</DialogDescription>
 					</DialogHeader>
 				}
 			>

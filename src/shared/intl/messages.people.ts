@@ -39,6 +39,8 @@ const basePeopleMessages = messages({
 	"person.form.saving": "Saving...",
 	"person.form.saveChanges": "Save Changes",
 	"person.crop.title": "Crop Avatar",
+	"person.crop.description":
+		"Drag to select the square area of the photo you want to keep.",
 	"person.crop.cancel": "Cancel",
 	"person.crop.confirm": "Crop",
 	"person.detail.pageTitle": "{$name} - Tilly",
@@ -48,7 +50,9 @@ const basePeopleMessages = messages({
 	"person.detail.addNote": "Add Note",
 	"person.detail.addReminder": "Add Reminder",
 	"person.actions.title": "Actions",
+	"person.actions.description": "Choose what you want to do for {$name}.",
 	"person.edit.title": "Edit Person",
+	"person.edit.description": "Update this person's details and avatar.",
 	"person.delete.title": "Delete Person",
 	"person.restore.title": "Restore {$name}",
 	"person.restore.deletionInfo": "This person was deleted {$timeAgo}",
@@ -102,6 +106,8 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.form.saving": "Speichern...",
 	"person.form.saveChanges": "Änderungen speichern",
 	"person.crop.title": "Avatar zuschneiden",
+	"person.crop.description":
+		"Ziehe den Rahmen, um den quadratischen Bildausschnitt festzulegen.",
 	"person.crop.cancel": "Abbrechen",
 	"person.crop.confirm": "Zuschneiden",
 	"person.detail.pageTitle": "{$name} - Tilly",
@@ -114,7 +120,10 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.form.summary.placeholder":
 		"Einige wichtige Fakten, die dir helfen, sie/ihn wiederzufinden",
 	"person.actions.title": "Aktionen",
+	"person.actions.description": "Wähle, was du für {$name} tun möchtest.",
 	"person.edit.title": "Person bearbeiten",
+	"person.edit.description":
+		"Aktualisiere die Angaben und den Avatar dieser Person.",
 	"person.delete.title": "Person löschen",
 	"person.restore.title": "{$name} wiederherstellen",
 	"person.restore.deletionInfo": "Diese Person wurde {$timeAgo} gelöscht",

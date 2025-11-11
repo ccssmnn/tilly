@@ -13,7 +13,9 @@ import type { UseFormReturn } from "react-hook-form"
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogFooter,
+	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
@@ -303,9 +305,14 @@ function AvatarCropperDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
 				titleSlot={
-					<DialogTitle>
-						<T k="person.crop.title" />
-					</DialogTitle>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.crop.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="person.crop.description" />
+						</DialogDescription>
+					</DialogHeader>
 				}
 				className="max-w-md"
 			>

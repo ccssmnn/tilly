@@ -1,7 +1,6 @@
 import { Image as JazzImage } from "jazz-tools/react"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { Person, isDueToday, isDeleted } from "#shared/schema/user"
-import { co } from "jazz-tools"
+import { isDueToday, isDeleted } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
@@ -32,18 +31,24 @@ import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale } from "#shared/intl/setup"
+import type { LoadedPerson } from "#app/features/person-query"
 
 export { PersonListItem }
+export type { PersonListItemPerson }
+
+type PersonListItemPerson = LoadedPerson
+
+type PersonListItemProps = {
+	person: PersonListItemPerson
+	searchQuery?: string
+	noLazy?: boolean
+}
 
 function PersonListItem({
 	person,
 	searchQuery,
 	noLazy = false,
-}: {
-	person: co.loaded<typeof Person, { avatar: true; reminders: { $each: true } }>
-	searchQuery?: string
-	noLazy?: boolean
-}) {
+}: PersonListItemProps) {
 	if (person.deletedAt) {
 		return (
 			<RestorePersonDialog person={person}>
@@ -92,7 +97,7 @@ function PersonItemContainer({
 	className,
 	noLazy = false,
 }: {
-	person: co.loaded<typeof Person, { avatar: true }>
+	person: PersonListItemPerson
 	children: React.ReactNode
 	className?: string
 	noLazy?: boolean
@@ -123,7 +128,7 @@ function PersonItemHeader({
 	nameColor = "line-clamp-1 font-semibold",
 	searchQuery,
 }: {
-	person: co.loaded<typeof Person, { reminders: { $each: true } }>
+	person: PersonListItemPerson
 	nameColor?: string
 	searchQuery?: string
 }) {
@@ -164,7 +169,7 @@ function PersonItemSummary({
 	person,
 	searchQuery,
 }: {
-	person: co.loaded<typeof Person>
+	person: PersonListItemPerson
 	searchQuery?: string
 }) {
 	if (!person.summary) return null
@@ -183,7 +188,7 @@ function RestorePersonDialog({
 	person,
 	children,
 }: {
-	person: co.loaded<typeof Person>
+	person: PersonListItemPerson
 	children: ReactNode
 }) {
 	let locale = useLocale()

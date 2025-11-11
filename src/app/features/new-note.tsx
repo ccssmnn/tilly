@@ -18,6 +18,7 @@ import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
 import { useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
+import { format } from "date-fns"
 
 export { NewNote }
 
@@ -216,7 +217,7 @@ function NewNote(props: {
 									defaultValues={{
 										content: "",
 										pinned: false,
-										createdAt: new Date().toISOString().slice(0, 10),
+										createdAt: format(new Date(), "yyyy-MM-dd"),
 									}}
 									onSubmit={handleSave}
 									onCancel={handleBackToPersonSelection}

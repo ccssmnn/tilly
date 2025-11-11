@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { useRef, useState, useEffect, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
-import { useAccount, useIsAuthenticated } from "jazz-tools/react"
+import { useAccount } from "jazz-tools/react"
 import {
 	Send,
 	Pause,
@@ -43,14 +43,12 @@ import { useAppStore } from "#app/lib/store"
 import { nanoid } from "nanoid"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
-import { useAuth } from "@clerk/clerk-react"
-import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
+import { useAssistantAccess } from "#app/features/plus"
 
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
-		if (!context.me) {
-			return { me: null }
-		}
+		if (!context.me) throw notFound()
+
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,
 		})
@@ -135,38 +133,12 @@ function SubscribePrompt() {
 	)
 }
 
-function useAssistantAccess() {
-	let clerkAuth = useAuth()
-	let isSignedIn = useIsAuthenticated()
-	let isOnline = useOnlineStatus()
-
-	if (!isSignedIn) return { status: "denied", isSignedIn }
-
-	if (!PUBLIC_ENABLE_PAYWALL) return { status: "granted", isSignedIn }
-
-	// When offline, allow access to interface but chat will be disabled by canUseChat
-	if (!isOnline) {
-		// If auth is loaded, we can determine access status
-		if (clerkAuth.isLoaded) {
-			let status = determineAccessStatus({ auth: clerkAuth })
-			return { status, isSignedIn }
-		}
-		// If auth isn't loaded yet, assume granted to avoid infinite loading
-		return { status: "granted", isSignedIn }
-	}
-
-	let status = determineAccessStatus({ auth: clerkAuth })
-
-	return { status, isSignedIn }
-}
-
 function AuthenticatedChat() {
 	let data = Route.useLoaderData()
 	let { me: subscribedMe } = useAccount(UserAccount, {
 		resolve: query,
 	})
 	let currentMe = subscribedMe ?? data.me
-	let t = useIntl()
 
 	let {
 		chat: initialMessages,
@@ -205,20 +177,6 @@ function AuthenticatedChat() {
 			}
 		},
 	})
-
-	if (!currentMe) {
-		return (
-			<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
-				<title>{t("assistant.pageTitle")}</title>
-				<TypographyH1>
-					<T k="assistant.title" />
-				</TypographyH1>
-				<div className="text-center">
-					<p>Please sign in to use the assistant.</p>
-				</div>
-			</div>
-		)
-	}
 
 	function handleSubmit(prompt: string) {
 		let metadata = {
@@ -342,7 +300,7 @@ function AuthenticatedChat() {
 						</div>
 					)}
 					<ScrollIntoView trigger={messages} />
-					<div className="h-16" />
+					<div className="h-22" />
 				</div>
 			)}
 			<UserInput
@@ -663,14 +621,6 @@ function UserInput(props: {
 			</div>
 		</div>
 	)
-}
-
-function determineAccessStatus({ auth }: { auth: ReturnType<typeof useAuth> }) {
-	if (!auth.isLoaded) return "loading"
-
-	if (!auth.isSignedIn) return "denied"
-
-	return auth.has({ plan: "plus" }) ? "granted" : "denied"
 }
 
 function isUsageLimitError(error: unknown): boolean {

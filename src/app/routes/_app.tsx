@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router"
+import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 import { useAccount } from "jazz-tools/react"
 import type { ResolveQuery } from "jazz-tools"
 import { useEffect } from "react"
@@ -8,6 +8,7 @@ import { StatusIndicator } from "#app/components/status-indicator"
 
 export const Route = createFileRoute("/_app")({
 	beforeLoad: ({ context }) => {
+		if (!context.me) throw notFound()
 		return { me: context.me }
 	},
 	component: AppComponent,
@@ -27,17 +28,6 @@ function AppComponent() {
 	useEffect(() => {
 		setAppBadge(dueReminderCount)
 	}, [dueReminderCount])
-
-	// For unauthenticated users who skipped tour, show empty state
-	if (!me) {
-		return (
-			<>
-				<Outlet />
-				<StatusIndicator />
-				<Navigation dueReminderCount={0} />
-			</>
-		)
-	}
 
 	return (
 		<>

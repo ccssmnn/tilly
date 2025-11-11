@@ -36,7 +36,7 @@ function TourComponent() {
 
 	function nextStep() {
 		setDirection("right")
-		// this timeout helps setting the diretion before we set the step
+		// this timeout helps setting the direction before we set step
 		// so we can avoid the transition delay for the first "next" press
 		setTimeout(
 			() => setCurrentStep(Math.min(currentStep + 1, steps.length - 1)),
@@ -60,7 +60,7 @@ function TourComponent() {
 
 		window.addEventListener("keydown", handleKeyDown)
 		return () => window.removeEventListener("keydown", handleKeyDown)
-	}, [currentStep, steps.length])
+	})
 
 	return (
 		<div

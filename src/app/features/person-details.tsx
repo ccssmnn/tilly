@@ -5,6 +5,7 @@ import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
+	DialogDescription,
 	DialogTitle,
 } from "#shared/ui/dialog"
 import {
@@ -204,6 +205,12 @@ export function PersonDetails({
 							<DialogTitle>
 								<T k="person.actions.title" />
 							</DialogTitle>
+							<DialogDescription>
+								<T
+									k="person.actions.description"
+									params={{ name: person.name }}
+								/>
+							</DialogDescription>
 						</DialogHeader>
 					}
 				>
@@ -240,6 +247,9 @@ export function PersonDetails({
 							<DialogTitle>
 								<T k="person.edit.title" />
 							</DialogTitle>
+							<DialogDescription>
+								<T k="person.edit.description" />
+							</DialogDescription>
 						</DialogHeader>
 					}
 				>

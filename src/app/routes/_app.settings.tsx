@@ -4,6 +4,7 @@ import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import { DisplayField } from "#shared/ui/display-field"
 import { UserAccount } from "#shared/schema/user"
 import type { ResolveQuery } from "jazz-tools"
 import { useForm } from "react-hook-form"
@@ -18,7 +19,13 @@ import {
 	FormLabel,
 	FormMessage,
 } from "#shared/ui/form"
-import { Dialog, DialogContent, DialogTitle } from "#shared/ui/dialog"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { Label } from "#shared/ui/label"
 import {
 	Select,
@@ -55,12 +62,12 @@ import { WifiOff, Lightbulb, Book, Compass } from "react-bootstrap-icons"
 import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
+import { useAssistantAccess } from "#app/features/plus"
 
 export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
-		if (!context.me) {
-			return { me: null }
-		}
+		if (!context.me) throw notFound()
+
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
@@ -85,23 +92,8 @@ function SettingsScreen() {
 		resolve: query,
 	})
 	let currentMe = subscribedMe ?? data.me
-
-	if (!currentMe) {
-		return (
-			<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
-				<title>{t("settings.pageTitle")}</title>
-				<TypographyH1>
-					<T k="settings.title" />
-				</TypographyH1>
-				<div className="divide-border divide-y">
-					<AuthenticationSection />
-					<div className="p-4 text-center">
-						<p>Please sign in to access settings.</p>
-					</div>
-				</div>
-			</div>
-		)
-	}
+	let { status: accessStatus } = useAssistantAccess()
+	let isPWAInstalled = useIsPWAInstalled()
 
 	return (
 		<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
@@ -110,11 +102,11 @@ function SettingsScreen() {
 				<T k="settings.title" />
 			</TypographyH1>
 			<div className="divide-border divide-y">
-				<AuthenticationSection />
-				<AgentSection me={currentMe} />
+				<AccountSection />
+				{accessStatus === "granted" && <AgentSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
-				<PWASection />
+				{!isPWAInstalled && <PWASection />}
 				<DataSection />
 				<AboutSection />
 			</div>
@@ -171,7 +163,7 @@ function LanguageSection() {
 	)
 }
 
-function AuthenticationSection() {
+function AccountSection() {
 	let t = useIntl()
 	let isAuthenticated = useIsAuthenticated()
 	let auth = useAuth()
@@ -181,13 +173,13 @@ function AuthenticationSection() {
 
 	return (
 		<SettingsSection
-			title={t("settings.auth.title")}
+			title={t("settings.account.title")}
 			description={
 				isAuthenticated
-					? t("settings.auth.description.signedIn")
+					? t("settings.account.description.signedIn")
 					: isOnline
-						? t("settings.auth.description.signedOut.online")
-						: t("settings.auth.description.signedOut.offline")
+						? t("settings.account.description.signedOut.online")
+						: t("settings.account.description.signedOut.offline")
 			}
 		>
 			<div className="space-y-6">
@@ -195,17 +187,17 @@ function AuthenticationSection() {
 					<>
 						<div>
 							<p className="mb-1 text-sm font-medium">
-								<T k="settings.auth.status.label" />
+								<T k="settings.account.status.label" />
 							</p>
 							<p className="text-muted-foreground text-sm">
-								{t("settings.auth.status.signedIn", {
+								{t("settings.account.status.signedIn", {
 									email: user?.emailAddresses[0]?.emailAddress || "",
 								})}
 							</p>
 							<div className="mt-3 inline-flex flex-wrap gap-3">
 								<Button asChild variant="secondary" disabled={!isOnline}>
 									<a href={`${getAccountsUrl()}/user`}>
-										<T k="settings.auth.manageAccount" />
+										<T k="settings.account.manageAccount" />
 									</a>
 								</Button>
 								<SignOutButton redirectUrl="/app">
@@ -214,7 +206,7 @@ function AuthenticationSection() {
 										variant="outline"
 										disabled={!isOnline}
 									>
-										<T k="settings.auth.signOut" />
+										<T k="settings.account.signOut" />
 									</Button>
 								</SignOutButton>
 							</div>
@@ -222,17 +214,17 @@ function AuthenticationSection() {
 						{auth.isLoaded && auth.isSignedIn && (
 							<div>
 								<p className="mb-1 text-sm font-medium">
-									<T k="settings.auth.tier.label" />
+									<T k="settings.account.tier.label" />
 								</p>
 								<p className="text-muted-foreground text-sm">
 									{auth.has({ plan: "plus" })
-										? t("settings.auth.tier.plus")
-										: t("settings.auth.tier.free")}
+										? t("settings.account.tier.plus")
+										: t("settings.account.tier.free")}
 								</p>
 								<div className="mt-3">
 									<Button asChild variant="secondary" disabled={!isOnline}>
 										<a href={`${getAccountsUrl()}/user/billing`}>
-											<T k="settings.auth.manageSubscription" />
+											<T k="settings.account.manageSubscription" />
 										</a>
 									</Button>
 								</div>
@@ -242,10 +234,10 @@ function AuthenticationSection() {
 				) : (
 					<div>
 						<p className="mb-1 text-sm font-medium">
-							<T k="settings.auth.status.label" />
+							<T k="settings.account.status.label" />
 						</p>
 						<p className="text-muted-foreground text-sm">
-							{t("settings.auth.status.signedOut")}
+							{t("settings.account.status.signedOut")}
 						</p>
 						<div className="mt-3 space-x-2">
 							<Button asChild disabled={!isOnline}>
@@ -266,10 +258,10 @@ function AuthenticationSection() {
 						<Alert variant="destructive">
 							<WifiOff className="h-4 w-4" />
 							<AlertTitle>
-								<T k="settings.auth.requiresInternet" />
+								<T k="settings.account.requiresInternet" />
 							</AlertTitle>
 							<AlertDescription>
-								<T k="settings.auth.offlineDescription" />
+								<T k="settings.account.offlineDescription" />
 							</AlertDescription>
 						</Alert>
 					)}
@@ -313,15 +305,14 @@ function AgentSection({
 		>
 			<div className="space-y-6">
 				<div className="space-y-2">
-					<Label>
+					<p className="text-sm font-medium">
 						<T k="settings.agent.displayName.label" />
-					</Label>
+					</p>
 					<div className="flex items-center gap-2">
-						<Input
-							value={me?.profile?.name || ""}
-							readOnly
+						<DisplayField
+							value={me?.profile?.name ?? ""}
+							placeholder={<T k="settings.agent.displayName.placeholder" />}
 							className="flex-1"
-							placeholder={t("settings.agent.displayName.placeholder")}
 						/>
 						<Button
 							variant="outline"
@@ -405,9 +396,14 @@ function AgentNameDialog({
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent
 				titleSlot={
-					<DialogTitle>
-						<T k="settings.agent.displayName.dialog.title" />
-					</DialogTitle>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="settings.agent.displayName.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="settings.agent.displayName.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 				}
 			>
 				<Form {...form}>
@@ -476,6 +472,10 @@ function PWASection() {
 	let isMobileDevice = useIsMobileDevice()
 	let [showInstallDialog, setShowInstallDialog] = useState(false)
 
+	if (isPWAInstalled) {
+		return null
+	}
+
 	return (
 		<>
 			<SettingsSection
@@ -488,71 +488,17 @@ function PWASection() {
 			>
 				<div className="space-y-6">
 					<div>
-						<p className="mb-1 text-sm font-medium">
-							<T k="settings.pwa.status.label" />
-						</p>
-						<p className="text-muted-foreground text-sm">
-							{isPWAInstalled ? (
-								<T k="settings.pwa.status.installed" />
+						<Button onClick={() => setShowInstallDialog(true)}>
+							<T k="settings.pwa.install.button" />
+						</Button>
+						<p className="text-muted-foreground mt-2 text-xs">
+							{isMobileDevice ? (
+								<T k="settings.pwa.install.description.mobile" />
 							) : (
-								<T k="settings.pwa.status.browser" />
+								<T k="settings.pwa.install.description.desktop" />
 							)}
 						</p>
 					</div>
-					{!isPWAInstalled && (
-						<div>
-							<Button onClick={() => setShowInstallDialog(true)}>
-								<T k="settings.pwa.install.button" />
-							</Button>
-							<p className="text-muted-foreground mt-2 text-xs">
-								{isMobileDevice ? (
-									<T k="settings.pwa.install.description.mobile" />
-								) : (
-									<T k="settings.pwa.install.description.desktop" />
-								)}
-							</p>
-						</div>
-					)}
-					{isPWAInstalled && (
-						<div className="space-y-2">
-							<p className="text-sm font-medium">
-								<T k="settings.pwa.benefits.title" />
-							</p>
-							<ul className="text-muted-foreground space-y-1 text-sm">
-								{isMobileDevice ? (
-									<>
-										<li>
-											<T k="settings.pwa.benefits.mobile.notifications" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.mobile.startup" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.mobile.experience" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.mobile.icon" />
-										</li>
-									</>
-								) : (
-									<>
-										<li>
-											<T k="settings.pwa.benefits.desktop.interface" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.desktop.launch" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.desktop.startup" />
-										</li>
-										<li>
-											<T k="settings.pwa.benefits.desktop.window" />
-										</li>
-									</>
-								)}
-							</ul>
-						</div>
-					)}
 				</div>
 			</SettingsSection>
 			<PWAInstallDialog

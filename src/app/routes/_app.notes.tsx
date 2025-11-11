@@ -6,7 +6,7 @@ import { type ResolveQuery } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
-import { useDeferredValue, type ReactNode } from "react"
+import { useDeferredValue, useId, type ReactNode } from "react"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -220,14 +220,21 @@ function SearchSection() {
 	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
 	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
 	let t = useIntl()
+	let searchInputId = useId()
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
 			<div className="relative w-full">
+				<label htmlFor={searchInputId} className="sr-only">
+					{t("notes.search.placeholder")}
+				</label>
 				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
 				<Input
 					ref={autoFocusRef}
-					type="text"
+					id={searchInputId}
+					name="notes-search"
+					type="search"
+					enterKeyHint="search"
 					placeholder={t("notes.search.placeholder")}
 					value={notesSearchQuery}
 					onChange={e => setNotesSearchQuery(e.target.value)}

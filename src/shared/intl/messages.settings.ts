@@ -6,26 +6,26 @@ const baseSettingsMessages = messages({
 	// Settings page messages
 	"settings.title": "Settings",
 	"settings.pageTitle": "Settings - Tilly",
-	"settings.auth.title": "Authentication",
-	"settings.auth.description.signedIn":
-		"Manage your account settings, change email/password, or sign out.",
-	"settings.auth.description.signedOut.online":
-		"Sign in to sync your relationships and enable Tilly across all your devices.",
-	"settings.auth.description.signedOut.offline":
-		"Sign in requires an internet connection to sync your data across devices.",
-	"settings.auth.status.label": "Status",
-	"settings.auth.status.signedIn": "Signed in as {$email}",
-	"settings.auth.status.signedOut": "Not signed in",
-	"settings.auth.tier.label": "Plan",
-	"settings.auth.tier.plus": "Tilly Plus",
-	"settings.auth.tier.free": "Free",
-	"settings.auth.requiresInternet":
+	"settings.account.title": "Account",
+	"settings.account.description.signedIn":
+		"Manage your authentication status, access account settings, and handle your subscription.",
+	"settings.account.description.signedOut.online":
+		"Sign in to sync your data, manage your account, and access subscription features.",
+	"settings.account.description.signedOut.offline":
+		"Sign in requires an internet connection to access account and subscription features.",
+	"settings.account.status.label": "Status",
+	"settings.account.status.signedIn": "Signed in as {$email}",
+	"settings.account.status.signedOut": "Not signed in",
+	"settings.account.tier.label": "Plan",
+	"settings.account.tier.plus": "Tilly Plus",
+	"settings.account.tier.free": "Free",
+	"settings.account.requiresInternet":
 		"Account features require internet connection",
-	"settings.auth.offlineDescription":
+	"settings.account.offlineDescription":
 		"Please connect to the internet to sign in or manage your account.",
-	"settings.auth.manageAccount": "Manage Account",
-	"settings.auth.manageSubscription": "Manage Subscription",
-	"settings.auth.signOut": "Sign Out",
+	"settings.account.manageAccount": "Manage Account",
+	"settings.account.manageSubscription": "Manage Subscription",
+	"settings.account.signOut": "Sign Out",
 	"settings.profile.title": "About You",
 	"settings.profile.description": "Update your personal information.",
 	"settings.profile.displayName.label": "Display Name",
@@ -47,6 +47,8 @@ const baseSettingsMessages = messages({
 	"settings.agent.displayName.placeholder": "No name set",
 	"settings.agent.displayName.change": "Change",
 	"settings.agent.displayName.dialog.title": "Change Your Name",
+	"settings.agent.displayName.dialog.description":
+		"Update the name Tilly uses when talking to you.",
 	"settings.agent.displayName.current.label": "Current name",
 	"settings.agent.displayName.new.label": "New name",
 	"settings.agent.displayName.new.placeholder": "Enter your name",
@@ -100,25 +102,13 @@ const baseSettingsMessages = messages({
 		"Get the best experience with push notifications and faster access.",
 	"settings.pwa.description.desktop":
 		"Install Tilly as an app for a cleaner interface and quick access.",
-	"settings.pwa.status.label": "Status",
-	"settings.pwa.status.installed": "✅ Tilly is installed as an app",
-	"settings.pwa.status.browser": "📱 Tilly is running in browser",
+
 	"settings.pwa.install.button": "Install App",
 	"settings.pwa.install.description.mobile":
 		"Add Tilly to your home screen for faster access. Push notifications require signing in.",
 	"settings.pwa.install.description.desktop":
 		"Install Tilly as an app to remove browser UI and launch it like any other app.",
-	"settings.pwa.benefits.title": "Benefits you're enjoying:",
-	"settings.pwa.benefits.mobile.notifications":
-		"• Push notifications (when signed in)",
-	"settings.pwa.benefits.mobile.startup": "• Faster app startup",
-	"settings.pwa.benefits.mobile.experience": "• Native app-like experience",
-	"settings.pwa.benefits.mobile.icon": "• Dedicated app icon on home screen",
-	"settings.pwa.benefits.desktop.interface":
-		"• Clean interface without browser UI",
-	"settings.pwa.benefits.desktop.launch": "• Launch like any other desktop app",
-	"settings.pwa.benefits.desktop.startup": "• Faster app startup",
-	"settings.pwa.benefits.desktop.window": "• Dedicated app window",
+
 	"settings.pwa.hideInstall.label": "Hide Install Button",
 	"settings.pwa.hideInstall.description":
 		"Hide the install button from the navigation menu",
@@ -189,6 +179,8 @@ const baseSettingsMessages = messages({
 	"notifications.timezone.usingDefault":
 		"Using your device's timezone as default",
 	"notifications.timezone.dialog.title": "Change Timezone",
+	"notifications.timezone.dialog.description":
+		"Ensure reminders arrive at the right local time.",
 	"notifications.timezone.current.label": "Current timezone",
 	"notifications.timezone.new.label": "New timezone",
 	"notifications.timezone.new.placeholder": "e.g., Europe/Berlin",
@@ -205,6 +197,8 @@ const baseSettingsMessages = messages({
 	"notifications.time.customMessage":
 		"You'll receive notifications at this time each day in your timezone",
 	"notifications.time.dialog.title": "Change Notification Time",
+	"notifications.time.dialog.description":
+		"Pick the daily time when reminders should be delivered.",
 	"notifications.time.current.label": "Current notification time",
 	"notifications.time.new.label": "New notification time",
 	"notifications.time.new.placeholder": "Select notification time",
@@ -345,26 +339,26 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	// Settings page messages
 	"settings.title": "Einstellungen",
 	"settings.pageTitle": "Einstellungen - Tilly",
-	"settings.auth.title": "Authentifizierung",
-	"settings.auth.description.signedIn":
-		"Verwalte deine Kontoeinstellungen, ändere E-Mail/Passwort oder melde dich ab.",
-	"settings.auth.description.signedOut.online":
-		"Melde dich an, um deine Beziehungen zu synchronisieren und Tilly auf all deinen Geräten zu aktivieren.",
-	"settings.auth.description.signedOut.offline":
-		"Für die Anmeldung ist eine Internetverbindung erforderlich, um deine Daten über Geräte hinweg zu synchronisieren.",
-	"settings.auth.status.label": "Status",
-	"settings.auth.status.signedIn": "Angemeldet als {$email}",
-	"settings.auth.status.signedOut": "Nicht angemeldet",
-	"settings.auth.tier.label": "Tarif",
-	"settings.auth.tier.plus": "Tilly Plus",
-	"settings.auth.tier.free": "Kostenlos",
-	"settings.auth.requiresInternet":
+	"settings.account.title": "Konto",
+	"settings.account.description.signedIn":
+		"Verwalte deinen Authentifizierungsstatus, greife auf Kontoeinstellungen zu und verwalte dein Abonnement.",
+	"settings.account.description.signedOut.online":
+		"Melde dich an, um deine Daten zu synchronisieren, dein Konto zu verwalten und auf Abonnement-Funktionen zuzugreifen.",
+	"settings.account.description.signedOut.offline":
+		"Für die Anmeldung ist eine Internetverbindung erforderlich, um auf Konto- und Abonnement-Funktionen zuzugreifen.",
+	"settings.account.status.label": "Status",
+	"settings.account.status.signedIn": "Angemeldet als {$email}",
+	"settings.account.status.signedOut": "Nicht angemeldet",
+	"settings.account.tier.label": "Tarif",
+	"settings.account.tier.plus": "Tilly Plus",
+	"settings.account.tier.free": "Kostenlos",
+	"settings.account.requiresInternet":
 		"Kontofunktionen erfordern eine Internetverbindung",
-	"settings.auth.offlineDescription":
+	"settings.account.offlineDescription":
 		"Bitte stelle eine Internetverbindung her, um dich anzumelden oder dein Konto zu verwalten.",
-	"settings.auth.manageAccount": "Konto verwalten",
-	"settings.auth.manageSubscription": "Abonnement verwalten",
-	"settings.auth.signOut": "Abmelden",
+	"settings.account.manageAccount": "Konto verwalten",
+	"settings.account.manageSubscription": "Abonnement verwalten",
+	"settings.account.signOut": "Abmelden",
 	"settings.profile.title": "Über dich",
 	"settings.profile.description":
 		"Aktualisiere deine persönlichen Informationen.",
@@ -387,6 +381,8 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.agent.displayName.placeholder": "Kein Name gesetzt",
 	"settings.agent.displayName.change": "Ändern",
 	"settings.agent.displayName.dialog.title": "Deinen Namen ändern",
+	"settings.agent.displayName.dialog.description":
+		"Aktualisiere den Namen, mit dem Tilly dich anspricht.",
 	"settings.agent.displayName.current.label": "Aktueller Name",
 	"settings.agent.displayName.new.label": "Neuer Name",
 	"settings.agent.displayName.new.placeholder": "Gib deinen Namen ein",
@@ -440,26 +436,13 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Erhalte die beste Erfahrung mit Push-Benachrichtigungen und schnellerem Zugriff.",
 	"settings.pwa.description.desktop":
 		"Installiere Tilly als App für eine sauberere Oberfläche und schnellen Zugriff.",
-	"settings.pwa.status.label": "Status",
-	"settings.pwa.status.installed": "✅ Tilly ist als App installiert",
-	"settings.pwa.status.browser": "📱 Tilly läuft im Browser",
+
 	"settings.pwa.install.button": "App installieren",
 	"settings.pwa.install.description.mobile":
 		"Füge Tilly deinem Startbildschirm hinzu. Push-Benachrichtigungen erfordern eine Anmeldung.",
 	"settings.pwa.install.description.desktop":
 		"Installiere Tilly als App, um die Browser-UI zu entfernen und sie wie jede andere App zu starten.",
-	"settings.pwa.benefits.title": "Vorteile:",
-	"settings.pwa.benefits.mobile.notifications":
-		"• Push-Benachrichtigungen (bei Anmeldung)",
-	"settings.pwa.benefits.mobile.startup": "• Schnellere App-Starts",
-	"settings.pwa.benefits.mobile.experience": "• App-ähnliche Erfahrung",
-	"settings.pwa.benefits.mobile.icon":
-		"• Eigenes App-Icon auf dem Startbildschirm",
-	"settings.pwa.benefits.desktop.interface":
-		"• Aufgeräumte Oberfläche ohne Browser-UI",
-	"settings.pwa.benefits.desktop.launch": "• Start wie jede andere Desktop-App",
-	"settings.pwa.benefits.desktop.startup": "• Schnellere App-Starts",
-	"settings.pwa.benefits.desktop.window": "• Eigenes App-Fenster",
+
 	"settings.pwa.hideInstall.label": "Installationsknopf ausblenden",
 	"settings.pwa.hideInstall.description":
 		"Blendet den Installationsknopf aus dem Navigationsmenü aus",
@@ -532,6 +515,8 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.timezone.change": "Ändern",
 	"notifications.timezone.usingDefault": "Zeitzone deines Geräts als Standard",
 	"notifications.timezone.dialog.title": "Zeitzone ändern",
+	"notifications.timezone.dialog.description":
+		"Sorge dafür, dass Erinnerungen zur richtigen Zeit ankommen.",
 	"notifications.timezone.current.label": "Aktuelle Zeitzone",
 	"notifications.timezone.new.label": "Neue Zeitzone",
 	"notifications.timezone.new.placeholder": "z. B. Europe/Berlin",
@@ -548,6 +533,8 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.time.customMessage":
 		"Du erhältst Benachrichtigungen täglich zu dieser Zeit in deiner Zeitzone",
 	"notifications.time.dialog.title": "Benachrichtigungszeit ändern",
+	"notifications.time.dialog.description":
+		"Wähle, wann wir dir täglich Erinnerungen schicken sollen.",
 	"notifications.time.current.label": "Aktuelle Benachrichtigungszeit",
 	"notifications.time.new.label": "Neue Benachrichtigungszeit",
 	"notifications.time.new.placeholder": "Benachrichtigungszeit auswählen",

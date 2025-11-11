@@ -58,23 +58,33 @@ function ReminderListItem({
 	userId,
 	showPerson = true,
 	searchQuery,
-	noLazy = false,
 }: {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
 	userId: string
 	showPerson?: boolean
 	searchQuery?: string
-	noLazy?: boolean
 }) {
 	let t = useIntl()
 	let locale = useLocale()
+	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	let [dialogOpen, setDialogOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
 	let operations = useReminderItemOperations({ reminder, person, userId })
 
 	if (reminder.deletedAt) {
+		let deletedRelativeTime = formatDistanceToNow(
+			getReminderDeletedDate(reminder),
+			{
+				addSuffix: true,
+				locale: dfnsLocale,
+			},
+		)
+		let deletedLabel = t("reminder.status.deleted", {
+			relativeTime: deletedRelativeTime,
+		})
+
 		return (
 			<>
 				<ReminderItemContainer
@@ -83,21 +93,20 @@ function ReminderListItem({
 					showPerson={showPerson}
 					className={dialogOpen === "restore" ? "bg-accent" : ""}
 					onClick={() => setDialogOpen("restore")}
-					noLazy={noLazy}
 				>
-					<div className="select-text">
-						<ReminderItemHeader
-							person={person}
-							reminder={reminder}
-							showPerson={showPerson}
-							searchQuery={searchQuery}
-						/>
-						<ReminderItemText
-							reminder={reminder}
-							statusText={t("reminder.status.deleted")}
-							statusColor="text-destructive text-muted-foreground"
-							searchQuery={searchQuery}
-						/>
+					<div className="space-y-1 select-text">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+							<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
+								<Trash />
+								<span>{deletedLabel}</span>
+							</span>
+							{showPerson ? (
+								<span className="text-muted-foreground font-normal">
+									<TextHighlight text={person.name} query={searchQuery} />
+								</span>
+							) : null}
+						</div>
+						<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
 					</div>
 				</ReminderItemContainer>
 				<RestoreReminderDialog
@@ -112,6 +121,17 @@ function ReminderListItem({
 	}
 
 	if (reminder.done) {
+		let doneRelativeTime = formatDistanceToNow(
+			getReminderReferenceDate(reminder),
+			{
+				addSuffix: true,
+				locale: dfnsLocale,
+			},
+		)
+		let doneLabel = t("reminder.status.done", {
+			relativeTime: doneRelativeTime,
+		})
+
 		return (
 			<>
 				<ReminderItemContainer
@@ -120,21 +140,20 @@ function ReminderListItem({
 					showPerson={showPerson}
 					className={dialogOpen === "done" ? "bg-accent" : ""}
 					onClick={() => setDialogOpen("done")}
-					noLazy={noLazy}
 				>
-					<div className="select-text">
-						<ReminderItemHeader
-							person={person}
-							reminder={reminder}
-							showPerson={showPerson}
-							searchQuery={searchQuery}
-						/>
-						<ReminderItemText
-							reminder={reminder}
-							statusText={t("reminder.status.done")}
-							statusColor="text-primary text-muted-foreground"
-							searchQuery={searchQuery}
-						/>
+					<div className="space-y-1 select-text">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+							<span className="inline-flex items-center gap-1 text-emerald-500 [&>svg]:size-3">
+								<CheckLg />
+								<span>{doneLabel}</span>
+							</span>
+							{showPerson ? (
+								<span className="text-muted-foreground font-normal">
+									<TextHighlight text={person.name} query={searchQuery} />
+								</span>
+							) : null}
+						</div>
+						<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
 					</div>
 				</ReminderItemContainer>
 				<DoneReminderActionsDialog
@@ -155,7 +174,6 @@ function ReminderListItem({
 				showPerson={showPerson}
 				className={dialogOpen ? "bg-accent" : ""}
 				onClick={() => setDialogOpen("actions")}
-				noLazy={noLazy}
 			>
 				<div className="flex items-start gap-3 select-text">
 					<div
@@ -214,7 +232,6 @@ function ReminderItemContainer({
 	className,
 	children,
 	onClick,
-	noLazy = false,
 }: {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
@@ -222,7 +239,6 @@ function ReminderItemContainer({
 	className?: string
 	children: React.ReactNode
 	onClick: () => void
-	noLazy?: boolean
 }) {
 	return (
 		<div className="-mx-3">
@@ -238,60 +254,29 @@ function ReminderItemContainer({
 				}}
 			>
 				{showPerson ? (
-					<Avatar
-						className={reminder.deletedAt ? "size-16 grayscale" : "size-16"}
-					>
-						{person.avatar ? (
-							<JazzImage
-								imageId={person.avatar.$jazz.id}
-								loading={noLazy ? "eager" : "lazy"}
-								alt={person.name}
-								width={64}
-								data-slot="avatar-image"
-								className="aspect-square size-full object-cover shadow-inner"
-							/>
-						) : (
-							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-						)}
-					</Avatar>
+					<div className="relative size-16">
+						<Avatar
+							className={cn("size-full", reminder.deletedAt && "grayscale")}
+						>
+							{person.avatar ? (
+								<JazzImage
+									imageId={person.avatar.$jazz.id}
+									alt={person.name}
+									width={64}
+									data-slot="avatar-image"
+									className="aspect-square size-full object-cover shadow-inner"
+								/>
+							) : (
+								<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+							)}
+						</Avatar>
+						{!reminder.deletedAt && reminder.done ? (
+							<span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-emerald-400" />
+						) : null}
+					</div>
 				) : null}
 				<div className="min-w-0 flex-1 space-y-1">{children}</div>
 			</button>
-		</div>
-	)
-}
-
-function ReminderItemHeader({
-	person,
-	reminder,
-	showPerson,
-	searchQuery,
-}: {
-	person: co.loaded<typeof Person>
-	reminder: co.loaded<typeof Reminder>
-	showPerson: boolean
-	searchQuery?: string
-}) {
-	let locale = useLocale()
-	let dfnsLocale = locale === "de" ? dfnsDe : undefined
-	return (
-		<div className="flex items-center gap-3">
-			{showPerson && (
-				<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-					<TextHighlight text={person.name} query={searchQuery} />
-				</p>
-			)}
-			<div className="text-muted-foreground text-xs">
-				{formatDistanceToNow(
-					reminder.updatedAt ||
-						reminder.createdAt ||
-						new Date(reminder.$jazz.lastUpdatedAt || reminder.$jazz.createdAt),
-					{
-						addSuffix: true,
-						locale: dfnsLocale,
-					},
-				)}
-			</div>
 		</div>
 	)
 }
@@ -322,6 +307,18 @@ function ReminderItemText({
 			<TextHighlight text={reminder.text} query={searchQuery} />
 		</p>
 	)
+}
+
+function getReminderReferenceDate(reminder: co.loaded<typeof Reminder>) {
+	return (
+		reminder.updatedAt ||
+		reminder.createdAt ||
+		new Date(reminder.$jazz.lastUpdatedAt || reminder.$jazz.createdAt)
+	)
+}
+
+function getReminderDeletedDate(reminder: co.loaded<typeof Reminder>) {
+	return reminder.deletedAt ?? getReminderReferenceDate(reminder)
 }
 
 function ActionsDialog({
