@@ -3,6 +3,10 @@ import { messages, translate } from "@ccssmnn/intl"
 export { baseUiMessages, deUiMessages }
 
 const baseUiMessages = messages({
+	// Marketing / website UI
+	"marketing.nav.menuDescription":
+		"Open the navigation to choose where you want to go.",
+
 	// Common UI messages
 	"common.cancel": "Cancel",
 	"common.save": "Save",
@@ -117,6 +121,8 @@ const baseUiMessages = messages({
 	"data.import.dialog.chooseFile": "Choose File",
 	"data.import.dialog.noFileSelected": "No file selected",
 	"data.import.dialog.modeLabel": "Import Mode",
+	"data.import.dialog.description":
+		"Choose a .tilly.json backup to merge with or replace your current data.",
 	"data.import.mode.merge": "Merge",
 	"data.import.mode.merge.description":
 		"Add new people and update existing ones",
@@ -143,6 +149,10 @@ const baseUiMessages = messages({
 })
 
 const deUiMessages = translate(baseUiMessages, {
+	// Marketing / website UI
+	"marketing.nav.menuDescription":
+		"Öffne die Navigation, um einen Bereich auszuwählen.",
+
 	// Common UI messages
 	"common.cancel": "Abbrechen",
 	"common.save": "Speichern",
@@ -258,6 +268,8 @@ const deUiMessages = translate(baseUiMessages, {
 	"data.import.dialog.chooseFile": "Datei auswählen",
 	"data.import.dialog.noFileSelected": "Keine Datei ausgewählt",
 	"data.import.dialog.modeLabel": "Importmodus",
+	"data.import.dialog.description":
+		"Wähle eine .tilly.json-Sicherung, um deine aktuellen Daten zu ergänzen oder zu ersetzen.",
 	"data.import.mode.merge": "Zusammenführen",
 	"data.import.mode.merge.description":
 		"Neue Personen hinzufügen und bestehende aktualisieren",

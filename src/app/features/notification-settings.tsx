@@ -252,9 +252,14 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 			>
 				<DialogContent
 					titleSlot={
-						<DialogTitle>
-							<T k="notifications.timezone.dialog.title" />
-						</DialogTitle>
+						<DialogHeader>
+							<DialogTitle>
+								<T k="notifications.timezone.dialog.title" />
+							</DialogTitle>
+							<DialogDescription>
+								<T k="notifications.timezone.dialog.description" />
+							</DialogDescription>
+						</DialogHeader>
 					}
 				>
 					<Form {...timezoneForm}>
@@ -403,9 +408,14 @@ function NotificationTimeSection({
 			>
 				<DialogContent
 					titleSlot={
-						<DialogTitle>
-							<T k="notifications.time.dialog.title" />
-						</DialogTitle>
+						<DialogHeader>
+							<DialogTitle>
+								<T k="notifications.time.dialog.title" />
+							</DialogTitle>
+							<DialogDescription>
+								<T k="notifications.time.dialog.description" />
+							</DialogDescription>
+						</DialogHeader>
 					}
 				>
 					<Form {...notificationTimeForm}>

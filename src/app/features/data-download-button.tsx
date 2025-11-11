@@ -8,6 +8,7 @@ import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -150,9 +151,9 @@ export function ExportButton(props: {
 				}
 			>
 				<div className="space-y-4">
-					<p className="text-muted-foreground text-sm">
+					<DialogDescription>
 						<T k="data.export.dialog.description" />
-					</p>
+					</DialogDescription>
 					<div className="flex space-x-2">
 						<Button
 							type="button"

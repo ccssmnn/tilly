@@ -1,6 +1,12 @@
 import { useState } from "react"
 import { Button } from "#shared/ui/button"
-import { Dialog, DialogContent, DialogTitle } from "#shared/ui/dialog"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -8,7 +14,7 @@ import {
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
 import { List } from "react-bootstrap-icons"
-import { IntlProvider } from "#shared/intl/setup"
+import { IntlProvider, T } from "#shared/intl/setup"
 import { messagesDe, messagesEn } from "#shared/intl/messages"
 
 export { Navbar }
@@ -105,7 +111,16 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 					</div>
 				</nav>
 				<Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-					<DialogContent titleSlot={<DialogTitle>Menu</DialogTitle>}>
+					<DialogContent
+						titleSlot={
+							<DialogHeader>
+								<DialogTitle>Menu</DialogTitle>
+								<DialogDescription>
+									<T k="marketing.nav.menuDescription" />
+								</DialogDescription>
+							</DialogHeader>
+						}
+					>
 						<div className="flex flex-col gap-3">
 							{navigation.map(item => (
 								<Button key={item.name} asChild variant="outline">

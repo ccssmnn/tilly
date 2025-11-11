@@ -47,6 +47,8 @@ const baseSettingsMessages = messages({
 	"settings.agent.displayName.placeholder": "No name set",
 	"settings.agent.displayName.change": "Change",
 	"settings.agent.displayName.dialog.title": "Change Your Name",
+	"settings.agent.displayName.dialog.description":
+		"Update the name Tilly uses when talking to you.",
 	"settings.agent.displayName.current.label": "Current name",
 	"settings.agent.displayName.new.label": "New name",
 	"settings.agent.displayName.new.placeholder": "Enter your name",
@@ -177,6 +179,8 @@ const baseSettingsMessages = messages({
 	"notifications.timezone.usingDefault":
 		"Using your device's timezone as default",
 	"notifications.timezone.dialog.title": "Change Timezone",
+	"notifications.timezone.dialog.description":
+		"Ensure reminders arrive at the right local time.",
 	"notifications.timezone.current.label": "Current timezone",
 	"notifications.timezone.new.label": "New timezone",
 	"notifications.timezone.new.placeholder": "e.g., Europe/Berlin",
@@ -193,6 +197,8 @@ const baseSettingsMessages = messages({
 	"notifications.time.customMessage":
 		"You'll receive notifications at this time each day in your timezone",
 	"notifications.time.dialog.title": "Change Notification Time",
+	"notifications.time.dialog.description":
+		"Pick the daily time when reminders should be delivered.",
 	"notifications.time.current.label": "Current notification time",
 	"notifications.time.new.label": "New notification time",
 	"notifications.time.new.placeholder": "Select notification time",
@@ -375,6 +381,8 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.agent.displayName.placeholder": "Kein Name gesetzt",
 	"settings.agent.displayName.change": "Ändern",
 	"settings.agent.displayName.dialog.title": "Deinen Namen ändern",
+	"settings.agent.displayName.dialog.description":
+		"Aktualisiere den Namen, mit dem Tilly dich anspricht.",
 	"settings.agent.displayName.current.label": "Aktueller Name",
 	"settings.agent.displayName.new.label": "Neuer Name",
 	"settings.agent.displayName.new.placeholder": "Gib deinen Namen ein",
@@ -507,6 +515,8 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.timezone.change": "Ändern",
 	"notifications.timezone.usingDefault": "Zeitzone deines Geräts als Standard",
 	"notifications.timezone.dialog.title": "Zeitzone ändern",
+	"notifications.timezone.dialog.description":
+		"Sorge dafür, dass Erinnerungen zur richtigen Zeit ankommen.",
 	"notifications.timezone.current.label": "Aktuelle Zeitzone",
 	"notifications.timezone.new.label": "Neue Zeitzone",
 	"notifications.timezone.new.placeholder": "z. B. Europe/Berlin",
@@ -523,6 +533,8 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.time.customMessage":
 		"Du erhältst Benachrichtigungen täglich zu dieser Zeit in deiner Zeitzone",
 	"notifications.time.dialog.title": "Benachrichtigungszeit ändern",
+	"notifications.time.dialog.description":
+		"Wähle, wann wir dir täglich Erinnerungen schicken sollen.",
 	"notifications.time.current.label": "Aktuelle Benachrichtigungszeit",
 	"notifications.time.new.label": "Neue Benachrichtigungszeit",
 	"notifications.time.new.placeholder": "Benachrichtigungszeit auswählen",

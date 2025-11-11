@@ -19,7 +19,13 @@ import {
 	FormLabel,
 	FormMessage,
 } from "#shared/ui/form"
-import { Dialog, DialogContent, DialogTitle } from "#shared/ui/dialog"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { Label } from "#shared/ui/label"
 import {
 	Select,
@@ -390,9 +396,14 @@ function AgentNameDialog({
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent
 				titleSlot={
-					<DialogTitle>
-						<T k="settings.agent.displayName.dialog.title" />
-					</DialogTitle>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="settings.agent.displayName.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="settings.agent.displayName.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 				}
 			>
 				<Form {...form}>

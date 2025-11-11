@@ -12,12 +12,13 @@ import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogTitle,
 	DialogTrigger,
 	DialogClose,
 	DialogHeader,
 } from "#shared/ui/dialog"
-import { TypographyP, TypographyMuted } from "#shared/ui/typography"
+import { TypographyP } from "#shared/ui/typography"
 import { useServiceWorkerUpdate } from "#app/hooks/use-service-worker-update"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { useIsMobile } from "#app/hooks/use-mobile"
@@ -75,15 +76,17 @@ function OfflineIndicator() {
 			</DialogTrigger>
 			<DialogContent
 				titleSlot={
-					<DialogTitle>
-						<T k="status.offline.dialog.title" />
-					</DialogTitle>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="status.offline.dialog.title" />
+						</DialogTitle>
+						<DialogDescription className="text-foreground leading-tight">
+							<T k="status.offline.description" />
+						</DialogDescription>
+					</DialogHeader>
 				}
 			>
 				<div className="space-y-3">
-					<TypographyP className="leading-none">
-						<T k="status.offline.description" />
-					</TypographyP>
 					<Alert>
 						<Check />
 						<AlertTitle>
@@ -136,15 +139,17 @@ function UpdateIndicator() {
 			</DialogTrigger>
 			<DialogContent
 				titleSlot={
-					<DialogTitle>
-						<T k="status.update.dialog.title" />
-					</DialogTitle>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="status.update.dialog.title" />
+						</DialogTitle>
+						<DialogDescription className="text-foreground leading-tight">
+							<T k="status.update.description" />
+						</DialogDescription>
+					</DialogHeader>
 				}
 			>
 				<div className="space-y-4">
-					<TypographyMuted>
-						<T k="status.update.description" />
-					</TypographyMuted>
 					<div className="flex gap-2">
 						<Button
 							onClick={handleApplyUpdate}
@@ -203,13 +208,13 @@ function NotSignedInIndicator() {
 						<DialogTitle>
 							<T k="status.notSignedIn.dialog.title" />
 						</DialogTitle>
+						<DialogDescription className="text-foreground leading-tight">
+							<T k="status.notSignedIn.browserOnly" />
+						</DialogDescription>
 					</DialogHeader>
 				}
 			>
 				<div className="space-y-3">
-					<TypographyP className="leading-none">
-						<T k="status.notSignedIn.browserOnly" />
-					</TypographyP>
 					<TypographyP className="leading-none">
 						<T k="status.notSignedIn.benefits" />
 					</TypographyP>

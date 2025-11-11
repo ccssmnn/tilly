@@ -84,7 +84,7 @@ export function NoteForm({
 					name="content"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>
+							<FormLabel htmlFor={field.name}>
 								<T k="note.form.content.label" />
 							</FormLabel>
 							<FormControl>
@@ -94,6 +94,7 @@ export function NoteForm({
 									placeholder={placeholder}
 									rows={4}
 									value={field.value}
+									id={field.name}
 								/>
 							</FormControl>
 							<FormMessage />
