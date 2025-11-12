@@ -322,9 +322,9 @@ const baseSettingsMessages = messages({
 	"status.update.tooltip": "Update available",
 	"status.update.dialog.title": "Update Available",
 	"status.update.description":
-		"A new version of Tilly is available with improvements and bug fixes.",
+		"A new version of Tilly is available with improvements and bug fixes. The app will reload to apply the update.",
 	"status.update.updating": "Updating...",
-	"status.update.updateNow": "Update Now",
+	"status.update.updateNow": "Update and Reload",
 	"status.update.later": "Later",
 	"status.notSignedIn.tooltip": "Not signed in",
 	"status.notSignedIn.dialog.title": "Not Signed In",
@@ -665,9 +665,9 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 	"status.update.tooltip": "Update verfügbar",
 	"status.update.dialog.title": "Update verfügbar",
 	"status.update.description":
-		"Eine neue Version von Tilly ist verfügbar – mit Verbesserungen und Fehlerbehebungen.",
+		"Eine neue Version von Tilly ist verfügbar – mit Verbesserungen und Fehlerbehebungen. Die App wird neu geladen, um das Update anzuwenden.",
 	"status.update.updating": "Wird aktualisiert...",
-	"status.update.updateNow": "Jetzt aktualisieren",
+	"status.update.updateNow": "Aktualisieren und neu laden",
 	"status.update.later": "Später",
 	"status.notSignedIn.tooltip": "Nicht angemeldet",
 	"status.notSignedIn.dialog.title": "Nicht angemeldet",
