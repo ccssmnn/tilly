@@ -36,23 +36,6 @@ const baseAssistantMessages = messages({
 	"assistant.placeholder.disabled": "Chat requires internet connection",
 	"assistant.placeholder.initial": "Chat with Tilly",
 	"assistant.placeholder.reply": "Reply to Tilly...",
-	"assistant.speak": "Speak",
-	"assistant.listening": "Listening...",
-
-	// Speech recognition
-	"assistant.speech.start": "Start voice input",
-	"assistant.speech.stop": "Stop voice input",
-
-	// Speech recognition errors
-	"assistant.speech.error.permission":
-		"Microphone permission denied. Please allow microphone access.",
-	"assistant.speech.error.network":
-		"Network error. Please check your connection.",
-	"assistant.speech.error.noSpeech": "No speech detected. Please try again.",
-	"assistant.speech.error.audioCapture":
-		"Could not access microphone. Please check your device settings.",
-	"assistant.speech.error.generic":
-		"Speech recognition error. Please try again.",
 
 	// Tool-related messages
 	"tool.cancel": "Cancel",
@@ -256,24 +239,6 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.placeholder.disabled": "Chat erfordert Internetverbindung",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
 	"assistant.placeholder.reply": "Tilly antworten...",
-	"assistant.speak": "Sprechen",
-	"assistant.listening": "Höre zu...",
-
-	// Speech recognition
-	"assistant.speech.start": "Spracheingabe starten",
-	"assistant.speech.stop": "Spracheingabe stoppen",
-
-	// Speech recognition errors
-	"assistant.speech.error.permission":
-		"Mikrofonberechtigung verweigert. Bitte erlaube den Mikrofonzugriff.",
-	"assistant.speech.error.network":
-		"Netzwerkfehler. Bitte überprüfe deine Verbindung.",
-	"assistant.speech.error.noSpeech":
-		"Keine Sprache erkannt. Bitte versuche es erneut.",
-	"assistant.speech.error.audioCapture":
-		"Kein Zugriff auf Mikrofon möglich. Bitte überprüfe deine Geräteeinstellungen.",
-	"assistant.speech.error.generic":
-		"Fehler bei der Spracherkennung. Bitte versuche es erneut.",
 
 	// Tool-related messages
 	"tool.cancel": "Abbrechen",
