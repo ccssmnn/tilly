@@ -20,7 +20,7 @@ import {
 	Circle,
 } from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import {
 	addReminderTool,
@@ -47,7 +47,7 @@ function AddReminderResult({
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -72,7 +72,7 @@ function AddReminderResult({
 				},
 			)
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -85,7 +85,7 @@ function AddReminderResult({
 				],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [

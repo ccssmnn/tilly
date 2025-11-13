@@ -12,7 +12,7 @@ import {
 } from "#shared/ui/dialog"
 import { ArrowCounterclockwise, Pause, People } from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import {
 	updatePersonTool,
@@ -34,7 +34,7 @@ function UpdatePersonResult({
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -55,7 +55,7 @@ function UpdatePersonResult({
 				summary: result.previous.summary,
 			})
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -68,7 +68,7 @@ function UpdatePersonResult({
 				],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -188,7 +188,7 @@ function DeletePersonResult({
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -205,7 +205,7 @@ function DeletePersonResult({
 		try {
 			await updatePerson(result.personId, { deletedAt: undefined })
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -216,7 +216,7 @@ function DeletePersonResult({
 				],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [

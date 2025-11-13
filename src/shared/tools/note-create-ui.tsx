@@ -16,7 +16,7 @@ import {
 	FileEarmarkText,
 } from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import { addNoteTool } from "#shared/tools/note-create"
 import { updateNote } from "#shared/tools/note-update"
@@ -30,7 +30,7 @@ function AddNoteResult({ result }: { result: _AddNoteTool["output"] }) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -47,13 +47,13 @@ function AddNoteResult({ result }: { result: _AddNoteTool["output"] }) {
 		try {
 			updateNote(result.personId, result.noteId, { deletedAt: new Date() })
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [{ type: "text", text: t("tool.note.created.undo.success") }],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [

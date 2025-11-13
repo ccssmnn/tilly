@@ -28,6 +28,12 @@ export let NotificationSettings = co.map({
 	pushDevices: z.array(PushDevice),
 })
 
+export let ChatHistory = co.map({
+	version: z.literal(1),
+	messages: z.string(),
+	submittedAt: z.date().optional(),
+})
+
 export let UsageTracking = co.map({
 	version: z.literal(5),
 	userId: z.string(),
@@ -89,6 +95,7 @@ export let UserAccountRoot = co.map({
 	notificationSettings: NotificationSettings.optional(),
 	usageTracking: UsageTracking.optional(),
 	language: z.enum(["de", "en"]).optional(),
+	chat: ChatHistory.optional(),
 })
 
 export let UserAccount = co
@@ -123,6 +130,10 @@ function initializeRootIfUndefined(
 					pushDevices: [],
 				}),
 				language: navigator.language.startsWith("de") ? "de" : "en",
+				chat: ChatHistory.create({
+					version: 1,
+					messages: "[]",
+				}),
 			}),
 		)
 	}

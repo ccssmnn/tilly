@@ -606,16 +606,19 @@ function DeleteDataButton({
 		// Clear all people (and thus their notes/reminders) permanently
 		account.root.$jazz.set("people", co.list(Person).create([]))
 
-		// Also clear local UI data (chat, searches, install hint, etc.)
+		// Clear chat history
+		if (account.root.chat) {
+			account.root.chat.$jazz.set("messages", "[]")
+		}
+
+		// Also clear local UI data (searches, install hint, etc.)
 		let {
-			clearChat,
 			setPeopleSearchQuery,
 			setRemindersSearchQuery,
 			setPWAInstallHintDismissed,
 			setHideInstallNavItem,
 			setClearChatHintDismissed,
 		} = useAppStore.getState()
-		clearChat()
 		setPeopleSearchQuery("")
 		setRemindersSearchQuery("")
 		setPWAInstallHintDismissed(false)

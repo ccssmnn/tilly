@@ -58,10 +58,7 @@ registerRoute(
 			cache.put(appShellRequest, networkResponse.clone())
 			return networkResponse
 		} catch (error) {
-			console.log(
-				"[SW] Navigation request failed, no cache available:",
-				error,
-			)
+			console.log("[SW] Navigation request failed, no cache available:", error)
 			return new Response("Offline", { status: 503 })
 		}
 	},

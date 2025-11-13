@@ -37,10 +37,9 @@ import {
 	DefaultChatTransport,
 	lastAssistantMessageIsCompleteWithToolCalls,
 } from "ai"
-import { toolExecutors } from "#shared/tools/tools"
+import { toolExecutors, type TillyUIMessage } from "#shared/tools/tools"
 import { MessageRenderer } from "#app/features/assistant-message-components"
 import { useAppStore } from "#app/lib/store"
-import { nanoid } from "nanoid"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAssistantAccess } from "#app/features/plus"
@@ -52,13 +51,23 @@ export let Route = createFileRoute("/_app/assistant")({
 		let loadedMe = await context.me.$jazz.ensureLoaded({
 			resolve: query,
 		})
-		return { me: loadedMe }
+
+		let initialMessages: TillyUIMessage[] = []
+		if (loadedMe.root?.chat?.messages) {
+			try {
+				initialMessages = JSON.parse(loadedMe.root.chat.messages)
+			} catch (error) {
+				console.error("Failed to parse chat messages", error)
+			}
+		}
+
+		return { me: loadedMe, initialMessages }
 	},
 	component: AssistantScreen,
 })
 
 let query = {
-	root: { people: { $each: true } },
+	root: { people: { $each: true }, chat: true },
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 function AssistantScreen() {
@@ -140,14 +149,7 @@ function AuthenticatedChat() {
 	})
 	let currentMe = subscribedMe ?? data.me
 
-	let {
-		chat: initialMessages,
-		setChat,
-		addChatMessage,
-		clearChat,
-		clearChatHintDismissed,
-		setClearChatHintDismissed,
-	} = useAppStore()
+	let { clearChatHintDismissed, setClearChatHintDismissed } = useAppStore()
 	let canUseChat = useOnlineStatus()
 
 	let {
@@ -159,10 +161,19 @@ function AuthenticatedChat() {
 		setMessages,
 		error,
 	} = useChat({
-		messages: initialMessages,
+		messages: data.initialMessages,
 		transport: new DefaultChatTransport({ api: "/api/chat" }),
 		sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
-		onFinish: ({ messages }) => setChat(messages),
+		onFinish: ({ messages }) => {
+			if (!currentMe.root.chat) {
+				currentMe.root.$jazz.set("chat", {
+					version: 1,
+					messages: JSON.stringify(messages),
+				})
+			} else {
+				currentMe.root.chat.$jazz.set("messages", JSON.stringify(messages))
+			}
+		},
 		onToolCall: async ({ toolCall }) => {
 			if (!currentMe) return
 			let toolName = toolCall.toolName as keyof typeof toolExecutors
@@ -186,12 +197,6 @@ function AuthenticatedChat() {
 			timestamp: Date.now(),
 		}
 
-		addChatMessage({
-			id: nanoid(),
-			role: "user",
-			parts: [{ type: "text", text: prompt }],
-			metadata,
-		})
 		sendMessage({ text: prompt, metadata })
 	}
 
@@ -290,7 +295,9 @@ function AuthenticatedChat() {
 								variant="ghost"
 								size="sm"
 								onClick={() => {
-									clearChat()
+									if (currentMe.root?.chat) {
+										currentMe.root.chat.$jazz.set("messages", "[]")
+									}
 									setMessages([])
 								}}
 								className="text-muted-foreground hover:text-foreground"
