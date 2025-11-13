@@ -159,9 +159,21 @@ function AuthenticatedChat() {
 	} = useChat({
 		messages: data.initialMessages,
 		transport: new DefaultChatTransport({ api: "/api/chat" }),
-		sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+		sendAutomaticallyWhen: messages => {
+			let shouldContinue = lastAssistantMessageIsCompleteWithToolCalls(messages)
+			if (shouldContinue) return shouldContinue
+			if (currentMe.root.chat) {
+				currentMe.root.chat.$jazz.set("submittedAt", undefined)
+			} else {
+				currentMe.root.$jazz.set("chat", {
+					version: 1,
+					messages: JSON.stringify(messages),
+				})
+			}
+			return shouldContinue
+		},
 		onFinish: ({ messages }) => {
-			if (!currentMe.root.chat) {
+			if (!currentMe.root?.chat) {
 				currentMe.root.$jazz.set("chat", {
 					version: 1,
 					messages: JSON.stringify(messages),
@@ -171,17 +183,17 @@ function AuthenticatedChat() {
 			}
 		},
 		onToolCall: async ({ toolCall }) => {
-			if (!currentMe) return
 			let toolName = toolCall.toolName as keyof typeof toolExecutors
+
 			let executeFn = toolExecutors[toolName]
-			if (executeFn) {
-				addToolResult({
-					tool: toolName,
-					toolCallId: toolCall.toolCallId,
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					output: await executeFn(currentMe.$jazz.id, toolCall.input as any),
-				})
-			}
+			if (!executeFn) return
+
+			addToolResult({
+				tool: toolName,
+				toolCallId: toolCall.toolCallId,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				output: await executeFn(currentMe.$jazz.id, toolCall.input as any),
+			})
 		},
 	})
 
@@ -191,6 +203,10 @@ function AuthenticatedChat() {
 			timezone: currentMe?.root?.notificationSettings?.timezone || "UTC",
 			locale: currentMe?.root?.language || "en",
 			timestamp: Date.now(),
+		}
+
+		if (currentMe.root?.chat) {
+			currentMe.root.chat.$jazz.set("submittedAt", new Date())
 		}
 
 		sendMessage({ text: prompt, metadata })
@@ -361,79 +377,74 @@ function UserInput(props: {
 					"bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*19)]",
 			)}
 		>
-			<div className="container mx-auto md:max-w-xl">
-				<Form {...form}>
-					{/* eslint-disable-next-line react-hooks/refs */}
-					<form onSubmit={form.handleSubmit(handleSubmit)}>
-						<FormField
-							control={form.control}
-							name="prompt"
-							render={({ field }) => (
-								<FormItem className="flex items-end">
-									<FormControl>
-										<Textarea
-											placeholder={
-												props.disabled
-													? t("assistant.placeholder.disabled")
-													: props.chatSize === 0
-														? t("assistant.placeholder.initial")
-														: t("assistant.placeholder.reply")
+			<Form {...form}>
+				{/* eslint-disable-next-line react-hooks/refs */}
+				<form onSubmit={form.handleSubmit(handleSubmit)}>
+					<FormField
+						control={form.control}
+						name="prompt"
+						render={({ field }) => (
+							<FormItem className="flex items-end">
+								<FormControl>
+									<Textarea
+										placeholder={
+											props.disabled
+												? t("assistant.placeholder.disabled")
+												: props.chatSize === 0
+													? t("assistant.placeholder.initial")
+													: t("assistant.placeholder.reply")
+										}
+										rows={1}
+										className="max-h-[9rem] min-h-11 flex-1 resize-none overflow-y-auto rounded-3xl"
+										style={{ height: "auto" }}
+										autoResize={false}
+										disabled={props.disabled}
+										{...field}
+										onKeyDown={e => {
+											if (e.key !== "Enter") return
+
+											let shouldSubmit = e.metaKey || e.ctrlKey || e.shiftKey
+											if (!shouldSubmit) return
+
+											e.preventDefault()
+
+											if (!form.formState.isSubmitting && field.value.trim()) {
+												form.handleSubmit(handleSubmit)()
+												textareaRef.current?.blur()
 											}
-											rows={1}
-											className="max-h-[9rem] min-h-11 flex-1 resize-none overflow-y-auto rounded-3xl"
-											style={{ height: "auto" }}
-											autoResize={false}
-											disabled={props.disabled}
-											{...field}
-											onKeyDown={e => {
-												if (e.key !== "Enter") return
-
-												let shouldSubmit = e.metaKey || e.ctrlKey || e.shiftKey
-												if (!shouldSubmit) return
-
-												e.preventDefault()
-
-												if (
-													!form.formState.isSubmitting &&
-													field.value.trim()
-												) {
-													form.handleSubmit(handleSubmit)()
-													textareaRef.current?.blur()
-												}
-											}}
-											ref={r => {
-												textareaRef.current = r
-												autoFocusRef.current = r
-												field.ref(r)
-											}}
-										/>
-									</FormControl>
-									{props.stopGeneratingResponse ? (
-										<Button
-											type="button"
-											variant="destructive"
-											onClick={props.stopGeneratingResponse}
-											size="icon"
-											className="size-10 rounded-3xl"
-										>
-											<Pause />
-										</Button>
-									) : (
-										<Button
-											type="submit"
-											size="icon"
-											className="size-10 rounded-3xl"
-											disabled={props.disabled}
-										>
-											<Send />
-										</Button>
-									)}
-								</FormItem>
-							)}
-						/>
-					</form>
-				</Form>
-			</div>
+										}}
+										ref={r => {
+											textareaRef.current = r
+											autoFocusRef.current = r
+											field.ref(r)
+										}}
+									/>
+								</FormControl>
+								{props.stopGeneratingResponse ? (
+									<Button
+										type="button"
+										variant="destructive"
+										onClick={props.stopGeneratingResponse}
+										size="icon"
+										className="size-10 rounded-3xl"
+									>
+										<Pause />
+									</Button>
+								) : (
+									<Button
+										type="submit"
+										size="icon"
+										className="size-10 rounded-3xl"
+										disabled={props.disabled}
+									>
+										<Send />
+									</Button>
+								)}
+							</FormItem>
+						)}
+					/>
+				</form>
+			</Form>
 		</div>
 	)
 }
