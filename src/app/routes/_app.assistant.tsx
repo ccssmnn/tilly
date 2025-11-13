@@ -208,17 +208,33 @@ function AuthenticatedChat() {
 	}, [messages, isGeneratingLocally, currentMe.root?.chat])
 
 	useEffect(() => {
-		if (isGeneratingOnOtherDevice && currentMe.root?.chat?.messages) {
+		if (!isGeneratingLocally && currentMe.root?.chat?.messages) {
 			try {
 				let jazzMessages: TillyUIMessage[] = JSON.parse(
 					currentMe.root.chat.messages,
 				)
-				setMessages(jazzMessages)
+				if (JSON.stringify(messages) !== JSON.stringify(jazzMessages)) {
+					setMessages(jazzMessages)
+				}
 			} catch (error) {
 				console.error("Failed to parse messages from Jazz", error)
 			}
 		}
-	}, [currentMe.root?.chat?.messages, isGeneratingOnOtherDevice, setMessages])
+	}, [
+		currentMe.root?.chat?.messages,
+		isGeneratingLocally,
+		setMessages,
+		messages,
+	])
+
+	function handleAddToolResult(
+		...args: Parameters<typeof addToolResult>
+	): ReturnType<typeof addToolResult> {
+		if (currentMe.root?.chat) {
+			currentMe.root.chat.$jazz.set("submittedAt", new Date())
+		}
+		return addToolResult(...args)
+	}
 
 	function handleSubmit(prompt: string) {
 		let metadata = {
@@ -261,7 +277,7 @@ function AuthenticatedChat() {
 							key={message.id}
 							message={message}
 							userId={currentMe.$jazz.id}
-							addToolResult={addToolResult}
+							addToolResult={handleAddToolResult}
 						/>
 					))}
 					{isBusy && (
