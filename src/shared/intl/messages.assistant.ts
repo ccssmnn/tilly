@@ -20,6 +20,7 @@ const baseAssistantMessages = messages({
 	"assistant.emptyState":
 		"Share a story, and I'll help you remember what matters",
 	"assistant.generating": "Generating response...",
+	"assistant.generatingOnOtherDevice": "Generating response on other device...",
 	"assistant.error.title": "Something went wrong",
 	"assistant.responseFailure.title": "Response Issue",
 	"assistant.responseFailure.emptyDescription":
@@ -223,6 +224,8 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.emptyState":
 		"Erzähle eine Geschichte – ich helfe dir, das Wichtige zu behalten",
 	"assistant.generating": "Antwort wird erstellt...",
+	"assistant.generatingOnOtherDevice":
+		"Antwort wird auf anderem Gerät erstellt...",
 	"assistant.error.title": "Etwas ist schief gelaufen",
 	"assistant.responseFailure.title": "Antwortproblem",
 	"assistant.responseFailure.emptyDescription":

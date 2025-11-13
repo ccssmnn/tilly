@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useRef, type ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -197,6 +197,29 @@ function AuthenticatedChat() {
 		},
 	})
 
+	let isGeneratingLocally = status === "submitted" || status === "streaming"
+	let isGeneratingOnOtherDevice =
+		!!currentMe.root?.chat?.submittedAt && !isGeneratingLocally
+
+	useEffect(() => {
+		if (isGeneratingLocally && messages.length > 0 && currentMe.root?.chat) {
+			currentMe.root.chat.$jazz.set("messages", JSON.stringify(messages))
+		}
+	}, [messages, isGeneratingLocally, currentMe.root?.chat])
+
+	useEffect(() => {
+		if (isGeneratingOnOtherDevice && currentMe.root?.chat?.messages) {
+			try {
+				let jazzMessages: TillyUIMessage[] = JSON.parse(
+					currentMe.root.chat.messages,
+				)
+				setMessages(jazzMessages)
+			} catch (error) {
+				console.error("Failed to parse messages from Jazz", error)
+			}
+		}
+	}, [currentMe.root?.chat?.messages, isGeneratingOnOtherDevice, setMessages])
+
 	function handleSubmit(prompt: string) {
 		let metadata = {
 			userName: currentMe?.profile?.name || "Anonymous",
@@ -212,7 +235,7 @@ function AuthenticatedChat() {
 		sendMessage({ text: prompt, metadata })
 	}
 
-	let isBusy = status === "submitted" || status === "streaming"
+	let isBusy = isGeneratingLocally || isGeneratingOnOtherDevice
 
 	return (
 		<>
@@ -250,7 +273,11 @@ function AuthenticatedChat() {
 								/>
 								<AvatarFallback>T</AvatarFallback>
 							</Avatar>
-							<T k="assistant.generating" />
+							{isGeneratingOnOtherDevice ? (
+								<T k="assistant.generatingOnOtherDevice" />
+							) : (
+								<T k="assistant.generating" />
+							)}
 						</div>
 					)}
 					{error && (
@@ -325,8 +352,8 @@ function AuthenticatedChat() {
 			<UserInput
 				onSubmit={handleSubmit}
 				chatSize={messages.length}
-				stopGeneratingResponse={isBusy ? stop : undefined}
-				disabled={!canUseChat}
+				stopGeneratingResponse={isGeneratingLocally ? stop : undefined}
+				disabled={!canUseChat || isGeneratingOnOtherDevice}
 			/>
 		</>
 	)
