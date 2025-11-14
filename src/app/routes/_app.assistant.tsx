@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useEffect, useRef, useMemo, useState, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -144,14 +144,6 @@ function AuthenticatedChat() {
 	let { clearChatHintDismissed, setClearChatHintDismissed } = useAppStore()
 	let canUseChat = useOnlineStatus()
 
-	let deviceId = useMemo(() => {
-		let stored = localStorage.getItem("tilly-device-id")
-		if (stored) return stored
-		let id = crypto.randomUUID()
-		localStorage.setItem("tilly-device-id", id)
-		return id
-	}, [])
-
 	let [error, setError] = useState<Error | null>(null)
 
 	let messagesJson = currentMe.root.chat?.messages ?? "[]"
@@ -162,42 +154,6 @@ function AuthenticatedChat() {
 	)
 
 	let isGenerating = !!currentMe.root?.chat?.submittedAt
-	let isGeneratingLocally =
-		isGenerating && currentMe.root.chat?.submittedFromDeviceId === deviceId
-	let isGeneratingOnOtherDevice = isGenerating && !isGeneratingLocally
-
-	useEffect(() => {
-		let chat = currentMe.root?.chat
-		if (
-			!isGeneratingLocally &&
-			chat?.submittedAt &&
-			chat.submittedFromDeviceId === deviceId
-		) {
-			chat.$jazz.set("submittedAt", undefined)
-			chat.$jazz.set("submittedFromDeviceId", undefined)
-		}
-	}, [
-		isGeneratingLocally,
-		currentMe.root?.chat?.submittedAt,
-		currentMe.root?.chat?.submittedFromDeviceId,
-		deviceId,
-		currentMe.root?.chat,
-	])
-
-	useEffect(() => {
-		let chat = currentMe.root?.chat
-		if (!isGeneratingLocally && chat?.submittedAt) {
-			let timeSinceSubmit = Date.now() - chat.submittedAt.getTime()
-			if (timeSinceSubmit > 30000) {
-				chat.$jazz.set("submittedAt", undefined)
-				chat.$jazz.set("submittedFromDeviceId", undefined)
-			}
-		}
-	}, [
-		isGeneratingLocally,
-		currentMe.root?.chat?.submittedAt,
-		currentMe.root?.chat,
-	])
 
 	async function handleSubmit(prompt: string) {
 		setError(null)
@@ -237,13 +193,11 @@ function AuthenticatedChat() {
 				version: 1,
 				messages: messagesJson,
 				submittedAt: new Date(),
-				submittedFromDeviceId: deviceId,
 			})
 		} else {
 			console.log("[Client] Updating existing chat object")
 			currentMe.root.chat.$jazz.set("messages", messagesJson)
 			currentMe.root.chat.$jazz.set("submittedAt", new Date())
-			currentMe.root.chat.$jazz.set("submittedFromDeviceId", deviceId)
 		}
 
 		console.log("[Client] Waiting for sync...")
@@ -319,7 +273,7 @@ function AuthenticatedChat() {
 		submitMessages(updatedMessages as TillyUIMessage[])
 	}
 
-	let isBusy = isGeneratingLocally || isGeneratingOnOtherDevice
+	let isBusy = isGenerating
 
 	return (
 		<>
@@ -357,11 +311,7 @@ function AuthenticatedChat() {
 								/>
 								<AvatarFallback>T</AvatarFallback>
 							</Avatar>
-							{isGeneratingOnOtherDevice ? (
-								<T k="assistant.generatingOnOtherDevice" />
-							) : (
-								<T k="assistant.generating" />
-							)}
+							<T k="assistant.generating" />
 						</div>
 					)}
 					{error && (
@@ -435,8 +385,8 @@ function AuthenticatedChat() {
 			<UserInput
 				onSubmit={handleSubmit}
 				chatSize={messages.length}
-				stopGeneratingResponse={isGeneratingLocally ? handleAbort : undefined}
-				disabled={!canUseChat || isGeneratingOnOtherDevice}
+				stopGeneratingResponse={isGenerating ? handleAbort : undefined}
+				disabled={!canUseChat || isGenerating}
 			/>
 		</>
 	)

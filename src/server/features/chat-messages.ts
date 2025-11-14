@@ -343,7 +343,6 @@ async function runBackgroundGeneration(params: {
 				)
 				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
-				chat.$jazz.set("submittedFromDeviceId", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
 
 				await worker.$jazz.waitForAllCoValuesSync()
@@ -356,7 +355,6 @@ async function runBackgroundGeneration(params: {
 				)
 				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
-				chat.$jazz.set("submittedFromDeviceId", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
 			},
 			onAbort: async () => {
@@ -366,7 +364,6 @@ async function runBackgroundGeneration(params: {
 				chat.$jazz.set("abortRequestedAt", undefined)
 				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
-				chat.$jazz.set("submittedFromDeviceId", undefined)
 			},
 		})
 
