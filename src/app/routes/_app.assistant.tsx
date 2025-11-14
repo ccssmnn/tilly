@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -146,8 +146,21 @@ function AuthenticatedChat() {
 
 	let [error, setError] = useState<Error | null>(null)
 
-	let messagesJson = currentMe.root.assistant?.messages?.toString() ?? "[]"
-	let messages = JSON.parse(messagesJson) as TillyUIMessage[]
+	let lastValidMessagesRef = useRef<TillyUIMessage[]>(data.initialMessages)
+
+	let messages = useMemo(() => {
+		// TODO: why does plainText applyDiff sometimes lead to broken JSON?
+		try {
+			let messagesJson = currentMe.root.assistant?.messages?.toString() ?? "[]"
+			let parsed = JSON.parse(messagesJson) as TillyUIMessage[]
+			lastValidMessagesRef.current = parsed
+			return parsed
+		} catch (error) {
+			let messagesJson = currentMe.root.assistant?.messages?.toString() ?? "[]"
+			console.error({ error, messagesJson })
+			return lastValidMessagesRef.current
+		}
+	}, [currentMe.root.assistant?.messages])
 
 	let isGenerating = !!currentMe.root?.assistant?.submittedAt
 
