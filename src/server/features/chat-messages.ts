@@ -29,6 +29,13 @@ import { initUserWorker } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
 import type { Loaded } from "jazz-tools"
 import type { UserAccount } from "#shared/schema/user"
+import {
+	getEnabledDevices,
+	getIntl,
+	sendNotificationToDevice,
+	settingsQuery,
+} from "./push-shared"
+import type { NotificationPayload } from "./push-shared"
 
 export { chatMessagesApp }
 
@@ -346,6 +353,8 @@ async function runBackgroundGeneration(params: {
 					outputTokens,
 				})
 
+				await sendAssistantCompletionNotification(user, worker)
+
 				console.log(
 					`[Chat] ${user.id} | Clearing generation state | generationId: ${generationId}`,
 				)
@@ -501,5 +510,62 @@ function createChunkHandler() {
 		}
 
 		return workingMessages
+	}
+}
+
+async function sendAssistantCompletionNotification(
+	user: User,
+	worker: Loaded<typeof UserAccount, { root: { chat: true } }>,
+) {
+	try {
+		let workerWithSettings = await worker.$jazz.ensureLoaded({
+			resolve: settingsQuery,
+		})
+
+		let notificationSettings = workerWithSettings.root.notificationSettings
+		if (!notificationSettings) {
+			console.log(
+				`[Chat] ${user.id} | No notification settings, skipping notification`,
+			)
+			return
+		}
+
+		let devices = getEnabledDevices(notificationSettings)
+		if (devices.length === 0) {
+			console.log(
+				`[Chat] ${user.id} | No enabled devices, skipping notification`,
+			)
+			return
+		}
+
+		let t = getIntl(workerWithSettings)
+		let payload: NotificationPayload = {
+			title: t("server.push.assistantComplete.title"),
+			body: t("server.push.assistantComplete.body"),
+			icon: "/favicon.ico",
+			badge: "/favicon.ico",
+			url: "/app/assistant",
+			userId: user.id,
+		}
+
+		console.log(
+			`[Chat] ${user.id} | Sending completion notification to ${devices.length} devices`,
+		)
+
+		let results = await Promise.allSettled(
+			devices.map(device => sendNotificationToDevice(device, payload)),
+		)
+
+		let successCount = results.filter(
+			r => r.status === "fulfilled" && r.value.ok,
+		).length
+		console.log(
+			`[Chat] ${user.id} | Completion notification sent to ${successCount}/${devices.length} devices`,
+		)
+	} catch (error) {
+		console.error(
+			`[Chat] ${user.id} | Failed to send completion notification:`,
+			error,
+		)
 	}
 }
