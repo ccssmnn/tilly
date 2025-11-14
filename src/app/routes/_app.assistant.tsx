@@ -149,10 +149,6 @@ function AuthenticatedChat() {
 	let messagesJson = currentMe.root.chat?.messages ?? "[]"
 	let messages = JSON.parse(messagesJson) as TillyUIMessage[]
 
-	console.log(
-		`[Client] Rendering messages | Count: ${messages.length} | JSON length: ${messagesJson.length} chars`,
-	)
-
 	let isGenerating = !!currentMe.root?.chat?.submittedAt
 
 	async function handleSubmit(prompt: string) {
@@ -175,60 +171,43 @@ function AuthenticatedChat() {
 			} as TillyUIMessage,
 		]
 
-		console.log(
-			`[Client] Submitting new user message | Total messages: ${newMessages.length}`,
-		)
 		await submitMessages(newMessages)
 	}
 
 	async function submitMessages(newMessages: TillyUIMessage[]) {
 		let messagesJson = JSON.stringify(newMessages)
-		console.log(
-			`[Client] Writing messages to Jazz | Count: ${newMessages.length} | Length: ${messagesJson.length} chars`,
-		)
 
 		if (!currentMe.root.chat) {
-			console.log("[Client] Creating new chat object")
 			currentMe.root.$jazz.set("chat", {
 				version: 1,
 				messages: messagesJson,
 				submittedAt: new Date(),
 			})
 		} else {
-			console.log("[Client] Updating existing chat object")
 			currentMe.root.chat.$jazz.set("messages", messagesJson)
 			currentMe.root.chat.$jazz.set("submittedAt", new Date())
 		}
 
-		console.log("[Client] Waiting for sync...")
 		await currentMe.root.$jazz.waitForSync()
-		console.log("[Client] Messages synced, triggering server generation")
 
 		try {
 			let response = await fetch("/api/chat", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 			})
-			console.log(
-				`[Client] Server response | Status: ${response.status} | OK: ${response.ok}`,
-			)
 			if (!response.ok) {
 				let errorData = await response.json()
-				console.error("[Client] Server returned error:", errorData)
 				throw new Error(JSON.stringify(errorData))
 			}
 		} catch (error) {
-			console.error("[Client] Failed to submit messages:", error)
 			setError(error as Error)
 		}
 	}
 
 	async function handleAbort() {
 		if (currentMe.root?.chat) {
-			console.log("[Client] Requesting abort")
 			currentMe.root.chat.$jazz.set("abortRequestedAt", new Date())
 			await currentMe.root.chat.$jazz.waitForSync()
-			console.log("[Client] Abort request synced")
 		}
 	}
 
@@ -240,11 +219,6 @@ function AuthenticatedChat() {
 		toolCallId: string
 		output: unknown
 	}) {
-		console.log(
-			`[Client] Adding tool result | toolCallId: ${toolCallId} | output:`,
-			output,
-		)
-
 		let updatedMessages = messages.map(msg => {
 			if (msg.role !== "assistant") return msg
 
@@ -267,9 +241,6 @@ function AuthenticatedChat() {
 			return { ...msg, parts: updatedParts }
 		})
 
-		console.log(
-			`[Client] Submitting messages with tool result | Total: ${updatedMessages.length}`,
-		)
 		submitMessages(updatedMessages as TillyUIMessage[])
 	}
 

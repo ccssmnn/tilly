@@ -283,23 +283,16 @@ async function runBackgroundGeneration(params: {
 
 	let chat = worker.root.chat!
 
-	console.log(
-		`[Chat] ${user.id} | Starting generation ${generationId} | Existing messages: ${chat.messages?.length ?? 0} chars`,
-	)
 	chat.$jazz.set("generationId", generationId)
 	await worker.$jazz.waitForSync()
-	console.log(
-		`[Chat] ${user.id} | Generation state synced | generationId: ${generationId}`,
-	)
 
 	let abortController = new AbortController()
 
-	let unsubscribe = chat.$jazz.subscribe((updatedChat: typeof chat) => {
+	let unsubscribe = chat.$jazz.subscribe(updatedChat => {
 		if (
 			updatedChat.abortRequestedAt ||
 			updatedChat.generationId !== generationId
 		) {
-			console.log(`[Chat] ${user.id} | Aborting generation ${generationId}`)
 			abortController.abort()
 		}
 	})
@@ -316,9 +309,6 @@ async function runBackgroundGeneration(params: {
 
 		let initialMessagesJson = chat.messages ?? "[]"
 		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
-		console.log(
-			`[Chat] ${user.id} | Initialized with ${currentMessages.length} messages`,
-		)
 
 		let handleChunk = createChunkHandler()
 
@@ -331,18 +321,9 @@ async function runBackgroundGeneration(params: {
 			abortSignal: abortController.signal,
 			onChunk: async event => {
 				currentMessages = handleChunk(event.chunk, currentMessages)
-
-				let messagesJson = JSON.stringify(currentMessages)
-				console.log(
-					`[Chat] ${user.id} | Chunk received | Type: ${event.chunk.type} | Total messages: ${currentMessages.length} | JSON length: ${messagesJson.length}`,
-				)
-				chat.$jazz.set("messages", messagesJson)
+				chat.$jazz.set("messages", JSON.stringify(currentMessages))
 			},
 			onFinish: async finishResult => {
-				console.log(
-					`[Chat] ${user.id} | Generation ${generationId} | Finished | Final messages: ${currentMessages.length}`,
-				)
-
 				let inputTokens = finishResult.usage.inputTokens ?? 0
 				let outputTokens = finishResult.usage.outputTokens ?? 0
 				let cachedTokens = getCachedTokenCount(finishResult.providerMetadata)
@@ -355,15 +336,11 @@ async function runBackgroundGeneration(params: {
 
 				await sendAssistantCompletionNotification(user, worker)
 
-				console.log(
-					`[Chat] ${user.id} | Clearing generation state | generationId: ${generationId}`,
-				)
 				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
 
 				await worker.$jazz.waitForAllCoValuesSync()
-				console.log(`[Chat] ${user.id} | Generation complete | All data synced`)
 			},
 			onError: async error => {
 				console.error(
@@ -375,18 +352,13 @@ async function runBackgroundGeneration(params: {
 				chat.$jazz.set("abortRequestedAt", undefined)
 			},
 			onAbort: async () => {
-				console.log(
-					`[Chat] ${user.id} | Generation ${generationId} | Aborted by user`,
-				)
 				chat.$jazz.set("abortRequestedAt", undefined)
 				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
 			},
 		})
 
-		console.log(`[Chat] ${user.id} | Consuming stream...`)
 		await result.consumeStream()
-		console.log(`[Chat] ${user.id} | Stream consumed`)
 	} finally {
 		unsubscribe()
 	}
@@ -422,17 +394,11 @@ function createChunkHandler() {
 					parts: [{ type: "text", text: chunk.text }],
 				}
 				workingMessages.push(currentAssistantMessage)
-				console.log(
-					`[Chunk] Created new assistant message for text | ID: ${currentAssistantMessage.id}`,
-				)
 			} else {
 				currentAssistantMessage.parts = [
 					...(currentAssistantMessage.parts || []),
 					{ type: "text", text: chunk.text },
 				]
-				console.log(
-					`[Chunk] Added new text part | Parts count: ${currentAssistantMessage.parts.length}`,
-				)
 			}
 		}
 
@@ -440,9 +406,6 @@ function createChunkHandler() {
 			if (!currentAssistantMessage) {
 				currentAssistantMessage = { id: nanoid(), role: "assistant", parts: [] }
 				workingMessages.push(currentAssistantMessage)
-				console.log(
-					`[Chunk] Created new assistant message | ID: ${currentAssistantMessage.id}`,
-				)
 			}
 
 			currentAssistantMessage.parts = [
@@ -456,9 +419,6 @@ function createChunkHandler() {
 					state: "input-available",
 				},
 			]
-			console.log(
-				`[Chunk] Added tool-call | Tool: ${chunk.toolName} | Parts count: ${currentAssistantMessage.parts.length}`,
-			)
 		}
 
 		if (chunk.type === "tool-result") {
@@ -469,9 +429,6 @@ function createChunkHandler() {
 					parts: [],
 				}
 				workingMessages.push(currentAssistantMessage)
-				console.log(
-					`[Chunk] Created new assistant message for tool-result | ID: ${currentAssistantMessage.id}`,
-				)
 			}
 
 			let toolCallPart = currentAssistantMessage.parts?.find(
@@ -481,9 +438,6 @@ function createChunkHandler() {
 			if (toolCallPart && "toolCallId" in toolCallPart) {
 				toolCallPart.output = chunk.output
 				toolCallPart.state = "output-available"
-				console.log(
-					`[Chunk] Updated tool-result | Tool: ${chunk.toolName} | CallID: ${chunk.toolCallId}`,
-				)
 			} else {
 				currentAssistantMessage.parts = [
 					...(currentAssistantMessage.parts || []),
@@ -497,16 +451,7 @@ function createChunkHandler() {
 						state: "output-available",
 					},
 				]
-				console.log(
-					`[Chunk] Added new tool-result part | Tool: ${chunk.toolName} | Parts count: ${currentAssistantMessage.parts.length}`,
-				)
 			}
-		}
-
-		if (currentAssistantMessage) {
-			console.log(
-				`[Chunk] Returning messages | Total: ${workingMessages.length} | Assistant parts: ${currentAssistantMessage.parts?.length || 0}`,
-			)
 		}
 
 		return workingMessages
@@ -523,20 +468,10 @@ async function sendAssistantCompletionNotification(
 		})
 
 		let notificationSettings = workerWithSettings.root.notificationSettings
-		if (!notificationSettings) {
-			console.log(
-				`[Chat] ${user.id} | No notification settings, skipping notification`,
-			)
-			return
-		}
+		if (!notificationSettings) return
 
 		let devices = getEnabledDevices(notificationSettings)
-		if (devices.length === 0) {
-			console.log(
-				`[Chat] ${user.id} | No enabled devices, skipping notification`,
-			)
-			return
-		}
+		if (devices.length === 0) return
 
 		let t = getIntl(workerWithSettings)
 		let payload: NotificationPayload = {
@@ -548,19 +483,8 @@ async function sendAssistantCompletionNotification(
 			userId: user.id,
 		}
 
-		console.log(
-			`[Chat] ${user.id} | Sending completion notification to ${devices.length} devices`,
-		)
-
-		let results = await Promise.allSettled(
+		await Promise.allSettled(
 			devices.map(device => sendNotificationToDevice(device, payload)),
-		)
-
-		let successCount = results.filter(
-			r => r.status === "fulfilled" && r.value.ok,
-		).length
-		console.log(
-			`[Chat] ${user.id} | Completion notification sent to ${successCount}/${devices.length} devices`,
 		)
 	} catch (error) {
 		console.error(
