@@ -28,7 +28,7 @@ import {
 import { initUserWorker } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
 import { co, type Loaded } from "jazz-tools"
-import type { UserAccount } from "#shared/schema/user"
+import { UserAccount, Assistant } from "#shared/schema/user"
 import {
 	getEnabledDevices,
 	getIntl,
@@ -470,6 +470,30 @@ async function sendAssistantCompletionNotification(
 	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>,
 ) {
 	try {
+		let chat = worker.root.assistant
+		if (!chat) {
+			console.log(
+				`[Chat] ${user.id} | No assistant chat, skipping notification`,
+			)
+			return
+		}
+
+		let checkId = nanoid()
+		chat.$jazz.set("notificationCheckId", checkId)
+		await worker.$jazz.waitForSync()
+
+		let acknowledged = await waitForAcknowledgment(chat, checkId, 3000)
+
+		chat.$jazz.set("notificationCheckId", undefined)
+		chat.$jazz.set("notificationAcknowledgedId", undefined)
+
+		if (acknowledged) {
+			console.log(
+				`[Chat] ${user.id} | Client acknowledged presence, skipping notification`,
+			)
+			return
+		}
+
 		let workerWithSettings = await worker.$jazz.ensureLoaded({
 			resolve: settingsQuery,
 		})
@@ -520,4 +544,27 @@ async function sendAssistantCompletionNotification(
 			error,
 		)
 	}
+}
+
+function waitForAcknowledgment(
+	chat: co.loaded<typeof Assistant>,
+	checkId: string,
+	timeoutMs: number,
+): Promise<boolean> {
+	return new Promise(resolve => {
+		let timer = setTimeout(() => {
+			unsubscribe()
+			resolve(false)
+		}, timeoutMs)
+
+		let unsubscribe = chat.$jazz.subscribe(
+			(updatedChat: co.loaded<typeof Assistant>) => {
+				if (updatedChat.notificationAcknowledgedId === checkId) {
+					clearTimeout(timer)
+					unsubscribe()
+					resolve(true)
+				}
+			},
+		)
+	})
 }

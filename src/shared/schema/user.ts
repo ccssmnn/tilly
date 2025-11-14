@@ -35,6 +35,8 @@ export let Assistant = co.map({
 	generationId: z.string().optional(),
 	abortRequestedAt: z.date().optional(),
 	clearChatHintDismissedAt: z.date().optional(),
+	notificationCheckId: z.string().optional(),
+	notificationAcknowledgedId: z.string().optional(),
 })
 
 export let UsageTracking = co.map({

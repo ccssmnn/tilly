@@ -152,6 +152,7 @@ function AuthenticatedChat() {
 	let isGenerating = !!currentMe.root?.assistant?.submittedAt
 
 	useStaleGenerationTimeout(currentMe.root.assistant)
+	useNotificationAcknowledgment(currentMe.root.assistant)
 
 	async function resetGenerationMarkers() {
 		if (!currentMe.root.assistant) return
@@ -204,7 +205,7 @@ function AuthenticatedChat() {
 			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
 		}
 
-		await currentMe.root.$jazz.waitForSync()
+		await currentMe.root.assistant?.$jazz.waitForSync()
 
 		try {
 			let response = await fetch("/api/chat", {
@@ -526,6 +527,28 @@ function useStaleGenerationTimeout(
 
 		return () => clearTimeout(timer)
 	}, [assistant, assistant?.submittedAt])
+}
+
+function useNotificationAcknowledgment(
+	assistant: co.loaded<typeof Assistant> | undefined,
+) {
+	useEffect(() => {
+		if (!assistant) return
+
+		let unsubscribe = assistant.$jazz.subscribe(
+			(chat: co.loaded<typeof Assistant>) => {
+				if (
+					chat.notificationCheckId &&
+					chat.notificationCheckId !== chat.notificationAcknowledgedId &&
+					document.visibilityState === "visible"
+				) {
+					chat.$jazz.set("notificationAcknowledgedId", chat.notificationCheckId)
+				}
+			},
+		)
+
+		return unsubscribe
+	}, [assistant])
 }
 
 async function resetGenerationMarkersForTimeout(
