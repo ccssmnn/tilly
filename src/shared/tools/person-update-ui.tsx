@@ -15,14 +15,16 @@ import { Link } from "@tanstack/react-router"
 import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import {
-	updatePersonTool,
-	deletePersonTool,
+	createDeletePersonTool,
+	createUpdatePersonTool,
 	updatePerson,
 } from "#shared/tools/person-update"
 import { cn } from "#app/lib/utils"
+import { useAccount } from "jazz-tools/react-core"
+import { UserAccount } from "#shared/schema/user"
 
-type _UpdatePersonTool = InferUITool<typeof updatePersonTool>
-type _DeletePersonTool = InferUITool<typeof deletePersonTool>
+type _UpdatePersonTool = InferUITool<ReturnType<typeof createUpdatePersonTool>>
+type _DeletePersonTool = InferUITool<ReturnType<typeof createDeletePersonTool>>
 
 export { UpdatePersonResult, DeletePersonResult }
 
@@ -31,6 +33,7 @@ function UpdatePersonResult({
 }: {
 	result: _UpdatePersonTool["output"]
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -46,14 +49,18 @@ function UpdatePersonResult({
 	}
 
 	let handleUndo = async () => {
-		setIsUndoing(true)
+		if (!me) return setIsUndoing(true)
 		setDialogOpen(false)
 		try {
 			// Now we have access to previous values for proper undo functionality
-			await updatePerson(result.personId, {
-				name: result.previous.name,
-				summary: result.previous.summary,
-			})
+			await updatePerson(
+				result.personId,
+				{
+					name: result.previous.name,
+					summary: result.previous.summary,
+				},
+				me,
+			)
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -185,6 +192,7 @@ function DeletePersonResult({
 }: {
 	result: _DeletePersonTool["output"]
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -200,10 +208,11 @@ function DeletePersonResult({
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
-			await updatePerson(result.personId, { deletedAt: undefined })
+			await updatePerson(result.personId, { deletedAt: undefined }, me)
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,

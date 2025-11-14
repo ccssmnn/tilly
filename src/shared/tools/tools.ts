@@ -1,12 +1,7 @@
 import { createListPeopleTool, createGetPersonDetailsTool } from "./person-read"
 import { listRemindersTool, listRemindersExecute } from "./reminder-read"
 import { createPersonTool } from "./person-create"
-import {
-	updatePersonTool,
-	updatePersonExecute,
-	deletePersonTool,
-	deletePersonExecute,
-} from "./person-update"
+import { createUpdatePersonTool, createDeletePersonTool } from "./person-update"
 import { addNoteTool, addNoteExecute } from "./note-create"
 import {
 	editNoteTool,
@@ -31,8 +26,6 @@ import type { UserAccount } from "#shared/schema/user"
 export let clientTools = {
 	// Person tools
 	createPerson: createPersonTool,
-	updatePerson: updatePersonTool,
-	deletePerson: deletePersonTool,
 
 	// Note tools
 	listNotes: listNotesTool,
@@ -51,8 +44,6 @@ export let clientTools = {
 } as const
 
 export let clientToolExecutors = {
-	updatePerson: updatePersonExecute,
-	deletePerson: deletePersonExecute,
 	listNotes: listNotesExecute,
 	addNote: addNoteExecute,
 	editNote: editNoteExecute,
@@ -67,6 +58,8 @@ export function createServerTools(worker: Loaded<typeof UserAccount>) {
 	return {
 		listPeople: createListPeopleTool(worker),
 		getPersonDetails: createGetPersonDetailsTool(worker),
+		updatePerson: createUpdatePersonTool(worker),
+		deletePerson: createDeletePersonTool(worker),
 	}
 }
 
