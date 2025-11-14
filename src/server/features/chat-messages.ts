@@ -3,6 +3,7 @@ import { convertToModelMessages, stepCountIs, streamText } from "ai"
 import { GOOGLE_AI_API_KEY } from "astro:env/server"
 import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
+import { nanoid } from "nanoid"
 
 import {
 	clientTools,
@@ -12,13 +13,14 @@ import {
 } from "#shared/tools/tools"
 import { z } from "zod"
 import { authMiddleware, requireAuth } from "../lib/auth-middleware"
-import { requirePlus } from "../lib/chat-subscription"
+import { requirePlus, type SubscriptionStatus } from "../lib/chat-subscription"
 import {
 	checkInputSize,
 	checkUsageLimits,
 	updateUsage,
 } from "../lib/chat-usage"
 import { initUserWorker } from "#server/lib/utils"
+import type { User } from "@clerk/backend"
 
 export { chatMessagesApp }
 
@@ -27,17 +29,18 @@ let chatMessagesApp = new Hono()
 	.use("*", requireAuth)
 	.use("*", requirePlus)
 	.post("/", async c => {
-		let { messages } = await c.req.json()
-
-		if (!Array.isArray(messages)) {
-			return c.json({ error: "Invalid messages payload" }, 400)
-		}
-
-		let userContextMessages = addUserContextToMessages(messages)
-
 		let user = c.get("user")
 		let subscriptionStatus = c.get("subscription")
 		let { worker } = await initUserWorker(user)
+
+		let workerWithMessages = await worker.$jazz.ensureLoaded({
+			resolve: { root: { chat: true } },
+		})
+		let rawMessages = workerWithMessages.root.chat?.messages
+		if (!rawMessages)
+			return c.json({ error: "put messages into your chat first" }, 400)
+		let messages = JSON.parse(rawMessages) as TillyUIMessage[]
+		let userContextMessages = addUserContextToMessages(messages)
 
 		let usageLimits = await checkUsageLimits(user, worker)
 		if (usageLimits.exceeded) {
@@ -64,35 +67,19 @@ let chatMessagesApp = new Hono()
 			return c.json({ error: "Request too large" }, 413)
 		}
 
-		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
+		let generationId = crypto.randomUUID()
 
-		let allTools = {
-			...clientTools,
-			...createServerTools(worker),
-		}
-
-		let result = streamText({
-			model: google("gemini-2.5-flash"),
-			messages: modelMessages,
-			system: makeStaticSystemPrompt(),
-			tools: allTools,
-			stopWhen: stepCountIs(100),
-			onFinish: async ({ usage, providerMetadata }) => {
-				let inputTokens = usage.inputTokens ?? 0
-				let outputTokens = usage.outputTokens ?? 0
-				let cachedTokens = getCachedTokenCount(providerMetadata)
-
-				await updateUsage(user, worker, subscriptionStatus, {
-					inputTokens,
-					cachedTokens,
-					outputTokens,
-				})
-
-				await worker.$jazz.waitForAllCoValuesSync()
-			},
+		runBackgroundGeneration({
+			user,
+			worker,
+			subscriptionStatus,
+			modelMessages,
+			generationId,
+		}).catch((error: unknown) => {
+			console.error("Background generation failed:", error)
 		})
 
-		return result.toUIMessageStreamResponse()
+		return c.json({ generationId }, 202)
 	})
 
 function getCachedTokenCount(metadata: unknown): number {
@@ -269,3 +256,244 @@ type UsageLimitExceededResponse = {
 	percentUsed: number
 	resetDate: string | null
 }
+
+async function runBackgroundGeneration(params: {
+	user: User
+	worker: Awaited<ReturnType<typeof initUserWorker>>["worker"]
+	subscriptionStatus: SubscriptionStatus
+	modelMessages: ReturnType<typeof convertToModelMessages>
+	generationId: string
+}) {
+	let { user, worker, subscriptionStatus, modelMessages, generationId } = params
+
+	let chat = worker.root!.chat! // TODO: oh oh :(
+
+	console.log(
+		`[Chat] ${user.id} | Starting generation ${generationId} | Existing messages: ${chat.messages?.length ?? 0} chars`,
+	)
+	chat.$jazz.set("generationId", generationId)
+	await worker.$jazz.waitForSync()
+	console.log(
+		`[Chat] ${user.id} | Generation state synced | generationId: ${generationId}`,
+	)
+
+	let abortController = new AbortController()
+
+	let unsubscribe = chat.$jazz.subscribe((updatedChat: typeof chat) => {
+		if (
+			updatedChat.abortRequestedAt ||
+			updatedChat.generationId !== generationId
+		) {
+			console.log(`[Chat] ${user.id} | Aborting generation ${generationId}`)
+			abortController.abort()
+		}
+	})
+
+	let currentMessages: TillyUIMessage[] = []
+
+	try {
+		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
+
+		let allTools = {
+			...clientTools,
+			...createServerTools(worker),
+		}
+
+		let initialMessagesJson = chat.messages ?? "[]"
+		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
+		console.log(
+			`[Chat] ${user.id} | Initialized with ${currentMessages.length} messages`,
+		)
+
+		let handleChunk = createChunkHandler()
+
+		let result = streamText({
+			model: google("gemini-2.5-flash"),
+			messages: modelMessages,
+			system: makeStaticSystemPrompt(),
+			tools: allTools,
+			stopWhen: stepCountIs(100),
+			abortSignal: abortController.signal,
+			onChunk: async event => {
+				currentMessages = handleChunk(event.chunk, currentMessages)
+
+				let messagesJson = JSON.stringify(currentMessages)
+				console.log(
+					`[Chat] ${user.id} | Chunk received | Type: ${event.chunk.type} | Total messages: ${currentMessages.length} | JSON length: ${messagesJson.length}`,
+				)
+				chat.$jazz.set("messages", messagesJson)
+			},
+			onFinish: async finishResult => {
+				console.log(
+					`[Chat] ${user.id} | Generation ${generationId} | Finished | Final messages: ${currentMessages.length}`,
+				)
+
+				let inputTokens = finishResult.usage.inputTokens ?? 0
+				let outputTokens = finishResult.usage.outputTokens ?? 0
+				let cachedTokens = getCachedTokenCount(finishResult.providerMetadata)
+
+				await updateUsage(user, worker, subscriptionStatus, {
+					inputTokens,
+					cachedTokens,
+					outputTokens,
+				})
+
+				console.log(
+					`[Chat] ${user.id} | Clearing generation state | generationId: ${generationId}`,
+				)
+				chat.$jazz.set("generationId", undefined)
+				chat.$jazz.set("submittedAt", undefined)
+				chat.$jazz.set("submittedFromDeviceId", undefined)
+				chat.$jazz.set("abortRequestedAt", undefined)
+
+				await worker.$jazz.waitForAllCoValuesSync()
+				console.log(`[Chat] ${user.id} | Generation complete | All data synced`)
+			},
+			onError: async error => {
+				console.error(
+					`[Chat] ${user.id} | Generation ${generationId} | Error:`,
+					error,
+				)
+				chat.$jazz.set("generationId", undefined)
+				chat.$jazz.set("submittedAt", undefined)
+				chat.$jazz.set("submittedFromDeviceId", undefined)
+				chat.$jazz.set("abortRequestedAt", undefined)
+			},
+			onAbort: async () => {
+				console.log(
+					`[Chat] ${user.id} | Generation ${generationId} | Aborted by user`,
+				)
+				chat.$jazz.set("abortRequestedAt", undefined)
+				chat.$jazz.set("generationId", undefined)
+				chat.$jazz.set("submittedAt", undefined)
+				chat.$jazz.set("submittedFromDeviceId", undefined)
+			},
+		})
+
+		console.log(`[Chat] ${user.id} | Consuming stream...`)
+		await result.consumeStream()
+		console.log(`[Chat] ${user.id} | Stream consumed`)
+	} finally {
+		unsubscribe()
+	}
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function createChunkHandler() {
+	let currentAssistantMessage: TillyUIMessage | null = null
+
+	return function handleChunk(
+		chunk: any,
+		messages: TillyUIMessage[],
+	): TillyUIMessage[] {
+		let workingMessages = [...messages]
+
+		if (chunk.type === "text-delta") {
+			if (!currentAssistantMessage) {
+				currentAssistantMessage = {
+					id: nanoid(),
+					role: "assistant",
+					parts: [{ type: "text", text: chunk.text }],
+				} as TillyUIMessage
+				workingMessages.push(currentAssistantMessage)
+				console.log(
+					`[Chunk] Created new assistant message for text | ID: ${currentAssistantMessage.id}`,
+				)
+			} else {
+				let lastPart =
+					currentAssistantMessage.parts?.[
+						currentAssistantMessage.parts.length - 1
+					]
+				if (lastPart?.type === "text") {
+					lastPart.text += chunk.text
+				} else {
+					currentAssistantMessage.parts = [
+						...(currentAssistantMessage.parts || []),
+						{ type: "text", text: chunk.text },
+					]
+					console.log(
+						`[Chunk] Added new text part | Parts count: ${currentAssistantMessage.parts.length}`,
+					)
+				}
+			}
+		}
+
+		if (chunk.type === "tool-call") {
+			if (!currentAssistantMessage) {
+				currentAssistantMessage = {
+					id: nanoid(),
+					role: "assistant",
+					parts: [],
+				} as TillyUIMessage
+				workingMessages.push(currentAssistantMessage)
+				console.log(
+					`[Chunk] Created new assistant message | ID: ${currentAssistantMessage.id}`,
+				)
+			}
+
+			currentAssistantMessage.parts = [
+				...(currentAssistantMessage.parts || []),
+				{
+					type: `tool-${chunk.toolName}` as any,
+					toolCallId: chunk.toolCallId,
+					toolName: chunk.toolName,
+					input: chunk.input,
+					state: "input-available" as any,
+				} as any,
+			]
+			console.log(
+				`[Chunk] Added tool-call | Tool: ${chunk.toolName} | Parts count: ${currentAssistantMessage.parts.length}`,
+			)
+		}
+
+		if (chunk.type === "tool-result") {
+			if (!currentAssistantMessage) {
+				currentAssistantMessage = {
+					id: nanoid(),
+					role: "assistant",
+					parts: [],
+				} as TillyUIMessage
+				workingMessages.push(currentAssistantMessage)
+				console.log(
+					`[Chunk] Created new assistant message for tool-result | ID: ${currentAssistantMessage.id}`,
+				)
+			}
+
+			let toolCallPart = currentAssistantMessage.parts?.find(
+				p => "toolCallId" in p && p.toolCallId === chunk.toolCallId,
+			)
+
+			if (toolCallPart && "toolCallId" in toolCallPart) {
+				;(toolCallPart as any).output = chunk.output
+				;(toolCallPart as any).state = "output-available"
+				console.log(
+					`[Chunk] Updated tool-result | Tool: ${chunk.toolName} | CallID: ${chunk.toolCallId}`,
+				)
+			} else {
+				currentAssistantMessage.parts = [
+					...(currentAssistantMessage.parts || []),
+					{
+						type: `tool-${chunk.toolName}` as any,
+						toolCallId: chunk.toolCallId,
+						toolName: chunk.toolName,
+						input: chunk.input,
+						output: chunk.output,
+						state: "output-available" as any,
+					} as any,
+				]
+				console.log(
+					`[Chunk] Added new tool-result part | Tool: ${chunk.toolName} | Parts count: ${currentAssistantMessage.parts.length}`,
+				)
+			}
+		}
+
+		if (currentAssistantMessage) {
+			console.log(
+				`[Chunk] Returning messages | Total: ${workingMessages.length} | Assistant parts: ${currentAssistantMessage.parts?.length || 0}`,
+			)
+		}
+
+		return workingMessages
+	}
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */

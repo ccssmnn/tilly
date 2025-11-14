@@ -1,6 +1,5 @@
-import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useEffect, useRef, useMemo, type ReactNode } from "react"
+import { useEffect, useRef, useMemo, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -29,16 +28,13 @@ import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { cn } from "#app/lib/utils"
-import {
-	DefaultChatTransport,
-	lastAssistantMessageIsCompleteWithToolCalls,
-} from "ai"
 import { type TillyUIMessage } from "#shared/tools/tools"
 import { MessageRenderer } from "#app/features/assistant-message-components"
 import { useAppStore } from "#app/lib/store"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAssistantAccess } from "#app/features/plus"
+import { nanoid } from "nanoid"
 
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
@@ -156,56 +152,19 @@ function AuthenticatedChat() {
 		return id
 	}, [])
 
-	let {
-		status,
-		stop,
-		messages,
-		sendMessage,
-		addToolResult,
-		setMessages,
-		error,
-	} = useChat({
-		messages: data.initialMessages,
-		transport: new DefaultChatTransport({ api: "/api/chat" }),
-		sendAutomaticallyWhen: messages => {
-			let shouldContinue = lastAssistantMessageIsCompleteWithToolCalls(messages)
-			if (shouldContinue) return shouldContinue
-			if (currentMe.root.chat) {
-				currentMe.root.chat.$jazz.set("submittedAt", undefined)
-				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
-			} else {
-				currentMe.root.$jazz.set("chat", {
-					version: 1,
-					messages: JSON.stringify(messages),
-				})
-			}
-			return shouldContinue
-		},
-		onFinish: ({ messages }) => {
-			if (!currentMe.root?.chat) {
-				currentMe.root.$jazz.set("chat", {
-					version: 1,
-					messages: JSON.stringify(messages),
-				})
-			} else {
-				currentMe.root.chat.$jazz.set("messages", JSON.stringify(messages))
-				currentMe.root.chat.$jazz.set("submittedAt", undefined)
-				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
-			}
-		},
-		onError: () => {
-			if (currentMe.root?.chat) {
-				currentMe.root.chat.$jazz.set("submittedAt", undefined)
-				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
-			}
-		},
-	})
+	let [error, setError] = useState<Error | null>(null)
 
-	let isGeneratingLocally = status === "submitted" || status === "streaming"
-	let isGeneratingOnOtherDevice =
-		!!currentMe.root?.chat?.submittedAt &&
-		!isGeneratingLocally &&
-		currentMe.root.chat.submittedFromDeviceId !== deviceId
+	let messagesJson = currentMe.root.chat?.messages ?? "[]"
+	let messages = JSON.parse(messagesJson) as TillyUIMessage[]
+
+	console.log(
+		`[Client] Rendering messages | Count: ${messages.length} | JSON length: ${messagesJson.length} chars`,
+	)
+
+	let isGenerating = !!currentMe.root?.chat?.submittedAt
+	let isGeneratingLocally =
+		isGenerating && currentMe.root.chat?.submittedFromDeviceId === deviceId
+	let isGeneratingOnOtherDevice = isGenerating && !isGeneratingLocally
 
 	useEffect(() => {
 		let chat = currentMe.root?.chat
@@ -240,44 +199,9 @@ function AuthenticatedChat() {
 		currentMe.root?.chat,
 	])
 
-	useEffect(() => {
-		if (isGeneratingLocally && messages.length > 0 && currentMe.root?.chat) {
-			currentMe.root.chat.$jazz.set("messages", JSON.stringify(messages))
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [messages, isGeneratingLocally])
+	async function handleSubmit(prompt: string) {
+		setError(null)
 
-	useEffect(() => {
-		if (!isGeneratingLocally && currentMe.root?.chat?.messages) {
-			try {
-				let jazzMessages: TillyUIMessage[] = JSON.parse(
-					currentMe.root.chat.messages,
-				)
-				if (JSON.stringify(messages) !== JSON.stringify(jazzMessages)) {
-					setMessages(jazzMessages)
-				}
-			} catch (error) {
-				console.error("Failed to parse messages from Jazz", error)
-			}
-		}
-	}, [
-		currentMe.root?.chat?.messages,
-		isGeneratingLocally,
-		setMessages,
-		messages,
-	])
-
-	function handleAddToolResult(
-		...args: Parameters<typeof addToolResult>
-	): ReturnType<typeof addToolResult> {
-		if (currentMe.root?.chat) {
-			currentMe.root.chat.$jazz.set("submittedAt", new Date())
-			currentMe.root.chat.$jazz.set("submittedFromDeviceId", deviceId)
-		}
-		return addToolResult(...args)
-	}
-
-	function handleSubmit(prompt: string) {
 		let metadata = {
 			userName: currentMe?.profile?.name || "Anonymous",
 			timezone: currentMe?.root?.notificationSettings?.timezone || "UTC",
@@ -285,12 +209,114 @@ function AuthenticatedChat() {
 			timestamp: Date.now(),
 		}
 
-		if (currentMe.root?.chat) {
+		let newMessages = [
+			...messages,
+			{
+				id: nanoid(),
+				role: "user",
+				parts: [{ type: "text", text: prompt }],
+				metadata,
+			} as TillyUIMessage,
+		]
+
+		console.log(
+			`[Client] Submitting new user message | Total messages: ${newMessages.length}`,
+		)
+		await submitMessages(newMessages)
+	}
+
+	async function submitMessages(newMessages: TillyUIMessage[]) {
+		let messagesJson = JSON.stringify(newMessages)
+		console.log(
+			`[Client] Writing messages to Jazz | Count: ${newMessages.length} | Length: ${messagesJson.length} chars`,
+		)
+
+		if (!currentMe.root.chat) {
+			console.log("[Client] Creating new chat object")
+			currentMe.root.$jazz.set("chat", {
+				version: 1,
+				messages: messagesJson,
+				submittedAt: new Date(),
+				submittedFromDeviceId: deviceId,
+			})
+		} else {
+			console.log("[Client] Updating existing chat object")
+			currentMe.root.chat.$jazz.set("messages", messagesJson)
 			currentMe.root.chat.$jazz.set("submittedAt", new Date())
 			currentMe.root.chat.$jazz.set("submittedFromDeviceId", deviceId)
 		}
 
-		sendMessage({ text: prompt, metadata })
+		console.log("[Client] Waiting for sync...")
+		await currentMe.root.$jazz.waitForSync()
+		console.log("[Client] Messages synced, triggering server generation")
+
+		try {
+			let response = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+			})
+			console.log(
+				`[Client] Server response | Status: ${response.status} | OK: ${response.ok}`,
+			)
+			if (!response.ok) {
+				let errorData = await response.json()
+				console.error("[Client] Server returned error:", errorData)
+				throw new Error(JSON.stringify(errorData))
+			}
+		} catch (error) {
+			console.error("[Client] Failed to submit messages:", error)
+			setError(error as Error)
+		}
+	}
+
+	async function handleAbort() {
+		if (currentMe.root?.chat) {
+			console.log("[Client] Requesting abort")
+			currentMe.root.chat.$jazz.set("abortRequestedAt", new Date())
+			await currentMe.root.chat.$jazz.waitForSync()
+			console.log("[Client] Abort request synced")
+		}
+	}
+
+	function addToolResult({
+		toolCallId,
+		output,
+	}: {
+		tool: string
+		toolCallId: string
+		output: unknown
+	}) {
+		console.log(
+			`[Client] Adding tool result | toolCallId: ${toolCallId} | output:`,
+			output,
+		)
+
+		let updatedMessages = messages.map(msg => {
+			if (msg.role !== "assistant") return msg
+
+			let hasTool = msg.parts?.some(
+				p => "toolCallId" in p && p.toolCallId === toolCallId,
+			)
+			if (!hasTool) return msg
+
+			let updatedParts = msg.parts?.map(part => {
+				if (!("toolCallId" in part)) return part
+				if (part.toolCallId !== toolCallId) return part
+
+				return {
+					...part,
+					output,
+					state: "output-available" as const,
+				}
+			})
+
+			return { ...msg, parts: updatedParts }
+		})
+
+		console.log(
+			`[Client] Submitting messages with tool result | Total: ${updatedMessages.length}`,
+		)
+		submitMessages(updatedMessages as TillyUIMessage[])
 	}
 
 	let isBusy = isGeneratingLocally || isGeneratingOnOtherDevice
@@ -319,7 +345,7 @@ function AuthenticatedChat() {
 							key={message.id}
 							message={message}
 							userId={currentMe.$jazz.id}
-							addToolResult={handleAddToolResult}
+							addToolResult={addToolResult}
 						/>
 					))}
 					{isBusy && (
@@ -395,7 +421,6 @@ function AuthenticatedChat() {
 									if (currentMe.root?.chat) {
 										currentMe.root.chat.$jazz.set("messages", "[]")
 									}
-									setMessages([])
 								}}
 								className="text-muted-foreground hover:text-foreground"
 							>
@@ -410,7 +435,7 @@ function AuthenticatedChat() {
 			<UserInput
 				onSubmit={handleSubmit}
 				chatSize={messages.length}
-				stopGeneratingResponse={isGeneratingLocally ? stop : undefined}
+				stopGeneratingResponse={isGeneratingLocally ? handleAbort : undefined}
 				disabled={!canUseChat || isGeneratingOnOtherDevice}
 			/>
 		</>

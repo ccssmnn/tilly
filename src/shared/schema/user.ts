@@ -33,6 +33,8 @@ export let ChatHistory = co.map({
 	messages: z.string(),
 	submittedAt: z.date().optional(),
 	submittedFromDeviceId: z.string().optional(),
+	generationId: z.string().optional(),
+	abortRequestedAt: z.date().optional(),
 })
 
 export let UsageTracking = co.map({
