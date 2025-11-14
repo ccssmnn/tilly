@@ -617,13 +617,11 @@ function DeleteDataButton({
 			setRemindersSearchQuery,
 			setPWAInstallHintDismissed,
 			setHideInstallNavItem,
-			setClearChatHintDismissed,
 		} = useAppStore.getState()
 		setPeopleSearchQuery("")
 		setRemindersSearchQuery("")
 		setPWAInstallHintDismissed(false)
 		setHideInstallNavItem(false)
-		setClearChatHintDismissed(false)
 
 		toast.success(t("settings.data.delete.success"))
 		form.reset()

@@ -30,7 +30,6 @@ import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { cn } from "#app/lib/utils"
 import { type TillyUIMessage } from "#shared/tools/tools"
 import { MessageRenderer } from "#app/features/assistant-message-components"
-import { useAppStore } from "#app/lib/store"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAssistantAccess } from "#app/features/plus"
@@ -142,8 +141,6 @@ function AuthenticatedChat() {
 		resolve: query,
 	})
 	let currentMe = subscribedMe ?? data.me
-
-	let { clearChatHintDismissed, setClearChatHintDismissed } = useAppStore()
 
 	let canUseChat = useOnlineStatus()
 
@@ -323,24 +320,32 @@ function AuthenticatedChat() {
 							</AlertDescription>
 						</Alert>
 					)}
-					{messages.length > 0 && !isBusy && !clearChatHintDismissed && (
-						<Alert>
-							<InfoCircleFill />
-							<AlertTitle>
-								<T k="assistant.clearChatHint.title" />
-							</AlertTitle>
-							<AlertDescription>
-								<T k="assistant.clearChatHint.description" />
-								<Button
-									variant="secondary"
-									onClick={() => setClearChatHintDismissed(true)}
-									className="mt-2"
-								>
-									<T k="assistant.clearChatHint.dismiss" />
-								</Button>
-							</AlertDescription>
-						</Alert>
-					)}
+					{messages.length > 0 &&
+						!isBusy &&
+						!currentMe.root.assistant?.clearChatHintDismissedAt && (
+							<Alert>
+								<InfoCircleFill />
+								<AlertTitle>
+									<T k="assistant.clearChatHint.title" />
+								</AlertTitle>
+								<AlertDescription>
+									<T k="assistant.clearChatHint.description" />
+									<Button
+										variant="secondary"
+										onClick={() => {
+											if (!currentMe.root.assistant) return
+											currentMe.root.assistant.$jazz.set(
+												"clearChatHintDismissedAt",
+												new Date(),
+											)
+										}}
+										className="mt-2"
+									>
+										<T k="assistant.clearChatHint.dismiss" />
+									</Button>
+								</AlertDescription>
+							</Alert>
+						)}
 					{messages.length > 0 && !isBusy && (
 						<div className="mt-2 flex justify-center">
 							<Button

@@ -22,9 +22,6 @@ interface AppState {
 	hideInstallNavItem: boolean
 	setHideInstallNavItem: (hidden: boolean) => void
 
-	clearChatHintDismissed: boolean
-	setClearChatHintDismissed: (dismissed: boolean) => void
-
 	tourSkipped: boolean
 	setTourSkipped: (skipped: boolean) => void
 
@@ -34,7 +31,6 @@ interface AppState {
 let storeStateSchema = z.object({
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
-	clearChatHintDismissed: z.boolean(),
 	tourSkipped: z.boolean(),
 	lastAccessDate: z.string(),
 })
@@ -43,7 +39,6 @@ type PersistedState = Pick<
 	AppState,
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
-	| "clearChatHintDismissed"
 	| "tourSkipped"
 	| "lastAccessDate"
 >
@@ -51,7 +46,6 @@ type PersistedState = Pick<
 let initialPersistedState: PersistedState = {
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
-	clearChatHintDismissed: false,
 	tourSkipped: false,
 	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 }
@@ -172,10 +166,6 @@ export let useAppStore = create<AppState>()(
 			setHideInstallNavItem: (hidden: boolean) =>
 				set({ hideInstallNavItem: hidden }),
 
-			clearChatHintDismissed: false,
-			setClearChatHintDismissed: (dismissed: boolean) =>
-				set({ clearChatHintDismissed: dismissed }),
-
 			tourSkipped: false,
 			setTourSkipped: (skipped: boolean) => set({ tourSkipped: skipped }),
 
@@ -187,7 +177,6 @@ export let useAppStore = create<AppState>()(
 			partialize: (state): PersistedState => ({
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
-				clearChatHintDismissed: state.clearChatHintDismissed,
 				tourSkipped: state.tourSkipped,
 				lastAccessDate: state.lastAccessDate,
 			}),
@@ -218,7 +207,6 @@ export function resetAppStore(): void {
 		notesSearchQuery: "",
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
-		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
 		tourSkipped: initialPersistedState.tourSkipped,
 		lastAccessDate: initialPersistedState.lastAccessDate,
 	})
