@@ -941,11 +941,17 @@ function useReminderItemOperations({
 		data: NoteFormInput,
 	): Promise<{ success: true } | undefined> {
 		let result = await tryCatch(
-			createNote(person.$jazz.id, {
-				title: "",
-				content: data.content,
-				pinned: data.pinned,
-			}),
+			createNote(
+				{
+					title: "",
+					content: data.content,
+					pinned: data.pinned,
+				},
+				{
+					personId: person.$jazz.id,
+					worker: me,
+				},
+			),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -959,9 +965,16 @@ function useReminderItemOperations({
 				label: "Undo",
 				onClick: async () => {
 					let undoResult = await tryCatch(
-						updateNote(person.$jazz.id, result.data.noteID, {
-							deletedAt: new Date(),
-						}),
+						updateNote(
+							{
+								deletedAt: new Date(),
+							},
+							{
+								personId: person.$jazz.id,
+								noteId: result.data.noteID,
+								worker: me,
+							},
+						),
 					)
 					if (undoResult.ok) {
 						toast.success(t("note.toast.removed"))

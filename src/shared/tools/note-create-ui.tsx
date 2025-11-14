@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from "react"
-import { type InferUITool } from "ai"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
@@ -18,20 +17,26 @@ import {
 import { Link } from "@tanstack/react-router"
 import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
-import { addNoteTool } from "#shared/tools/note-create"
+import { createAddNoteTool } from "#shared/tools/note-create"
 import { updateNote } from "#shared/tools/note-update"
 import { cn } from "#app/lib/utils"
-
-type _AddNoteTool = InferUITool<typeof addNoteTool>
+import { useAccount } from "jazz-tools/react"
+import { UserAccount } from "#shared/schema/user"
+import type { InferToolOutput } from "ai"
 
 export { AddNoteResult }
 
-function AddNoteResult({ result }: { result: _AddNoteTool["output"] }) {
+function AddNoteResult({
+	result,
+}: {
+	result: InferToolOutput<ReturnType<typeof createAddNoteTool>>
+}) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
+	let { me } = useAccount(UserAccount)
 
 	if ("error" in result) {
 		return (
@@ -42,10 +47,18 @@ function AddNoteResult({ result }: { result: _AddNoteTool["output"] }) {
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
-			updateNote(result.personId, result.noteId, { deletedAt: new Date() })
+			updateNote(
+				{ deletedAt: new Date() },
+				{
+					personId: result.personId,
+					noteId: result.noteId,
+					worker: me,
+				},
+			)
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,

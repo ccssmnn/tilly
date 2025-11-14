@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { type InferUITool } from "ai"
 import {
 	Dialog,
 	DialogContent,
@@ -13,13 +12,16 @@ import { FileEarmarkText } from "react-bootstrap-icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
-import { listNotesTool } from "#shared/tools/note-read"
+import { createListNotesTool } from "#shared/tools/note-read"
+import type { InferToolOutput } from "ai"
 
 export { ListNotesResult }
 
-type _ListNotesTool = InferUITool<typeof listNotesTool>
-
-function ListNotesResult({ result }: { result: _ListNotesTool["output"] }) {
+function ListNotesResult({
+	result,
+}: {
+	result: InferToolOutput<ReturnType<typeof createListNotesTool>>
+}) {
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let navigate = useNavigate()
 	let { setNotesSearchQuery } = useAppStore()

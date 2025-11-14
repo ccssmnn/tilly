@@ -478,7 +478,15 @@ function AddItemButton(props: {
 	let t = useIntl()
 
 	async function handleAddNote(data: { content: string; pinned: boolean }) {
-		let result = await tryCatch(createNote(props.person.$jazz.id, data))
+		let result = await tryCatch(
+			createNote(
+				{ title: "", ...data },
+				{
+					personId: props.person.$jazz.id,
+					worker: props.me,
+				},
+			),
+		)
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,

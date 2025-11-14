@@ -18,7 +18,7 @@ import {
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 
-import { Note, Person } from "#shared/schema/user"
+import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
 import { useState, useRef, useEffect } from "react"
@@ -32,7 +32,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
-import { Image as JazzImage } from "jazz-tools/react"
+import { Image as JazzImage, useAccount } from "jazz-tools/react"
 
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
@@ -46,6 +46,7 @@ function NoteListItem(props: {
 	showPerson?: boolean
 }) {
 	let t = useIntl()
+	let { me } = useAccount(UserAccount)
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let [isExpanded, setIsExpanded] = useState(false)
 	let showPerson = props.showPerson ?? true
@@ -153,14 +154,26 @@ function NoteListItem(props: {
 				open={openDialog === "actions"}
 				onOpenChange={() => setOpenDialog(undefined)}
 				onDelete={async () => {
-					await deleteNote(props.person.$jazz.id, props.note.$jazz.id, t)
+					if (!me) return
+					await deleteNote(
+						{
+							personId: props.person.$jazz.id,
+							noteId: props.note.$jazz.id,
+							worker: me,
+						},
+						t,
+					)
 					setOpenDialog(undefined)
 				}}
 				onEdit={() => setOpenDialog("edit")}
 				onPin={async () => {
+					if (!me) return
 					await pinOrUnpinNote(
-						props.person.$jazz.id,
-						props.note.$jazz.id,
+						{
+							personId: props.person.$jazz.id,
+							noteId: props.note.$jazz.id,
+							worker: me,
+						},
 						t,
 						props.note.pinned,
 					)
@@ -318,11 +331,16 @@ function EditDialog(props: {
 	person: co.loaded<typeof Person>
 }) {
 	let t = useIntl()
+	let { me } = useAccount(UserAccount)
 	async function handleSubmit(data: { content: string; pinned: boolean }) {
+		if (!me) return
 		let result = await editNote(
 			data,
-			props.person.$jazz.id,
-			props.note.$jazz.id,
+			{
+				personId: props.person.$jazz.id,
+				noteId: props.note.$jazz.id,
+				worker: me,
+			},
 			t,
 		)
 		if (result?.success) {
@@ -387,11 +405,14 @@ function useContentOverflow(content: string, isExpanded: boolean) {
 
 async function editNote(
 	data: Partial<{ content: string; pinned: boolean }>,
-	personId: string,
-	noteId: string,
+	options: {
+		personId: string
+		noteId: string
+		worker: co.loaded<typeof UserAccount>
+	},
 	t: ReturnType<typeof useIntl>,
 ) {
-	let result = await tryCatch(updateNote(personId, noteId, data))
+	let result = await tryCatch(updateNote(data, options))
 	if (!result.ok) {
 		toast.error(
 			typeof result.error === "string" ? result.error : result.error.message,
@@ -404,7 +425,7 @@ async function editNote(
 			label: "Undo",
 			onClick: async () => {
 				let undoResult = await tryCatch(
-					updateNote(personId, noteId, result.data.previous),
+					updateNote(result.data.previous, options),
 				)
 				if (undoResult.ok) {
 					toast.success(t("note.toast.updateUndone"))
@@ -422,13 +443,14 @@ async function editNote(
 }
 
 async function deleteNote(
-	personId: string,
-	noteId: string,
+	options: {
+		personId: string
+		noteId: string
+		worker: co.loaded<typeof UserAccount>
+	},
 	t: ReturnType<typeof useIntl>,
 ) {
-	let result = await tryCatch(
-		updateNote(personId, noteId, { deletedAt: new Date() }),
-	)
+	let result = await tryCatch(updateNote({ deletedAt: new Date() }, options))
 	if (!result.ok) {
 		toast.error(
 			typeof result.error === "string" ? result.error : result.error.message,
@@ -440,14 +462,15 @@ async function deleteNote(
 }
 
 async function pinOrUnpinNote(
-	personId: string,
-	noteId: string,
+	options: {
+		personId: string
+		noteId: string
+		worker: co.loaded<typeof UserAccount>
+	},
 	t: ReturnType<typeof useIntl>,
 	currentPinned?: boolean,
 ) {
-	let result = await tryCatch(
-		updateNote(personId, noteId, { pinned: !currentPinned }),
-	)
+	let result = await tryCatch(updateNote({ pinned: !currentPinned }, options))
 	if (!result.ok) {
 		toast.error(
 			typeof result.error === "string" ? result.error : result.error.message,
@@ -477,6 +500,7 @@ function RestoreNoteDialog({
 	onOpenChange: (open: boolean) => void
 }) {
 	let t = useIntl()
+	let { me } = useAccount(UserAccount)
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
 	let deletionInfo = null
@@ -491,8 +515,16 @@ function RestoreNoteDialog({
 	}
 
 	async function handleRestore() {
+		if (!me) return
 		let result = await tryCatch(
-			updateNote(person.$jazz.id, note.$jazz.id, { deletedAt: undefined }),
+			updateNote(
+				{ deletedAt: undefined },
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: me,
+				},
+			),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -506,10 +538,18 @@ function RestoreNoteDialog({
 	}
 
 	async function handlePermanentDelete() {
+		if (!me) return
 		let result = await tryCatch(
-			updateNote(person.$jazz.id, note.$jazz.id, {
-				permanentlyDeletedAt: new Date(),
-			}),
+			updateNote(
+				{
+					permanentlyDeletedAt: new Date(),
+				},
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: me,
+				},
+			),
 		)
 		if (!result.ok) {
 			toast.error(
