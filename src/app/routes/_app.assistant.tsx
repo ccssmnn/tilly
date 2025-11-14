@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -8,7 +8,7 @@ import { Textarea, useResizeTextarea } from "#shared/ui/textarea"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
-import { UserAccount } from "#shared/schema/user"
+import { UserAccount, type Assistant } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import {
@@ -151,6 +151,16 @@ function AuthenticatedChat() {
 
 	let isGenerating = !!currentMe.root?.assistant?.submittedAt
 
+	useStaleGenerationTimeout(currentMe.root.assistant)
+
+	async function resetGenerationMarkers() {
+		if (!currentMe.root.assistant) return
+		currentMe.root.assistant.$jazz.set("generationId", undefined)
+		currentMe.root.assistant.$jazz.set("submittedAt", undefined)
+		currentMe.root.assistant.$jazz.set("abortRequestedAt", undefined)
+		await currentMe.root.assistant.$jazz.waitForSync()
+	}
+
 	async function handleSubmit(prompt: string) {
 		setError(null)
 
@@ -206,6 +216,7 @@ function AuthenticatedChat() {
 				throw new Error(JSON.stringify(errorData))
 			}
 		} catch (error) {
+			await resetGenerationMarkers()
 			setError(error as Error)
 		}
 	}
@@ -468,7 +479,7 @@ function UserInput(props: {
 										variant="destructive"
 										onClick={props.stopGeneratingResponse}
 										size="icon"
-										className="size-10 rounded-3xl"
+										className="size-11 rounded-3xl"
 									>
 										<Pause />
 									</Button>
@@ -476,7 +487,7 @@ function UserInput(props: {
 									<Button
 										type="submit"
 										size="icon"
-										className="size-10 rounded-3xl"
+										className="size-11 rounded-3xl"
 										disabled={props.disabled}
 									>
 										<Send />
@@ -489,6 +500,41 @@ function UserInput(props: {
 			</Form>
 		</div>
 	)
+}
+
+let GENERATION_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
+
+function useStaleGenerationTimeout(
+	assistant: co.loaded<typeof Assistant> | undefined,
+) {
+	useEffect(() => {
+		if (!assistant?.submittedAt) return
+
+		let submittedTime = assistant.submittedAt.getTime()
+		let now = Date.now()
+		let age = now - submittedTime
+
+		if (age >= GENERATION_TIMEOUT_MS) {
+			resetGenerationMarkersForTimeout(assistant)
+			return
+		}
+
+		let remaining = GENERATION_TIMEOUT_MS - age
+		let timer = setTimeout(() => {
+			resetGenerationMarkersForTimeout(assistant)
+		}, remaining)
+
+		return () => clearTimeout(timer)
+	}, [assistant, assistant?.submittedAt])
+}
+
+async function resetGenerationMarkersForTimeout(
+	assistant: co.loaded<typeof Assistant>,
+) {
+	assistant.$jazz.set("generationId", undefined)
+	assistant.$jazz.set("submittedAt", undefined)
+	assistant.$jazz.set("abortRequestedAt", undefined)
+	await assistant.$jazz.waitForSync()
 }
 
 function isUsageLimitError(error: unknown): boolean {
