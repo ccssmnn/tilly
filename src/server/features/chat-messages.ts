@@ -27,7 +27,7 @@ import {
 } from "../lib/chat-usage"
 import { initUserWorker } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
-import type { Loaded } from "jazz-tools"
+import { co, type Loaded } from "jazz-tools"
 import type { UserAccount } from "#shared/schema/user"
 import {
 	getEnabledDevices,
@@ -49,12 +49,13 @@ let chatMessagesApp = new Hono()
 		let { worker } = await initUserWorker(user)
 
 		let workerWithMessages = await worker.$jazz.ensureLoaded({
-			resolve: { root: { chat: true } },
+			resolve: { root: { assistant: { messages: true } } },
 		})
-		let rawMessages = workerWithMessages.root.chat?.messages
-		if (!rawMessages)
+		let rawMessages = workerWithMessages.root.assistant?.messages
+		if (!rawMessages) {
 			return c.json({ error: "put messages into your chat first" }, 400)
-		let messages = JSON.parse(rawMessages) as TillyUIMessage[]
+		}
+		let messages = JSON.parse(rawMessages.toString()) as TillyUIMessage[]
 		let userContextMessages = addUserContextToMessages(messages)
 
 		let usageLimits = await checkUsageLimits(user, worker)
@@ -274,20 +275,19 @@ type UsageLimitExceededResponse = {
 
 async function runBackgroundGeneration(params: {
 	user: User
-	worker: Loaded<typeof UserAccount, { root: { chat: true } }>
+	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>
 	subscriptionStatus: SubscriptionStatus
 	modelMessages: ReturnType<typeof convertToModelMessages>
 	generationId: string
 }) {
 	let { user, worker, subscriptionStatus, modelMessages, generationId } = params
 
-	let chat = worker.root.chat!
+	let chat = worker.root.assistant!
 
 	chat.$jazz.set("generationId", generationId)
 	await worker.$jazz.waitForSync()
 
 	let abortController = new AbortController()
-
 	let unsubscribe = chat.$jazz.subscribe(updatedChat => {
 		if (
 			updatedChat.abortRequestedAt ||
@@ -307,7 +307,7 @@ async function runBackgroundGeneration(params: {
 			...createServerTools(worker),
 		}
 
-		let initialMessagesJson = chat.messages ?? "[]"
+		let initialMessagesJson = chat.messages?.toString() ?? "[]"
 		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
 
 		let handleChunk = createChunkHandler()
@@ -321,7 +321,14 @@ async function runBackgroundGeneration(params: {
 			abortSignal: abortController.signal,
 			onChunk: async event => {
 				currentMessages = handleChunk(event.chunk, currentMessages)
-				chat.$jazz.set("messages", JSON.stringify(currentMessages))
+				if (!chat.messages) {
+					chat.$jazz.set(
+						"messages",
+						co.plainText().create(JSON.stringify(currentMessages)),
+					)
+				} else {
+					chat.messages.$jazz.applyDiff(JSON.stringify(currentMessages))
+				}
 			},
 			onFinish: async finishResult => {
 				let inputTokens = finishResult.usage.inputTokens ?? 0
@@ -460,7 +467,7 @@ function createChunkHandler() {
 
 async function sendAssistantCompletionNotification(
 	user: User,
-	worker: Loaded<typeof UserAccount, { root: { chat: true } }>,
+	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>,
 ) {
 	try {
 		let workerWithSettings = await worker.$jazz.ensureLoaded({
@@ -468,10 +475,20 @@ async function sendAssistantCompletionNotification(
 		})
 
 		let notificationSettings = workerWithSettings.root.notificationSettings
-		if (!notificationSettings) return
+		if (!notificationSettings) {
+			console.log(
+				`[Chat] ${user.id} | No notification settings, skipping notification`,
+			)
+			return
+		}
 
 		let devices = getEnabledDevices(notificationSettings)
-		if (devices.length === 0) return
+		if (devices.length === 0) {
+			console.log(
+				`[Chat] ${user.id} | No enabled devices, skipping notification`,
+			)
+			return
+		}
 
 		let t = getIntl(workerWithSettings)
 		let payload: NotificationPayload = {
@@ -483,8 +500,19 @@ async function sendAssistantCompletionNotification(
 			userId: user.id,
 		}
 
-		await Promise.allSettled(
+		console.log(
+			`[Chat] ${user.id} | Sending completion notification to ${devices.length} devices`,
+		)
+
+		let results = await Promise.allSettled(
 			devices.map(device => sendNotificationToDevice(device, payload)),
+		)
+
+		let successCount = results.filter(
+			r => r.status === "fulfilled" && r.value.ok,
+		).length
+		console.log(
+			`[Chat] ${user.id} | Completion notification sent to ${successCount}/${devices.length} devices`,
 		)
 	} catch (error) {
 		console.error(

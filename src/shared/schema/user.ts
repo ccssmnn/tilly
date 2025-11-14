@@ -28,9 +28,9 @@ export let NotificationSettings = co.map({
 	pushDevices: z.array(PushDevice),
 })
 
-export let ChatHistory = co.map({
+export let Assistant = co.map({
 	version: z.literal(1),
-	messages: z.string(),
+	messages: co.plainText(),
 	submittedAt: z.date().optional(),
 	submittedFromDeviceId: z.string().optional(),
 	generationId: z.string().optional(),
@@ -98,7 +98,7 @@ export let UserAccountRoot = co.map({
 	notificationSettings: NotificationSettings.optional(),
 	usageTracking: UsageTracking.optional(),
 	language: z.enum(["de", "en"]).optional(),
-	chat: ChatHistory.optional(),
+	assistant: Assistant.optional(),
 })
 
 export let UserAccount = co
@@ -133,9 +133,9 @@ function initializeRootIfUndefined(
 					pushDevices: [],
 				}),
 				language: navigator.language.startsWith("de") ? "de" : "en",
-				chat: ChatHistory.create({
+				assistant: Assistant.create({
 					version: 1,
-					messages: "[]",
+					messages: co.plainText().create("[]"),
 				}),
 			}),
 		)

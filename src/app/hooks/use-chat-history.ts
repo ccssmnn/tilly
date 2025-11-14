@@ -1,26 +1,38 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import type { TillyUIMessage } from "#shared/tools/tools"
+import { co } from "jazz-tools"
 
 export { useChatHistory }
 
 function useChatHistory() {
 	let { me } = useAccount(UserAccount, {
-		resolve: { root: { chat: true } },
+		resolve: { root: { assistant: { messages: true } } },
 	})
 
 	function addMessage(message: TillyUIMessage) {
-		if (!me?.root?.chat) return
-
-		let currentMessages: TillyUIMessage[] = []
-		try {
-			currentMessages = JSON.parse(me.root.chat.messages)
-		} catch (error) {
-			console.error("Failed to parse chat messages", error)
+		if (!me) return
+		if (!me.root) return
+		if (!me.root.assistant) {
+			me.root.$jazz.set("assistant", {
+				version: 1,
+				messages: co.plainText().create(JSON.stringify([message])),
+			})
+			return
+		}
+		if (!me.root.assistant.messages) {
+			me.root.assistant.$jazz.set(
+				"messages",
+				co.plainText().create(JSON.stringify([message])),
+			)
+			return
 		}
 
+		let currentMessages: TillyUIMessage[] = JSON.parse(
+			me.root.assistant.messages.toString(),
+		)
 		let updatedMessages = [...currentMessages, message]
-		me.root.chat.$jazz.set("messages", JSON.stringify(updatedMessages))
+		me.root.assistant.messages.$jazz.applyDiff(JSON.stringify(updatedMessages))
 	}
 
 	return { addMessage }

@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { UserAccount } from "#shared/schema/user"
-import type { ResolveQuery } from "jazz-tools"
+import { co, type ResolveQuery } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import {
 	Send,
@@ -45,9 +45,11 @@ export let Route = createFileRoute("/_app/assistant")({
 		})
 
 		let initialMessages: TillyUIMessage[] = []
-		if (loadedMe.root?.chat?.messages) {
+		if (loadedMe.root.assistant?.messages) {
 			try {
-				initialMessages = JSON.parse(loadedMe.root.chat.messages)
+				initialMessages = JSON.parse(
+					loadedMe.root.assistant.messages.toString(),
+				)
 			} catch (error) {
 				console.error("Failed to parse chat messages", error)
 			}
@@ -59,7 +61,7 @@ export let Route = createFileRoute("/_app/assistant")({
 })
 
 let query = {
-	root: { people: { $each: true }, chat: true },
+	root: { people: { $each: true }, assistant: { messages: true } },
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 function AssistantScreen() {
@@ -142,14 +144,15 @@ function AuthenticatedChat() {
 	let currentMe = subscribedMe ?? data.me
 
 	let { clearChatHintDismissed, setClearChatHintDismissed } = useAppStore()
+
 	let canUseChat = useOnlineStatus()
 
 	let [error, setError] = useState<Error | null>(null)
 
-	let messagesJson = currentMe.root.chat?.messages ?? "[]"
+	let messagesJson = currentMe.root.assistant?.messages?.toString() ?? "[]"
 	let messages = JSON.parse(messagesJson) as TillyUIMessage[]
 
-	let isGenerating = !!currentMe.root?.chat?.submittedAt
+	let isGenerating = !!currentMe.root?.assistant?.submittedAt
 
 	async function handleSubmit(prompt: string) {
 		setError(null)
@@ -177,15 +180,21 @@ function AuthenticatedChat() {
 	async function submitMessages(newMessages: TillyUIMessage[]) {
 		let messagesJson = JSON.stringify(newMessages)
 
-		if (!currentMe.root.chat) {
-			currentMe.root.$jazz.set("chat", {
+		if (!currentMe.root.assistant) {
+			currentMe.root.$jazz.set("assistant", {
 				version: 1,
-				messages: messagesJson,
+				messages: co.plainText().create(messagesJson),
 				submittedAt: new Date(),
 			})
+		} else if (!currentMe.root.assistant.messages) {
+			currentMe.root.assistant.$jazz.set(
+				"messages",
+				co.plainText().create(messagesJson),
+			)
+			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
 		} else {
-			currentMe.root.chat.$jazz.set("messages", messagesJson)
-			currentMe.root.chat.$jazz.set("submittedAt", new Date())
+			currentMe.root.assistant.messages.$jazz.applyDiff(messagesJson)
+			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
 		}
 
 		await currentMe.root.$jazz.waitForSync()
@@ -205,10 +214,9 @@ function AuthenticatedChat() {
 	}
 
 	async function handleAbort() {
-		if (currentMe.root?.chat) {
-			currentMe.root.chat.$jazz.set("abortRequestedAt", new Date())
-			await currentMe.root.chat.$jazz.waitForSync()
-		}
+		if (!currentMe.root.assistant) return
+		currentMe.root.assistant.$jazz.set("abortRequestedAt", new Date())
+		await currentMe.root.assistant.$jazz.waitForSync()
 	}
 
 	function addToolResult({
@@ -339,9 +347,7 @@ function AuthenticatedChat() {
 								variant="ghost"
 								size="sm"
 								onClick={() => {
-									if (currentMe.root?.chat) {
-										currentMe.root.chat.$jazz.set("messages", "[]")
-									}
+									currentMe.root.assistant?.messages?.$jazz.applyDiff("[]")
 								}}
 								className="text-muted-foreground hover:text-foreground"
 							>
