@@ -1,5 +1,10 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { convertToModelMessages, stepCountIs, streamText } from "ai"
+import {
+	convertToModelMessages,
+	stepCountIs,
+	streamText,
+	type TextStreamPart,
+} from "ai"
 import { GOOGLE_AI_API_KEY } from "astro:env/server"
 import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
@@ -397,21 +402,13 @@ function createChunkHandler() {
 					`[Chunk] Created new assistant message for text | ID: ${currentAssistantMessage.id}`,
 				)
 			} else {
-				let lastPart =
-					currentAssistantMessage.parts?.[
-						currentAssistantMessage.parts.length - 1
-					]
-				if (lastPart?.type === "text") {
-					lastPart.text += chunk.text
-				} else {
-					currentAssistantMessage.parts = [
-						...(currentAssistantMessage.parts || []),
-						{ type: "text", text: chunk.text },
-					]
-					console.log(
-						`[Chunk] Added new text part | Parts count: ${currentAssistantMessage.parts.length}`,
-					)
-				}
+				currentAssistantMessage.parts = [
+					...(currentAssistantMessage.parts || []),
+					{ type: "text", text: chunk.text },
+				]
+				console.log(
+					`[Chunk] Added new text part | Parts count: ${currentAssistantMessage.parts.length}`,
+				)
 			}
 		}
 
