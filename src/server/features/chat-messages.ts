@@ -5,7 +5,8 @@ import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
 
 import {
-	tools as allTools,
+	clientTools,
+	createServerTools,
 	type MessageMetadata,
 	type TillyUIMessage,
 } from "#shared/tools/tools"
@@ -17,6 +18,7 @@ import {
 	checkUsageLimits,
 	updateUsage,
 } from "../lib/chat-usage"
+import { initUserWorker } from "#server/lib/utils"
 
 export { chatMessagesApp }
 
@@ -35,8 +37,9 @@ let chatMessagesApp = new Hono()
 
 		let user = c.get("user")
 		let subscriptionStatus = c.get("subscription")
+		let { worker } = await initUserWorker(user)
 
-		let usageLimits = await checkUsageLimits(user)
+		let usageLimits = await checkUsageLimits(user, worker)
 		if (usageLimits.exceeded) {
 			let errorMessage = "Usage budget exceeded"
 			let errorResponse: UsageLimitExceededResponse = {
@@ -54,7 +57,7 @@ let chatMessagesApp = new Hono()
 
 		let modelMessages = convertToModelMessages(userContextMessages, {
 			ignoreIncompleteToolCalls: true,
-			tools: allTools,
+			tools: clientTools,
 		})
 
 		if (!checkInputSize(user, modelMessages)) {
@@ -62,6 +65,11 @@ let chatMessagesApp = new Hono()
 		}
 
 		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
+
+		let allTools = {
+			...clientTools,
+			...createServerTools(worker),
+		}
 
 		let result = streamText({
 			model: google("gemini-2.5-flash"),
@@ -74,7 +82,7 @@ let chatMessagesApp = new Hono()
 				let outputTokens = usage.outputTokens ?? 0
 				let cachedTokens = getCachedTokenCount(providerMetadata)
 
-				await updateUsage(user, subscriptionStatus, {
+				await updateUsage(user, worker, subscriptionStatus, {
 					inputTokens,
 					cachedTokens,
 					outputTokens,

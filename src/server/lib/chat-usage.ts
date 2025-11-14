@@ -33,8 +33,11 @@ function checkInputSize(
 	return true
 }
 
-async function checkUsageLimits(user: ChatUser): Promise<UsageLimitResult> {
-	let context = await ensureUsageContext(user)
+async function checkUsageLimits(
+	user: ChatUser,
+	worker: UserWorker,
+): Promise<UsageLimitResult> {
+	let context = await ensureUsageContext(user, worker)
 	let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
 
 	let exceeded = percentUsed >= 100
@@ -58,10 +61,11 @@ async function checkUsageLimits(user: ChatUser): Promise<UsageLimitResult> {
 
 async function updateUsage(
 	user: ChatUser,
+	worker: UserWorker,
 	subscription: SubscriptionStatus,
 	usage: UsageUpdatePayload,
 ): Promise<void> {
-	let context = await ensureUsageContext(user)
+	let context = await ensureUsageContext(user, worker)
 
 	let updateResult = await tryCatch(
 		applyUsageUpdate(context.usageTracking, usage),
@@ -131,17 +135,10 @@ let usageAttachQuery = {
 	root: { usageTracking: true },
 } satisfies ResolveQuery<typeof UserAccount>
 
-async function ensureUsageContext(user: ChatUser): Promise<UsageContext> {
-	let workerResult = await tryCatch(initUserWorker(user))
-	if (!workerResult.ok) {
-		console.error(
-			`[Usage] ${user.id} | Failed to init worker`,
-			workerResult.error,
-		)
-		throw new Error("Failed to init worker")
-	}
-
-	let worker: UserWorker = workerResult.data.worker
+async function ensureUsageContext(
+	user: ChatUser,
+	worker: UserWorker,
+): Promise<UsageContext> {
 	let usageTracking = await loadUsageTrackingForUser(
 		user,
 		worker,

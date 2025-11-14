@@ -1,9 +1,4 @@
-import {
-	listPeopleTool,
-	listPeopleExecute,
-	getPersonDetailsTool,
-	getPersonDetailsExecute,
-} from "./person-read"
+import { createListPeopleTool, createGetPersonDetailsTool } from "./person-read"
 import { listRemindersTool, listRemindersExecute } from "./reminder-read"
 import { createPersonTool } from "./person-create"
 import {
@@ -30,10 +25,11 @@ import {
 import { userQuestionTool } from "./user-question"
 import type { InferUITools, UIMessage } from "ai"
 import { z } from "zod"
-export let tools = {
+import type { Loaded } from "jazz-tools"
+import type { UserAccount } from "#shared/schema/user"
+
+export let clientTools = {
 	// Person tools
-	listPeople: listPeopleTool,
-	getPersonDetails: getPersonDetailsTool,
 	createPerson: createPersonTool,
 	updatePerson: updatePersonTool,
 	deletePerson: deletePersonTool,
@@ -54,9 +50,7 @@ export let tools = {
 	userQuestion: userQuestionTool,
 } as const
 
-export let toolExecutors = {
-	listPeople: listPeopleExecute,
-	getPersonDetails: getPersonDetailsExecute,
+export let clientToolExecutors = {
 	updatePerson: updatePersonExecute,
 	deletePerson: deletePersonExecute,
 	listNotes: listNotesExecute,
@@ -69,7 +63,13 @@ export let toolExecutors = {
 	removeReminder: removeReminderExecute,
 } as const
 
-// Message metadata schema
+export function createServerTools(worker: Loaded<typeof UserAccount>) {
+	return {
+		listPeople: createListPeopleTool(worker),
+		getPersonDetails: createGetPersonDetailsTool(worker),
+	}
+}
+
 export const messageMetadataSchema = z.object({
 	timezone: z.string(),
 	locale: z.string(),
@@ -83,8 +83,7 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AddToolResultFunction = (...args: any[]) => void
 
-// Types for UI integration
-export type ToolSet = typeof tools
+export type ToolSet = typeof clientTools
 export type MyTools = InferUITools<ToolSet>
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type TillyUIMessage = UIMessage<MessageMetadata, {}, MyTools>

@@ -33,7 +33,7 @@ import {
 	DefaultChatTransport,
 	lastAssistantMessageIsCompleteWithToolCalls,
 } from "ai"
-import { toolExecutors, type TillyUIMessage } from "#shared/tools/tools"
+import { clientToolExecutors, type TillyUIMessage } from "#shared/tools/tools"
 import { MessageRenderer } from "#app/features/assistant-message-components"
 import { useAppStore } from "#app/lib/store"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
@@ -183,9 +183,9 @@ function AuthenticatedChat() {
 			}
 		},
 		onToolCall: async ({ toolCall }) => {
-			let toolName = toolCall.toolName as keyof typeof toolExecutors
+			let toolName = toolCall.toolName as keyof typeof clientToolExecutors
 
-			let executeFn = toolExecutors[toolName]
+			let executeFn = clientToolExecutors[toolName]
 			if (!executeFn) return
 
 			addToolResult({
