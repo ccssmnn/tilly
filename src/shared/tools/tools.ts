@@ -1,6 +1,6 @@
 import { createListPeopleTool, createGetPersonDetailsTool } from "./person-read"
 import { createListRemindersTool } from "./reminder-read"
-import { createPersonTool, createPersonExecute } from "./person-create"
+import { createPersonTool } from "./person-create"
 import { createUpdatePersonTool, createDeletePersonTool } from "./person-update"
 import { createListNotesTool } from "./note-read"
 import { createAddNoteTool } from "./note-create"
@@ -10,7 +10,7 @@ import {
 	createUpdateReminderTool,
 	createRemoveReminderTool,
 } from "./reminder-update"
-import { userQuestionTool, userQuestionExecute } from "./user-question"
+import { userQuestionTool } from "./user-question"
 import type { InferUITools, UIMessage } from "ai"
 import { z } from "zod"
 import type { Loaded } from "jazz-tools"
@@ -19,11 +19,6 @@ import type { UserAccount } from "#shared/schema/user"
 export let clientTools = {
 	createPerson: createPersonTool,
 	userQuestion: userQuestionTool,
-} as const
-
-export let clientToolExecutors = {
-	createPerson: createPersonExecute,
-	userQuestion: userQuestionExecute,
 } as const
 
 export function createServerTools(worker: Loaded<typeof UserAccount>) {

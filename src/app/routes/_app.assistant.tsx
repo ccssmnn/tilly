@@ -33,7 +33,7 @@ import {
 	DefaultChatTransport,
 	lastAssistantMessageIsCompleteWithToolCalls,
 } from "ai"
-import { clientToolExecutors, type TillyUIMessage } from "#shared/tools/tools"
+import { type TillyUIMessage } from "#shared/tools/tools"
 import { MessageRenderer } from "#app/features/assistant-message-components"
 import { useAppStore } from "#app/lib/store"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
@@ -198,19 +198,6 @@ function AuthenticatedChat() {
 				currentMe.root.chat.$jazz.set("submittedAt", undefined)
 				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
 			}
-		},
-		onToolCall: async ({ toolCall }) => {
-			let toolName = toolCall.toolName as keyof typeof clientToolExecutors
-
-			let executeFn = clientToolExecutors[toolName]
-			if (!executeFn) return
-
-			addToolResult({
-				tool: toolName,
-				toolCallId: toolCall.toolCallId,
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				output: await executeFn(currentMe.$jazz.id, toolCall.input as any),
-			})
 		},
 	})
 
