@@ -15,6 +15,7 @@ import {
 	createServerTools,
 	type MessageMetadata,
 	type TillyUIMessage,
+	type ToolSet,
 } from "#shared/tools/tools"
 import { z } from "zod"
 import { authMiddleware, requireAuth } from "../lib/auth-middleware"
@@ -26,6 +27,8 @@ import {
 } from "../lib/chat-usage"
 import { initUserWorker } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
+import type { Loaded } from "jazz-tools"
+import type { UserAccount } from "#shared/schema/user"
 
 export { chatMessagesApp }
 
@@ -76,7 +79,7 @@ let chatMessagesApp = new Hono()
 
 		runBackgroundGeneration({
 			user,
-			worker,
+			worker: workerWithMessages,
 			subscriptionStatus,
 			modelMessages,
 			generationId,
@@ -264,14 +267,14 @@ type UsageLimitExceededResponse = {
 
 async function runBackgroundGeneration(params: {
 	user: User
-	worker: Awaited<ReturnType<typeof initUserWorker>>["worker"]
+	worker: Loaded<typeof UserAccount, { root: { chat: true } }>
 	subscriptionStatus: SubscriptionStatus
 	modelMessages: ReturnType<typeof convertToModelMessages>
 	generationId: string
 }) {
 	let { user, worker, subscriptionStatus, modelMessages, generationId } = params
 
-	let chat = worker.root!.chat! // TODO: oh oh :(
+	let chat = worker.root.chat!
 
 	console.log(
 		`[Chat] ${user.id} | Starting generation ${generationId} | Existing messages: ${chat.messages?.length ?? 0} chars`,
@@ -380,12 +383,24 @@ async function runBackgroundGeneration(params: {
 	}
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function createChunkHandler() {
 	let currentAssistantMessage: TillyUIMessage | null = null
 
 	return function handleChunk(
-		chunk: any,
+		chunk: Extract<
+			TextStreamPart<ToolSet>,
+			{
+				type:
+					| "text-delta"
+					| "reasoning-delta"
+					| "source"
+					| "tool-call"
+					| "tool-input-start"
+					| "tool-input-delta"
+					| "tool-result"
+					| "raw"
+			}
+		>,
 		messages: TillyUIMessage[],
 	): TillyUIMessage[] {
 		let workingMessages = [...messages]
@@ -396,7 +411,7 @@ function createChunkHandler() {
 					id: nanoid(),
 					role: "assistant",
 					parts: [{ type: "text", text: chunk.text }],
-				} as TillyUIMessage
+				}
 				workingMessages.push(currentAssistantMessage)
 				console.log(
 					`[Chunk] Created new assistant message for text | ID: ${currentAssistantMessage.id}`,
@@ -414,11 +429,7 @@ function createChunkHandler() {
 
 		if (chunk.type === "tool-call") {
 			if (!currentAssistantMessage) {
-				currentAssistantMessage = {
-					id: nanoid(),
-					role: "assistant",
-					parts: [],
-				} as TillyUIMessage
+				currentAssistantMessage = { id: nanoid(), role: "assistant", parts: [] }
 				workingMessages.push(currentAssistantMessage)
 				console.log(
 					`[Chunk] Created new assistant message | ID: ${currentAssistantMessage.id}`,
@@ -428,12 +439,13 @@ function createChunkHandler() {
 			currentAssistantMessage.parts = [
 				...(currentAssistantMessage.parts || []),
 				{
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					type: `tool-${chunk.toolName}` as any,
 					toolCallId: chunk.toolCallId,
 					toolName: chunk.toolName,
 					input: chunk.input,
-					state: "input-available" as any,
-				} as any,
+					state: "input-available",
+				},
 			]
 			console.log(
 				`[Chunk] Added tool-call | Tool: ${chunk.toolName} | Parts count: ${currentAssistantMessage.parts.length}`,
@@ -446,7 +458,7 @@ function createChunkHandler() {
 					id: nanoid(),
 					role: "assistant",
 					parts: [],
-				} as TillyUIMessage
+				}
 				workingMessages.push(currentAssistantMessage)
 				console.log(
 					`[Chunk] Created new assistant message for tool-result | ID: ${currentAssistantMessage.id}`,
@@ -458,8 +470,8 @@ function createChunkHandler() {
 			)
 
 			if (toolCallPart && "toolCallId" in toolCallPart) {
-				;(toolCallPart as any).output = chunk.output
-				;(toolCallPart as any).state = "output-available"
+				toolCallPart.output = chunk.output
+				toolCallPart.state = "output-available"
 				console.log(
 					`[Chunk] Updated tool-result | Tool: ${chunk.toolName} | CallID: ${chunk.toolCallId}`,
 				)
@@ -467,13 +479,14 @@ function createChunkHandler() {
 				currentAssistantMessage.parts = [
 					...(currentAssistantMessage.parts || []),
 					{
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						type: `tool-${chunk.toolName}` as any,
 						toolCallId: chunk.toolCallId,
 						toolName: chunk.toolName,
 						input: chunk.input,
 						output: chunk.output,
-						state: "output-available" as any,
-					} as any,
+						state: "output-available",
+					},
 				]
 				console.log(
 					`[Chunk] Added new tool-result part | Tool: ${chunk.toolName} | Parts count: ${currentAssistantMessage.parts.length}`,
@@ -490,4 +503,3 @@ function createChunkHandler() {
 		return workingMessages
 	}
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

@@ -51,7 +51,7 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AddToolResultFunction = (...args: any[]) => void
 
-export type ToolSet = typeof clientTools
+export type ToolSet = typeof clientTools & ReturnType<typeof createServerTools>
 export type MyTools = InferUITools<ToolSet>
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
