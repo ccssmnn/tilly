@@ -22,28 +22,17 @@ import {
 import { Link } from "@tanstack/react-router"
 import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
-import {
-	addReminderTool,
-	addReminderExecute,
-} from "#shared/tools/reminder-create"
+import { createAddReminderTool } from "#shared/tools/reminder-create"
 import { updateReminder } from "#shared/tools/reminder-update"
+import { useAccount } from "jazz-tools/react-core"
+import { UserAccount } from "#shared/schema/user"
 
-export {
-	addReminderTool,
-	addReminderExecute,
-	AddReminderResult,
-	ReminderDetails,
-}
+export { AddReminderResult, ReminderDetails }
 
-type _AddReminderTool = InferUITool<typeof addReminderTool>
+type _AddReminderTool = InferUITool<ReturnType<typeof createAddReminderTool>>
 
-function AddReminderResult({
-	result,
-	userId,
-}: {
-	result: _AddReminderTool["output"]
-	userId: string
-}) {
+function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
+	let { me } = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -59,14 +48,14 @@ function AddReminderResult({
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
-			// Import updateReminder from update.tsx to properly delete the reminder
 			await updateReminder(
 				{ deletedAt: new Date() },
 				{
-					userId: userId,
+					worker: me,
 					personId: result.personId,
 					reminderId: result.reminderId,
 				},

@@ -120,7 +120,6 @@ export function AssistantMessage({
 					key={`tool-${i}`}
 					toolName={toolName}
 					result={part.output}
-					userId={userId}
 				/>,
 			)
 		}
@@ -139,13 +138,7 @@ export function AssistantMessage({
 	return <div className="mb-4 space-y-2">{renderedParts}</div>
 }
 
-export function ToolMessage({
-	message,
-	userId,
-}: {
-	message: TillyUIMessage
-	userId: string
-}) {
+export function ToolMessage({ message }: { message: TillyUIMessage }) {
 	if (message.role !== "assistant") return null
 
 	return (
@@ -169,7 +162,6 @@ export function ToolMessage({
 						key={index}
 						toolName={toolName}
 						result={part.output}
-						userId={userId}
 					/>
 				)
 			})}

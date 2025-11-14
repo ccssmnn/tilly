@@ -1,5 +1,5 @@
 import { createListPeopleTool, createGetPersonDetailsTool } from "./person-read"
-import { listRemindersTool, listRemindersExecute } from "./reminder-read"
+import { createListRemindersTool } from "./reminder-read"
 import { createPersonTool } from "./person-create"
 import { createUpdatePersonTool, createDeletePersonTool } from "./person-update"
 import { addNoteTool, addNoteExecute } from "./note-create"
@@ -10,12 +10,10 @@ import {
 	deleteNoteExecute,
 } from "./note-update"
 import { listNotesTool, listNotesExecute } from "./note-read"
-import { addReminderTool, addReminderExecute } from "./reminder-create"
+import { createAddReminderTool } from "./reminder-create"
 import {
-	updateReminderTool,
-	updateReminderExecute,
-	removeReminderTool,
-	removeReminderExecute,
+	createUpdateReminderTool,
+	createRemoveReminderTool,
 } from "./reminder-update"
 import { userQuestionTool } from "./user-question"
 import type { InferUITools, UIMessage } from "ai"
@@ -33,12 +31,6 @@ export let clientTools = {
 	editNote: editNoteTool,
 	deleteNote: deleteNoteTool,
 
-	// Reminder tools
-	listReminders: listRemindersTool,
-	addReminder: addReminderTool,
-	updateReminder: updateReminderTool,
-	removeReminder: removeReminderTool,
-
 	// User interaction tools
 	userQuestion: userQuestionTool,
 } as const
@@ -48,10 +40,6 @@ export let clientToolExecutors = {
 	addNote: addNoteExecute,
 	editNote: editNoteExecute,
 	deleteNote: deleteNoteExecute,
-	listReminders: listRemindersExecute,
-	addReminder: addReminderExecute,
-	updateReminder: updateReminderExecute,
-	removeReminder: removeReminderExecute,
 } as const
 
 export function createServerTools(worker: Loaded<typeof UserAccount>) {
@@ -60,6 +48,10 @@ export function createServerTools(worker: Loaded<typeof UserAccount>) {
 		getPersonDetails: createGetPersonDetailsTool(worker),
 		updatePerson: createUpdatePersonTool(worker),
 		deletePerson: createDeletePersonTool(worker),
+		listReminders: createListRemindersTool(worker),
+		addReminder: createAddReminderTool(worker),
+		updateReminder: createUpdateReminderTool(worker),
+		removeReminder: createRemoveReminderTool(worker),
 	}
 }
 

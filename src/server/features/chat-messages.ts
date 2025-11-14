@@ -87,6 +87,8 @@ let chatMessagesApp = new Hono()
 					cachedTokens,
 					outputTokens,
 				})
+
+				await worker.$jazz.waitForAllCoValuesSync()
 			},
 		})
 

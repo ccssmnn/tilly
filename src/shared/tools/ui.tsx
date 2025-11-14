@@ -18,10 +18,9 @@ type ToolResultProps = {
 	toolName: string
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	result: any
-	userId?: string
 }
 
-function ToolResultRenderer({ toolName, result, userId }: ToolResultProps) {
+function ToolResultRenderer({ toolName, result }: ToolResultProps) {
 	switch (toolName) {
 		case "listPeople":
 			return <ListPeopleResult result={result} />
@@ -42,11 +41,11 @@ function ToolResultRenderer({ toolName, result, userId }: ToolResultProps) {
 		case "deleteNote":
 			return <DeleteNoteResult result={result} />
 		case "addReminder":
-			return <AddReminderResult result={result} userId={userId!} />
+			return <AddReminderResult result={result} />
 		case "updateReminder":
-			return <UpdateReminderResult result={result} userId={userId!} />
+			return <UpdateReminderResult result={result} />
 		case "removeReminder":
-			return <RemoveReminderResult result={result} userId={userId!} />
+			return <RemoveReminderResult result={result} />
 		case "listReminders":
 			return <ListRemindersResult result={result} />
 		case "userQuestion":

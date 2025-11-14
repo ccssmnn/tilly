@@ -17,8 +17,8 @@ import {
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { Person, Reminder } from "#shared/schema/user"
-import { co } from "jazz-tools"
+import { Person, Reminder, UserAccount } from "#shared/schema/user"
+import { co, type Loaded } from "jazz-tools"
 import {
 	Calendar,
 	PencilSquare,
@@ -55,13 +55,13 @@ export { ReminderListItem }
 function ReminderListItem({
 	reminder,
 	person,
-	userId,
+	me,
 	showPerson = true,
 	searchQuery,
 }: {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
-	userId: string
+	me: Loaded<typeof UserAccount>
 	showPerson?: boolean
 	searchQuery?: string
 }) {
@@ -71,7 +71,7 @@ function ReminderListItem({
 	let [dialogOpen, setDialogOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
-	let operations = useReminderItemOperations({ reminder, person, userId })
+	let operations = useReminderItemOperations({ reminder, person, me })
 
 	if (reminder.deletedAt) {
 		let deletedRelativeTime = formatDistanceToNow(
@@ -730,11 +730,11 @@ type ReminderItemOperations = {
 function useReminderItemOperations({
 	reminder,
 	person,
-	userId,
+	me,
 }: {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
-	userId: string
+	me: Loaded<typeof UserAccount>
 }): ReminderItemOperations {
 	let t = useIntl()
 
@@ -742,7 +742,11 @@ function useReminderItemOperations({
 		let result = await tryCatch(
 			updateReminder(
 				{ done: true },
-				{ userId, personId: person.$jazz.id, reminderId: reminder.$jazz.id },
+				{
+					worker: me,
+					personId: person.$jazz.id,
+					reminderId: reminder.$jazz.id,
+				},
 			),
 		)
 		if (!result.ok) {
@@ -767,7 +771,7 @@ function useReminderItemOperations({
 
 						let undoResult = await tryCatch(
 							updateReminder(undoUpdates, {
-								userId,
+								worker: me,
 								personId: person.$jazz.id,
 								reminderId: reminder.$jazz.id,
 							}),
@@ -795,7 +799,11 @@ function useReminderItemOperations({
 		let result = await tryCatch(
 			updateReminder(
 				{ done: false },
-				{ userId, personId: person.$jazz.id, reminderId: reminder.$jazz.id },
+				{
+					worker: me,
+					personId: person.$jazz.id,
+					reminderId: reminder.$jazz.id,
+				},
 			),
 		)
 		if (!result.ok) {
@@ -813,7 +821,7 @@ function useReminderItemOperations({
 						updateReminder(
 							{ done: true },
 							{
-								userId,
+								worker: me,
 								personId: person.$jazz.id,
 								reminderId: reminder.$jazz.id,
 							},
@@ -844,7 +852,7 @@ function useReminderItemOperations({
 
 		let result = await tryCatch(
 			updateReminder(updates, {
-				userId,
+				worker: me,
 				personId: person.$jazz.id,
 				reminderId: reminder.$jazz.id,
 			}),
@@ -862,7 +870,7 @@ function useReminderItemOperations({
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updateReminder(result.data.previous, {
-							userId,
+							worker: me,
 							personId: person.$jazz.id,
 							reminderId: reminder.$jazz.id,
 						}),
@@ -886,7 +894,11 @@ function useReminderItemOperations({
 		let result = await tryCatch(
 			updateReminder(
 				{ deletedAt: new Date() },
-				{ userId, personId: person.$jazz.id, reminderId: reminder.$jazz.id },
+				{
+					worker: me,
+					personId: person.$jazz.id,
+					reminderId: reminder.$jazz.id,
+				},
 			),
 		)
 		if (!result.ok) {
@@ -905,7 +917,7 @@ function useReminderItemOperations({
 						updateReminder(
 							{ deletedAt: undefined },
 							{
-								userId,
+								worker: me,
 								personId: person.$jazz.id,
 								reminderId: reminder.$jazz.id,
 							},
@@ -970,7 +982,11 @@ function useReminderItemOperations({
 		let result = await tryCatch(
 			updateReminder(
 				{ deletedAt: undefined },
-				{ userId, personId: person.$jazz.id, reminderId: reminder.$jazz.id },
+				{
+					worker: me,
+					personId: person.$jazz.id,
+					reminderId: reminder.$jazz.id,
+				},
 			),
 		)
 		if (!result.ok) {
@@ -988,7 +1004,11 @@ function useReminderItemOperations({
 		let result = await tryCatch(
 			updateReminder(
 				{ permanentlyDeletedAt: new Date() },
-				{ userId, personId: person.$jazz.id, reminderId: reminder.$jazz.id },
+				{
+					worker: me,
+					personId: person.$jazz.id,
+					reminderId: reminder.$jazz.id,
+				},
 			),
 		)
 		if (!result.ok) {
