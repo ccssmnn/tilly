@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react"
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useEffect, useRef, type ReactNode } from "react"
+import { useEffect, useRef, useMemo, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -148,6 +148,14 @@ function AuthenticatedChat() {
 	let { clearChatHintDismissed, setClearChatHintDismissed } = useAppStore()
 	let canUseChat = useOnlineStatus()
 
+	let deviceId = useMemo(() => {
+		let stored = localStorage.getItem("tilly-device-id")
+		if (stored) return stored
+		let id = crypto.randomUUID()
+		localStorage.setItem("tilly-device-id", id)
+		return id
+	}, [])
+
 	let {
 		status,
 		stop,
@@ -164,6 +172,7 @@ function AuthenticatedChat() {
 			if (shouldContinue) return shouldContinue
 			if (currentMe.root.chat) {
 				currentMe.root.chat.$jazz.set("submittedAt", undefined)
+				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
 			} else {
 				currentMe.root.$jazz.set("chat", {
 					version: 1,
@@ -180,6 +189,14 @@ function AuthenticatedChat() {
 				})
 			} else {
 				currentMe.root.chat.$jazz.set("messages", JSON.stringify(messages))
+				currentMe.root.chat.$jazz.set("submittedAt", undefined)
+				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
+			}
+		},
+		onError: () => {
+			if (currentMe.root?.chat) {
+				currentMe.root.chat.$jazz.set("submittedAt", undefined)
+				currentMe.root.chat.$jazz.set("submittedFromDeviceId", undefined)
 			}
 		},
 		onToolCall: async ({ toolCall }) => {
@@ -199,13 +216,49 @@ function AuthenticatedChat() {
 
 	let isGeneratingLocally = status === "submitted" || status === "streaming"
 	let isGeneratingOnOtherDevice =
-		!!currentMe.root?.chat?.submittedAt && !isGeneratingLocally
+		!!currentMe.root?.chat?.submittedAt &&
+		!isGeneratingLocally &&
+		currentMe.root.chat.submittedFromDeviceId !== deviceId
+
+	useEffect(() => {
+		let chat = currentMe.root?.chat
+		if (
+			!isGeneratingLocally &&
+			chat?.submittedAt &&
+			chat.submittedFromDeviceId === deviceId
+		) {
+			chat.$jazz.set("submittedAt", undefined)
+			chat.$jazz.set("submittedFromDeviceId", undefined)
+		}
+	}, [
+		isGeneratingLocally,
+		currentMe.root?.chat?.submittedAt,
+		currentMe.root?.chat?.submittedFromDeviceId,
+		deviceId,
+		currentMe.root?.chat,
+	])
+
+	useEffect(() => {
+		let chat = currentMe.root?.chat
+		if (!isGeneratingLocally && chat?.submittedAt) {
+			let timeSinceSubmit = Date.now() - chat.submittedAt.getTime()
+			if (timeSinceSubmit > 30000) {
+				chat.$jazz.set("submittedAt", undefined)
+				chat.$jazz.set("submittedFromDeviceId", undefined)
+			}
+		}
+	}, [
+		isGeneratingLocally,
+		currentMe.root?.chat?.submittedAt,
+		currentMe.root?.chat,
+	])
 
 	useEffect(() => {
 		if (isGeneratingLocally && messages.length > 0 && currentMe.root?.chat) {
 			currentMe.root.chat.$jazz.set("messages", JSON.stringify(messages))
 		}
-	}, [messages, isGeneratingLocally, currentMe.root?.chat])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [messages, isGeneratingLocally])
 
 	useEffect(() => {
 		if (!isGeneratingLocally && currentMe.root?.chat?.messages) {
@@ -232,6 +285,7 @@ function AuthenticatedChat() {
 	): ReturnType<typeof addToolResult> {
 		if (currentMe.root?.chat) {
 			currentMe.root.chat.$jazz.set("submittedAt", new Date())
+			currentMe.root.chat.$jazz.set("submittedFromDeviceId", deviceId)
 		}
 		return addToolResult(...args)
 	}
@@ -246,6 +300,7 @@ function AuthenticatedChat() {
 
 		if (currentMe.root?.chat) {
 			currentMe.root.chat.$jazz.set("submittedAt", new Date())
+			currentMe.root.chat.$jazz.set("submittedFromDeviceId", deviceId)
 		}
 
 		sendMessage({ text: prompt, metadata })
