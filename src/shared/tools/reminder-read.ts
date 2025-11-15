@@ -8,9 +8,9 @@ import {
 	isPermanentlyDeleted,
 } from "#shared/schema/user"
 import { tryCatch } from "#shared/lib/trycatch"
-import type { co, ResolveQuery } from "jazz-tools"
+import type { co, ResolveQuery, Loaded } from "jazz-tools"
 
-export { listRemindersTool, listRemindersExecute }
+export { createListRemindersTool }
 
 let query = {
 	root: {
@@ -24,14 +24,14 @@ let query = {
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 async function listReminders(options: {
-	userId: string
+	worker: Loaded<typeof UserAccount>
 	searchQuery?: string
 	dueOnly?: boolean
 	includeDeleted?: boolean
 	includeDone?: boolean
 }): Promise<ListRemindersResult> {
 	let userResult = await tryCatch(
-		UserAccount.load(options.userId, { resolve: query }),
+		options.worker.$jazz.ensureLoaded({ resolve: query }),
 	)
 	if (!userResult.ok) throw errors.USER_NOT_FOUND
 
@@ -130,76 +130,36 @@ type ListRemindersResult = {
 	dueOnly?: boolean
 }
 
-let listRemindersTool = tool({
-	description:
-		"List all reminders across all people with optional search and due date filtering. By default, only shows undone and undeleted reminders.",
-	inputSchema: z.object({
-		searchQuery: z
-			.string()
-			.optional()
-			.describe(
-				"Optional search query to filter reminders by text or person name",
-			),
-		dueOnly: z
-			.boolean()
-			.optional()
-			.describe("If true, only show reminders that are due now or overdue"),
-		includeDeleted: z
-			.boolean()
-			.optional()
-			.default(false)
-			.describe("Include deleted reminders in results"),
-		includeDone: z
-			.boolean()
-			.optional()
-			.default(false)
-			.describe("Include completed reminders in results"),
-	}),
-	outputSchema: z.union([
-		z.object({
-			error: z.string(),
+function createListRemindersTool(worker: Loaded<typeof UserAccount>) {
+	return tool({
+		description:
+			"List all reminders across all people with optional search and due date filtering. By default, only shows undone and undeleted reminders.",
+		inputSchema: z.object({
+			searchQuery: z
+				.string()
+				.optional()
+				.describe(
+					"Optional search query to filter reminders by text or person name",
+				),
+			dueOnly: z
+				.boolean()
+				.optional()
+				.describe("If true, only show reminders that are due now or overdue"),
+			includeDeleted: z
+				.boolean()
+				.optional()
+				.default(false)
+				.describe("Include deleted reminders in results"),
+			includeDone: z
+				.boolean()
+				.optional()
+				.default(false)
+				.describe("Include completed reminders in results"),
 		}),
-		z.object({
-			operation: z.literal("list"),
-			reminders: z.array(
-				z.object({
-					id: z.string(),
-					text: z.string(),
-					dueAtDate: z.string().optional(),
-					repeat: z
-						.object({
-							interval: z.number(),
-							unit: z.enum(["day", "week", "month", "year"]),
-						})
-						.optional(),
-					done: z.boolean(),
-					deleted: z.boolean().optional(),
-					createdAt: z.string(),
-					updatedAt: z.string(),
-					person: z.object({
-						id: z.string(),
-						name: z.string(),
-					}),
-				}),
-			),
-			totalCount: z.number(),
-			filteredCount: z.number(),
-			searchQuery: z.string().optional(),
-			dueOnly: z.boolean().optional(),
-		}),
-	]),
-})
-
-async function listRemindersExecute(
-	userId: string,
-	input: {
-		searchQuery?: string
-		dueOnly?: boolean
-		includeDeleted?: boolean
-		includeDone?: boolean
-	},
-) {
-	let res = await tryCatch(listReminders({ userId, ...input }))
-	if (!res.ok) return { error: `${res.error}` }
-	return res.data
+		execute: async input => {
+			let res = await tryCatch(listReminders({ worker, ...input }))
+			if (!res.ok) return { error: `${res.error}` }
+			return res.data
+		},
+	})
 }

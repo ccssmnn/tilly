@@ -1,22 +1,41 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { convertToModelMessages, stepCountIs, streamText } from "ai"
+import {
+	convertToModelMessages,
+	stepCountIs,
+	streamText,
+	type TextStreamPart,
+} from "ai"
 import { GOOGLE_AI_API_KEY } from "astro:env/server"
 import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
+import { nanoid } from "nanoid"
 
 import {
-	tools as allTools,
+	clientTools,
+	createServerTools,
 	type MessageMetadata,
 	type TillyUIMessage,
+	type ToolSet,
 } from "#shared/tools/tools"
 import { z } from "zod"
 import { authMiddleware, requireAuth } from "../lib/auth-middleware"
-import { requirePlus } from "../lib/chat-subscription"
+import { requirePlus, type SubscriptionStatus } from "../lib/chat-subscription"
 import {
 	checkInputSize,
 	checkUsageLimits,
 	updateUsage,
 } from "../lib/chat-usage"
+import { initUserWorker } from "#server/lib/utils"
+import type { User } from "@clerk/backend"
+import { co, type Loaded } from "jazz-tools"
+import { UserAccount, Assistant } from "#shared/schema/user"
+import {
+	getEnabledDevices,
+	getIntl,
+	sendNotificationToDevice,
+	settingsQuery,
+} from "./push-shared"
+import type { NotificationPayload } from "./push-shared"
 
 export { chatMessagesApp }
 
@@ -25,18 +44,21 @@ let chatMessagesApp = new Hono()
 	.use("*", requireAuth)
 	.use("*", requirePlus)
 	.post("/", async c => {
-		let { messages } = await c.req.json()
-
-		if (!Array.isArray(messages)) {
-			return c.json({ error: "Invalid messages payload" }, 400)
-		}
-
-		let userContextMessages = addUserContextToMessages(messages)
-
 		let user = c.get("user")
 		let subscriptionStatus = c.get("subscription")
+		let { worker } = await initUserWorker(user)
 
-		let usageLimits = await checkUsageLimits(user)
+		let workerWithMessages = await worker.$jazz.ensureLoaded({
+			resolve: { root: { assistant: true } },
+		})
+		let rawMessages = workerWithMessages.root.assistant?.stringifiedMessages
+		if (!rawMessages) {
+			return c.json({ error: "put messages into your chat first" }, 400)
+		}
+		let messages = JSON.parse(rawMessages) as TillyUIMessage[]
+		let userContextMessages = addUserContextToMessages(messages)
+
+		let usageLimits = await checkUsageLimits(user, worker)
 		if (usageLimits.exceeded) {
 			let errorMessage = "Usage budget exceeded"
 			let errorResponse: UsageLimitExceededResponse = {
@@ -54,35 +76,23 @@ let chatMessagesApp = new Hono()
 
 		let modelMessages = convertToModelMessages(userContextMessages, {
 			ignoreIncompleteToolCalls: true,
-			tools: allTools,
+			tools: clientTools,
 		})
 
 		if (!checkInputSize(user, modelMessages)) {
 			return c.json({ error: "Request too large" }, 413)
 		}
 
-		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
-
-		let result = streamText({
-			model: google("gemini-2.5-flash"),
-			messages: modelMessages,
-			system: makeStaticSystemPrompt(),
-			tools: allTools,
-			stopWhen: stepCountIs(100),
-			onFinish: async ({ usage, providerMetadata }) => {
-				let inputTokens = usage.inputTokens ?? 0
-				let outputTokens = usage.outputTokens ?? 0
-				let cachedTokens = getCachedTokenCount(providerMetadata)
-
-				await updateUsage(user, subscriptionStatus, {
-					inputTokens,
-					cachedTokens,
-					outputTokens,
-				})
-			},
+		runBackgroundGeneration({
+			user,
+			worker: workerWithMessages,
+			subscriptionStatus,
+			modelMessages,
+		}).catch((error: unknown) => {
+			console.error("Background generation failed:", error)
 		})
 
-		return result.toUIMessageStreamResponse()
+		return c.json({ success: true }, 202)
 	})
 
 function getCachedTokenCount(metadata: unknown): number {
@@ -258,4 +268,297 @@ type UsageLimitExceededResponse = {
 	limitExceeded: true
 	percentUsed: number
 	resetDate: string | null
+}
+
+async function runBackgroundGeneration(params: {
+	user: User
+	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>
+	subscriptionStatus: SubscriptionStatus
+	modelMessages: ReturnType<typeof convertToModelMessages>
+}) {
+	let { user, worker, subscriptionStatus, modelMessages } = params
+
+	let chat = worker.root.assistant!
+
+	let abortController = new AbortController()
+
+	let unsubscribe = chat.$jazz.subscribe(updatedChat => {
+		if (updatedChat.abortRequestedAt) {
+			console.log(
+				`[Chat] ${user.id} | Jazz abort requested at ${updatedChat.abortRequestedAt}`,
+			)
+			abortController.abort()
+		}
+	})
+
+	abortController.signal.addEventListener("abort", () => {
+		console.log(`[Chat] ${user.id} | AbortController signal aborted`)
+	})
+
+	chat.$jazz.set("submittedAt", new Date())
+	await worker.$jazz.waitForSync()
+
+	let currentMessages: TillyUIMessage[] = []
+
+	console.log(`[Chat] ${user.id} | Starting generation`)
+
+	try {
+		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
+
+		let allTools = {
+			...clientTools,
+			...createServerTools(worker),
+		}
+
+		let initialMessagesJson = chat.stringifiedMessages ?? "[]"
+		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
+
+		let handleChunk = createChunkHandler()
+
+		console.log(
+			`[Chat] ${user.id} | About to call streamText, abortController.signal.aborted: ${abortController.signal.aborted}`,
+		)
+
+		let result = streamText({
+			model: google("gemini-2.5-flash"),
+			messages: modelMessages,
+			system: makeStaticSystemPrompt(),
+			tools: allTools,
+			stopWhen: stepCountIs(100),
+			abortSignal: abortController.signal,
+			onChunk: async event => {
+				currentMessages = handleChunk(event.chunk, currentMessages)
+				chat.$jazz.set("stringifiedMessages", JSON.stringify(currentMessages))
+			},
+			onFinish: async finishResult => {
+				let inputTokens = finishResult.usage.inputTokens ?? 0
+				let outputTokens = finishResult.usage.outputTokens ?? 0
+				let cachedTokens = getCachedTokenCount(finishResult.providerMetadata)
+
+				await updateUsage(user, worker, subscriptionStatus, {
+					inputTokens,
+					cachedTokens,
+					outputTokens,
+				})
+
+				await sendAssistantCompletionNotification(user, worker)
+
+				chat.$jazz.set("submittedAt", undefined)
+				chat.$jazz.set("abortRequestedAt", undefined)
+
+				await worker.$jazz.waitForAllCoValuesSync()
+			},
+			onError: async error => {
+				console.error(`[Chat] ${user.id} | Error:`, error)
+				chat.$jazz.set("submittedAt", undefined)
+				chat.$jazz.set("abortRequestedAt", undefined)
+			},
+			onAbort: async () => {
+				chat.$jazz.set("abortRequestedAt", undefined)
+				chat.$jazz.set("submittedAt", undefined)
+			},
+		})
+
+		await result.consumeStream()
+	} finally {
+		unsubscribe()
+	}
+}
+
+function createChunkHandler() {
+	let currentAssistantMessage: TillyUIMessage | null = null
+
+	return function handleChunk(
+		chunk: Extract<
+			TextStreamPart<ToolSet>,
+			{
+				type:
+					| "text-delta"
+					| "reasoning-delta"
+					| "source"
+					| "tool-call"
+					| "tool-input-start"
+					| "tool-input-delta"
+					| "tool-result"
+					| "raw"
+			}
+		>,
+		messages: TillyUIMessage[],
+	): TillyUIMessage[] {
+		let workingMessages = [...messages]
+
+		if (chunk.type === "text-delta") {
+			if (!currentAssistantMessage) {
+				currentAssistantMessage = {
+					id: nanoid(),
+					role: "assistant",
+					parts: [{ type: "text", text: chunk.text }],
+				}
+				workingMessages.push(currentAssistantMessage)
+			} else {
+				currentAssistantMessage.parts = [
+					...(currentAssistantMessage.parts || []),
+					{ type: "text", text: chunk.text },
+				]
+			}
+		}
+
+		if (chunk.type === "tool-call") {
+			if (!currentAssistantMessage) {
+				currentAssistantMessage = { id: nanoid(), role: "assistant", parts: [] }
+				workingMessages.push(currentAssistantMessage)
+			}
+
+			currentAssistantMessage.parts = [
+				...(currentAssistantMessage.parts || []),
+				{
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					type: `tool-${chunk.toolName}` as any,
+					toolCallId: chunk.toolCallId,
+					toolName: chunk.toolName,
+					input: chunk.input,
+					state: "input-available",
+				},
+			]
+		}
+
+		if (chunk.type === "tool-result") {
+			if (!currentAssistantMessage) {
+				currentAssistantMessage = {
+					id: nanoid(),
+					role: "assistant",
+					parts: [],
+				}
+				workingMessages.push(currentAssistantMessage)
+			}
+
+			let toolCallPart = currentAssistantMessage.parts?.find(
+				p => "toolCallId" in p && p.toolCallId === chunk.toolCallId,
+			)
+
+			if (toolCallPart && "toolCallId" in toolCallPart) {
+				toolCallPart.output = chunk.output
+				toolCallPart.state = "output-available"
+			} else {
+				currentAssistantMessage.parts = [
+					...(currentAssistantMessage.parts || []),
+					{
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						type: `tool-${chunk.toolName}` as any,
+						toolCallId: chunk.toolCallId,
+						toolName: chunk.toolName,
+						input: chunk.input,
+						output: chunk.output,
+						state: "output-available",
+					},
+				]
+			}
+		}
+
+		return workingMessages
+	}
+}
+
+async function sendAssistantCompletionNotification(
+	user: User,
+	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>,
+) {
+	try {
+		let chat = worker.root.assistant
+		if (!chat) {
+			console.log(
+				`[Chat] ${user.id} | No assistant chat, skipping notification`,
+			)
+			return
+		}
+
+		let checkId = nanoid()
+		chat.$jazz.set("notificationCheckId", checkId)
+		await worker.$jazz.waitForSync()
+
+		let acknowledged = await waitForAcknowledgment(chat, checkId, 3000)
+
+		chat.$jazz.set("notificationCheckId", undefined)
+		chat.$jazz.set("notificationAcknowledgedId", undefined)
+
+		if (acknowledged) {
+			console.log(
+				`[Chat] ${user.id} | Client acknowledged presence, skipping notification`,
+			)
+			return
+		}
+
+		let workerWithSettings = await worker.$jazz.ensureLoaded({
+			resolve: settingsQuery,
+		})
+
+		let notificationSettings = workerWithSettings.root.notificationSettings
+		if (!notificationSettings) {
+			console.log(
+				`[Chat] ${user.id} | No notification settings, skipping notification`,
+			)
+			return
+		}
+
+		let devices = getEnabledDevices(notificationSettings)
+		if (devices.length === 0) {
+			console.log(
+				`[Chat] ${user.id} | No enabled devices, skipping notification`,
+			)
+			return
+		}
+
+		let t = getIntl(workerWithSettings)
+		let payload: NotificationPayload = {
+			title: t("server.push.assistantComplete.title"),
+			body: t("server.push.assistantComplete.body"),
+			icon: "/favicon.ico",
+			badge: "/favicon.ico",
+			url: "/app/assistant",
+			userId: user.id,
+		}
+
+		console.log(
+			`[Chat] ${user.id} | Sending completion notification to ${devices.length} devices`,
+		)
+
+		let results = await Promise.allSettled(
+			devices.map(device => sendNotificationToDevice(device, payload)),
+		)
+
+		let successCount = results.filter(
+			r => r.status === "fulfilled" && r.value.ok,
+		).length
+		console.log(
+			`[Chat] ${user.id} | Completion notification sent to ${successCount}/${devices.length} devices`,
+		)
+	} catch (error) {
+		console.error(
+			`[Chat] ${user.id} | Failed to send completion notification:`,
+			error,
+		)
+	}
+}
+
+function waitForAcknowledgment(
+	chat: co.loaded<typeof Assistant>,
+	checkId: string,
+	timeoutMs: number,
+): Promise<boolean> {
+	return new Promise(resolve => {
+		let timer = setTimeout(() => {
+			unsubscribe()
+			resolve(false)
+		}, timeoutMs)
+
+		let unsubscribe = chat.$jazz.subscribe(
+			(updatedChat: co.loaded<typeof Assistant>) => {
+				if (updatedChat.notificationAcknowledgedId === checkId) {
+					clearTimeout(timer)
+					unsubscribe()
+					resolve(true)
+				}
+			},
+		)
+	})
 }

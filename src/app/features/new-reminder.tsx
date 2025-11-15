@@ -80,7 +80,7 @@ function NewReminder(props: {
 				},
 				{
 					personId: selectedPersonId,
-					userId: me.$jazz.id,
+					worker: me,
 				},
 			),
 		)

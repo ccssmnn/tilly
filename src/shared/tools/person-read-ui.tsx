@@ -13,10 +13,15 @@ import { People } from "react-bootstrap-icons"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T } from "#shared/intl/setup"
-import { listPeopleTool, getPersonDetailsTool } from "#shared/tools/person-read"
+import type {
+	createGetPersonDetailsTool,
+	createListPeopleTool,
+} from "./person-read"
 
-type _ListPeopleTool = InferUITool<typeof listPeopleTool>
-type _GetPersonDetailsTool = InferUITool<typeof getPersonDetailsTool>
+type _ListPeopleTool = InferUITool<ReturnType<typeof createListPeopleTool>>
+type _GetPersonDetailsTool = InferUITool<
+	ReturnType<typeof createGetPersonDetailsTool>
+>
 
 export { ListPeopleResult, GetPersonDetailsResult }
 

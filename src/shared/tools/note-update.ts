@@ -1,33 +1,34 @@
-import { tool, type InferUITool } from "ai"
+import { tool } from "ai"
 import { z } from "zod"
-import { Note, Person } from "#shared/schema/user"
-import type { co } from "jazz-tools"
+import { Note, Person, UserAccount } from "#shared/schema/user"
+import type { co, Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
 
-export {
-	editNoteTool,
-	editNoteExecute,
-	deleteNoteTool,
-	deleteNoteExecute,
-	updateNote,
-}
+export { createEditNoteTool, createDeleteNoteTool, updateNote }
 
 export type { NoteData, NoteUpdated }
 
 async function updateNote(
-	personId: string,
-	noteId: string,
 	updates: Partial<
 		Pick<NoteData, "title" | "content" | "pinned" | "createdAt"> & {
 			deletedAt: Date | string | undefined
 			permanentlyDeletedAt: Date | string | undefined
 		}
 	>,
+	options: {
+		personId: string
+		noteId: string
+		worker: Loaded<typeof UserAccount>
+	},
 ): Promise<NoteUpdated> {
-	let person = await Person.load(personId)
+	let person = await Person.load(options.personId, {
+		loadAs: options.worker,
+	})
 	if (!person) throw errors.PERSON_NOT_FOUND
 
-	let note = await Note.load(noteId)
+	let note = await Note.load(options.noteId, {
+		loadAs: options.worker,
+	})
 	if (!note) throw errors.NOTE_NOT_FOUND
 
 	let previous = { ...note }
@@ -74,8 +75,8 @@ async function updateNote(
 
 	return {
 		operation: "update",
-		noteID: noteId,
-		personID: personId,
+		noteID: options.noteId,
+		personID: options.personId,
 		current: { ...note },
 		previous,
 		_ref: note,
@@ -98,130 +99,84 @@ type NoteUpdated = {
 	previous: NoteData
 }
 
-let editNoteTool = tool({
-	description: "Edit a note by ID",
-	inputSchema: z.object({
-		personId: z.string().describe("The person's ID who owns the note"),
-		noteId: z.string().describe("The note's ID"),
-		title: z.string().optional().describe("Updated title"),
-		content: z.string().optional().describe("The updated note content"),
-		pinned: z
-			.boolean()
-			.optional()
-			.describe(
-				"Whether the note should be pinned. Pinned notes appear at the top of the note list.",
-			),
-		createdAt: z
-			.string()
-			.optional()
-			.describe("Updated creation date (date string)"),
-	}),
-	outputSchema: z.union([
-		z.object({
-			error: z.string(),
+function createEditNoteTool(worker: Loaded<typeof UserAccount>) {
+	return tool({
+		description: "Edit a note by ID",
+		inputSchema: z.object({
+			personId: z.string().describe("The person's ID who owns the note"),
+			noteId: z.string().describe("The note's ID"),
+			title: z.string().optional().describe("Updated title"),
+			content: z.string().optional().describe("The updated note content"),
+			pinned: z
+				.boolean()
+				.optional()
+				.describe(
+					"Whether the note should be pinned. Pinned notes appear at the top of the note list.",
+				),
+			createdAt: z
+				.string()
+				.optional()
+				.describe("Updated creation date (date string)"),
 		}),
-		z.object({
-			personId: z.string(),
-			noteId: z.string(),
-			title: z.string().optional(),
-			content: z.string(),
-			pinned: z.boolean().optional(),
-			deletedAt: z.string().optional(),
-			createdAt: z.string(),
-			updatedAt: z.string(),
-			previous: z
-				.object({
-					title: z.string().optional(),
-					content: z.string(),
-					pinned: z.boolean().optional(),
-					deletedAt: z.string().optional(),
-					createdAt: z.string().optional(),
-					updatedAt: z.string().optional(),
-				})
-				.optional(),
-		}),
-	]),
-})
+		execute: async input => {
+			let { personId, noteId, createdAt, ...otherUpdates } = input
+			let updates = {
+				...otherUpdates,
+				...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
+			}
 
-type _EditNoteTool = InferUITool<typeof editNoteTool>
-
-async function editNoteExecute(
-	_userId: string,
-	input: _EditNoteTool["input"],
-): Promise<_EditNoteTool["output"]> {
-	let { personId, noteId, createdAt, ...otherUpdates } = input
-	let updates = {
-		...otherUpdates,
-		...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
-	}
-
-	let res = await tryCatch(updateNote(personId, noteId, updates))
-	if (!res.ok) return { error: `${res.error}` }
-	let result = res.data
-	return {
-		personId: result.personID,
-		noteId: result.noteID,
-		title: result.current.title,
-		content: result.current.content,
-		pinned: result.current.pinned,
-		deletedAt: result.current.deletedAt?.toISOString(),
-		createdAt: result.current.createdAt.toISOString(),
-		updatedAt: result.current.updatedAt.toISOString(),
-		previous: {
-			title: result.previous.title,
-			content: result.previous.content,
-			pinned: result.previous.pinned,
-			deletedAt: result.current.deletedAt?.toISOString(),
-			createdAt: result.previous.createdAt.toISOString(),
-			updatedAt: result.previous.updatedAt.toISOString(),
+			let res = await tryCatch(
+				updateNote(updates, { personId, noteId, worker }),
+			)
+			if (!res.ok) return { error: `${res.error}` }
+			let result = res.data
+			return {
+				personId: result.personID,
+				noteId: result.noteID,
+				title: result.current.title,
+				content: result.current.content,
+				pinned: result.current.pinned,
+				deletedAt: result.current.deletedAt?.toISOString(),
+				createdAt: result.current.createdAt.toISOString(),
+				updatedAt: result.current.updatedAt.toISOString(),
+				previous: {
+					title: result.previous.title,
+					content: result.previous.content,
+					pinned: result.previous.pinned,
+					deletedAt: result.current.deletedAt?.toISOString(),
+					createdAt: result.previous.createdAt.toISOString(),
+					updatedAt: result.previous.updatedAt.toISOString(),
+				},
+			}
 		},
-	}
+	})
 }
 
-let deleteNoteTool = tool({
-	description: "Delete a note by ID",
-	inputSchema: z.object({
-		personId: z.string().describe("The person's ID who owns the note"),
-		noteId: z.string().describe("The note's ID"),
-	}),
-	outputSchema: z.union([
-		z.object({
-			error: z.string(),
+function createDeleteNoteTool(worker: Loaded<typeof UserAccount>) {
+	return tool({
+		description: "Delete a note by ID",
+		inputSchema: z.object({
+			personId: z.string().describe("The person's ID who owns the note"),
+			noteId: z.string().describe("The note's ID"),
 		}),
-		z.object({
-			personId: z.string(),
-			noteId: z.string(),
-			title: z.string().optional(),
-			content: z.string(),
-			pinned: z.boolean().optional(),
-			deletedAt: z.string().optional(),
-			createdAt: z.string(),
-			updatedAt: z.string(),
-		}),
-	]),
-})
+		execute: async input => {
+			let { personId, noteId } = input
 
-type _DeleteNoteTool = InferUITool<typeof deleteNoteTool>
-
-async function deleteNoteExecute(
-	_userId: string,
-	input: _DeleteNoteTool["input"],
-): Promise<_DeleteNoteTool["output"]> {
-	let { personId, noteId } = input
-
-	let res = await tryCatch(
-		updateNote(personId, noteId, { deletedAt: new Date() }),
-	)
-	if (!res.ok) return { error: `${res.error}` }
-	let result = res.data
-	return {
-		personId: result.personID,
-		noteId: result.noteID,
-		title: result.current.title,
-		content: result.current.content,
-		pinned: result.current.pinned,
-		deletedAt: result.current.deletedAt?.toISOString(),
-		createdAt: result.current.createdAt.toISOString(),
-		updatedAt: result.current.updatedAt.toISOString(),
-	}
+			let res = await tryCatch(
+				updateNote({ deletedAt: new Date() }, { personId, noteId, worker }),
+			)
+			if (!res.ok) return { error: `${res.error}` }
+			let result = res.data
+			return {
+				personId: result.personID,
+				noteId: result.noteID,
+				title: result.current.title,
+				content: result.current.content,
+				pinned: result.current.pinned,
+				deletedAt: result.current.deletedAt?.toISOString(),
+				createdAt: result.current.createdAt.toISOString(),
+				updatedAt: result.current.updatedAt.toISOString(),
+			}
+		},
+	})
 }

@@ -1,6 +1,6 @@
-import { Image as JazzImage } from "jazz-tools/react"
+import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { isDueToday, isDeleted } from "#shared/schema/user"
+import { isDueToday, isDeleted, UserAccount } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
@@ -191,6 +191,7 @@ function RestorePersonDialog({
 	person: PersonListItemPerson
 	children: ReactNode
 }) {
+	let { me } = useAccount(UserAccount)
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	let [open, setOpen] = useState(false)
@@ -208,8 +209,9 @@ function RestorePersonDialog({
 	})()
 
 	async function handleRestore() {
+		if (!me) return
 		let result = await tryCatch(
-			updatePerson(person.$jazz.id, { deletedAt: undefined }),
+			updatePerson(person.$jazz.id, { deletedAt: undefined }, me),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -223,8 +225,9 @@ function RestorePersonDialog({
 	}
 
 	async function handlePermanentDelete() {
+		if (!me) return
 		let result = await tryCatch(
-			updatePerson(person.$jazz.id, { permanentlyDeletedAt: new Date() }),
+			updatePerson(person.$jazz.id, { permanentlyDeletedAt: new Date() }, me),
 		)
 		if (!result.ok) {
 			toast.error(

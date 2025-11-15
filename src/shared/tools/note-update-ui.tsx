@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from "react"
-import { type InferUITool } from "ai"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
@@ -16,26 +15,31 @@ import {
 	FileEarmarkText,
 } from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import {
-	editNoteTool,
-	deleteNoteTool,
+	createDeleteNoteTool,
+	createEditNoteTool,
 	updateNote,
 } from "#shared/tools/note-update"
 import { cn } from "#app/lib/utils"
-
-type _EditNoteTool = InferUITool<typeof editNoteTool>
-type _DeleteNoteTool = InferUITool<typeof deleteNoteTool>
+import { useAccount } from "jazz-tools/react"
+import { UserAccount } from "#shared/schema/user"
+import type { InferToolOutput } from "ai"
 
 export { EditNoteResult, DeleteNoteResult }
 
-function EditNoteResult({ result }: { result: _EditNoteTool["output"] }) {
+function EditNoteResult({
+	result,
+}: {
+	result: InferToolOutput<ReturnType<typeof createEditNoteTool>>
+}) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
+	let { me } = useAccount(UserAccount)
 
 	if ("error" in result) {
 		return (
@@ -46,31 +50,39 @@ function EditNoteResult({ result }: { result: _EditNoteTool["output"] }) {
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
 			if (result.previous) {
-				await updateNote(result.personId, result.noteId, {
-					title: result.previous.title,
-					content: result.previous.content,
-					pinned: result.previous.pinned,
-					createdAt: result.previous.createdAt
-						? new Date(result.previous.createdAt)
-						: undefined,
-					deletedAt: result.previous.deletedAt
-						? new Date(result.previous.deletedAt)
-						: undefined,
-					permanentlyDeletedAt: undefined,
-				})
+				await updateNote(
+					{
+						title: result.previous.title,
+						content: result.previous.content,
+						pinned: result.previous.pinned,
+						createdAt: result.previous.createdAt
+							? new Date(result.previous.createdAt)
+							: undefined,
+						deletedAt: result.previous.deletedAt
+							? new Date(result.previous.deletedAt)
+							: undefined,
+						permanentlyDeletedAt: undefined,
+					},
+					{
+						personId: result.personId,
+						noteId: result.noteId,
+						worker: me,
+					},
+				)
 			}
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [{ type: "text", text: t("tool.note.updated.undo.success") }],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -191,12 +203,17 @@ function EditNoteResult({ result }: { result: _EditNoteTool["output"] }) {
 	)
 }
 
-function DeleteNoteResult({ result }: { result: _DeleteNoteTool["output"] }) {
+function DeleteNoteResult({
+	result,
+}: {
+	result: InferToolOutput<ReturnType<typeof createDeleteNoteTool>>
+}) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
+	let { me } = useAccount(UserAccount)
 
 	if ("error" in result) {
 		return (
@@ -207,18 +224,26 @@ function DeleteNoteResult({ result }: { result: _DeleteNoteTool["output"] }) {
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
-			await updateNote(result.personId, result.noteId, { deletedAt: undefined })
+			await updateNote(
+				{ deletedAt: undefined },
+				{
+					personId: result.personId,
+					noteId: result.noteId,
+					worker: me,
+				},
+			)
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [{ type: "text", text: t("tool.note.deleted.undo.success") }],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [

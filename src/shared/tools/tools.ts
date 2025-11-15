@@ -1,75 +1,43 @@
-import {
-	listPeopleTool,
-	listPeopleExecute,
-	getPersonDetailsTool,
-	getPersonDetailsExecute,
-} from "./person-read"
-import { listRemindersTool, listRemindersExecute } from "./reminder-read"
+import { createListPeopleTool, createGetPersonDetailsTool } from "./person-read"
+import { createListRemindersTool } from "./reminder-read"
 import { createPersonTool } from "./person-create"
+import { createUpdatePersonTool, createDeletePersonTool } from "./person-update"
+import { createListNotesTool } from "./note-read"
+import { createAddNoteTool } from "./note-create"
+import { createEditNoteTool, createDeleteNoteTool } from "./note-update"
+import { createAddReminderTool } from "./reminder-create"
 import {
-	updatePersonTool,
-	updatePersonExecute,
-	deletePersonTool,
-	deletePersonExecute,
-} from "./person-update"
-import { addNoteTool, addNoteExecute } from "./note-create"
-import {
-	editNoteTool,
-	editNoteExecute,
-	deleteNoteTool,
-	deleteNoteExecute,
-} from "./note-update"
-import { listNotesTool, listNotesExecute } from "./note-read"
-import { addReminderTool, addReminderExecute } from "./reminder-create"
-import {
-	updateReminderTool,
-	updateReminderExecute,
-	removeReminderTool,
-	removeReminderExecute,
+	createUpdateReminderTool,
+	createRemoveReminderTool,
 } from "./reminder-update"
 import { userQuestionTool } from "./user-question"
 import type { InferUITools, UIMessage } from "ai"
 import { z } from "zod"
-export let tools = {
-	// Person tools
-	listPeople: listPeopleTool,
-	getPersonDetails: getPersonDetailsTool,
+import type { Loaded } from "jazz-tools"
+import type { UserAccount } from "#shared/schema/user"
+
+export let clientTools = {
 	createPerson: createPersonTool,
-	updatePerson: updatePersonTool,
-	deletePerson: deletePersonTool,
-
-	// Note tools
-	listNotes: listNotesTool,
-	addNote: addNoteTool,
-	editNote: editNoteTool,
-	deleteNote: deleteNoteTool,
-
-	// Reminder tools
-	listReminders: listRemindersTool,
-	addReminder: addReminderTool,
-	updateReminder: updateReminderTool,
-	removeReminder: removeReminderTool,
-
-	// User interaction tools
 	userQuestion: userQuestionTool,
 } as const
 
-export let toolExecutors = {
-	listPeople: listPeopleExecute,
-	getPersonDetails: getPersonDetailsExecute,
-	updatePerson: updatePersonExecute,
-	deletePerson: deletePersonExecute,
-	listNotes: listNotesExecute,
-	addNote: addNoteExecute,
-	editNote: editNoteExecute,
-	deleteNote: deleteNoteExecute,
-	listReminders: listRemindersExecute,
-	addReminder: addReminderExecute,
-	updateReminder: updateReminderExecute,
-	removeReminder: removeReminderExecute,
-} as const
+export function createServerTools(worker: Loaded<typeof UserAccount>) {
+	return {
+		listPeople: createListPeopleTool(worker),
+		getPersonDetails: createGetPersonDetailsTool(worker),
+		updatePerson: createUpdatePersonTool(worker),
+		deletePerson: createDeletePersonTool(worker),
+		listNotes: createListNotesTool(worker),
+		addNote: createAddNoteTool(worker),
+		editNote: createEditNoteTool(worker),
+		deleteNote: createDeleteNoteTool(worker),
+		listReminders: createListRemindersTool(worker),
+		addReminder: createAddReminderTool(worker),
+		updateReminder: createUpdateReminderTool(worker),
+		removeReminder: createRemoveReminderTool(worker),
+	}
+}
 
-// Message metadata schema
 export const messageMetadataSchema = z.object({
 	timezone: z.string(),
 	locale: z.string(),
@@ -83,8 +51,8 @@ export type MessageMetadata = z.infer<typeof messageMetadataSchema>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AddToolResultFunction = (...args: any[]) => void
 
-// Types for UI integration
-export type ToolSet = typeof tools
+export type ToolSet = typeof clientTools & ReturnType<typeof createServerTools>
 export type MyTools = InferUITools<ToolSet>
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type TillyUIMessage = UIMessage<MessageMetadata, {}, MyTools>

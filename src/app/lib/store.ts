@@ -4,7 +4,6 @@ import { del, get, set } from "idb-keyval"
 import { z } from "zod"
 import { format } from "date-fns"
 import type { PersistStorage } from "zustand/middleware"
-import type { TillyUIMessage } from "#shared/tools/tools"
 import { tryCatch } from "#shared/lib/trycatch"
 
 interface AppState {
@@ -17,19 +16,11 @@ interface AppState {
 	notesSearchQuery: string
 	setNotesSearchQuery: (query: string) => void
 
-	chat: TillyUIMessage[]
-	setChat: (messages: Array<TillyUIMessage>) => void
-	addChatMessage: (message: TillyUIMessage) => void
-	clearChat: () => void
-
 	pwaInstallHintDismissed: boolean
 	setPWAInstallHintDismissed: (dismissed: boolean) => void
 
 	hideInstallNavItem: boolean
 	setHideInstallNavItem: (hidden: boolean) => void
-
-	clearChatHintDismissed: boolean
-	setClearChatHintDismissed: (dismissed: boolean) => void
 
 	tourSkipped: boolean
 	setTourSkipped: (skipped: boolean) => void
@@ -38,29 +29,23 @@ interface AppState {
 }
 
 let storeStateSchema = z.object({
-	chat: z.array(z.any()),
 	pwaInstallHintDismissed: z.boolean(),
 	hideInstallNavItem: z.boolean(),
-	clearChatHintDismissed: z.boolean(),
 	tourSkipped: z.boolean(),
 	lastAccessDate: z.string(),
 })
 
 type PersistedState = Pick<
 	AppState,
-	| "chat"
 	| "pwaInstallHintDismissed"
 	| "hideInstallNavItem"
-	| "clearChatHintDismissed"
 	| "tourSkipped"
 	| "lastAccessDate"
 >
 
 let initialPersistedState: PersistedState = {
-	chat: [],
 	pwaInstallHintDismissed: false,
 	hideInstallNavItem: false,
-	clearChatHintDismissed: false,
 	tourSkipped: false,
 	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
 }
@@ -173,11 +158,6 @@ export let useAppStore = create<AppState>()(
 			notesSearchQuery: "",
 			setNotesSearchQuery: (query: string) => set({ notesSearchQuery: query }),
 
-			chat: [],
-			setChat: msgs => set({ chat: msgs }),
-			addChatMessage: msg => set(s => ({ chat: [...s.chat, msg] })),
-			clearChat: () => set({ chat: [] }),
-
 			pwaInstallHintDismissed: false,
 			setPWAInstallHintDismissed: (dismissed: boolean) =>
 				set({ pwaInstallHintDismissed: dismissed }),
@@ -185,10 +165,6 @@ export let useAppStore = create<AppState>()(
 			hideInstallNavItem: false,
 			setHideInstallNavItem: (hidden: boolean) =>
 				set({ hideInstallNavItem: hidden }),
-
-			clearChatHintDismissed: false,
-			setClearChatHintDismissed: (dismissed: boolean) =>
-				set({ clearChatHintDismissed: dismissed }),
 
 			tourSkipped: false,
 			setTourSkipped: (skipped: boolean) => set({ tourSkipped: skipped }),
@@ -199,10 +175,8 @@ export let useAppStore = create<AppState>()(
 			name: "tilly-app-storage",
 			storage: createIdbStorage(storeStateSchema, initialPersistedState),
 			partialize: (state): PersistedState => ({
-				chat: state.chat,
 				pwaInstallHintDismissed: false,
 				hideInstallNavItem: state.hideInstallNavItem,
-				clearChatHintDismissed: state.clearChatHintDismissed,
 				tourSkipped: state.tourSkipped,
 				lastAccessDate: state.lastAccessDate,
 			}),
@@ -213,12 +187,11 @@ export let useAppStore = create<AppState>()(
 				let isNewDay = state.lastAccessDate !== today
 
 				if (isNewDay) {
-					// Reset chat and search queries for new day
+					// Reset search queries for new day
 					useAppStore.setState({
 						peopleSearchQuery: "",
 						remindersSearchQuery: "",
 						notesSearchQuery: "",
-						chat: [],
 						lastAccessDate: today,
 					})
 				}
@@ -232,10 +205,8 @@ export function resetAppStore(): void {
 		peopleSearchQuery: "",
 		remindersSearchQuery: "",
 		notesSearchQuery: "",
-		chat: initialPersistedState.chat,
 		pwaInstallHintDismissed: initialPersistedState.pwaInstallHintDismissed,
 		hideInstallNavItem: initialPersistedState.hideInstallNavItem,
-		clearChatHintDismissed: initialPersistedState.clearChatHintDismissed,
 		tourSkipped: initialPersistedState.tourSkipped,
 		lastAccessDate: initialPersistedState.lastAccessDate,
 	})
