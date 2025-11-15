@@ -9,7 +9,6 @@ import { GOOGLE_AI_API_KEY } from "astro:env/server"
 import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
 import { nanoid } from "nanoid"
-
 import {
 	clientTools,
 	createServerTools,
@@ -49,13 +48,15 @@ let chatMessagesApp = new Hono()
 		let { worker } = await initUserWorker(user)
 
 		let workerWithMessages = await worker.$jazz.ensureLoaded({
-			resolve: { root: { assistant: true } },
+			resolve: {
+				root: { assistant: { stringifiedMessages: { $each: true } } },
+			},
 		})
 		let rawMessages = workerWithMessages.root.assistant?.stringifiedMessages
-		if (!rawMessages) {
+		if (!rawMessages || rawMessages.length === 0) {
 			return c.json({ error: "put messages into your chat first" }, 400)
 		}
-		let messages = JSON.parse(rawMessages) as TillyUIMessage[]
+		let messages = rawMessages.map(s => JSON.parse(s)) as TillyUIMessage[]
 		let userContextMessages = addUserContextToMessages(messages)
 
 		let usageLimits = await checkUsageLimits(user, worker)
@@ -272,7 +273,10 @@ type UsageLimitExceededResponse = {
 
 async function runBackgroundGeneration(params: {
 	user: User
-	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>
+	worker: Loaded<
+		typeof UserAccount,
+		{ root: { assistant: { stringifiedMessages: { $each: true } } } }
+	>
 	subscriptionStatus: SubscriptionStatus
 	modelMessages: ReturnType<typeof convertToModelMessages>
 }) {
@@ -298,8 +302,6 @@ async function runBackgroundGeneration(params: {
 	chat.$jazz.set("submittedAt", new Date())
 	await worker.$jazz.waitForSync()
 
-	let currentMessages: TillyUIMessage[] = []
-
 	console.log(`[Chat] ${user.id} | Starting generation`)
 
 	try {
@@ -309,9 +311,6 @@ async function runBackgroundGeneration(params: {
 			...clientTools,
 			...createServerTools(worker),
 		}
-
-		let initialMessagesJson = chat.stringifiedMessages ?? "[]"
-		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
 
 		let handleChunk = createChunkHandler()
 
@@ -327,8 +326,17 @@ async function runBackgroundGeneration(params: {
 			stopWhen: stepCountIs(100),
 			abortSignal: abortController.signal,
 			onChunk: async event => {
-				currentMessages = handleChunk(event.chunk, currentMessages)
-				chat.$jazz.set("stringifiedMessages", JSON.stringify(currentMessages))
+				let result = handleChunk(event.chunk)
+				if (!result) return
+
+				let msg = JSON.stringify(result.message)
+
+				if (result.insertMode === "replace") {
+					let lastIdx = chat.stringifiedMessages.length - 1
+					chat.stringifiedMessages.$jazz.set(lastIdx, msg)
+				} else {
+					chat.stringifiedMessages.$jazz.push(msg)
+				}
 			},
 			onFinish: async finishResult => {
 				let inputTokens = finishResult.usage.inputTokens ?? 0
@@ -383,9 +391,8 @@ function createChunkHandler() {
 					| "raw"
 			}
 		>,
-		messages: TillyUIMessage[],
-	): TillyUIMessage[] {
-		let workingMessages = [...messages]
+	): { message: TillyUIMessage; insertMode: "append" | "replace" } | null {
+		let insertMode: "append" | "replace" = "replace"
 
 		if (chunk.type === "text-delta") {
 			if (!currentAssistantMessage) {
@@ -394,19 +401,24 @@ function createChunkHandler() {
 					role: "assistant",
 					parts: [{ type: "text", text: chunk.text }],
 				}
-				workingMessages.push(currentAssistantMessage)
+				insertMode = "append"
 			} else {
 				currentAssistantMessage.parts = [
 					...(currentAssistantMessage.parts || []),
 					{ type: "text", text: chunk.text },
 				]
+				insertMode = "replace"
 			}
+
+			return { message: currentAssistantMessage, insertMode }
 		}
 
 		if (chunk.type === "tool-call") {
 			if (!currentAssistantMessage) {
 				currentAssistantMessage = { id: nanoid(), role: "assistant", parts: [] }
-				workingMessages.push(currentAssistantMessage)
+				insertMode = "append"
+			} else {
+				insertMode = "replace"
 			}
 
 			currentAssistantMessage.parts = [
@@ -420,6 +432,8 @@ function createChunkHandler() {
 					state: "input-available",
 				},
 			]
+
+			return { message: currentAssistantMessage, insertMode }
 		}
 
 		if (chunk.type === "tool-result") {
@@ -429,7 +443,9 @@ function createChunkHandler() {
 					role: "assistant",
 					parts: [],
 				}
-				workingMessages.push(currentAssistantMessage)
+				insertMode = "append"
+			} else {
+				insertMode = "replace"
 			}
 
 			let toolCallPart = currentAssistantMessage.parts?.find(
@@ -453,15 +469,20 @@ function createChunkHandler() {
 					},
 				]
 			}
+
+			return { message: currentAssistantMessage, insertMode }
 		}
 
-		return workingMessages
+		return null
 	}
 }
 
 async function sendAssistantCompletionNotification(
 	user: User,
-	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>,
+	worker: Loaded<
+		typeof UserAccount,
+		{ root: { assistant: { stringifiedMessages: { $each: true } } } }
+	>,
 ) {
 	try {
 		let chat = worker.root.assistant

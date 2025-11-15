@@ -8,7 +8,7 @@ import { Textarea, useResizeTextarea } from "#shared/ui/textarea"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
-import { UserAccount, type Assistant } from "#shared/schema/user"
+import { Assistant, UserAccount } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import {
@@ -46,8 +46,8 @@ export let Route = createFileRoute("/_app/assistant")({
 		let initialMessages: TillyUIMessage[] = []
 		if (loadedMe.root.assistant?.stringifiedMessages) {
 			try {
-				initialMessages = JSON.parse(
-					loadedMe.root.assistant.stringifiedMessages,
+				initialMessages = loadedMe.root.assistant.stringifiedMessages.map(s =>
+					JSON.parse(s),
 				)
 			} catch (error) {
 				console.error("Failed to parse chat messages", error)
@@ -153,13 +153,13 @@ function AuthenticatedChat() {
 
 	let messages = useMemo(() => {
 		try {
-			let messagesJson = currentMe.root.assistant?.stringifiedMessages ?? "[]"
-			let parsed = JSON.parse(messagesJson) as TillyUIMessage[]
+			let messagesList = currentMe.root.assistant?.stringifiedMessages ?? []
+			let parsed = messagesList.map(s => JSON.parse(s)) as TillyUIMessage[]
 			lastValidMessagesRef.current = parsed
 			return parsed
 		} catch (error) {
-			let messagesJson = currentMe.root.assistant?.stringifiedMessages ?? "[]"
-			console.error({ error, messagesJson })
+			let messagesList = currentMe.root.assistant?.stringifiedMessages ?? []
+			console.error({ error, messagesList })
 			return lastValidMessagesRef.current
 		}
 	}, [currentMe.root.assistant?.stringifiedMessages])
@@ -177,38 +177,39 @@ function AuthenticatedChat() {
 			timestamp: Date.now(),
 		}
 
-		let newMessages = [
-			...messages,
-			{
-				id: nanoid(),
-				role: "user",
-				parts: [{ type: "text", text: prompt }],
-				metadata,
-			} as TillyUIMessage,
-		]
+		let newMessage: TillyUIMessage = {
+			id: nanoid(),
+			role: "user",
+			parts: [{ type: "text", text: prompt }],
+			metadata,
+		}
 
-		await submitMessages(newMessages)
-	}
-
-	async function submitMessages(newMessages: TillyUIMessage[]) {
 		setIsPending(true)
 		setSendError(null)
 		setError(null)
 
-		let messagesJson = JSON.stringify(newMessages)
-
-		if (!currentMe.root.assistant) {
-			currentMe.root.$jazz.set("assistant", {
+		let assistant
+		if (currentMe.root.assistant) {
+			assistant = currentMe.root.assistant
+		} else {
+			assistant = Assistant.create({
 				version: 1,
-				stringifiedMessages: messagesJson,
+				stringifiedMessages: [],
 				submittedAt: new Date(),
 			})
+			currentMe.root.$jazz.set("assistant", assistant)
+		}
+		if (!assistant.stringifiedMessages) {
+			assistant.$jazz.set("stringifiedMessages", [JSON.stringify(newMessage)])
+			assistant.$jazz.set("submittedAt", new Date())
 		} else {
-			currentMe.root.assistant.$jazz.set("stringifiedMessages", messagesJson)
-			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
+			assistant.stringifiedMessages.$jazz.push(JSON.stringify(newMessage))
+			assistant.$jazz.set("submittedAt", new Date())
 		}
 
-		await currentMe.root.assistant?.$jazz.waitForSync()
+		console.log("waitForSync")
+		await currentMe.$jazz.waitForAllCoValuesSync()
+		console.log("waitForSync done")
 
 		let controller = new AbortController()
 		fetchAbortControllerRef.current = controller
@@ -223,16 +224,14 @@ function AuthenticatedChat() {
 				let errorData = await response.json()
 				throw new Error(JSON.stringify(errorData))
 			}
-			setIsPending(false)
-			fetchAbortControllerRef.current = null
 		} catch (error) {
-			if ((error as Error).name === "AbortError") {
-				setIsPending(false)
-				return
-			}
+			console.log(error)
+			assistant.$jazz.set("submittedAt", undefined)
+			if ((error as Error).name === "AbortError") return
+			setSendError(error as Error)
+		} finally {
 			setIsPending(false)
 			fetchAbortControllerRef.current = null
-			setSendError(error as Error)
 		}
 	}
 
@@ -244,8 +243,7 @@ function AuthenticatedChat() {
 			fetchAbortControllerRef.current = null
 		}
 
-		if (!currentMe.root.assistant) return
-		currentMe.root.assistant.$jazz.set("abortRequestedAt", new Date())
+		currentMe.root.assistant?.$jazz.set("abortRequestedAt", new Date())
 	}
 
 	function addToolResult({
@@ -256,29 +254,34 @@ function AuthenticatedChat() {
 		toolCallId: string
 		output: unknown
 	}) {
-		let updatedMessages = messages.map(msg => {
-			if (msg.role !== "assistant") return msg
+		if (!currentMe.root.assistant?.stringifiedMessages) return
 
-			let hasTool = msg.parts?.some(
+		let messageIndex = messages.findIndex(msg => {
+			if (msg.role !== "assistant") return false
+			return msg.parts?.some(
 				p => "toolCallId" in p && p.toolCallId === toolCallId,
 			)
-			if (!hasTool) return msg
-
-			let updatedParts = msg.parts?.map(part => {
-				if (!("toolCallId" in part)) return part
-				if (part.toolCallId !== toolCallId) return part
-
-				return {
-					...part,
-					output,
-					state: "output-available" as const,
-				}
-			})
-
-			return { ...msg, parts: updatedParts }
 		})
 
-		submitMessages(updatedMessages as TillyUIMessage[])
+		if (messageIndex === -1) return
+
+		let msg = messages[messageIndex]
+		let updatedParts = msg.parts?.map(part => {
+			if (!("toolCallId" in part)) return part
+			if (part.toolCallId !== toolCallId) return part
+
+			return {
+				...part,
+				output,
+				state: "output-available" as const,
+			}
+		})
+
+		let updatedMessage = { ...msg, parts: updatedParts }
+		currentMe.root.assistant.stringifiedMessages.$jazz.set(
+			messageIndex,
+			JSON.stringify(updatedMessage),
+		)
 	}
 
 	let isBusy = isPending || isGenerating
@@ -407,7 +410,7 @@ function AuthenticatedChat() {
 								onClick={() => {
 									currentMe.root.assistant?.$jazz.set(
 										"stringifiedMessages",
-										"[]",
+										co.list(z.string()).create([]),
 									)
 								}}
 								className="text-muted-foreground hover:text-foreground"

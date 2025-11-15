@@ -30,7 +30,7 @@ export let NotificationSettings = co.map({
 
 export let Assistant = co.map({
 	version: z.literal(1),
-	stringifiedMessages: z.string(),
+	stringifiedMessages: co.list(z.string()),
 	submittedAt: z.date().optional(),
 	abortRequestedAt: z.date().optional(),
 	clearChatHintDismissedAt: z.date().optional(),
@@ -136,7 +136,7 @@ function initializeRootIfUndefined(
 				language: navigator.language.startsWith("de") ? "de" : "en",
 				assistant: Assistant.create({
 					version: 1,
-					stringifiedMessages: "[]",
+					stringifiedMessages: co.list(z.string()).create([]),
 				}),
 			}),
 		)
