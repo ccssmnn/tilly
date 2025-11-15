@@ -184,55 +184,7 @@ function AuthenticatedChat() {
 			metadata,
 		}
 
-		setIsPending(true)
-		setSendError(null)
-		setError(null)
-
-		let assistant
-		if (currentMe.root.assistant) {
-			assistant = currentMe.root.assistant
-		} else {
-			assistant = Assistant.create({
-				version: 1,
-				stringifiedMessages: [],
-				submittedAt: new Date(),
-			})
-			currentMe.root.$jazz.set("assistant", assistant)
-		}
-		if (!assistant.stringifiedMessages) {
-			assistant.$jazz.set("stringifiedMessages", [JSON.stringify(newMessage)])
-			assistant.$jazz.set("submittedAt", new Date())
-		} else {
-			assistant.stringifiedMessages.$jazz.push(JSON.stringify(newMessage))
-			assistant.$jazz.set("submittedAt", new Date())
-		}
-
-		console.log("waitForSync")
-		await currentMe.$jazz.waitForAllCoValuesSync()
-		console.log("waitForSync done")
-
-		let controller = new AbortController()
-		fetchAbortControllerRef.current = controller
-
-		try {
-			let response = await fetch("/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				signal: controller.signal,
-			})
-			if (!response.ok) {
-				let errorData = await response.json()
-				throw new Error(JSON.stringify(errorData))
-			}
-		} catch (error) {
-			console.log(error)
-			assistant.$jazz.set("submittedAt", undefined)
-			if ((error as Error).name === "AbortError") return
-			setSendError(error as Error)
-		} finally {
-			setIsPending(false)
-			fetchAbortControllerRef.current = null
-		}
+		await addMessageAndTriggerServer(newMessage)
 	}
 
 	async function handleAbort() {
@@ -246,7 +198,7 @@ function AuthenticatedChat() {
 		currentMe.root.assistant?.$jazz.set("abortRequestedAt", new Date())
 	}
 
-	function addToolResult({
+	async function addToolResult({
 		toolCallId,
 		output,
 	}: {
@@ -275,13 +227,69 @@ function AuthenticatedChat() {
 				output,
 				state: "output-available" as const,
 			}
-		})
+		}) as TillyUIMessage["parts"]
 
-		let updatedMessage = { ...msg, parts: updatedParts }
-		currentMe.root.assistant.stringifiedMessages.$jazz.set(
-			messageIndex,
-			JSON.stringify(updatedMessage),
-		)
+		let updatedMessage: TillyUIMessage = { ...msg, parts: updatedParts }
+		await addMessageAndTriggerServer(updatedMessage, messageIndex)
+	}
+
+	async function addMessageAndTriggerServer(
+		message: TillyUIMessage,
+		replaceIndex?: number,
+	) {
+		setIsPending(true)
+		setSendError(null)
+		setError(null)
+
+		let assistant
+		if (currentMe.root.assistant) {
+			assistant = currentMe.root.assistant
+		} else {
+			assistant = Assistant.create({
+				version: 1,
+				stringifiedMessages: [],
+				submittedAt: new Date(),
+			})
+			currentMe.root.$jazz.set("assistant", assistant)
+		}
+
+		if (!assistant.stringifiedMessages) {
+			assistant.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
+			assistant.$jazz.set("submittedAt", new Date())
+		} else if (replaceIndex !== undefined) {
+			assistant.stringifiedMessages.$jazz.set(
+				replaceIndex,
+				JSON.stringify(message),
+			)
+			assistant.$jazz.set("submittedAt", new Date())
+		} else {
+			assistant.stringifiedMessages.$jazz.push(JSON.stringify(message))
+			assistant.$jazz.set("submittedAt", new Date())
+		}
+
+		await currentMe.$jazz.waitForAllCoValuesSync()
+
+		let controller = new AbortController()
+		fetchAbortControllerRef.current = controller
+
+		try {
+			let response = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				signal: controller.signal,
+			})
+			if (!response.ok) {
+				let errorData = await response.json()
+				throw new Error(JSON.stringify(errorData))
+			}
+		} catch (error) {
+			assistant.$jazz.set("submittedAt", undefined)
+			if ((error as Error).name === "AbortError") return
+			setSendError(error as Error)
+		} finally {
+			setIsPending(false)
+			fetchAbortControllerRef.current = null
+		}
 	}
 
 	let isBusy = isPending || isGenerating
