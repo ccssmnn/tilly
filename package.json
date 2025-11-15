@@ -17,7 +17,6 @@
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.19",
-		"@ai-sdk/react": "^2.0.65",
 		"@astrojs/vercel": "^8.2.9",
 		"@ccssmnn/intl": "^0.1.1",
 		"@clerk/backend": "2.17.2",
