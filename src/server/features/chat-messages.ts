@@ -83,19 +83,16 @@ let chatMessagesApp = new Hono()
 			return c.json({ error: "Request too large" }, 413)
 		}
 
-		let generationId = crypto.randomUUID()
-
 		runBackgroundGeneration({
 			user,
 			worker: workerWithMessages,
 			subscriptionStatus,
 			modelMessages,
-			generationId,
 		}).catch((error: unknown) => {
 			console.error("Background generation failed:", error)
 		})
 
-		return c.json({ generationId }, 202)
+		return c.json({ success: true }, 202)
 	})
 
 function getCachedTokenCount(metadata: unknown): number {
@@ -278,26 +275,32 @@ async function runBackgroundGeneration(params: {
 	worker: Loaded<typeof UserAccount, { root: { assistant: true } }>
 	subscriptionStatus: SubscriptionStatus
 	modelMessages: ReturnType<typeof convertToModelMessages>
-	generationId: string
 }) {
-	let { user, worker, subscriptionStatus, modelMessages, generationId } = params
+	let { user, worker, subscriptionStatus, modelMessages } = params
 
 	let chat = worker.root.assistant!
 
-	chat.$jazz.set("generationId", generationId)
-	await worker.$jazz.waitForSync()
-
 	let abortController = new AbortController()
+
 	let unsubscribe = chat.$jazz.subscribe(updatedChat => {
-		if (
-			updatedChat.abortRequestedAt ||
-			updatedChat.generationId !== generationId
-		) {
+		if (updatedChat.abortRequestedAt) {
+			console.log(
+				`[Chat] ${user.id} | Jazz abort requested at ${updatedChat.abortRequestedAt}`,
+			)
 			abortController.abort()
 		}
 	})
 
+	abortController.signal.addEventListener("abort", () => {
+		console.log(`[Chat] ${user.id} | AbortController signal aborted`)
+	})
+
+	chat.$jazz.set("submittedAt", new Date())
+	await worker.$jazz.waitForSync()
+
 	let currentMessages: TillyUIMessage[] = []
+
+	console.log(`[Chat] ${user.id} | Starting generation`)
 
 	try {
 		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
@@ -311,6 +314,10 @@ async function runBackgroundGeneration(params: {
 		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
 
 		let handleChunk = createChunkHandler()
+
+		console.log(
+			`[Chat] ${user.id} | About to call streamText, abortController.signal.aborted: ${abortController.signal.aborted}`,
+		)
 
 		let result = streamText({
 			model: google("gemini-2.5-flash"),
@@ -343,24 +350,18 @@ async function runBackgroundGeneration(params: {
 
 				await sendAssistantCompletionNotification(user, worker)
 
-				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
 
 				await worker.$jazz.waitForAllCoValuesSync()
 			},
 			onError: async error => {
-				console.error(
-					`[Chat] ${user.id} | Generation ${generationId} | Error:`,
-					error,
-				)
-				chat.$jazz.set("generationId", undefined)
+				console.error(`[Chat] ${user.id} | Error:`, error)
 				chat.$jazz.set("submittedAt", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
 			},
 			onAbort: async () => {
 				chat.$jazz.set("abortRequestedAt", undefined)
-				chat.$jazz.set("generationId", undefined)
 				chat.$jazz.set("submittedAt", undefined)
 			},
 		})

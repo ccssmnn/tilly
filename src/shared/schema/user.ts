@@ -32,7 +32,6 @@ export let Assistant = co.map({
 	version: z.literal(1),
 	messages: co.plainText(),
 	submittedAt: z.date().optional(),
-	generationId: z.string().optional(),
 	abortRequestedAt: z.date().optional(),
 	clearChatHintDismissedAt: z.date().optional(),
 	notificationCheckId: z.string().optional(),

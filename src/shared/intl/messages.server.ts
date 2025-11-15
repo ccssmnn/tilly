@@ -10,7 +10,7 @@ let baseServerMessages = messages({
 		".input {$count :number} .match $count one {{You have one reminder due today}} * {{You have {$count} reminders due today}}",
 	"server.push.dueReminders.body":
 		"A few moments to reach out could brighten someone's day ✨",
-	"server.push.assistantComplete.title": "Tilly Assistant",
+	"server.push.assistantComplete.title": "Tilly Assistant Finished",
 	"server.push.assistantComplete.body":
 		"Your assistant has finished responding",
 
@@ -29,7 +29,7 @@ let deServerMessages = translate(baseServerMessages, {
 		".input {$count :number} .match $count one {{Du hast eine Erinnerung Heute}} * {{Du hast {$count} Erinnerungen heute}}",
 	"server.push.dueReminders.body":
 		"Manchmal reicht ein kleiner Moment, um jemandem den Tag zu versüßen ✨",
-	"server.push.assistantComplete.title": "Tilly Assistent",
+	"server.push.assistantComplete.title": "Tilly Assistent ist Fertig",
 	"server.push.assistantComplete.body":
 		"Dein Assistent hat die Antwort beendet",
 

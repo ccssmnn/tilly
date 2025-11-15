@@ -144,9 +144,12 @@ function AuthenticatedChat() {
 
 	let canUseChat = useOnlineStatus()
 
+	let [isPending, setIsPending] = useState(false)
 	let [error, setError] = useState<Error | null>(null)
+	let [sendError, setSendError] = useState<Error | null>(null)
 
 	let lastValidMessagesRef = useRef<TillyUIMessage[]>(data.initialMessages)
+	let fetchAbortControllerRef = useRef<AbortController | null>(null)
 
 	let messages = useMemo(() => {
 		// TODO: why does plainText applyDiff sometimes lead to broken JSON?
@@ -167,17 +170,7 @@ function AuthenticatedChat() {
 	useStaleGenerationTimeout(currentMe.root.assistant)
 	useNotificationAcknowledgment(currentMe.root.assistant)
 
-	async function resetGenerationMarkers() {
-		if (!currentMe.root.assistant) return
-		currentMe.root.assistant.$jazz.set("generationId", undefined)
-		currentMe.root.assistant.$jazz.set("submittedAt", undefined)
-		currentMe.root.assistant.$jazz.set("abortRequestedAt", undefined)
-		await currentMe.root.assistant.$jazz.waitForSync()
-	}
-
 	async function handleSubmit(prompt: string) {
-		setError(null)
-
 		let metadata = {
 			userName: currentMe?.profile?.name || "Anonymous",
 			timezone: currentMe?.root?.notificationSettings?.timezone || "UTC",
@@ -199,6 +192,10 @@ function AuthenticatedChat() {
 	}
 
 	async function submitMessages(newMessages: TillyUIMessage[]) {
+		setIsPending(true)
+		setSendError(null)
+		setError(null)
+
 		let messagesJson = JSON.stringify(newMessages)
 
 		if (!currentMe.root.assistant) {
@@ -207,38 +204,56 @@ function AuthenticatedChat() {
 				messages: co.plainText().create(messagesJson),
 				submittedAt: new Date(),
 			})
-		} else if (!currentMe.root.assistant.messages) {
-			currentMe.root.assistant.$jazz.set(
-				"messages",
-				co.plainText().create(messagesJson),
-			)
-			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
 		} else {
-			currentMe.root.assistant.messages.$jazz.applyDiff(messagesJson)
+			if (!currentMe.root.assistant.messages) {
+				currentMe.root.assistant.$jazz.set(
+					"messages",
+					co.plainText().create(messagesJson),
+				)
+			} else {
+				currentMe.root.assistant.messages.$jazz.applyDiff(messagesJson)
+			}
 			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
 		}
 
 		await currentMe.root.assistant?.$jazz.waitForSync()
 
+		let controller = new AbortController()
+		fetchAbortControllerRef.current = controller
+
 		try {
 			let response = await fetch("/api/chat", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
+				signal: controller.signal,
 			})
 			if (!response.ok) {
 				let errorData = await response.json()
 				throw new Error(JSON.stringify(errorData))
 			}
+			setIsPending(false)
+			fetchAbortControllerRef.current = null
 		} catch (error) {
-			await resetGenerationMarkers()
-			setError(error as Error)
+			if ((error as Error).name === "AbortError") {
+				setIsPending(false)
+				return
+			}
+			setIsPending(false)
+			fetchAbortControllerRef.current = null
+			setSendError(error as Error)
 		}
 	}
 
 	async function handleAbort() {
+		setIsPending(false)
+
+		if (fetchAbortControllerRef.current) {
+			fetchAbortControllerRef.current.abort()
+			fetchAbortControllerRef.current = null
+		}
+
 		if (!currentMe.root.assistant) return
 		currentMe.root.assistant.$jazz.set("abortRequestedAt", new Date())
-		await currentMe.root.assistant.$jazz.waitForSync()
 	}
 
 	function addToolResult({
@@ -274,7 +289,7 @@ function AuthenticatedChat() {
 		submitMessages(updatedMessages as TillyUIMessage[])
 	}
 
-	let isBusy = isGenerating
+	let isBusy = isPending || isGenerating
 
 	return (
 		<>
@@ -303,7 +318,18 @@ function AuthenticatedChat() {
 							addToolResult={addToolResult}
 						/>
 					))}
-					{isBusy && (
+					{isPending ? (
+						<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
+							<Avatar className="size-8 animate-pulse">
+								<AvatarImage
+									src="/app/icons/icon-192x192.png"
+									alt="Tilly logo"
+								/>
+								<AvatarFallback>T</AvatarFallback>
+							</Avatar>
+							<T k="assistant.sending" />
+						</div>
+					) : isGenerating ? (
 						<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
 							<Avatar className="size-8 animate-pulse">
 								<AvatarImage
@@ -314,6 +340,16 @@ function AuthenticatedChat() {
 							</Avatar>
 							<T k="assistant.generating" />
 						</div>
+					) : null}
+					{sendError && (
+						<Alert variant="destructive">
+							<AlertTitle>
+								<T k="assistant.sendError.title" />
+							</AlertTitle>
+							<AlertDescription>
+								<span className="select-text">{sendError.message}</span>
+							</AlertDescription>
+						</Alert>
 					)}
 					{error && (
 						<Alert variant="destructive">
@@ -392,8 +428,8 @@ function AuthenticatedChat() {
 			<UserInput
 				onSubmit={handleSubmit}
 				chatSize={messages.length}
-				stopGeneratingResponse={isGenerating ? handleAbort : undefined}
-				disabled={!canUseChat || isGenerating}
+				stopGeneratingResponse={isBusy ? handleAbort : undefined}
+				disabled={!canUseChat || isBusy}
 			/>
 		</>
 	)
@@ -567,7 +603,6 @@ function useNotificationAcknowledgment(
 async function resetGenerationMarkersForTimeout(
 	assistant: co.loaded<typeof Assistant>,
 ) {
-	assistant.$jazz.set("generationId", undefined)
 	assistant.$jazz.set("submittedAt", undefined)
 	assistant.$jazz.set("abortRequestedAt", undefined)
 	await assistant.$jazz.waitForSync()

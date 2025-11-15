@@ -19,9 +19,11 @@ const baseAssistantMessages = messages({
 		"Tilly chat requires an internet connection. All other features work offline.",
 	"assistant.emptyState":
 		"Share a story, and I'll help you remember what matters",
+	"assistant.sending": "Sending to server...",
 	"assistant.generating": "Generating response...",
 	"assistant.generatingOnOtherDevice": "Generating response on other device...",
 	"assistant.error.title": "Something went wrong",
+	"assistant.sendError.title": "Failed to send message",
 	"assistant.responseFailure.title": "Response Issue",
 	"assistant.responseFailure.emptyDescription":
 		"I'm sorry, but I didn't respond properly. This sometimes happens with AI models. Please try your question again.",
@@ -223,10 +225,12 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		"Der Tilly-Chat benötigt eine Internetverbindung. Alle anderen Funktionen funktionieren offline.",
 	"assistant.emptyState":
 		"Erzähle eine Geschichte – ich helfe dir, das Wichtige zu behalten",
+	"assistant.sending": "Wird an Server gesendet...",
 	"assistant.generating": "Antwort wird erstellt...",
 	"assistant.generatingOnOtherDevice":
 		"Antwort wird auf anderem Gerät erstellt...",
 	"assistant.error.title": "Etwas ist schief gelaufen",
+	"assistant.sendError.title": "Nachricht konnte nicht gesendet werden",
 	"assistant.responseFailure.title": "Antwortproblem",
 	"assistant.responseFailure.emptyDescription":
 		"Entschuldigung, aber ich habe nicht richtig geantwortet. Das passiert manchmal bei KI-Modellen. Bitte versuche deine Frage nochmal.",
