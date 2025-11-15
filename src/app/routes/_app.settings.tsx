@@ -608,7 +608,7 @@ function DeleteDataButton({
 
 		// Clear chat history
 		if (account.root.assistant) {
-			account.root.assistant.$jazz.set("messages", co.plainText().create("[]"))
+			account.root.assistant.$jazz.set("stringifiedMessages", "[]")
 		}
 
 		// Also clear local UI data (searches, install hint, etc.)

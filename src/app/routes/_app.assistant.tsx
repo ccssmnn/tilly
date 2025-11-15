@@ -44,10 +44,10 @@ export let Route = createFileRoute("/_app/assistant")({
 		})
 
 		let initialMessages: TillyUIMessage[] = []
-		if (loadedMe.root.assistant?.messages) {
+		if (loadedMe.root.assistant?.stringifiedMessages) {
 			try {
 				initialMessages = JSON.parse(
-					loadedMe.root.assistant.messages.toString(),
+					loadedMe.root.assistant.stringifiedMessages,
 				)
 			} catch (error) {
 				console.error("Failed to parse chat messages", error)
@@ -60,7 +60,7 @@ export let Route = createFileRoute("/_app/assistant")({
 })
 
 let query = {
-	root: { people: { $each: true }, assistant: { messages: true } },
+	root: { people: { $each: true }, assistant: true },
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 function AssistantScreen() {
@@ -152,18 +152,17 @@ function AuthenticatedChat() {
 	let fetchAbortControllerRef = useRef<AbortController | null>(null)
 
 	let messages = useMemo(() => {
-		// TODO: why does plainText applyDiff sometimes lead to broken JSON?
 		try {
-			let messagesJson = currentMe.root.assistant?.messages?.toString() ?? "[]"
+			let messagesJson = currentMe.root.assistant?.stringifiedMessages ?? "[]"
 			let parsed = JSON.parse(messagesJson) as TillyUIMessage[]
 			lastValidMessagesRef.current = parsed
 			return parsed
 		} catch (error) {
-			let messagesJson = currentMe.root.assistant?.messages?.toString() ?? "[]"
+			let messagesJson = currentMe.root.assistant?.stringifiedMessages ?? "[]"
 			console.error({ error, messagesJson })
 			return lastValidMessagesRef.current
 		}
-	}, [currentMe.root.assistant?.messages])
+	}, [currentMe.root.assistant?.stringifiedMessages])
 
 	let isGenerating = !!currentMe.root?.assistant?.submittedAt
 
@@ -201,18 +200,11 @@ function AuthenticatedChat() {
 		if (!currentMe.root.assistant) {
 			currentMe.root.$jazz.set("assistant", {
 				version: 1,
-				messages: co.plainText().create(messagesJson),
+				stringifiedMessages: messagesJson,
 				submittedAt: new Date(),
 			})
 		} else {
-			if (!currentMe.root.assistant.messages) {
-				currentMe.root.assistant.$jazz.set(
-					"messages",
-					co.plainText().create(messagesJson),
-				)
-			} else {
-				currentMe.root.assistant.messages.$jazz.applyDiff(messagesJson)
-			}
+			currentMe.root.assistant.$jazz.set("stringifiedMessages", messagesJson)
 			currentMe.root.assistant.$jazz.set("submittedAt", new Date())
 		}
 
@@ -413,7 +405,10 @@ function AuthenticatedChat() {
 								variant="ghost"
 								size="sm"
 								onClick={() => {
-									currentMe.root.assistant?.messages?.$jazz.applyDiff("[]")
+									currentMe.root.assistant?.$jazz.set(
+										"stringifiedMessages",
+										"[]",
+									)
 								}}
 								className="text-muted-foreground hover:text-foreground"
 							>

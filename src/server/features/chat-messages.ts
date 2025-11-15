@@ -49,13 +49,13 @@ let chatMessagesApp = new Hono()
 		let { worker } = await initUserWorker(user)
 
 		let workerWithMessages = await worker.$jazz.ensureLoaded({
-			resolve: { root: { assistant: { messages: true } } },
+			resolve: { root: { assistant: true } },
 		})
-		let rawMessages = workerWithMessages.root.assistant?.messages
+		let rawMessages = workerWithMessages.root.assistant?.stringifiedMessages
 		if (!rawMessages) {
 			return c.json({ error: "put messages into your chat first" }, 400)
 		}
-		let messages = JSON.parse(rawMessages.toString()) as TillyUIMessage[]
+		let messages = JSON.parse(rawMessages) as TillyUIMessage[]
 		let userContextMessages = addUserContextToMessages(messages)
 
 		let usageLimits = await checkUsageLimits(user, worker)
@@ -310,7 +310,7 @@ async function runBackgroundGeneration(params: {
 			...createServerTools(worker),
 		}
 
-		let initialMessagesJson = chat.messages?.toString() ?? "[]"
+		let initialMessagesJson = chat.stringifiedMessages ?? "[]"
 		currentMessages = JSON.parse(initialMessagesJson) as TillyUIMessage[]
 
 		let handleChunk = createChunkHandler()
@@ -328,14 +328,7 @@ async function runBackgroundGeneration(params: {
 			abortSignal: abortController.signal,
 			onChunk: async event => {
 				currentMessages = handleChunk(event.chunk, currentMessages)
-				if (!chat.messages) {
-					chat.$jazz.set(
-						"messages",
-						co.plainText().create(JSON.stringify(currentMessages)),
-					)
-				} else {
-					chat.messages.$jazz.applyDiff(JSON.stringify(currentMessages))
-				}
+				chat.$jazz.set("stringifiedMessages", JSON.stringify(currentMessages))
 			},
 			onFinish: async finishResult => {
 				let inputTokens = finishResult.usage.inputTokens ?? 0
