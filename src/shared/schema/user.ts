@@ -36,6 +36,7 @@ export let Assistant = co.map({
 	clearChatHintDismissedAt: z.date().optional(),
 	notificationCheckId: z.string().optional(),
 	notificationAcknowledgedId: z.string().optional(),
+	notifyOnComplete: z.boolean().optional(),
 })
 
 export let UsageTracking = co.map({
@@ -137,6 +138,7 @@ function initializeRootIfUndefined(
 				assistant: Assistant.create({
 					version: 1,
 					stringifiedMessages: co.list(z.string()).create([]),
+					notifyOnComplete: true,
 				}),
 			}),
 		)

@@ -493,11 +493,14 @@ async function sendAssistantCompletionNotification(
 			return
 		}
 
-		let checkId = nanoid()
-		chat.$jazz.set("notificationCheckId", checkId)
-		await worker.$jazz.waitForSync()
+		if (chat.notifyOnComplete === false) {
+			console.log(
+				`[Chat] ${user.id} | User disabled completion notifications, skipping`,
+			)
+			return
+		}
 
-		let acknowledged = await waitForAcknowledgment(chat, checkId, 3000)
+		let acknowledged = await waitForAcknowledgment(chat, 3000)
 
 		chat.$jazz.set("notificationCheckId", undefined)
 		chat.$jazz.set("notificationAcknowledgedId", undefined)
@@ -561,11 +564,15 @@ async function sendAssistantCompletionNotification(
 	}
 }
 
-function waitForAcknowledgment(
+async function waitForAcknowledgment(
 	chat: co.loaded<typeof Assistant>,
-	checkId: string,
 	timeoutMs: number,
 ): Promise<boolean> {
+	let checkId = nanoid()
+	chat.$jazz.set("notificationCheckId", checkId)
+
+	await chat.$jazz.waitForSync()
+
 	return new Promise(resolve => {
 		let timer = setTimeout(() => {
 			unsubscribe()

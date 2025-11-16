@@ -56,6 +56,9 @@ const baseSettingsMessages = messages({
 		"This is the name Tilly will use to address you in conversations",
 	"settings.agent.displayName.cancel": "Cancel",
 	"settings.agent.displayName.save": "Save",
+	"settings.agent.notifyOnComplete.label": "Notify when assistant completes",
+	"settings.agent.notifyOnComplete.description":
+		"Send a push notification when Tilly finishes responding (only if Tilly is running in the background)",
 	"settings.agent.usage.title": "Usage",
 	"settings.agent.usage.budget.label": "Usage this cycle",
 	"settings.agent.usage.budget.reset": "Resets on {$date}",
@@ -390,6 +393,9 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Das ist der Name, den Tilly in Gesprächen für dich verwenden wird",
 	"settings.agent.displayName.cancel": "Abbrechen",
 	"settings.agent.displayName.save": "Speichern",
+	"settings.agent.notifyOnComplete.label": "Bei Fertigstellung benachrichtigen",
+	"settings.agent.notifyOnComplete.description":
+		"Eine Push-Benachrichtigung senden, wenn Tilly mit der Antwort fertig ist (nur wenn Tilly im Hintergrund läuft)",
 	"settings.agent.usage.title": "Nutzung",
 	"settings.agent.usage.budget.label": "Nutzung in diesem Zeitraum",
 	"settings.agent.usage.budget.reset": "Setzt sich am {$date} zurück",
