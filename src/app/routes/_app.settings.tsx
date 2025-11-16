@@ -284,6 +284,7 @@ function AssistantSection({
 	me: co.loaded<typeof UserAccount, typeof query>
 }) {
 	let [isDisplayNameDialogOpen, setIsDisplayNameDialogOpen] = useState(false)
+	let [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
 	let t = useIntl()
 
 	function onSubmit(values: z.infer<typeof assistantFormSchema>) {
@@ -304,6 +305,13 @@ function AssistantSection({
 	function handleNotifyOnCompleteChange(checked: boolean) {
 		if (!me.root.assistant) return
 		me.root.assistant.$jazz.set("notifyOnComplete", checked)
+	}
+
+	function handleResetAssistant() {
+		if (!me.root.assistant) return
+		me.root.$jazz.delete("assistant")
+		toast.success(t("settings.agent.reset.success"))
+		setIsResetDialogOpen(false)
 	}
 
 	return (
@@ -374,6 +382,17 @@ function AssistantSection({
 						</div>
 					</div>
 				)}
+				<div className="space-y-2">
+					<p className="mb-1 text-sm font-medium">
+						<T k="settings.agent.reset.title" />
+					</p>
+					<p className="text-muted-foreground text-sm">
+						<T k="settings.agent.reset.description" />
+					</p>
+					<Button variant="outline" onClick={() => setIsResetDialogOpen(true)}>
+						<T k="settings.agent.reset.button" />
+					</Button>
+				</div>
 			</div>
 			<AgentNameDialog
 				currentName={me?.profile?.name || ""}
@@ -381,6 +400,33 @@ function AssistantSection({
 				onClose={() => setIsDisplayNameDialogOpen(false)}
 				onSave={onSubmit}
 			/>
+			<Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+				<DialogContent
+					titleSlot={
+						<DialogHeader>
+							<DialogTitle>
+								<T k="settings.agent.reset.dialog.title" />
+							</DialogTitle>
+							<DialogDescription>
+								<T k="settings.agent.reset.dialog.description" />
+							</DialogDescription>
+						</DialogHeader>
+					}
+				>
+					<div className="flex items-center gap-3">
+						<Button
+							variant="outline"
+							className="flex-1"
+							onClick={() => setIsResetDialogOpen(false)}
+						>
+							<T k="common.cancel" />
+						</Button>
+						<Button className="flex-1" onClick={handleResetAssistant}>
+							<T k="settings.agent.reset.button" />
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</SettingsSection>
 	)
 }

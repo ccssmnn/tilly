@@ -36,7 +36,8 @@ const baseAssistantMessages = messages({
 	"assistant.clearChatHint.description":
 		"Starting a new conversation helps save your usage budget. Clear your chat to begin fresh.",
 	"assistant.clearChatHint.dismiss": "Got it",
-	"assistant.placeholder.disabled": "Chat requires internet connection",
+	"assistant.placeholder.offline": "Chat requires internet connection",
+	"assistant.placeholder.generating": "Generating response...",
 	"assistant.placeholder.initial": "Chat with Tilly",
 	"assistant.placeholder.reply": "Reply to Tilly...",
 
@@ -243,7 +244,8 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.clearChatHint.description":
 		"Ein neues Gespräch zu beginnen hilft, dein Nutzungsbudget zu sparen. Lösche deinen Chat für einen frischen Start.",
 	"assistant.clearChatHint.dismiss": "Alles klar",
-	"assistant.placeholder.disabled": "Chat erfordert Internetverbindung",
+	"assistant.placeholder.offline": "Chat erfordert Internetverbindung",
+	"assistant.placeholder.generating": "Antwort wird erstellt...",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
 	"assistant.placeholder.reply": "Tilly antworten...",
 

@@ -497,14 +497,16 @@ function UserInput(props: {
 								<FormControl>
 									<Textarea
 										placeholder={
-											props.disabled
-												? t("assistant.placeholder.disabled")
-												: props.chatSize === 0
-													? t("assistant.placeholder.initial")
-													: t("assistant.placeholder.reply")
+											!props.disabled && props.chatSize === 0
+												? t("assistant.placeholder.initial")
+												: !props.disabled
+													? t("assistant.placeholder.reply")
+													: props.stopGeneratingResponse
+														? t("assistant.placeholder.generating")
+														: t("assistant.placeholder.offline")
 										}
 										rows={1}
-										className="max-h-[9rem] min-h-11 flex-1 resize-none overflow-y-auto rounded-3xl"
+										className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
 										style={{ height: "auto" }}
 										autoResize={false}
 										disabled={props.disabled}
@@ -535,7 +537,7 @@ function UserInput(props: {
 										variant="destructive"
 										onClick={props.stopGeneratingResponse}
 										size="icon"
-										className="size-11 rounded-3xl"
+										className="size-10 rounded-3xl"
 									>
 										<Pause />
 									</Button>
@@ -543,7 +545,7 @@ function UserInput(props: {
 									<Button
 										type="submit"
 										size="icon"
-										className="size-11 rounded-3xl"
+										className="size-10 rounded-3xl"
 										disabled={props.disabled}
 									>
 										<Send />
