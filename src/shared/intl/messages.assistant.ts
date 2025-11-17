@@ -24,9 +24,15 @@ const baseAssistantMessages = messages({
 	"assistant.generatingOnOtherDevice": "Generating response on other device...",
 	"assistant.error.title": "Something went wrong",
 	"assistant.sendError.title": "Failed to send message",
+	"assistant.backgroundError.title": "Generation failed",
 	"assistant.responseFailure.title": "Response Issue",
 	"assistant.responseFailure.emptyDescription":
 		"I'm sorry, but I didn't respond properly. This sometimes happens with AI models. Please try your question again.",
+	"assistant.emptyMessages.description":
+		"No messages to process. Start a conversation first.",
+	"assistant.requestTooLarge.title": "Message too long",
+	"assistant.requestTooLarge.description":
+		"Your message exceeds the size limit. Try a shorter message or clear the chat to start fresh.",
 	"assistant.usageLimit.title": "Usage limit reached",
 	"assistant.usageLimit.description":
 		"You've reached your usage limit. Check your settings to see when limits reset.",
@@ -232,9 +238,15 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		"Antwort wird auf anderem Gerät erstellt...",
 	"assistant.error.title": "Etwas ist schief gelaufen",
 	"assistant.sendError.title": "Nachricht konnte nicht gesendet werden",
+	"assistant.backgroundError.title": "Generierung fehlgeschlagen",
 	"assistant.responseFailure.title": "Antwortproblem",
 	"assistant.responseFailure.emptyDescription":
 		"Entschuldigung, aber ich habe nicht richtig geantwortet. Das passiert manchmal bei KI-Modellen. Bitte versuche deine Frage nochmal.",
+	"assistant.emptyMessages.description":
+		"Keine Nachrichten zu verarbeiten. Starte zuerst ein Gespräch.",
+	"assistant.requestTooLarge.title": "Nachricht zu lang",
+	"assistant.requestTooLarge.description":
+		"Deine Nachricht überschreitet das Größenlimit. Versuche eine kürzere Nachricht oder leere den Chat für einen Neustart.",
 	"assistant.usageLimit.title": "Nutzungsgrenze erreicht",
 	"assistant.usageLimit.description":
 		"Du hast deine Nutzungsgrenze erreicht. Schaue in den Einstellungen wann die Grenzen zurückgesetzt werden.",

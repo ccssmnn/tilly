@@ -37,6 +37,7 @@ export let Assistant = co.map({
 	notificationCheckId: z.string().optional(),
 	notificationAcknowledgedId: z.string().optional(),
 	notifyOnComplete: z.boolean().optional(),
+	errorMessage: z.string().optional(),
 })
 
 export let UsageTracking = co.map({

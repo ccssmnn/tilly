@@ -33,10 +33,13 @@ function useAssistantAccess() {
 	return { status, isSignedIn }
 }
 
-function determineAccessStatus({ auth }: { auth: ReturnType<typeof useAuth> }) {
+function determineAccessStatus({
+	auth,
+}: {
+	auth: ReturnType<typeof useAuth>
+}): "granted" | "loading" | "denied" {
 	if (!auth.isLoaded) return "loading"
-
 	if (!auth.isSignedIn) return "denied"
-
-	return auth.has({ plan: "plus" }) ? "granted" : "denied"
+	if (auth.has({ plan: "plus" })) return "granted"
+	return "denied"
 }

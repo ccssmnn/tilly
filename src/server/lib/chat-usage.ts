@@ -19,18 +19,10 @@ export type { ModelMessages }
 
 type ModelMessages = ReturnType<typeof convertToModelMessages>
 
-function checkInputSize(user: ChatUser, messages: ModelMessages) {
+function checkInputSize(messages: ModelMessages) {
 	let estimatedTokens = estimateTokenCount(messages)
-
-	if (estimatedTokens > MAX_REQUEST_TOKENS) {
-		let overflow = estimatedTokens - MAX_REQUEST_TOKENS
-		console.warn(
-			`[Chat] ${user.id} | Request too large: ${estimatedTokens} tokens exceeds limit by ${overflow}`,
-		)
-		return false
-	}
-
-	return true
+	let overflow = Math.max(0, estimatedTokens - MAX_REQUEST_TOKENS)
+	return { overflow }
 }
 
 async function checkUsageLimits(

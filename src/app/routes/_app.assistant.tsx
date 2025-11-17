@@ -38,28 +38,17 @@ import { nanoid } from "nanoid"
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
 		if (!context.me) throw notFound()
-
-		let loadedMe = await context.me.$jazz.ensureLoaded({
-			resolve: query,
-		})
-
-		let initialMessages: TillyUIMessage[] = []
-		if (loadedMe.root.assistant?.stringifiedMessages) {
-			try {
-				initialMessages = loadedMe.root.assistant.stringifiedMessages.map(s =>
-					JSON.parse(s),
-				)
-			} catch (error) {
-				console.error("Failed to parse chat messages", error)
-			}
-		}
-
+		let loadedMe = await context.me.$jazz.ensureLoaded({ resolve })
+		let initialMessages =
+			loadedMe.root.assistant?.stringifiedMessages?.map(
+				s => JSON.parse(s) as TillyUIMessage,
+			) ?? []
 		return { me: loadedMe, initialMessages }
 	},
 	component: AssistantScreen,
 })
 
-let query = {
+let resolve = {
 	root: { people: { $each: true }, assistant: true },
 } as const satisfies ResolveQuery<typeof UserAccount>
 
@@ -81,6 +70,9 @@ function AssistantScreen() {
 			</AssistantLayout>
 		)
 	}
+
+	// just to be sure :)
+	access.status satisfies "granted"
 
 	return (
 		<AssistantLayout>
@@ -136,77 +128,49 @@ function SubscribePrompt() {
 }
 
 function AuthenticatedChat() {
+	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
-	})
-	let currentMe = subscribedMe ?? data.me
+	let { me: subscribedMe } = useAccount(UserAccount, { resolve })
+	let me = subscribedMe ?? data.me
+	let assistant = me.root.assistant
 
 	let canUseChat = useOnlineStatus()
 
-	let [isPending, setIsPending] = useState(false)
-	let [error, setError] = useState<Error | null>(null)
-	let [sendError, setSendError] = useState<Error | null>(null)
+	let [isSending, setIsSending] = useState(false)
+	let [failedToSend, setFailedToSend] = useState<Error | null>(null)
 
-	let lastValidMessagesRef = useRef<TillyUIMessage[]>(data.initialMessages)
-	let fetchAbortControllerRef = useRef<AbortController | null>(null)
+	let backgroundError = assistant?.errorMessage
 
-	let messages = useMemo(() => {
-		try {
-			let messagesList = currentMe.root.assistant?.stringifiedMessages ?? []
-			let parsed = messagesList.map(s => JSON.parse(s)) as TillyUIMessage[]
-			lastValidMessagesRef.current = parsed
-			return parsed
-		} catch (error) {
-			let messagesList = currentMe.root.assistant?.stringifiedMessages ?? []
-			console.error({ error, messagesList })
-			return lastValidMessagesRef.current
-		}
-	}, [currentMe.root.assistant?.stringifiedMessages])
+	let submitAbortControllerRef = useRef<AbortController | null>(null)
 
-	let isGenerating = !!currentMe.root?.assistant?.submittedAt
+	let messages = useMemo(
+		() =>
+			assistant?.stringifiedMessages?.map(
+				s => JSON.parse(s) as TillyUIMessage,
+			) ?? [],
+		[assistant?.stringifiedMessages],
+	)
 
-	useStaleGenerationTimeout(currentMe.root.assistant)
-	useNotificationAcknowledgment(currentMe.root.assistant)
+	let isGenerating = !!assistant?.submittedAt
 
-	async function handleSubmit(prompt: string) {
-		let metadata = {
-			userName: currentMe?.profile?.name || "Anonymous",
-			timezone: currentMe?.root?.notificationSettings?.timezone || "UTC",
-			locale: currentMe?.root?.language || "en",
-			timestamp: Date.now(),
-		}
-
-		let newMessage: TillyUIMessage = {
-			id: nanoid(),
-			role: "user",
-			parts: [{ type: "text", text: prompt }],
-			metadata,
-		}
-
-		await addMessageAndTriggerServer(newMessage)
-	}
+	useStaleGenerationTimeout(assistant)
+	useSetupNotificationAcknowledgment(assistant)
 
 	async function handleAbort() {
-		setIsPending(false)
+		submitAbortControllerRef.current?.abort()
+		assistant?.$jazz.set("abortRequestedAt", new Date())
 
-		if (fetchAbortControllerRef.current) {
-			fetchAbortControllerRef.current.abort()
-			fetchAbortControllerRef.current = null
-		}
-
-		currentMe.root.assistant?.$jazz.set("abortRequestedAt", new Date())
+		setIsSending(false)
 	}
 
 	async function addToolResult({
 		toolCallId,
 		output,
 	}: {
-		tool: string
 		toolCallId: string
 		output: unknown
 	}) {
-		if (!currentMe.root.assistant?.stringifiedMessages) return
+		if (!assistant?.stringifiedMessages) return
 
 		let messageIndex = messages.findIndex(msg => {
 			if (msg.role !== "assistant") return false
@@ -237,40 +201,39 @@ function AuthenticatedChat() {
 		message: TillyUIMessage,
 		replaceIndex?: number,
 	) {
-		setIsPending(true)
-		setSendError(null)
-		setError(null)
+		setIsSending(true)
+		setFailedToSend(null)
 
-		let assistant
-		if (currentMe.root.assistant) {
-			assistant = currentMe.root.assistant
+		let assistant_
+		if (assistant) {
+			assistant_ = assistant
 		} else {
-			assistant = Assistant.create({
+			assistant_ = Assistant.create({
 				version: 1,
 				stringifiedMessages: [],
 				submittedAt: new Date(),
 			})
-			currentMe.root.$jazz.set("assistant", assistant)
+			me.root.$jazz.set("assistant", assistant_)
 		}
 
-		if (!assistant.stringifiedMessages) {
-			assistant.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
-			assistant.$jazz.set("submittedAt", new Date())
+		if (!assistant_.stringifiedMessages) {
+			assistant_.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
+			assistant_.$jazz.set("submittedAt", new Date())
 		} else if (replaceIndex !== undefined) {
-			assistant.stringifiedMessages.$jazz.set(
+			assistant_.stringifiedMessages.$jazz.set(
 				replaceIndex,
 				JSON.stringify(message),
 			)
-			assistant.$jazz.set("submittedAt", new Date())
+			assistant_.$jazz.set("submittedAt", new Date())
 		} else {
-			assistant.stringifiedMessages.$jazz.push(JSON.stringify(message))
-			assistant.$jazz.set("submittedAt", new Date())
+			assistant_.stringifiedMessages.$jazz.push(JSON.stringify(message))
+			assistant_.$jazz.set("submittedAt", new Date())
 		}
 
-		await currentMe.$jazz.waitForAllCoValuesSync()
+		await me.$jazz.waitForAllCoValuesSync()
 
 		let controller = new AbortController()
-		fetchAbortControllerRef.current = controller
+		submitAbortControllerRef.current = controller
 
 		try {
 			let response = await fetch("/api/chat", {
@@ -283,19 +246,19 @@ function AuthenticatedChat() {
 				throw new Error(JSON.stringify(errorData))
 			}
 		} catch (error) {
-			assistant.$jazz.set("submittedAt", undefined)
+			assistant_.$jazz.set("submittedAt", undefined)
 			if ((error as Error).name === "AbortError") return
-			setSendError(error as Error)
+			setFailedToSend(error as Error)
 		} finally {
-			setIsPending(false)
-			fetchAbortControllerRef.current = null
+			setIsSending(false)
+			submitAbortControllerRef.current = null
 		}
 	}
 
-	let isBusy = isPending || isGenerating
+	let isBusy = isSending || isGenerating
 
 	return (
-		<>
+		<div className="space-y-4">
 			{!canUseChat && (
 				<Alert>
 					<WifiOff />
@@ -312,146 +275,144 @@ function AuthenticatedChat() {
 					<T k="assistant.emptyState" />
 				</TypographyMuted>
 			) : (
-				<div className="space-y-4">
-					{messages.map(message => (
-						<MessageRenderer
-							key={message.id}
-							message={message}
-							userId={currentMe.$jazz.id}
-							addToolResult={addToolResult}
-						/>
-					))}
-					{isPending ? (
-						<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
-							<Avatar className="size-8 animate-pulse">
-								<AvatarImage
-									src="/app/icons/icon-192x192.png"
-									alt="Tilly logo"
-								/>
-								<AvatarFallback>T</AvatarFallback>
-							</Avatar>
-							<T k="assistant.sending" />
-						</div>
-					) : isGenerating ? (
-						<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
-							<Avatar className="size-8 animate-pulse">
-								<AvatarImage
-									src="/app/icons/icon-192x192.png"
-									alt="Tilly logo"
-								/>
-								<AvatarFallback>T</AvatarFallback>
-							</Avatar>
-							<T k="assistant.generating" />
-						</div>
-					) : null}
-					{sendError && (
-						<Alert variant="destructive">
-							<AlertTitle>
-								<T k="assistant.sendError.title" />
-							</AlertTitle>
-							<AlertDescription>
-								<span className="select-text">{sendError.message}</span>
-							</AlertDescription>
-						</Alert>
-					)}
-					{error && (
-						<Alert variant="destructive">
-							<AlertTitle>
-								{isUsageLimitError(error!) ? (
-									<T k="assistant.usageLimit.title" />
-								) : (
-									<T k="assistant.error.title" />
-								)}
-							</AlertTitle>
-							<AlertDescription>
-								{isUsageLimitError(error!) ? (
-									<div className="space-y-2">
-										<T k="assistant.usageLimit.description" />
-										<Button
-											asChild
-											variant="outline"
-											size="sm"
-											className="mt-2"
-										>
-											<Link to="/settings">
-												<T k="assistant.usageLimit.viewSettings" />
-											</Link>
-										</Button>
-									</div>
-								) : (
-									<span className="select-text">{error!.message}</span>
-								)}
-							</AlertDescription>
-						</Alert>
-					)}
-					{messages.length > 0 &&
-						!isBusy &&
-						!currentMe.root.assistant?.clearChatHintDismissedAt && (
-							<Alert>
-								<InfoCircleFill />
-								<AlertTitle>
-									<T k="assistant.clearChatHint.title" />
-								</AlertTitle>
-								<AlertDescription>
-									<T k="assistant.clearChatHint.description" />
-									<Button
-										variant="secondary"
-										onClick={() => {
-											if (!currentMe.root.assistant) return
-											currentMe.root.assistant.$jazz.set(
-												"clearChatHintDismissedAt",
-												new Date(),
-											)
-										}}
-										className="mt-2"
-									>
-										<T k="assistant.clearChatHint.dismiss" />
-									</Button>
-								</AlertDescription>
-							</Alert>
+				messages.map(message => (
+					<MessageRenderer
+						key={message.id}
+						message={message}
+						userId={me.$jazz.id}
+						addToolResult={addToolResult}
+					/>
+				))
+			)}
+			{isSending ? (
+				<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
+					<Avatar className="size-8 animate-pulse">
+						<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly logo" />
+						<AvatarFallback>T</AvatarFallback>
+					</Avatar>
+					<T k="assistant.sending" />
+				</div>
+			) : isGenerating ? (
+				<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
+					<Avatar className="size-8 animate-pulse">
+						<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly logo" />
+						<AvatarFallback>T</AvatarFallback>
+					</Avatar>
+					<T k="assistant.generating" />
+				</div>
+			) : null}
+			{failedToSend && (
+				<Alert variant="destructive">
+					<AlertTitle>
+						{isUsageLimitError(failedToSend) ? (
+							<T k="assistant.usageLimit.title" />
+						) : isRequestTooLargeError(failedToSend) ? (
+							<T k="assistant.requestTooLarge.title" />
+						) : isEmptyMessagesError(failedToSend) ? (
+							<T k="assistant.sendError.title" />
+						) : (
+							<T k="assistant.sendError.title" />
 						)}
-					{messages.length > 0 && !isBusy && (
-						<div className="mt-2 flex justify-center">
+					</AlertTitle>
+					<AlertDescription>
+						{isUsageLimitError(failedToSend) ? (
+							<div className="space-y-2">
+								<T k="assistant.usageLimit.description" />
+								<Button asChild variant="outline" size="sm" className="mt-2">
+									<Link to="/settings">
+										<T k="assistant.usageLimit.viewSettings" />
+									</Link>
+								</Button>
+							</div>
+						) : isRequestTooLargeError(failedToSend) ? (
+							<T k="assistant.requestTooLarge.description" />
+						) : isEmptyMessagesError(failedToSend) ? (
+							<T k="assistant.emptyMessages.description" />
+						) : (
+							<span className="select-text">{failedToSend.message}</span>
+						)}
+					</AlertDescription>
+				</Alert>
+			)}
+			{backgroundError && (
+				<Alert variant="destructive">
+					<AlertTitle>
+						<T k="assistant.backgroundError.title" />
+					</AlertTitle>
+					<AlertDescription>
+						<span className="select-text">{backgroundError}</span>
+					</AlertDescription>
+				</Alert>
+			)}
+			{messages.length > 0 &&
+				!isBusy &&
+				!assistant?.clearChatHintDismissedAt && (
+					<Alert>
+						<InfoCircleFill />
+						<AlertTitle>
+							<T k="assistant.clearChatHint.title" />
+						</AlertTitle>
+						<AlertDescription>
+							<T k="assistant.clearChatHint.description" />
 							<Button
-								variant="ghost"
-								size="sm"
+								variant="secondary"
 								onClick={() => {
-									currentMe.root.assistant?.$jazz.set(
-										"stringifiedMessages",
-										co.list(z.string()).create([]),
-									)
+									if (!assistant) return
+									assistant.$jazz.set("clearChatHintDismissedAt", new Date())
 								}}
-								className="text-muted-foreground hover:text-foreground"
+								className="mt-2"
 							>
-								<T k="assistant.clearChat" />
+								<T k="assistant.clearChatHint.dismiss" />
 							</Button>
-						</div>
-					)}
-					<ScrollIntoView trigger={messages} />
-					<div className="h-22" />
+						</AlertDescription>
+					</Alert>
+				)}
+			{messages.length > 0 && !isBusy && (
+				<div className="mt-2 flex justify-center">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => {
+							assistant?.$jazz.set(
+								"stringifiedMessages",
+								co.list(z.string()).create([]),
+							)
+						}}
+						className="text-muted-foreground hover:text-foreground"
+					>
+						<T k="assistant.clearChat" />
+					</Button>
 				</div>
 			)}
+			<ScrollIntoView trigger={messages} />
+			<div className="h-22" />
 			<UserInput
-				onSubmit={handleSubmit}
+				placeholder={
+					isGenerating
+						? t("assistant.placeholder.generating")
+						: !canUseChat
+							? t("assistant.placeholder.offline")
+							: messages.length > 0
+								? t("assistant.placeholder.reply")
+								: t("assistant.placeholder.initial")
+				}
+				onSubmit={addMessageAndTriggerServer}
 				chatSize={messages.length}
 				stopGeneratingResponse={isBusy ? handleAbort : undefined}
 				disabled={!canUseChat || isBusy}
 			/>
-		</>
+		</div>
 	)
 }
 
 function UserInput(props: {
-	onSubmit: (prompt: string) => void
+	onSubmit: (message: TillyUIMessage) => void
 	chatSize: number
 	stopGeneratingResponse?: () => void
+	placeholder: string
 	disabled?: boolean
 }) {
-	let inputFocused = useInputFocusState()
-	let autoFocusRef = useAutoFocusInput()
-	let textareaRef = useRef<HTMLTextAreaElement>(null)
-	let t = useIntl()
-
+	let { me } = useAccount(UserAccount, { resolve })
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },
@@ -463,18 +424,49 @@ function UserInput(props: {
 		defaultValue: "",
 	})
 
+	let inputFocused = useInputFocusState()
+	let autoFocusRef = useAutoFocusInput()
+
+	let textareaRef = useRef<HTMLTextAreaElement>(null)
 	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
 
 	function handleSubmit(data: { prompt: string }) {
+		if (!me) return
 		if (!data.prompt.trim()) return
 
-		props.onSubmit(data.prompt)
-
-		form.setValue("prompt", "")
-		if (textareaRef.current) {
-			textareaRef.current.style.height = "auto"
-			textareaRef.current.style.height = ""
+		let metadata = {
+			userName: me.profile?.name || "Anonymous",
+			timezone: me.root.notificationSettings?.timezone || "UTC",
+			locale: me.root.language || "en",
+			timestamp: Date.now(),
 		}
+
+		let newMessage: TillyUIMessage = {
+			id: nanoid(),
+			role: "user",
+			parts: [{ type: "text", text: data.prompt }],
+			metadata,
+		}
+
+		props.onSubmit(newMessage)
+		form.reset()
+	}
+
+	function submitOnKeyCtrlEnter(
+		event: React.KeyboardEvent<HTMLTextAreaElement>,
+	) {
+		if (event.key !== "Enter") return
+
+		let shouldSubmit = event.metaKey || event.ctrlKey || event.shiftKey
+		if (!shouldSubmit) return
+
+		if (!promptValue.trim()) return
+		if (form.formState.isSubmitting) return
+
+		event.preventDefault()
+
+		form.handleSubmit(handleSubmit)()
+		textareaRef.current?.blur()
 	}
 
 	return (
@@ -496,34 +488,14 @@ function UserInput(props: {
 							<FormItem className="flex items-end">
 								<FormControl>
 									<Textarea
-										placeholder={
-											!props.disabled && props.chatSize === 0
-												? t("assistant.placeholder.initial")
-												: !props.disabled
-													? t("assistant.placeholder.reply")
-													: props.stopGeneratingResponse
-														? t("assistant.placeholder.generating")
-														: t("assistant.placeholder.offline")
-										}
+										placeholder={props.placeholder}
 										rows={1}
 										className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
 										style={{ height: "auto" }}
 										autoResize={false}
 										disabled={props.disabled}
 										{...field}
-										onKeyDown={e => {
-											if (e.key !== "Enter") return
-
-											let shouldSubmit = e.metaKey || e.ctrlKey || e.shiftKey
-											if (!shouldSubmit) return
-
-											e.preventDefault()
-
-											if (!form.formState.isSubmitting && field.value.trim()) {
-												form.handleSubmit(handleSubmit)()
-												textareaRef.current?.blur()
-											}
-										}}
+										onKeyDown={submitOnKeyCtrlEnter}
 										ref={r => {
 											textareaRef.current = r
 											autoFocusRef.current = r
@@ -586,21 +558,18 @@ function useStaleGenerationTimeout(
 	}, [assistant, assistant?.submittedAt])
 }
 
-function useNotificationAcknowledgment(
+function useSetupNotificationAcknowledgment(
 	assistant: co.loaded<typeof Assistant> | undefined,
 ) {
 	useEffect(() => {
 		if (!assistant) return
 
 		let unsubscribe = assistant.$jazz.subscribe(
-			(chat: co.loaded<typeof Assistant>) => {
-				if (
-					chat.notificationCheckId &&
-					chat.notificationCheckId !== chat.notificationAcknowledgedId &&
-					document.visibilityState === "visible"
-				) {
-					chat.$jazz.set("notificationAcknowledgedId", chat.notificationCheckId)
-				}
+			(a: co.loaded<typeof Assistant>) => {
+				if (document.visibilityState !== "visible") return
+				if (!a.notificationCheckId) return
+				if (a.notificationCheckId === a.notificationAcknowledgedId) return
+				a.$jazz.set("notificationAcknowledgedId", a.notificationCheckId)
 			},
 		)
 
@@ -616,28 +585,9 @@ async function resetGenerationMarkersForTimeout(
 	await assistant.$jazz.waitForSync()
 }
 
-function isUsageLimitError(error: unknown): boolean {
-	let payload = extractUsageLimitErrorPayload(error)
-	return payload?.code === "usage-limit-exceeded"
-}
-
-type UsageLimitErrorPayload = {
-	code: "usage-limit-exceeded"
-	error?: string
-	limitExceeded?: boolean
-	percentUsed?: number
-	resetDate?: string | null
-}
-
 function extractErrorMessage(error: unknown): string | null {
-	if (typeof error === "string") {
-		return error
-	}
-
-	if (error instanceof Error) {
-		return error.message
-	}
-
+	if (typeof error === "string") return error
+	if (error instanceof Error) return error.message
 	return null
 }
 
@@ -645,11 +595,29 @@ function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
 	return typeof value === "object" && value !== null
 }
 
-function extractUsageLimitErrorPayload(
-	value: unknown,
-): UsageLimitErrorPayload | null {
-	if (isUsageLimitErrorPayload(value)) {
-		return value
+function isUsageLimitError(error: unknown): boolean {
+	let payload = extractErrorPayload(error)
+	return payload?.code === "usage-limit-exceeded"
+}
+
+function isRequestTooLargeError(error: unknown): boolean {
+	let payload = extractErrorPayload(error)
+	return payload?.code === "request-too-large"
+}
+
+function isEmptyMessagesError(error: unknown): boolean {
+	let payload = extractErrorPayload(error)
+	return payload?.code === "empty-messages"
+}
+
+type ErrorPayload = {
+	code?: string
+	error?: string
+}
+
+function extractErrorPayload(value: unknown): ErrorPayload | null {
+	if (isRecord(value) && "code" in value) {
+		return value as ErrorPayload
 	}
 
 	let message = extractErrorMessage(value)
@@ -659,21 +627,11 @@ function extractUsageLimitErrorPayload(
 
 	try {
 		let parsed: unknown = JSON.parse(message)
-		if (isUsageLimitErrorPayload(parsed)) {
-			return parsed
+		if (isRecord(parsed)) {
+			return parsed as ErrorPayload
 		}
 		return null
 	} catch {
 		return null
 	}
-}
-
-function isUsageLimitErrorPayload(
-	value: unknown,
-): value is UsageLimitErrorPayload {
-	if (!isRecord(value)) {
-		return false
-	}
-
-	return value.code === "usage-limit-exceeded"
 }
