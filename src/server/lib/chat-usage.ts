@@ -35,9 +35,10 @@ function checkInputSize(user: ChatUser, messages: ModelMessages) {
 
 async function checkUsageLimits(
 	user: ChatUser,
-	worker: UserWorker,
+	userWorker: UserWorker,
+	serverWorker: ServerWorker,
 ): Promise<UsageLimitResult> {
-	let context = await ensureUsageContext(user, worker)
+	let context = await ensureUsageContext(user, userWorker, serverWorker)
 	let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
 
 	let exceeded = percentUsed >= 100
@@ -65,7 +66,20 @@ async function updateUsage(
 	subscription: SubscriptionStatus,
 	usage: UsageUpdatePayload,
 ): Promise<void> {
-	let context = await ensureUsageContext(user, worker)
+	let serverWorkerResult = await tryCatch(initServerWorker())
+	if (!serverWorkerResult.ok) {
+		console.error(
+			`[Usage] ${user.id} | Failed to init server worker for update`,
+			serverWorkerResult.error,
+		)
+		throw new Error("Failed to init server worker")
+	}
+
+	let context = await ensureUsageContext(
+		user,
+		worker,
+		serverWorkerResult.data.worker,
+	)
 
 	let updateResult = await tryCatch(
 		applyUsageUpdate(context.usageTracking, usage),
@@ -128,35 +142,27 @@ let usageAttachQuery = {
 
 async function ensureUsageContext(
 	user: ChatUser,
-	worker: UserWorker,
+	userWorker: UserWorker,
+	serverWorker: ServerWorker,
 ): Promise<UsageContext> {
 	let usageTracking = await loadUsageTrackingForUser(
 		user,
-		worker,
+		userWorker,
+		serverWorker,
 		getStoredUsageTrackingId(user),
 	)
 
-	await attachUsageTrackingToUser(worker, usageTracking)
+	await attachUsageTrackingToUser(userWorker, usageTracking)
 
-	return { worker, usageTracking }
+	return { worker: userWorker, usageTracking }
 }
 
 async function loadUsageTrackingForUser(
 	user: ChatUser,
 	userWorker: UserWorker,
+	serverWorker: ServerWorker,
 	existingUsageId?: string,
 ): Promise<co.loaded<typeof UsageTracking>> {
-	let serverWorkerResult = await tryCatch(initServerWorker())
-	if (!serverWorkerResult.ok) {
-		console.error(
-			`[Usage] ${user.id} | Failed to init server worker`,
-			serverWorkerResult.error,
-		)
-		throw new Error("Failed to init server worker")
-	}
-
-	let serverWorker: ServerWorker = serverWorkerResult.data.worker
-
 	if (existingUsageId) {
 		let existingResult = await tryCatch(
 			UsageTracking.load(existingUsageId, { loadAs: serverWorker }),

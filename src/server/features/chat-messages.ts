@@ -24,7 +24,7 @@ import {
 	checkUsageLimits,
 	updateUsage,
 } from "../lib/chat-usage"
-import { initUserWorker } from "#server/lib/utils"
+import { initUserWorker, initServerWorker } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
 import { co, type Loaded } from "jazz-tools"
 import { UserAccount, Assistant } from "#shared/schema/user"
@@ -45,21 +45,49 @@ let chatMessagesApp = new Hono()
 	.post("/", async c => {
 		let user = c.get("user")
 		let subscriptionStatus = c.get("subscription")
-		let { worker } = await initUserWorker(user)
+		let startTime = c.get("requestStartTime")
 
-		let workerWithMessages = await worker.$jazz.ensureLoaded({
-			resolve: {
-				root: { assistant: { stringifiedMessages: { $each: true } } },
-			},
-		})
+		function getElapsed(): number {
+			return Math.round(performance.now() - startTime)
+		}
+
+		function logStep(step: string) {
+			let elapsed = getElapsed()
+			let timeStr =
+				elapsed > 500 ? `\x1b[31m+${elapsed}ms\x1b[0m` : `+${elapsed}ms`
+			let prefix = `[Chat] ${user.id} | ${timeStr}`
+			if (elapsed > 500) {
+				console.warn(`${prefix} | ${step}`)
+			} else {
+				console.log(`${prefix} | ${step}`)
+			}
+		}
+
+		let [{ worker: userWorker }, { worker: serverWorker }] = await Promise.all([
+			initUserWorker(user),
+			initServerWorker(),
+		])
+		logStep("Workers initialized")
+
+		let [workerWithMessages, usageLimits] = await Promise.all([
+			userWorker.$jazz.ensureLoaded({
+				resolve: {
+					root: { assistant: { stringifiedMessages: { $each: true } } },
+				},
+			}),
+			checkUsageLimits(user, userWorker, serverWorker),
+		])
+		logStep("Messages loaded and usage limits checked")
+
 		let rawMessages = workerWithMessages.root.assistant?.stringifiedMessages
 		if (!rawMessages || rawMessages.length === 0) {
 			return c.json({ error: "put messages into your chat first" }, 400)
 		}
-		let messages = rawMessages.map(s => JSON.parse(s)) as TillyUIMessage[]
+		let messages = rawMessages.map((s: string) =>
+			JSON.parse(s),
+		) as TillyUIMessage[]
 		let userContextMessages = addUserContextToMessages(messages)
 
-		let usageLimits = await checkUsageLimits(user, worker)
 		if (usageLimits.exceeded) {
 			let errorMessage = "Usage budget exceeded"
 			let errorResponse: UsageLimitExceededResponse = {
@@ -79,6 +107,7 @@ let chatMessagesApp = new Hono()
 			ignoreIncompleteToolCalls: true,
 			tools: clientTools,
 		})
+		logStep("Messages converted")
 
 		if (!checkInputSize(user, modelMessages)) {
 			return c.json({ error: "Request too large" }, 413)
@@ -89,10 +118,12 @@ let chatMessagesApp = new Hono()
 			worker: workerWithMessages,
 			subscriptionStatus,
 			modelMessages,
+			requestStartTime: startTime,
 		}).catch((error: unknown) => {
 			console.error("Background generation failed:", error)
 		})
 
+		logStep("Request handled, starting background generation")
 		return c.json({ success: true }, 202)
 	})
 
@@ -279,30 +310,56 @@ async function runBackgroundGeneration(params: {
 	>
 	subscriptionStatus: SubscriptionStatus
 	modelMessages: ReturnType<typeof convertToModelMessages>
+	requestStartTime: number
 }) {
-	let { user, worker, subscriptionStatus, modelMessages } = params
+	let { user, worker, subscriptionStatus, modelMessages, requestStartTime } =
+		params
 
 	let chat = worker.root.assistant!
+	let generationStartTime = performance.now()
+
+	function getElapsed(): number {
+		return Math.round(performance.now() - generationStartTime)
+	}
+
+	function getElapsedFromRequest(): number {
+		return Math.round(performance.now() - requestStartTime)
+	}
+
+	function logStep(step: string) {
+		let elapsed = getElapsed()
+		let totalElapsed = getElapsedFromRequest()
+		let timeStr =
+			elapsed > 500 ? `\x1b[31m+${elapsed}ms\x1b[0m` : `+${elapsed}ms`
+		let totalStr =
+			totalElapsed > 500
+				? `\x1b[31m${totalElapsed}ms\x1b[0m`
+				: `${totalElapsed}ms`
+		let prefix = `[Chat] ${user.id} | ${timeStr} (total: ${totalStr})`
+		if (elapsed > 500) {
+			console.warn(`${prefix} | ${step}`)
+		} else {
+			console.log(`${prefix} | ${step}`)
+		}
+	}
 
 	let abortController = new AbortController()
 
 	let unsubscribe = chat.$jazz.subscribe(updatedChat => {
 		if (updatedChat.abortRequestedAt) {
-			console.log(
-				`[Chat] ${user.id} | Jazz abort requested at ${updatedChat.abortRequestedAt}`,
-			)
+			logStep(`Jazz abort requested at ${updatedChat.abortRequestedAt}`)
 			abortController.abort()
 		}
 	})
 
 	abortController.signal.addEventListener("abort", () => {
-		console.log(`[Chat] ${user.id} | AbortController signal aborted`)
+		logStep("AbortController signal aborted")
 	})
 
 	chat.$jazz.set("submittedAt", new Date())
 	await worker.$jazz.waitForSync()
 
-	console.log(`[Chat] ${user.id} | Starting generation`)
+	logStep("Starting generation")
 
 	try {
 		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
@@ -314,8 +371,8 @@ async function runBackgroundGeneration(params: {
 
 		let handleChunk = createChunkHandler()
 
-		console.log(
-			`[Chat] ${user.id} | About to call streamText, abortController.signal.aborted: ${abortController.signal.aborted}`,
+		logStep(
+			`About to call streamText, abortController.signal.aborted: ${abortController.signal.aborted}`,
 		)
 
 		let result = streamText({
@@ -349,7 +406,7 @@ async function runBackgroundGeneration(params: {
 					outputTokens,
 				})
 
-				await sendAssistantCompletionNotification(user, worker)
+				await sendAssistantCompletionNotification(user, worker, logStep)
 
 				chat.$jazz.set("submittedAt", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
@@ -357,7 +414,18 @@ async function runBackgroundGeneration(params: {
 				await worker.$jazz.waitForAllCoValuesSync()
 			},
 			onError: async error => {
-				console.error(`[Chat] ${user.id} | Error:`, error)
+				let elapsed = getElapsed()
+				let totalElapsed = getElapsedFromRequest()
+				let timeStr =
+					elapsed > 500 ? `\x1b[31m+${elapsed}ms\x1b[0m` : `+${elapsed}ms`
+				let totalStr =
+					totalElapsed > 500
+						? `\x1b[31m${totalElapsed}ms\x1b[0m`
+						: `${totalElapsed}ms`
+				console.error(
+					`[Chat] ${user.id} | ${timeStr} (total: ${totalStr}) | Error:`,
+					error,
+				)
 				chat.$jazz.set("submittedAt", undefined)
 				chat.$jazz.set("abortRequestedAt", undefined)
 			},
@@ -483,20 +551,17 @@ async function sendAssistantCompletionNotification(
 		typeof UserAccount,
 		{ root: { assistant: { stringifiedMessages: { $each: true } } } }
 	>,
+	logStep: (step: string) => void,
 ) {
 	try {
 		let chat = worker.root.assistant
 		if (!chat) {
-			console.log(
-				`[Chat] ${user.id} | No assistant chat, skipping notification`,
-			)
+			logStep("No assistant chat, skipping notification")
 			return
 		}
 
 		if (chat.notifyOnComplete === false) {
-			console.log(
-				`[Chat] ${user.id} | User disabled completion notifications, skipping`,
-			)
+			logStep("User disabled completion notifications, skipping")
 			return
 		}
 
@@ -506,9 +571,7 @@ async function sendAssistantCompletionNotification(
 		chat.$jazz.set("notificationAcknowledgedId", undefined)
 
 		if (acknowledged) {
-			console.log(
-				`[Chat] ${user.id} | Client acknowledged presence, skipping notification`,
-			)
+			logStep("Client acknowledged presence, skipping notification")
 			return
 		}
 
@@ -518,17 +581,13 @@ async function sendAssistantCompletionNotification(
 
 		let notificationSettings = workerWithSettings.root.notificationSettings
 		if (!notificationSettings) {
-			console.log(
-				`[Chat] ${user.id} | No notification settings, skipping notification`,
-			)
+			logStep("No notification settings, skipping notification")
 			return
 		}
 
 		let devices = getEnabledDevices(notificationSettings)
 		if (devices.length === 0) {
-			console.log(
-				`[Chat] ${user.id} | No enabled devices, skipping notification`,
-			)
+			logStep("No enabled devices, skipping notification")
 			return
 		}
 
@@ -542,9 +601,7 @@ async function sendAssistantCompletionNotification(
 			userId: user.id,
 		}
 
-		console.log(
-			`[Chat] ${user.id} | Sending completion notification to ${devices.length} devices`,
-		)
+		logStep(`Sending completion notification to ${devices.length} devices`)
 
 		let results = await Promise.allSettled(
 			devices.map(device => sendNotificationToDevice(device, payload)),
@@ -553,8 +610,8 @@ async function sendAssistantCompletionNotification(
 		let successCount = results.filter(
 			r => r.status === "fulfilled" && r.value.ok,
 		).length
-		console.log(
-			`[Chat] ${user.id} | Completion notification sent to ${successCount}/${devices.length} devices`,
+		logStep(
+			`Completion notification sent to ${successCount}/${devices.length} devices`,
 		)
 	} catch (error) {
 		console.error(
