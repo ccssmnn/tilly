@@ -438,6 +438,7 @@ function UserInput(props: {
 			userName: me.profile?.name || "Anonymous",
 			timezone: me.root.notificationSettings?.timezone || "UTC",
 			locale: me.root.language || "en",
+			// eslint-disable-next-line react-hooks/purity
 			timestamp: Date.now(),
 		}
 
@@ -479,7 +480,6 @@ function UserInput(props: {
 			)}
 		>
 			<Form {...form}>
-				{/* eslint-disable-next-line react-hooks/refs */}
 				<form onSubmit={form.handleSubmit(handleSubmit)}>
 					<FormField
 						control={form.control}
