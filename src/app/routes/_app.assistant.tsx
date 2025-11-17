@@ -130,18 +130,12 @@ function SubscribePrompt() {
 function AuthenticatedChat() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
+
 	let { me: subscribedMe } = useAccount(UserAccount, { resolve })
 	let me = subscribedMe ?? data.me
 	let assistant = me.root.assistant
 
-	let canUseChat = useOnlineStatus()
-
-	let [isSending, setIsSending] = useState(false)
-	let [failedToSend, setFailedToSend] = useState<Error | null>(null)
-
-	let backgroundError = assistant?.errorMessage
-
-	let submitAbortControllerRef = useRef<AbortController | null>(null)
+	let isOnline = useOnlineStatus()
 
 	let messages = useMemo(
 		() =>
@@ -151,125 +145,23 @@ function AuthenticatedChat() {
 		[assistant?.stringifiedMessages],
 	)
 
-	let isGenerating = !!assistant?.submittedAt
+	let {
+		isSending,
+		failedToSend,
+		sendMessage,
+		abort, //
+	} = useChatMessaging({ me, assistant })
 
 	useStaleGenerationTimeout(assistant)
 	useSetupNotificationAcknowledgment(assistant)
 
-	async function handleAbort() {
-		submitAbortControllerRef.current?.abort()
-		assistant?.$jazz.set("abortRequestedAt", new Date())
-
-		setIsSending(false)
-	}
-
-	async function addToolResult({
-		toolCallId,
-		output,
-	}: {
-		toolCallId: string
-		output: unknown
-	}) {
-		if (!assistant?.stringifiedMessages) return
-
-		let messageIndex = messages.findIndex(msg => {
-			if (msg.role !== "assistant") return false
-			return msg.parts?.some(
-				p => "toolCallId" in p && p.toolCallId === toolCallId,
-			)
-		})
-
-		if (messageIndex === -1) return
-
-		let msg = messages[messageIndex]
-		let updatedParts = msg.parts?.map(part => {
-			if (!("toolCallId" in part)) return part
-			if (part.toolCallId !== toolCallId) return part
-
-			return {
-				...part,
-				output,
-				state: "output-available" as const,
-			}
-		}) as TillyUIMessage["parts"]
-
-		let updatedMessage: TillyUIMessage = { ...msg, parts: updatedParts }
-		await addMessageAndTriggerServer(updatedMessage, messageIndex)
-	}
-
-	async function addMessageAndTriggerServer(
-		message: TillyUIMessage,
-		replaceIndex?: number,
-	) {
-		setIsSending(true)
-		setFailedToSend(null)
-
-		let assistant_
-		if (assistant) {
-			assistant_ = assistant
-		} else {
-			assistant_ = Assistant.create({
-				version: 1,
-				stringifiedMessages: [],
-				submittedAt: new Date(),
-			})
-			me.root.$jazz.set("assistant", assistant_)
-		}
-
-		if (!assistant_.stringifiedMessages) {
-			assistant_.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
-			assistant_.$jazz.set("submittedAt", new Date())
-		} else if (replaceIndex !== undefined) {
-			assistant_.stringifiedMessages.$jazz.set(
-				replaceIndex,
-				JSON.stringify(message),
-			)
-			assistant_.$jazz.set("submittedAt", new Date())
-		} else {
-			assistant_.stringifiedMessages.$jazz.push(JSON.stringify(message))
-			assistant_.$jazz.set("submittedAt", new Date())
-		}
-
-		await me.$jazz.waitForAllCoValuesSync()
-
-		let controller = new AbortController()
-		submitAbortControllerRef.current = controller
-
-		try {
-			let response = await fetch("/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				signal: controller.signal,
-			})
-			if (!response.ok) {
-				let errorData = await response.json()
-				throw new Error(JSON.stringify(errorData))
-			}
-		} catch (error) {
-			assistant_.$jazz.set("submittedAt", undefined)
-			if ((error as Error).name === "AbortError") return
-			setFailedToSend(error as Error)
-		} finally {
-			setIsSending(false)
-			submitAbortControllerRef.current = null
-		}
-	}
-
+	let isGenerating = !!assistant?.submittedAt
 	let isBusy = isSending || isGenerating
 
 	return (
 		<div className="space-y-4">
-			{!canUseChat && (
-				<Alert>
-					<WifiOff />
-					<AlertTitle>
-						<T k="assistant.chatUnavailable.title" />
-					</AlertTitle>
-					<AlertDescription>
-						<T k="assistant.chatUnavailable.description" />
-					</AlertDescription>
-				</Alert>
-			)}
+			{!isOnline && <OfflineAlert />}
+
 			{messages.length === 0 ? (
 				<TypographyMuted>
 					<T k="assistant.emptyState" />
@@ -279,128 +171,177 @@ function AuthenticatedChat() {
 					<MessageRenderer
 						key={message.id}
 						message={message}
-						userId={me.$jazz.id}
 						addToolResult={addToolResult}
 					/>
 				))
 			)}
+
 			{isSending ? (
-				<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
-					<Avatar className="size-8 animate-pulse">
-						<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly logo" />
-						<AvatarFallback>T</AvatarFallback>
-					</Avatar>
-					<T k="assistant.sending" />
-				</div>
+				<LoadingIndicator state="sending" />
 			) : isGenerating ? (
-				<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
-					<Avatar className="size-8 animate-pulse">
-						<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly logo" />
-						<AvatarFallback>T</AvatarFallback>
-					</Avatar>
-					<T k="assistant.generating" />
-				</div>
+				<LoadingIndicator state="generating" />
 			) : null}
-			{failedToSend && (
-				<Alert variant="destructive">
-					<AlertTitle>
-						{isUsageLimitError(failedToSend) ? (
-							<T k="assistant.usageLimit.title" />
-						) : isRequestTooLargeError(failedToSend) ? (
-							<T k="assistant.requestTooLarge.title" />
-						) : isEmptyMessagesError(failedToSend) ? (
-							<T k="assistant.sendError.title" />
-						) : (
-							<T k="assistant.sendError.title" />
-						)}
-					</AlertTitle>
-					<AlertDescription>
-						{isUsageLimitError(failedToSend) ? (
-							<div className="space-y-2">
-								<T k="assistant.usageLimit.description" />
-								<Button asChild variant="outline" size="sm" className="mt-2">
-									<Link to="/settings">
-										<T k="assistant.usageLimit.viewSettings" />
-									</Link>
-								</Button>
-							</div>
-						) : isRequestTooLargeError(failedToSend) ? (
-							<T k="assistant.requestTooLarge.description" />
-						) : isEmptyMessagesError(failedToSend) ? (
-							<T k="assistant.emptyMessages.description" />
-						) : (
-							<span className="select-text">{failedToSend.message}</span>
-						)}
-					</AlertDescription>
-				</Alert>
-			)}
-			{backgroundError && (
-				<Alert variant="destructive">
-					<AlertTitle>
-						<T k="assistant.backgroundError.title" />
-					</AlertTitle>
-					<AlertDescription>
-						<span className="select-text">{backgroundError}</span>
-					</AlertDescription>
-				</Alert>
-			)}
-			{messages.length > 0 &&
-				!isBusy &&
-				!assistant?.clearChatHintDismissedAt && (
-					<Alert>
-						<InfoCircleFill />
-						<AlertTitle>
-							<T k="assistant.clearChatHint.title" />
-						</AlertTitle>
-						<AlertDescription>
-							<T k="assistant.clearChatHint.description" />
-							<Button
-								variant="secondary"
-								onClick={() => {
-									if (!assistant) return
-									assistant.$jazz.set("clearChatHintDismissedAt", new Date())
-								}}
-								className="mt-2"
-							>
-								<T k="assistant.clearChatHint.dismiss" />
-							</Button>
-						</AlertDescription>
-					</Alert>
-				)}
+
+			<SendingError error={failedToSend} />
+			<GenerationError error={assistant?.errorMessage} />
+
 			{messages.length > 0 && !isBusy && (
-				<div className="mt-2 flex justify-center">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => {
-							assistant?.$jazz.set(
-								"stringifiedMessages",
-								co.list(z.string()).create([]),
-							)
-						}}
-						className="text-muted-foreground hover:text-foreground"
-					>
-						<T k="assistant.clearChat" />
-					</Button>
-				</div>
+				<>
+					<ClearChatHint assistant={assistant} />
+					<ClearChatButton assistant={assistant} />
+				</>
 			)}
+
 			<ScrollIntoView trigger={messages} />
+
 			<div className="h-22" />
+
 			<UserInput
 				placeholder={
 					isGenerating
 						? t("assistant.placeholder.generating")
-						: !canUseChat
+						: !isOnline
 							? t("assistant.placeholder.offline")
 							: messages.length > 0
 								? t("assistant.placeholder.reply")
 								: t("assistant.placeholder.initial")
 				}
-				onSubmit={addMessageAndTriggerServer}
+				onSubmit={sendMessage}
 				chatSize={messages.length}
-				stopGeneratingResponse={isBusy ? handleAbort : undefined}
-				disabled={!canUseChat || isBusy}
+				stopGeneratingResponse={isBusy ? abort : undefined}
+				disabled={!isOnline || isBusy}
 			/>
+		</div>
+	)
+}
+
+function OfflineAlert() {
+	return (
+		<Alert>
+			<WifiOff />
+			<AlertTitle>
+				<T k="assistant.chatUnavailable.title" />
+			</AlertTitle>
+			<AlertDescription>
+				<T k="assistant.chatUnavailable.description" />
+			</AlertDescription>
+		</Alert>
+	)
+}
+
+function LoadingIndicator({ state }: { state: "sending" | "generating" }) {
+	return (
+		<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
+			<Avatar className="size-8 animate-pulse">
+				<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly logo" />
+				<AvatarFallback>T</AvatarFallback>
+			</Avatar>
+			<T k={`assistant.${state}`} />
+		</div>
+	)
+}
+
+function SendingError({ error }: { error: Error | null }) {
+	if (!error) return null
+
+	return (
+		<Alert variant="destructive">
+			<AlertTitle>
+				{isUsageLimitError(error) ? (
+					<T k="assistant.usageLimit.title" />
+				) : isRequestTooLargeError(error) ? (
+					<T k="assistant.requestTooLarge.title" />
+				) : isEmptyMessagesError(error) ? (
+					<T k="assistant.sendError.title" />
+				) : (
+					<T k="assistant.sendError.title" />
+				)}
+			</AlertTitle>
+			<AlertDescription>
+				{isUsageLimitError(error) ? (
+					<div className="space-y-2">
+						<T k="assistant.usageLimit.description" />
+						<Button asChild variant="outline" size="sm" className="mt-2">
+							<Link to="/settings">
+								<T k="assistant.usageLimit.viewSettings" />
+							</Link>
+						</Button>
+					</div>
+				) : isRequestTooLargeError(error) ? (
+					<T k="assistant.requestTooLarge.description" />
+				) : isEmptyMessagesError(error) ? (
+					<T k="assistant.emptyMessages.description" />
+				) : (
+					<span className="select-text">{error.message}</span>
+				)}
+			</AlertDescription>
+		</Alert>
+	)
+}
+
+function GenerationError({ error }: { error?: string }) {
+	if (!error) return null
+	return (
+		<Alert variant="destructive">
+			<AlertTitle>
+				<T k="assistant.backgroundError.title" />
+			</AlertTitle>
+			<AlertDescription>
+				<span className="select-text">{error}</span>
+			</AlertDescription>
+		</Alert>
+	)
+}
+
+function ClearChatHint({
+	assistant,
+}: {
+	assistant: co.loaded<typeof Assistant> | undefined
+}) {
+	if (!assistant || assistant.clearChatHintDismissedAt) return null
+
+	return (
+		<Alert>
+			<InfoCircleFill />
+			<AlertTitle>
+				<T k="assistant.clearChatHint.title" />
+			</AlertTitle>
+			<AlertDescription>
+				<T k="assistant.clearChatHint.description" />
+				<Button
+					variant="secondary"
+					onClick={() => {
+						assistant.$jazz.set("clearChatHintDismissedAt", new Date())
+					}}
+					className="mt-2"
+				>
+					<T k="assistant.clearChatHint.dismiss" />
+				</Button>
+			</AlertDescription>
+		</Alert>
+	)
+}
+
+function ClearChatButton({
+	assistant,
+}: {
+	assistant: co.loaded<typeof Assistant> | undefined
+}) {
+	return (
+		<div className="mt-2 flex justify-center">
+			<Button
+				variant="ghost"
+				size="sm"
+				onClick={() => {
+					assistant?.$jazz.set(
+						"stringifiedMessages",
+						co.list(z.string()).create([]),
+					)
+				}}
+				className="text-muted-foreground hover:text-foreground"
+			>
+				<T k="assistant.clearChat" />
+			</Button>
 		</div>
 	)
 }
@@ -530,6 +471,112 @@ function UserInput(props: {
 			</Form>
 		</div>
 	)
+}
+
+function useChatMessaging({
+	me,
+	assistant,
+}: {
+	me: co.loaded<typeof UserAccount, typeof resolve>
+	assistant: co.loaded<typeof Assistant> | undefined
+}) {
+	let [isSending, setIsSending] = useState(false)
+	let [failedToSend, setFailedToSend] = useState<Error | null>(null)
+	let submitAbortControllerRef = useRef<AbortController | null>(null)
+
+	async function sendMessage(message: TillyUIMessage, replaceIndex?: number) {
+		setIsSending(true)
+		setFailedToSend(null)
+
+		let assistant_
+		if (assistant) {
+			assistant_ = assistant
+		} else {
+			assistant_ = Assistant.create({
+				version: 1,
+				stringifiedMessages: [],
+				submittedAt: new Date(),
+			})
+			me.root.$jazz.set("assistant", assistant_)
+		}
+
+		if (!assistant_.stringifiedMessages) {
+			assistant_.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
+			assistant_.$jazz.set("submittedAt", new Date())
+		} else if (replaceIndex !== undefined) {
+			assistant_.stringifiedMessages.$jazz.set(
+				replaceIndex,
+				JSON.stringify(message),
+			)
+			assistant_.$jazz.set("submittedAt", new Date())
+		} else {
+			assistant_.stringifiedMessages.$jazz.push(JSON.stringify(message))
+			assistant_.$jazz.set("submittedAt", new Date())
+		}
+
+		await me.$jazz.waitForAllCoValuesSync()
+
+		let controller = new AbortController()
+		submitAbortControllerRef.current = controller
+
+		try {
+			let response = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				signal: controller.signal,
+			})
+			if (!response.ok) {
+				let errorData = await response.json()
+				throw new Error(JSON.stringify(errorData))
+			}
+		} catch (error) {
+			assistant_.$jazz.set("submittedAt", undefined)
+			if ((error as Error).name === "AbortError") return
+			setFailedToSend(error as Error)
+		} finally {
+			setIsSending(false)
+			submitAbortControllerRef.current = null
+		}
+	}
+
+	async function abort() {
+		submitAbortControllerRef.current?.abort()
+		assistant?.$jazz.set("abortRequestedAt", new Date())
+		setIsSending(false)
+	}
+
+	return {
+		isSending,
+		failedToSend,
+		sendMessage,
+		abort,
+	}
+}
+
+async function addToolResult(
+	toolCallId: string,
+	output: unknown,
+	messages: TillyUIMessage[],
+	sendMessage: (msg: TillyUIMessage, idx?: number) => Promise<void>,
+) {
+	let messageIndex = messages.findIndex(msg => {
+		if (msg.role !== "assistant") return false
+		return msg.parts?.some(
+			p => "toolCallId" in p && p.toolCallId === toolCallId,
+		)
+	})
+
+	if (messageIndex === -1) return
+
+	let msg = messages[messageIndex]
+	let updatedParts = msg.parts?.map(part => {
+		if (!("toolCallId" in part)) return part
+		if (part.toolCallId !== toolCallId) return part
+		return { ...part, output, state: "output-available" as const }
+	}) as TillyUIMessage["parts"]
+
+	let updatedMessage: TillyUIMessage = { ...msg, parts: updatedParts }
+	await sendMessage(updatedMessage, messageIndex)
 }
 
 let GENERATION_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes

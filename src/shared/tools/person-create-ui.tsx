@@ -37,6 +37,7 @@ import {
 import { TypographyMuted } from "#shared/ui/typography"
 import { useAccount } from "jazz-tools/react-core"
 import { UserAccount } from "#shared/schema/user"
+import { tryCatch } from "#shared/lib/trycatch"
 
 export { CreatePersonConfirmation, CreatePersonResult }
 
@@ -45,7 +46,6 @@ type CreatePersonToolUI = InferUITool<typeof createPersonTool>
 function CreatePersonConfirmation({
 	part,
 	addToolResult,
-	userId,
 }: {
 	part: {
 		toolCallId: string
@@ -53,34 +53,34 @@ function CreatePersonConfirmation({
 		state: "input-available"
 	}
 	addToolResult: AddToolResultFunction
-	userId: string
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isCreating, setIsCreating] = useState(false)
 	let t = useIntl()
 
 	let handleConfirm = async () => {
+		if (!me) return
 		setIsCreating(true)
-		try {
-			let result = await createPersonExecute(userId, part.input)
+		let res = await tryCatch(createPersonExecute(me.$jazz.id, part.input))
+		if (res.ok) {
 			addToolResult({
 				tool: "createPerson",
 				toolCallId: part.toolCallId,
-				output: result,
+				output: res.data,
 			})
-		} catch (error) {
+		} else {
 			addToolResult({
 				tool: "createPerson",
 				toolCallId: part.toolCallId,
 				output: {
 					error:
-						error instanceof Error
-							? error.message
+						res.error instanceof Error
+							? res.error.message
 							: t("tool.error.failedToCreate"),
 				},
 			})
-		} finally {
-			setIsCreating(false)
 		}
+		setIsCreating(false)
 	}
 
 	let handleReject = () => {

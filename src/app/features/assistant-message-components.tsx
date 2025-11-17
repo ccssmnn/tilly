@@ -24,11 +24,9 @@ export function UserMessage({ message }: { message: TillyUIMessage }) {
 
 export function AssistantMessage({
 	message,
-	userId,
 	addToolResult,
 }: {
 	message: TillyUIMessage
-	userId?: string
 	addToolResult?: AddToolResultFunction
 }) {
 	if (message.role !== "assistant") return null
@@ -74,7 +72,6 @@ export function AssistantMessage({
 					key={`confirmation-${i}`}
 					part={part}
 					addToolResult={addToolResult}
-					userId={userId!}
 				/>,
 			)
 		} else if (
@@ -102,8 +99,7 @@ export function AssistantMessage({
 			part.type.startsWith("tool-") &&
 			"state" in part &&
 			part.state === "output-available" &&
-			"output" in part &&
-			userId
+			"output" in part
 		) {
 			if (currentTextChunk.trim()) {
 				renderedParts.push(
@@ -140,7 +136,6 @@ export function AssistantMessage({
 
 export function ToolMessage({ message }: { message: TillyUIMessage }) {
 	if (message.role !== "assistant") return null
-
 	return (
 		<div className="mb-4 space-y-2 select-text">
 			{message.parts?.map((part, index) => {
@@ -171,11 +166,9 @@ export function ToolMessage({ message }: { message: TillyUIMessage }) {
 
 export function MessageRenderer({
 	message,
-	userId,
 	addToolResult,
 }: {
 	message: TillyUIMessage
-	userId: string
 	addToolResult?: AddToolResultFunction
 }) {
 	switch (message.role) {
@@ -183,11 +176,7 @@ export function MessageRenderer({
 			return <UserMessage message={message} />
 		case "assistant":
 			return (
-				<AssistantMessage
-					message={message}
-					userId={userId}
-					addToolResult={addToolResult}
-				/>
+				<AssistantMessage message={message} addToolResult={addToolResult} />
 			)
 		default:
 			return null
