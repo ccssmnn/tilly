@@ -1,6 +1,6 @@
 import { tryCatch } from "#shared/lib/trycatch"
 import { UsageTracking, UserAccount } from "#shared/schema/user"
-import type { ModelMessage } from "ai"
+import type { convertToModelMessages } from "ai"
 import {
 	CACHED_INPUT_TOKEN_COST_PER_MILLION,
 	INPUT_TOKEN_COST_PER_MILLION,
@@ -15,26 +15,22 @@ import { type SubscriptionStatus } from "./chat-subscription"
 import { initServerWorker, initUserWorker } from "./utils"
 
 export { checkInputSize, checkUsageLimits, updateUsage }
+export type { ModelMessages }
 
-function checkInputSize(
-	user: ChatUser,
-	messages: Array<TokenCountMessage | ModelMessage>,
-) {
+type ModelMessages = ReturnType<typeof convertToModelMessages>
+
+function checkInputSize(messages: ModelMessages) {
 	let estimatedTokens = estimateTokenCount(messages)
-
-	if (estimatedTokens > MAX_REQUEST_TOKENS) {
-		let overflow = estimatedTokens - MAX_REQUEST_TOKENS
-		console.warn(
-			`[Chat] ${user.id} | Request too large: ${estimatedTokens} tokens exceeds limit by ${overflow}`,
-		)
-		return false
-	}
-
-	return true
+	let overflow = Math.max(0, estimatedTokens - MAX_REQUEST_TOKENS)
+	return { overflow }
 }
 
-async function checkUsageLimits(user: ChatUser): Promise<UsageLimitResult> {
-	let context = await ensureUsageContext(user)
+async function checkUsageLimits(
+	user: ChatUser,
+	userWorker: UserWorker,
+	serverWorker: ServerWorker,
+): Promise<UsageLimitResult> {
+	let context = await ensureUsageContext(user, userWorker, serverWorker)
 	let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
 
 	let exceeded = percentUsed >= 100
@@ -58,10 +54,24 @@ async function checkUsageLimits(user: ChatUser): Promise<UsageLimitResult> {
 
 async function updateUsage(
 	user: ChatUser,
+	worker: UserWorker,
 	subscription: SubscriptionStatus,
 	usage: UsageUpdatePayload,
 ): Promise<void> {
-	let context = await ensureUsageContext(user)
+	let serverWorkerResult = await tryCatch(initServerWorker())
+	if (!serverWorkerResult.ok) {
+		console.error(
+			`[Usage] ${user.id} | Failed to init server worker for update`,
+			serverWorkerResult.error,
+		)
+		throw new Error("Failed to init server worker")
+	}
+
+	let context = await ensureUsageContext(
+		user,
+		worker,
+		serverWorkerResult.data.worker,
+	)
 
 	let updateResult = await tryCatch(
 		applyUsageUpdate(context.usageTracking, usage),
@@ -89,7 +99,12 @@ async function updateUsage(
 
 type ChatUser = {
 	id: string
-	unsafeMetadata: Record<string, unknown>
+	unsafeMetadata: UserMetadata
+}
+
+type UserMetadata = {
+	usageTrackingId?: string
+	[key: string]: unknown
 }
 
 type UsageUpdatePayload = {
@@ -112,63 +127,34 @@ type UsageContext = {
 	usageTracking: co.loaded<typeof UsageTracking>
 }
 
-type TokenCountPart = {
-	type?: string
-	text?: string
-	input?: unknown
-	output?: unknown
-}
-
-type TokenCountMessage = {
-	role?: string
-	parts?: TokenCountPart[]
-	content?: unknown
-	toolCalls?: Array<Record<string, unknown>>
-}
-
 let usageAttachQuery = {
 	profile: true,
 	root: { usageTracking: true },
 } satisfies ResolveQuery<typeof UserAccount>
 
-async function ensureUsageContext(user: ChatUser): Promise<UsageContext> {
-	let workerResult = await tryCatch(initUserWorker(user))
-	if (!workerResult.ok) {
-		console.error(
-			`[Usage] ${user.id} | Failed to init worker`,
-			workerResult.error,
-		)
-		throw new Error("Failed to init worker")
-	}
-
-	let worker: UserWorker = workerResult.data.worker
+async function ensureUsageContext(
+	user: ChatUser,
+	userWorker: UserWorker,
+	serverWorker: ServerWorker,
+): Promise<UsageContext> {
 	let usageTracking = await loadUsageTrackingForUser(
 		user,
-		worker,
+		userWorker,
+		serverWorker,
 		getStoredUsageTrackingId(user),
 	)
 
-	await attachUsageTrackingToUser(worker, usageTracking)
+	await attachUsageTrackingToUser(userWorker, usageTracking)
 
-	return { worker, usageTracking }
+	return { worker: userWorker, usageTracking }
 }
 
 async function loadUsageTrackingForUser(
 	user: ChatUser,
 	userWorker: UserWorker,
+	serverWorker: ServerWorker,
 	existingUsageId?: string,
 ): Promise<co.loaded<typeof UsageTracking>> {
-	let serverWorkerResult = await tryCatch(initServerWorker())
-	if (!serverWorkerResult.ok) {
-		console.error(
-			`[Usage] ${user.id} | Failed to init server worker`,
-			serverWorkerResult.error,
-		)
-		throw new Error("Failed to init server worker")
-	}
-
-	let serverWorker: ServerWorker = serverWorkerResult.data.worker
-
 	if (existingUsageId) {
 		let existingResult = await tryCatch(
 			UsageTracking.load(existingUsageId, { loadAs: serverWorker }),
@@ -362,79 +348,36 @@ function calculateCost(
 	return cachedInputCost + nonCachedCost + outputCost
 }
 
-function estimateTokenCount(
-	messages: Array<TokenCountMessage | ModelMessage>,
-): number {
+function estimateTokenCount(messages: ModelMessages): number {
 	let totalChars = 0
 
 	for (let message of messages) {
 		let messageChars = 0
 
-		if ("parts" in message && Array.isArray(message.parts)) {
-			messageChars += countCharsInParts(message.parts)
-		} else if (typeof message.content === "string") {
+		if (typeof message.content === "string") {
 			messageChars += message.content.length
-		} else if (isContentArray(message.content)) {
-			messageChars += message.content.reduce((sum, part) => {
-				if (typeof part.text === "string") {
-					return sum + part.text.length
-				}
-				return sum
-			}, 0)
-		} else if (isContentObject(message.content)) {
-			messageChars += JSON.stringify(message.content).length
-		}
-
-		if ("toolCalls" in message && Array.isArray(message.toolCalls)) {
-			for (let toolCall of message.toolCalls) {
-				if (toolCall && typeof toolCall === "object") {
-					messageChars += JSON.stringify(toolCall).length
+		} else if (Array.isArray(message.content)) {
+			for (let part of message.content) {
+				if (part.type === "text") {
+					messageChars += part.text.length
+				} else if (part.type === "tool-call") {
+					messageChars += part.toolName.length
+					let toolCallData = part as unknown as Record<string, unknown>
+					messageChars += JSON.stringify(toolCallData).length
+				} else if (part.type === "tool-result") {
+					messageChars += part.toolName.length
+					let toolResultData = part as unknown as Record<string, unknown>
+					messageChars += JSON.stringify(toolResultData).length
 				}
 			}
 		}
 
-		if (typeof message.role === "string") {
-			messageChars += message.role.length
-		}
+		messageChars += message.role.length
 
 		totalChars += messageChars
 	}
 
 	return Math.ceil(totalChars / 4)
-}
-
-function countCharsInParts(parts: TokenCountPart[]): number {
-	return parts.reduce((sum, part) => {
-		if (typeof part.text === "string") {
-			return sum + part.text.length
-		}
-
-		if (typeof part.type === "string" && part.type.startsWith("tool-")) {
-			let toolName = part.type.replace("tool-", "")
-			let inputStr = JSON.stringify(part.input)
-			return sum + toolName.length + inputStr.length
-		}
-
-		if (typeof part.output === "string") {
-			return sum + part.output.length
-		}
-
-		if (part.output && typeof part.output === "object") {
-			return sum + JSON.stringify(part.output).length
-		}
-
-		return sum
-	}, 0)
-}
-
-function isContentArray(content: unknown): content is Array<{ text?: string }> {
-	return Array.isArray(content)
-}
-
-function isContentObject(content: unknown): content is Record<string, unknown> {
-	return (
-		Boolean(content) && typeof content === "object" && !Array.isArray(content)
-	)
 }
 
 function createWeeklyResetDate(): Date {

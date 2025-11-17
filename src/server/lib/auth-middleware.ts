@@ -7,6 +7,7 @@ type AuthAppContext = {
 	Variables: {
 		auth: AuthObject | null
 		user: User | null
+		requestStartTime: number
 	}
 }
 
@@ -14,11 +15,14 @@ type AuthenticatedAppContext = {
 	Variables: {
 		auth: Extract<AuthObject, { userId: string }>
 		user: User
+		requestStartTime: number
 	}
 }
 
 export let authMiddleware = createMiddleware<AuthAppContext>(
 	async (c, next) => {
+		c.set("requestStartTime", performance.now())
+
 		let result = await clerkClient.authenticateRequest(c.req.raw)
 		let auth = result.toAuth()
 		c.set("auth", auth)

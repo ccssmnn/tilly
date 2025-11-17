@@ -10,6 +10,8 @@ let baseServerMessages = messages({
 		".input {$count :number} .match $count one {{You have one reminder due today}} * {{You have {$count} reminders due today}}",
 	"server.push.dueReminders.body":
 		"A few moments to reach out could brighten someone's day ✨",
+	"server.push.assistantComplete.title": "Tilly has a response for you",
+	"server.push.assistantComplete.body": "Your message has been answered ✨",
 
 	"server.error.notificationSettingsNotConfigured":
 		"NotificationSettings not configured",
@@ -26,6 +28,8 @@ let deServerMessages = translate(baseServerMessages, {
 		".input {$count :number} .match $count one {{Du hast eine Erinnerung Heute}} * {{Du hast {$count} Erinnerungen heute}}",
 	"server.push.dueReminders.body":
 		"Manchmal reicht ein kleiner Moment, um jemandem den Tag zu versüßen ✨",
+	"server.push.assistantComplete.title": "Tilly hat eine Antwort für dich",
+	"server.push.assistantComplete.body": "Deine Nachricht wurde beantwortet ✨",
 
 	"server.error.notificationSettingsNotConfigured":
 		"Benachrichtigungseinstellungen nicht konfiguriert",

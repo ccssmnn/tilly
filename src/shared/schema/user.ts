@@ -28,6 +28,18 @@ export let NotificationSettings = co.map({
 	pushDevices: z.array(PushDevice),
 })
 
+export let Assistant = co.map({
+	version: z.literal(1),
+	stringifiedMessages: co.list(z.string()),
+	submittedAt: z.date().optional(),
+	abortRequestedAt: z.date().optional(),
+	clearChatHintDismissedAt: z.date().optional(),
+	notificationCheckId: z.string().optional(),
+	notificationAcknowledgedId: z.string().optional(),
+	notifyOnComplete: z.boolean().optional(),
+	errorMessage: z.string().optional(),
+})
+
 export let UsageTracking = co.map({
 	version: z.literal(5),
 	userId: z.string(),
@@ -89,6 +101,7 @@ export let UserAccountRoot = co.map({
 	notificationSettings: NotificationSettings.optional(),
 	usageTracking: UsageTracking.optional(),
 	language: z.enum(["de", "en"]).optional(),
+	assistant: Assistant.optional(),
 })
 
 export let UserAccount = co
@@ -123,6 +136,11 @@ function initializeRootIfUndefined(
 					pushDevices: [],
 				}),
 				language: navigator.language.startsWith("de") ? "de" : "en",
+				assistant: Assistant.create({
+					version: 1,
+					stringifiedMessages: co.list(z.string()).create([]),
+					notifyOnComplete: true,
+				}),
 			}),
 		)
 	}

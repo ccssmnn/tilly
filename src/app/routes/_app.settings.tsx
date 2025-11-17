@@ -34,6 +34,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#shared/ui/select"
+import { Switch } from "#shared/ui/switch"
 import { useState } from "react"
 import { ExportButton as DownloadButton } from "#app/features/data-download-button"
 import { UploadButton } from "#app/features/data-upload-button"
@@ -103,7 +104,7 @@ function SettingsScreen() {
 			</TypographyH1>
 			<div className="divide-border divide-y">
 				<AccountSection />
-				{accessStatus === "granted" && <AgentSection me={currentMe} />}
+				{accessStatus === "granted" && <AssistantSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
 				{!isPWAInstalled && <PWASection />}
@@ -271,32 +272,47 @@ function AccountSection() {
 	)
 }
 
-let agentFormSchema = z.object({
+let assistantFormSchema = z.object({
 	name: z.string().min(1, {
 		message: "Name is required.",
 	}),
 })
 
-function AgentSection({
+function AssistantSection({
 	me,
 }: {
 	me: co.loaded<typeof UserAccount, typeof query>
 }) {
 	let [isDisplayNameDialogOpen, setIsDisplayNameDialogOpen] = useState(false)
+	let [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
 	let t = useIntl()
 
-	function onSubmit(values: z.infer<typeof agentFormSchema>) {
+	function onSubmit(values: z.infer<typeof assistantFormSchema>) {
 		if (me?.profile) {
 			me.profile.$jazz.set("name", values.name)
 		}
 		setIsDisplayNameDialogOpen(false)
 	}
 
-	let usageTracking = me.root?.usageTracking
+	let usageTracking = me.root.usageTracking
 	let usagePercentage = Math.round(usageTracking?.weeklyPercentUsed ?? 0)
 	let usageResetDateString =
-		usageTracking?.resetDate?.toLocaleDateString(me.root?.language ?? "en") ??
-		""
+		usageTracking?.resetDate?.toLocaleDateString(me.root.language ?? "en") ?? ""
+
+	let hasPushDevices =
+		(me.root.notificationSettings?.pushDevices?.length ?? 0) > 0
+
+	function handleNotifyOnCompleteChange(checked: boolean) {
+		if (!me.root.assistant) return
+		me.root.assistant.$jazz.set("notifyOnComplete", checked)
+	}
+
+	function handleResetAssistant() {
+		if (!me.root.assistant) return
+		me.root.$jazz.delete("assistant")
+		toast.success(t("settings.agent.reset.success"))
+		setIsResetDialogOpen(false)
+	}
 
 	return (
 		<SettingsSection
@@ -323,7 +339,23 @@ function AgentSection({
 						</Button>
 					</div>
 				</div>
-
+				{hasPushDevices && (
+					<div className="flex items-center justify-between gap-3">
+						<div className="space-y-1">
+							<Label htmlFor="notify-on-complete">
+								<T k="settings.agent.notifyOnComplete.label" />
+							</Label>
+							<TypographyMuted>
+								<T k="settings.agent.notifyOnComplete.description" />
+							</TypographyMuted>
+						</div>
+						<Switch
+							id="notify-on-complete"
+							checked={me.root.assistant?.notifyOnComplete !== false}
+							onCheckedChange={handleNotifyOnCompleteChange}
+						/>
+					</div>
+				)}
 				{usageTracking && (
 					<div className="space-y-4">
 						<p className="mb-1 text-sm font-medium">
@@ -350,6 +382,17 @@ function AgentSection({
 						</div>
 					</div>
 				)}
+				<div className="space-y-2">
+					<p className="mb-1 text-sm font-medium">
+						<T k="settings.agent.reset.title" />
+					</p>
+					<p className="text-muted-foreground text-sm">
+						<T k="settings.agent.reset.description" />
+					</p>
+					<Button variant="outline" onClick={() => setIsResetDialogOpen(true)}>
+						<T k="settings.agent.reset.button" />
+					</Button>
+				</div>
 			</div>
 			<AgentNameDialog
 				currentName={me?.profile?.name || ""}
@@ -357,6 +400,33 @@ function AgentSection({
 				onClose={() => setIsDisplayNameDialogOpen(false)}
 				onSave={onSubmit}
 			/>
+			<Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+				<DialogContent
+					titleSlot={
+						<DialogHeader>
+							<DialogTitle>
+								<T k="settings.agent.reset.dialog.title" />
+							</DialogTitle>
+							<DialogDescription>
+								<T k="settings.agent.reset.dialog.description" />
+							</DialogDescription>
+						</DialogHeader>
+					}
+				>
+					<div className="flex items-center gap-3">
+						<Button
+							variant="outline"
+							className="flex-1"
+							onClick={() => setIsResetDialogOpen(false)}
+						>
+							<T k="common.cancel" />
+						</Button>
+						<Button className="flex-1" onClick={handleResetAssistant}>
+							<T k="settings.agent.reset.button" />
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</SettingsSection>
 	)
 }
@@ -365,7 +435,7 @@ interface AgentNameDialogProps {
 	currentName: string
 	isOpen: boolean
 	onClose: () => void
-	onSave: (values: z.infer<typeof agentFormSchema>) => void
+	onSave: (values: z.infer<typeof assistantFormSchema>) => void
 }
 
 function AgentNameDialog({
@@ -375,14 +445,14 @@ function AgentNameDialog({
 	onSave,
 }: AgentNameDialogProps) {
 	let t = useIntl()
-	let form = useForm<z.infer<typeof agentFormSchema>>({
-		resolver: zodResolver(agentFormSchema),
+	let form = useForm<z.infer<typeof assistantFormSchema>>({
+		resolver: zodResolver(assistantFormSchema),
 		defaultValues: {
 			name: currentName,
 		},
 	})
 
-	function handleSubmit(data: z.infer<typeof agentFormSchema>) {
+	function handleSubmit(data: z.infer<typeof assistantFormSchema>) {
 		onSave(data)
 		onClose()
 	}
@@ -606,21 +676,22 @@ function DeleteDataButton({
 		// Clear all people (and thus their notes/reminders) permanently
 		account.root.$jazz.set("people", co.list(Person).create([]))
 
-		// Also clear local UI data (chat, searches, install hint, etc.)
+		// Clear chat history
+		if (account.root.assistant) {
+			account.root.$jazz.delete("assistant")
+		}
+
+		// Also clear local UI data (searches, install hint, etc.)
 		let {
-			clearChat,
 			setPeopleSearchQuery,
 			setRemindersSearchQuery,
 			setPWAInstallHintDismissed,
 			setHideInstallNavItem,
-			setClearChatHintDismissed,
 		} = useAppStore.getState()
-		clearChat()
 		setPeopleSearchQuery("")
 		setRemindersSearchQuery("")
 		setPWAInstallHintDismissed(false)
 		setHideInstallNavItem(false)
-		setClearChatHintDismissed(false)
 
 		toast.success(t("settings.data.delete.success"))
 		form.reset()

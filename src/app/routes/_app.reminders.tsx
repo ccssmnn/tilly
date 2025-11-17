@@ -178,7 +178,7 @@ function Reminders() {
 					>
 						{renderVirtualItem(item, {
 							searchQuery,
-							userId: currentMe.$jazz.id,
+							me: currentMe,
 						})}
 					</div>
 				)
@@ -207,7 +207,7 @@ type VirtualItem =
 
 function renderVirtualItem(
 	item: VirtualItem,
-	options: { searchQuery: string; userId: string },
+	options: { searchQuery: string; me: co.loaded<typeof UserAccount> },
 ): ReactNode {
 	switch (item.type) {
 		case "heading":
@@ -221,7 +221,7 @@ function renderVirtualItem(
 				<ReminderListItem
 					reminder={item.reminder}
 					person={item.person}
-					userId={options.userId}
+					me={options.me}
 					searchQuery={options.searchQuery}
 				/>
 			)

@@ -24,11 +24,9 @@ export function UserMessage({ message }: { message: TillyUIMessage }) {
 
 export function AssistantMessage({
 	message,
-	userId,
 	addToolResult,
 }: {
 	message: TillyUIMessage
-	userId?: string
 	addToolResult?: AddToolResultFunction
 }) {
 	if (message.role !== "assistant") return null
@@ -74,7 +72,6 @@ export function AssistantMessage({
 					key={`confirmation-${i}`}
 					part={part}
 					addToolResult={addToolResult}
-					userId={userId!}
 				/>,
 			)
 		} else if (
@@ -102,8 +99,7 @@ export function AssistantMessage({
 			part.type.startsWith("tool-") &&
 			"state" in part &&
 			part.state === "output-available" &&
-			"output" in part &&
-			userId
+			"output" in part
 		) {
 			if (currentTextChunk.trim()) {
 				renderedParts.push(
@@ -120,7 +116,6 @@ export function AssistantMessage({
 					key={`tool-${i}`}
 					toolName={toolName}
 					result={part.output}
-					userId={userId}
 				/>,
 			)
 		}
@@ -139,15 +134,8 @@ export function AssistantMessage({
 	return <div className="mb-4 space-y-2">{renderedParts}</div>
 }
 
-export function ToolMessage({
-	message,
-	userId,
-}: {
-	message: TillyUIMessage
-	userId: string
-}) {
+export function ToolMessage({ message }: { message: TillyUIMessage }) {
 	if (message.role !== "assistant") return null
-
 	return (
 		<div className="mb-4 space-y-2 select-text">
 			{message.parts?.map((part, index) => {
@@ -169,7 +157,6 @@ export function ToolMessage({
 						key={index}
 						toolName={toolName}
 						result={part.output}
-						userId={userId}
 					/>
 				)
 			})}
@@ -179,11 +166,9 @@ export function ToolMessage({
 
 export function MessageRenderer({
 	message,
-	userId,
 	addToolResult,
 }: {
 	message: TillyUIMessage
-	userId: string
 	addToolResult?: AddToolResultFunction
 }) {
 	switch (message.role) {
@@ -191,11 +176,7 @@ export function MessageRenderer({
 			return <UserMessage message={message} />
 		case "assistant":
 			return (
-				<AssistantMessage
-					message={message}
-					userId={userId}
-					addToolResult={addToolResult}
-				/>
+				<AssistantMessage message={message} addToolResult={addToolResult} />
 			)
 		default:
 			return null

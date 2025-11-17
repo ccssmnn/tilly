@@ -12,42 +12,37 @@ import {
 } from "#shared/ui/dialog"
 import { ArrowCounterclockwise, Pause, Bell } from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import {
-	updateReminderTool,
-	updateReminderExecute,
-	removeReminderTool,
-	removeReminderExecute,
+	createUpdateReminderTool,
+	createRemoveReminderTool,
 	updateReminder,
 } from "#shared/tools/reminder-update"
 import { ReminderDetails } from "./reminder-create-ui"
 import { cn } from "#app/lib/utils"
+import { useAccount } from "jazz-tools/react-core"
+import { UserAccount } from "#shared/schema/user"
 
-export {
-	updateReminderTool,
-	updateReminderExecute,
-	UpdateReminderResult,
-	removeReminderTool,
-	removeReminderExecute,
-	RemoveReminderResult,
-	updateReminder,
-}
+export { UpdateReminderResult, RemoveReminderResult }
 
-type _UpdateReminderTool = InferUITool<typeof updateReminderTool>
-type _RemoveReminderTool = InferUITool<typeof removeReminderTool>
+type _UpdateReminderTool = InferUITool<
+	ReturnType<typeof createUpdateReminderTool>
+>
+type _RemoveReminderTool = InferUITool<
+	ReturnType<typeof createRemoveReminderTool>
+>
 
 function UpdateReminderResult({
 	result,
-	userId,
 }: {
 	result: _UpdateReminderTool["output"]
-	userId: string
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -59,6 +54,7 @@ function UpdateReminderResult({
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
@@ -71,14 +67,14 @@ function UpdateReminderResult({
 						done: result.previous.done,
 					},
 					{
-						userId: userId,
+						worker: me,
 						personId: result.personId,
 						reminderId: result.reminderId,
 					},
 				)
 			}
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -86,7 +82,7 @@ function UpdateReminderResult({
 				],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -200,15 +196,14 @@ function UpdateReminderResult({
 
 function RemoveReminderResult({
 	result,
-	userId,
 }: {
 	result: _RemoveReminderTool["output"]
-	userId: string
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -220,19 +215,20 @@ function RemoveReminderResult({
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
 			await updateReminder(
 				{ deletedAt: undefined },
 				{
-					userId: userId,
+					worker: me,
 					personId: result.personId,
 					reminderId: result.reminderId,
 				},
 			)
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -240,7 +236,7 @@ function RemoveReminderResult({
 				],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [

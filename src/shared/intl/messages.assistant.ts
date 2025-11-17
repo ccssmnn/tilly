@@ -19,11 +19,20 @@ const baseAssistantMessages = messages({
 		"Tilly chat requires an internet connection. All other features work offline.",
 	"assistant.emptyState":
 		"Share a story, and I'll help you remember what matters",
+	"assistant.sending": "Sending to server...",
 	"assistant.generating": "Generating response...",
+	"assistant.generatingOnOtherDevice": "Generating response on other device...",
 	"assistant.error.title": "Something went wrong",
+	"assistant.sendError.title": "Failed to send message",
+	"assistant.backgroundError.title": "Generation failed",
 	"assistant.responseFailure.title": "Response Issue",
 	"assistant.responseFailure.emptyDescription":
 		"I'm sorry, but I didn't respond properly. This sometimes happens with AI models. Please try your question again.",
+	"assistant.emptyMessages.description":
+		"No messages to process. Start a conversation first.",
+	"assistant.requestTooLarge.title": "Message too long",
+	"assistant.requestTooLarge.description":
+		"Your message exceeds the size limit. Try a shorter message or clear the chat to start fresh.",
 	"assistant.usageLimit.title": "Usage limit reached",
 	"assistant.usageLimit.description":
 		"You've reached your usage limit. Check your settings to see when limits reset.",
@@ -33,26 +42,10 @@ const baseAssistantMessages = messages({
 	"assistant.clearChatHint.description":
 		"Starting a new conversation helps save your usage budget. Clear your chat to begin fresh.",
 	"assistant.clearChatHint.dismiss": "Got it",
-	"assistant.placeholder.disabled": "Chat requires internet connection",
+	"assistant.placeholder.offline": "Chat requires internet connection",
+	"assistant.placeholder.generating": "Generating response...",
 	"assistant.placeholder.initial": "Chat with Tilly",
 	"assistant.placeholder.reply": "Reply to Tilly...",
-	"assistant.speak": "Speak",
-	"assistant.listening": "Listening...",
-
-	// Speech recognition
-	"assistant.speech.start": "Start voice input",
-	"assistant.speech.stop": "Stop voice input",
-
-	// Speech recognition errors
-	"assistant.speech.error.permission":
-		"Microphone permission denied. Please allow microphone access.",
-	"assistant.speech.error.network":
-		"Network error. Please check your connection.",
-	"assistant.speech.error.noSpeech": "No speech detected. Please try again.",
-	"assistant.speech.error.audioCapture":
-		"Could not access microphone. Please check your device settings.",
-	"assistant.speech.error.generic":
-		"Speech recognition error. Please try again.",
 
 	// Tool-related messages
 	"tool.cancel": "Cancel",
@@ -239,11 +232,21 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		"Der Tilly-Chat benötigt eine Internetverbindung. Alle anderen Funktionen funktionieren offline.",
 	"assistant.emptyState":
 		"Erzähle eine Geschichte – ich helfe dir, das Wichtige zu behalten",
+	"assistant.sending": "Wird an Server gesendet...",
 	"assistant.generating": "Antwort wird erstellt...",
+	"assistant.generatingOnOtherDevice":
+		"Antwort wird auf anderem Gerät erstellt...",
 	"assistant.error.title": "Etwas ist schief gelaufen",
+	"assistant.sendError.title": "Nachricht konnte nicht gesendet werden",
+	"assistant.backgroundError.title": "Generierung fehlgeschlagen",
 	"assistant.responseFailure.title": "Antwortproblem",
 	"assistant.responseFailure.emptyDescription":
 		"Entschuldigung, aber ich habe nicht richtig geantwortet. Das passiert manchmal bei KI-Modellen. Bitte versuche deine Frage nochmal.",
+	"assistant.emptyMessages.description":
+		"Keine Nachrichten zu verarbeiten. Starte zuerst ein Gespräch.",
+	"assistant.requestTooLarge.title": "Nachricht zu lang",
+	"assistant.requestTooLarge.description":
+		"Deine Nachricht überschreitet das Größenlimit. Versuche eine kürzere Nachricht oder leere den Chat für einen Neustart.",
 	"assistant.usageLimit.title": "Nutzungsgrenze erreicht",
 	"assistant.usageLimit.description":
 		"Du hast deine Nutzungsgrenze erreicht. Schaue in den Einstellungen wann die Grenzen zurückgesetzt werden.",
@@ -253,27 +256,10 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.clearChatHint.description":
 		"Ein neues Gespräch zu beginnen hilft, dein Nutzungsbudget zu sparen. Lösche deinen Chat für einen frischen Start.",
 	"assistant.clearChatHint.dismiss": "Alles klar",
-	"assistant.placeholder.disabled": "Chat erfordert Internetverbindung",
+	"assistant.placeholder.offline": "Chat erfordert Internetverbindung",
+	"assistant.placeholder.generating": "Antwort wird erstellt...",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
 	"assistant.placeholder.reply": "Tilly antworten...",
-	"assistant.speak": "Sprechen",
-	"assistant.listening": "Höre zu...",
-
-	// Speech recognition
-	"assistant.speech.start": "Spracheingabe starten",
-	"assistant.speech.stop": "Spracheingabe stoppen",
-
-	// Speech recognition errors
-	"assistant.speech.error.permission":
-		"Mikrofonberechtigung verweigert. Bitte erlaube den Mikrofonzugriff.",
-	"assistant.speech.error.network":
-		"Netzwerkfehler. Bitte überprüfe deine Verbindung.",
-	"assistant.speech.error.noSpeech":
-		"Keine Sprache erkannt. Bitte versuche es erneut.",
-	"assistant.speech.error.audioCapture":
-		"Kein Zugriff auf Mikrofon möglich. Bitte überprüfe deine Geräteeinstellungen.",
-	"assistant.speech.error.generic":
-		"Fehler bei der Spracherkennung. Bitte versuche es erneut.",
 
 	// Tool-related messages
 	"tool.cancel": "Abbrechen",

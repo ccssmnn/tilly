@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { type InferUITool } from "ai"
 import {
 	Dialog,
 	DialogContent,
@@ -13,19 +12,15 @@ import { Bell } from "react-bootstrap-icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
-import {
-	listRemindersTool,
-	listRemindersExecute,
-} from "#shared/tools/reminder-read"
+import { createListRemindersTool } from "#shared/tools/reminder-read"
+import type { InferToolOutput } from "ai"
 
-export { listRemindersTool, listRemindersExecute, ListRemindersResult }
-
-type _ListRemindersTool = InferUITool<typeof listRemindersTool>
+export { ListRemindersResult }
 
 function ListRemindersResult({
 	result,
 }: {
-	result: _ListRemindersTool["output"]
+	result: InferToolOutput<ReturnType<typeof createListRemindersTool>>
 }) {
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let navigate = useNavigate()

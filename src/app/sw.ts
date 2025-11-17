@@ -58,10 +58,7 @@ registerRoute(
 			cache.put(appShellRequest, networkResponse.clone())
 			return networkResponse
 		} catch (error) {
-			console.log(
-				"[SW] Navigation request failed, no cache available:",
-				error,
-			)
+			console.log("[SW] Navigation request failed, no cache available:", error)
 			return new Response("Offline", { status: 503 })
 		}
 	},
@@ -139,15 +136,24 @@ async function validateAuthAndShowNotification(
 		return
 	}
 
-	if (currentUserId === notificationData.userId) {
-		await showNotification(notificationData)
-	} else {
+	if (currentUserId !== notificationData.userId) {
 		console.log(
 			"[SW] User ID mismatch, suppressing notification",
 			currentUserId,
 			notificationData.userId,
 		)
+		return
 	}
+
+	if (await isUserOnPage(notificationData.url)) {
+		console.log(
+			"[SW] User already on target page, suppressing notification",
+			notificationData.url,
+		)
+		return
+	}
+
+	await showNotification(notificationData)
 }
 
 async function showNotification(
@@ -343,5 +349,31 @@ async function clearUserIdFromCache(): Promise<void> {
 		await cache.delete("user-id")
 	} catch (error) {
 		console.log("[SW] Error clearing user ID from cache:", error)
+	}
+}
+
+async function isUserOnPage(targetUrl?: string): Promise<boolean> {
+	if (!targetUrl) return false
+
+	try {
+		let clientList = await sw.clients.matchAll({
+			type: "window",
+			includeUncontrolled: true,
+		})
+
+		for (let client of clientList) {
+			if (
+				isWindowClient(client) &&
+				client.focused &&
+				client.url.includes(targetUrl)
+			) {
+				return true
+			}
+		}
+
+		return false
+	} catch (error) {
+		console.log("[SW] Error checking if user is on page:", error)
+		return false
 	}
 }

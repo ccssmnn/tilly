@@ -6,8 +6,8 @@
 		"dev": "astro dev",
 		"build": "pnpm test:run && astro check && astro build",
 		"build:node": "ASTRO_ADAPTER=node astro check && ASTRO_ADAPTER=node astro build",
-		"preview": "astro preview",
-		"preview:node": "ASTRO_ADAPTER=node dotenv -e .env -- astro preview",
+		"preview": "astro preview --port 4322",
+		"preview:node": "ASTRO_ADAPTER=node dotenv -e .env -- astro preview --port 4322",
 		"check": "concurrently -n Astro,Prettier,ESLint \"astro check\" \"prettier --check .\" \"eslint . --ext .ts,.tsx,.js,.jsx,.astro\"",
 		"format": "prettier -w .",
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx,.astro",
@@ -17,7 +17,6 @@
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.19",
-		"@ai-sdk/react": "^2.0.65",
 		"@astrojs/vercel": "^8.2.9",
 		"@ccssmnn/intl": "^0.1.1",
 		"@clerk/backend": "2.17.2",

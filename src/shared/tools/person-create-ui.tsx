@@ -17,7 +17,7 @@ import {
 	X,
 } from "react-bootstrap-icons"
 import { Link } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { useChatHistory } from "#app/hooks/use-chat-history"
 import {
 	createPersonExecute,
 	createPersonTool,
@@ -35,6 +35,9 @@ import {
 	CardTitle,
 } from "#shared/ui/card"
 import { TypographyMuted } from "#shared/ui/typography"
+import { useAccount } from "jazz-tools/react-core"
+import { UserAccount } from "#shared/schema/user"
+import { tryCatch } from "#shared/lib/trycatch"
 
 export { CreatePersonConfirmation, CreatePersonResult }
 
@@ -43,7 +46,6 @@ type CreatePersonToolUI = InferUITool<typeof createPersonTool>
 function CreatePersonConfirmation({
 	part,
 	addToolResult,
-	userId,
 }: {
 	part: {
 		toolCallId: string
@@ -51,34 +53,34 @@ function CreatePersonConfirmation({
 		state: "input-available"
 	}
 	addToolResult: AddToolResultFunction
-	userId: string
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isCreating, setIsCreating] = useState(false)
 	let t = useIntl()
 
 	let handleConfirm = async () => {
+		if (!me) return
 		setIsCreating(true)
-		try {
-			let result = await createPersonExecute(userId, part.input)
+		let res = await tryCatch(createPersonExecute(me.$jazz.id, part.input))
+		if (res.ok) {
 			addToolResult({
 				tool: "createPerson",
 				toolCallId: part.toolCallId,
-				output: result,
+				output: res.data,
 			})
-		} catch (error) {
+		} else {
 			addToolResult({
 				tool: "createPerson",
 				toolCallId: part.toolCallId,
 				output: {
 					error:
-						error instanceof Error
-							? error.message
+						res.error instanceof Error
+							? res.error.message
 							: t("tool.error.failedToCreate"),
 				},
 			})
-		} finally {
-			setIsCreating(false)
 		}
+		setIsCreating(false)
 	}
 
 	let handleReject = () => {
@@ -130,10 +132,11 @@ function CreatePersonResult({
 }: {
 	result: CreatePersonToolUI["output"]
 }) {
+	let { me } = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
-	let { addChatMessage } = useAppStore()
+	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -153,12 +156,13 @@ function CreatePersonResult({
 	}
 
 	let handleUndo = async () => {
+		if (!me) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
-			await updatePerson(result.personId, { deletedAt: new Date() })
+			await updatePerson(result.personId, { deletedAt: new Date() }, me)
 			setIsUndone(true)
-			addChatMessage({
+			addMessage({
 				id: `undo-${nanoid()}`,
 				role: "assistant",
 				parts: [
@@ -169,7 +173,7 @@ function CreatePersonResult({
 				],
 			})
 		} catch (error) {
-			addChatMessage({
+			addMessage({
 				id: `undo-error-${nanoid()}`,
 				role: "assistant",
 				parts: [

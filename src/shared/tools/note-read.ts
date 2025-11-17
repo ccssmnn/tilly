@@ -1,6 +1,6 @@
 import { tool } from "ai"
 import { z } from "zod"
-import { co, type ResolveQuery } from "jazz-tools"
+import { co, type Loaded } from "jazz-tools"
 import {
 	UserAccount,
 	Person,
@@ -10,30 +10,16 @@ import {
 } from "#shared/schema/user"
 import { tryCatch } from "#shared/lib/trycatch"
 
-export { listNotesTool, listNotesExecute }
+export { createListNotesTool }
 export type { ListNotesResult }
 
-let query = {
-	root: {
-		people: {
-			$each: {
-				notes: { $each: true },
-			},
-		},
+async function listNotes(
+	options: {
+		searchQuery?: string
 	},
-} as const satisfies ResolveQuery<typeof UserAccount>
-
-async function listNotes(options: {
-	userId: string
-	searchQuery?: string
-}): Promise<ListNotesResult> {
-	let userResult = await tryCatch(
-		UserAccount.load(options.userId, { resolve: query }),
-	)
-	if (!userResult.ok) throw errors.USER_NOT_FOUND
-
-	let user = userResult.data
-	if (!user) throw errors.USER_NOT_FOUND
+	worker: Loaded<typeof UserAccount>,
+): Promise<ListNotesResult> {
+	let user = worker
 
 	let people = user.root?.people ?? []
 
@@ -131,10 +117,6 @@ function toNotePayload({
 	}
 }
 
-let errors = {
-	USER_NOT_FOUND: "user not found",
-} as const
-
 type NoteSummary = {
 	id: string
 	title: string
@@ -158,51 +140,22 @@ type ListNotesResult = {
 	searchQuery?: string
 }
 
-let listNotesTool = tool({
-	description:
-		"List notes across all people with optional search on note content, titles, and person names.",
-	inputSchema: z.object({
-		searchQuery: z
-			.string()
-			.optional()
-			.describe(
-				"Optional query to filter notes by content, title, or person name",
-			),
-	}),
-	outputSchema: z.union([
-		z.object({
-			error: z.string(),
+function createListNotesTool(worker: Loaded<typeof UserAccount>) {
+	return tool({
+		description:
+			"List notes across all people with optional search on note content, titles, and person names.",
+		inputSchema: z.object({
+			searchQuery: z
+				.string()
+				.optional()
+				.describe(
+					"Optional query to filter notes by content, title, or person name",
+				),
 		}),
-		z.object({
-			operation: z.literal("list"),
-			notes: z.array(
-				z.object({
-					id: z.string(),
-					title: z.string(),
-					content: z.string(),
-					pinned: z.boolean(),
-					deleted: z.boolean(),
-					deletedAt: z.string().optional(),
-					createdAt: z.string(),
-					updatedAt: z.string(),
-					person: z.object({
-						id: z.string(),
-						name: z.string(),
-					}),
-				}),
-			),
-			totalCount: z.number(),
-			filteredCount: z.number(),
-			searchQuery: z.string().optional(),
-		}),
-	]),
-})
-
-async function listNotesExecute(
-	userId: string,
-	input: { searchQuery?: string },
-) {
-	let result = await tryCatch(listNotes({ userId, ...input }))
-	if (!result.ok) return { error: `${result.error}` }
-	return result.data
+		execute: async input => {
+			let result = await tryCatch(listNotes(input, worker))
+			if (!result.ok) return { error: `${result.error}` }
+			return result.data
+		},
+	})
 }

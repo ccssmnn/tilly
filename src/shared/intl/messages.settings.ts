@@ -56,9 +56,19 @@ const baseSettingsMessages = messages({
 		"This is the name Tilly will use to address you in conversations",
 	"settings.agent.displayName.cancel": "Cancel",
 	"settings.agent.displayName.save": "Save",
+	"settings.agent.notifyOnComplete.label": "Notify when assistant completes",
+	"settings.agent.notifyOnComplete.description":
+		"Send a push notification when Tilly finishes responding (only if Tilly is running in the background)",
 	"settings.agent.usage.title": "Usage",
 	"settings.agent.usage.budget.label": "Usage this cycle",
 	"settings.agent.usage.budget.reset": "Resets on {$date}",
+	"settings.agent.reset.title": "Reset Assistant",
+	"settings.agent.reset.description": "Clear chat history to start fresh.",
+	"settings.agent.reset.button": "Reset Chat",
+	"settings.agent.reset.dialog.title": "Reset Chat History?",
+	"settings.agent.reset.dialog.description":
+		"This will clear your current conversation with the assistant.",
+	"settings.agent.reset.success": "Chat history cleared",
 	"settings.data.title": "Your Data",
 	"settings.data.description":
 		"Export, import, or manage your relationship notes.",
@@ -335,7 +345,7 @@ const baseSettingsMessages = messages({
 	"status.notSignedIn.signIn": "Sign In",
 })
 
-const deSettingsMessages = translate(baseSettingsMessages, {
+let deSettingsMessages = translate(baseSettingsMessages, {
 	// Settings page messages
 	"settings.title": "Einstellungen",
 	"settings.pageTitle": "Einstellungen - Tilly",
@@ -390,9 +400,20 @@ const deSettingsMessages = translate(baseSettingsMessages, {
 		"Das ist der Name, den Tilly in Gesprächen für dich verwenden wird",
 	"settings.agent.displayName.cancel": "Abbrechen",
 	"settings.agent.displayName.save": "Speichern",
+	"settings.agent.notifyOnComplete.label": "Bei Fertigstellung benachrichtigen",
+	"settings.agent.notifyOnComplete.description":
+		"Eine Push-Benachrichtigung senden, wenn Tilly mit der Antwort fertig ist (nur wenn Tilly im Hintergrund läuft)",
 	"settings.agent.usage.title": "Nutzung",
 	"settings.agent.usage.budget.label": "Nutzung in diesem Zeitraum",
 	"settings.agent.usage.budget.reset": "Setzt sich am {$date} zurück",
+	"settings.agent.reset.title": "Assistent zurücksetzen",
+	"settings.agent.reset.description":
+		"Chat-Verlauf löschen und von vorne anfangen.",
+	"settings.agent.reset.button": "Chat zurücksetzen",
+	"settings.agent.reset.dialog.title": "Chat-Verlauf zurücksetzen?",
+	"settings.agent.reset.dialog.description":
+		"Dies löscht dein aktuelles Gespräch mit dem Assistenten.",
+	"settings.agent.reset.success": "Chat-Verlauf gelöscht",
 	"settings.data.title": "Deine Daten",
 	"settings.data.description":
 		"Exportiere, importiere oder verwalte deine Daten.",

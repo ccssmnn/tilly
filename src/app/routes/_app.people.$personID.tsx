@@ -2,7 +2,13 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router"
 import { z } from "zod"
 import { useCoState } from "jazz-tools/react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#shared/ui/tabs"
-import { Person, Note, Reminder, isDueToday } from "#shared/schema/user"
+import {
+	Person,
+	Note,
+	Reminder,
+	isDueToday,
+	UserAccount,
+} from "#shared/schema/user"
 import { usePersonNotes } from "#app/features/note-hooks"
 import { usePersonReminders } from "#app/features/reminder-hooks"
 import { co, type ResolveQuery } from "jazz-tools"
@@ -176,7 +182,7 @@ function PersonScreen() {
 						<AddItemButton
 							person={person}
 							activeTab={tab}
-							userId={me?.$jazz.id ?? ""}
+							me={me}
 							onItemCreated={() => setSearchQuery("")}
 						/>
 					</div>
@@ -191,7 +197,7 @@ function PersonScreen() {
 						<RemindersList
 							reminders={reminders}
 							person={person}
-							userId={me?.$jazz.id ?? ""}
+							me={me}
 							searchQuery={deferredSearchQuery}
 						/>
 					</TabsContent>
@@ -312,7 +318,7 @@ function NotesList({
 function RemindersList({
 	reminders,
 	person,
-	userId,
+	me,
 	searchQuery,
 }: {
 	reminders: {
@@ -321,7 +327,7 @@ function RemindersList({
 		deleted: Array<co.loaded<typeof Reminder>>
 	}
 	person: co.loaded<typeof Person, typeof query>
-	userId: string
+	me: co.loaded<typeof UserAccount>
 	searchQuery: string
 }) {
 	let didSearch = !!searchQuery
@@ -357,7 +363,7 @@ function RemindersList({
 					key={reminder.$jazz.id}
 					reminder={reminder}
 					person={person}
-					userId={userId}
+					me={me}
 					showPerson={false}
 					searchQuery={searchQuery}
 				/>
@@ -379,7 +385,7 @@ function RemindersList({
 										key={reminder.$jazz.id}
 										reminder={reminder}
 										person={person}
-										userId={userId}
+										me={me}
 										showPerson={false}
 										searchQuery={searchQuery}
 									/>
@@ -401,7 +407,7 @@ function RemindersList({
 										key={reminder.$jazz.id}
 										reminder={reminder}
 										person={person}
-										userId={userId}
+										me={me}
 										showPerson={false}
 										searchQuery={searchQuery}
 									/>
@@ -427,7 +433,7 @@ function RemindersList({
 									key={reminder.$jazz.id}
 									reminder={reminder}
 									person={person}
-									userId={userId}
+									me={me}
 									showPerson={false}
 									searchQuery={searchQuery}
 								/>
@@ -447,7 +453,7 @@ function RemindersList({
 									key={reminder.$jazz.id}
 									reminder={reminder}
 									person={person}
-									userId={userId}
+									me={me}
 									showPerson={false}
 									searchQuery={searchQuery}
 								/>
@@ -463,7 +469,7 @@ function RemindersList({
 function AddItemButton(props: {
 	person: co.loaded<typeof Person, typeof query>
 	activeTab: "notes" | "reminders"
-	userId: string
+	me: co.loaded<typeof UserAccount>
 	onItemCreated: () => void
 }) {
 	let navigate = Route.useNavigate()
@@ -472,7 +478,15 @@ function AddItemButton(props: {
 	let t = useIntl()
 
 	async function handleAddNote(data: { content: string; pinned: boolean }) {
-		let result = await tryCatch(createNote(props.person.$jazz.id, data))
+		let result = await tryCatch(
+			createNote(
+				{ title: "", ...data },
+				{
+					personId: props.person.$jazz.id,
+					worker: props.me,
+				},
+			),
+		)
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,
@@ -500,7 +514,7 @@ function AddItemButton(props: {
 		let result = await tryCatch(
 			createReminder(reminderData, {
 				personId: props.person.$jazz.id,
-				userId: props.userId,
+				worker: props.me,
 			}),
 		)
 		if (!result.ok) {

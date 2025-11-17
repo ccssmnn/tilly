@@ -40,6 +40,7 @@ type Query = {
 
 export function PersonDetails({
 	person,
+	me,
 }: {
 	person: co.loaded<typeof Person, Query>
 	me: co.loaded<typeof UserAccount>
@@ -57,11 +58,15 @@ export function PersonDetails({
 		avatar?: File | null
 	}) {
 		let result = await tryCatch(
-			updatePerson(person.$jazz.id, {
-				name: values.name,
-				summary: values.summary,
-				avatarFile: values.avatar,
-			}),
+			updatePerson(
+				person.$jazz.id,
+				{
+					name: values.name,
+					summary: values.summary,
+					avatarFile: values.avatar,
+				},
+				me,
+			),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -76,7 +81,7 @@ export function PersonDetails({
 				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
-						updatePerson(person.$jazz.id, result.data.previous),
+						updatePerson(person.$jazz.id, result.data.previous, me),
 					)
 					if (undoResult.ok) {
 						toast.success(t("toast.personUpdateUndone"))
@@ -94,7 +99,7 @@ export function PersonDetails({
 
 	async function handleDeletePerson() {
 		let result = await tryCatch(
-			updatePerson(person.$jazz.id, { deletedAt: new Date() }),
+			updatePerson(person.$jazz.id, { deletedAt: new Date() }, me),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -111,7 +116,7 @@ export function PersonDetails({
 				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
-						updatePerson(person.$jazz.id, { deletedAt: undefined }),
+						updatePerson(person.$jazz.id, { deletedAt: undefined }, me),
 					)
 					if (undoResult.ok) {
 						toast.success(t("toast.personRestored"))

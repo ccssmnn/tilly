@@ -1,10 +1,10 @@
-import { tool, type InferUITool } from "ai"
+import { tool } from "ai"
 import { z } from "zod"
-import { Person, Reminder } from "#shared/schema/user"
-import { co } from "jazz-tools"
+import { Person, Reminder, UserAccount } from "#shared/schema/user"
+import { co, type Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
 
-export { addReminderTool, addReminderExecute, createReminder }
+export { createAddReminderTool, createReminder }
 
 export type { ReminderData, ReminderCreated }
 
@@ -19,11 +19,12 @@ async function createReminder(
 	},
 	options: {
 		personId: string
-		userId: string
+		worker: Loaded<typeof UserAccount>
 	},
 ): Promise<ReminderCreated> {
 	let person = await Person.load(options.personId, {
 		resolve: { reminders: { $each: true } },
+		loadAs: options.worker,
 	})
 
 	if (!person) throw errors.PERSON_NOT_FOUND
@@ -68,63 +69,39 @@ type ReminderCreated = {
 	current: ReminderData
 }
 
-let addReminderTool = tool({
-	description: "Add a reminder for a person using their ID",
-	inputSchema: z.object({
-		personId: z.string().describe("The person's ID"),
-		text: z.string().describe("The reminder text"),
-		dueAtDate: z
-			.string()
-			.describe("Due date as a date string (e.g., '2025-07-18')"),
-		repeat: z
-			.object({
-				interval: z.number().min(1),
-				unit: z.enum(["day", "week", "month", "year"]),
-			})
-			.optional()
-			.describe("Optional repeat configuration"),
-	}),
-	outputSchema: z.union([
-		z.object({
-			error: z.string(),
-		}),
-		z.object({
-			personId: z.string(),
-			reminderId: z.string(),
-			text: z.string(),
-			dueAtDate: z.string().optional(),
+function createAddReminderTool(worker: Loaded<typeof UserAccount>) {
+	return tool({
+		description: "Add a reminder for a person using their ID",
+		inputSchema: z.object({
+			personId: z.string().describe("The person's ID"),
+			text: z.string().describe("The reminder text"),
+			dueAtDate: z
+				.string()
+				.describe("Due date as a date string (e.g., '2025-07-18')"),
 			repeat: z
 				.object({
-					interval: z.number(),
+					interval: z.number().min(1),
 					unit: z.enum(["day", "week", "month", "year"]),
 				})
-				.optional(),
-			done: z.boolean(),
-			createdAt: z.string(),
-			updatedAt: z.string(),
+				.optional()
+				.describe("Optional repeat configuration"),
 		}),
-	]),
-})
+		execute: async input => {
+			let { personId, ...data } = input
 
-type _AddReminderTool = InferUITool<typeof addReminderTool>
-
-async function addReminderExecute(
-	userId: string,
-	input: _AddReminderTool["input"],
-): Promise<_AddReminderTool["output"]> {
-	let { personId, ...data } = input
-
-	let res = await tryCatch(createReminder(data, { personId, userId }))
-	if (!res.ok) return { error: `${res.error}` }
-	let result = res.data
-	return {
-		personId: result.personID,
-		reminderId: result.reminderID,
-		text: result.current.text,
-		dueAtDate: result.current.dueAtDate,
-		repeat: result.current.repeat,
-		done: result.current.done,
-		createdAt: result.current.createdAt.toISOString(),
-		updatedAt: result.current.updatedAt.toISOString(),
-	}
+			let res = await tryCatch(createReminder(data, { personId, worker }))
+			if (!res.ok) return { error: `${res.error}` }
+			let result = res.data
+			return {
+				personId: result.personID,
+				reminderId: result.reminderID,
+				text: result.current.text,
+				dueAtDate: result.current.dueAtDate,
+				repeat: result.current.repeat,
+				done: result.current.done,
+				createdAt: result.current.createdAt.toISOString(),
+				updatedAt: result.current.updatedAt.toISOString(),
+			}
+		},
+	})
 }

@@ -63,11 +63,17 @@ function NewNote(props: {
 		if (!me || !selectedPersonId) return
 
 		let result = await tryCatch(
-			createNote(selectedPersonId, {
-				title: "",
-				content: values.content,
-				pinned: values.pinned,
-			}),
+			createNote(
+				{
+					title: "",
+					content: values.content,
+					pinned: values.pinned,
+				},
+				{
+					personId: selectedPersonId,
+					worker: me,
+				},
+			),
 		)
 		if (!result.ok) {
 			toast.error(
