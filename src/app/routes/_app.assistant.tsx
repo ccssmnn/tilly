@@ -145,12 +145,7 @@ function AuthenticatedChat() {
 		[assistant?.stringifiedMessages],
 	)
 
-	let {
-		isSending,
-		failedToSend,
-		sendMessage,
-		abort, //
-	} = useChatMessaging({ me, assistant })
+	let { isSending, failedToSend, sendMessage, abort } = useChatMessaging(me)
 
 	useStaleGenerationTimeout(assistant)
 	useSetupNotificationAcknowledgment(assistant)
@@ -473,13 +468,7 @@ function UserInput(props: {
 	)
 }
 
-function useChatMessaging({
-	me,
-	assistant,
-}: {
-	me: co.loaded<typeof UserAccount, typeof resolve>
-	assistant: co.loaded<typeof Assistant> | undefined
-}) {
+function useChatMessaging(me: co.loaded<typeof UserAccount, typeof resolve>) {
 	let [isSending, setIsSending] = useState(false)
 	let [failedToSend, setFailedToSend] = useState<Error | null>(null)
 	let submitAbortControllerRef = useRef<AbortController | null>(null)
@@ -488,30 +477,30 @@ function useChatMessaging({
 		setIsSending(true)
 		setFailedToSend(null)
 
-		let assistant_
-		if (assistant) {
-			assistant_ = assistant
+		let assistant
+		if (me.root.assistant) {
+			assistant = me.root.assistant
 		} else {
-			assistant_ = Assistant.create({
+			assistant = Assistant.create({
 				version: 1,
 				stringifiedMessages: [],
 				submittedAt: new Date(),
 			})
-			me.root.$jazz.set("assistant", assistant_)
+			me.root.$jazz.set("assistant", assistant)
 		}
 
-		if (!assistant_.stringifiedMessages) {
-			assistant_.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
-			assistant_.$jazz.set("submittedAt", new Date())
+		if (!assistant.stringifiedMessages) {
+			assistant.$jazz.set("stringifiedMessages", [JSON.stringify(message)])
+			assistant.$jazz.set("submittedAt", new Date())
 		} else if (replaceIndex !== undefined) {
-			assistant_.stringifiedMessages.$jazz.set(
+			assistant.stringifiedMessages.$jazz.set(
 				replaceIndex,
 				JSON.stringify(message),
 			)
-			assistant_.$jazz.set("submittedAt", new Date())
+			assistant.$jazz.set("submittedAt", new Date())
 		} else {
-			assistant_.stringifiedMessages.$jazz.push(JSON.stringify(message))
-			assistant_.$jazz.set("submittedAt", new Date())
+			assistant.stringifiedMessages.$jazz.push(JSON.stringify(message))
+			assistant.$jazz.set("submittedAt", new Date())
 		}
 
 		await me.$jazz.waitForAllCoValuesSync()
@@ -525,12 +514,11 @@ function useChatMessaging({
 				headers: { "Content-Type": "application/json" },
 				signal: controller.signal,
 			})
-			if (!response.ok) {
-				let errorData = await response.json()
-				throw new Error(JSON.stringify(errorData))
-			}
+			if (!response.ok) throw new Error(await response.text())
+			if (!response.body) throw new Error("No response body")
+			await consumeUntil(response.body.getReader(), "generation-started")
 		} catch (error) {
-			assistant_.$jazz.set("submittedAt", undefined)
+			assistant.$jazz.set("submittedAt", undefined)
 			if ((error as Error).name === "AbortError") return
 			setFailedToSend(error as Error)
 		} finally {
@@ -541,16 +529,11 @@ function useChatMessaging({
 
 	async function abort() {
 		submitAbortControllerRef.current?.abort()
-		assistant?.$jazz.set("abortRequestedAt", new Date())
+		me.root.assistant?.$jazz.set("abortRequestedAt", new Date())
 		setIsSending(false)
 	}
 
-	return {
-		isSending,
-		failedToSend,
-		sendMessage,
-		abort,
-	}
+	return { isSending, failedToSend, sendMessage, abort }
 }
 
 async function addToolResult(
@@ -681,4 +664,30 @@ function extractErrorPayload(value: unknown): ErrorPayload | null {
 	} catch {
 		return null
 	}
+}
+
+/**
+ * this is a utility to consume the entire stream but resolve the promise
+ * as soon as we hit the marker in a chunk
+ */
+async function consumeUntil(
+	reader: ReadableStreamDefaultReader,
+	marker: string,
+) {
+	let decoder = new TextDecoder()
+	let found = false
+
+	let readStream = async (resolve: () => void) => {
+		while (true) {
+			let { done, value } = await reader.read()
+			if (done) break
+
+			let chunk = decoder.decode(value, { stream: true })
+			if (!found && chunk.includes(marker)) {
+				found = true
+				resolve()
+			}
+		}
+	}
+	return new Promise<void>(readStream)
 }

@@ -8,6 +8,7 @@ import {
 import { GOOGLE_AI_API_KEY } from "astro:env/server"
 import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
+import { streamSSE } from "hono/streaming"
 import { nanoid } from "nanoid"
 import {
 	clientTools,
@@ -18,7 +19,7 @@ import {
 } from "#shared/tools/tools"
 import { z } from "zod"
 import { authMiddleware, requireAuth } from "../lib/auth-middleware"
-import { requirePlus, type SubscriptionStatus } from "../lib/chat-subscription"
+import { requirePlus } from "../lib/chat-subscription"
 import {
 	checkInputSize,
 	checkUsageLimits,
@@ -44,7 +45,6 @@ let chatMessagesApp = new Hono()
 	.use("*", requirePlus)
 	.post("/", async c => {
 		let user = c.get("user")
-		let subscriptionStatus = c.get("subscription")
 		let requestStartTime = c.get("requestStartTime")
 		let logger = (s: string) =>
 			logStep(s, { requestStartTime, userId: user.id })
@@ -97,18 +97,24 @@ let chatMessagesApp = new Hono()
 			return c.json({ error: msg, code: "request-too-large" }, 413)
 		}
 
-		runBackgroundGeneration({
-			user,
-			userWorker,
-			subscriptionStatus,
-			modelMessages,
-			requestStartTime,
-		}).catch((error: unknown) => {
-			console.error("Background generation failed:", error)
-		})
+		logger("Alright. Starting streaming generation.")
+		return streamSSE(c, async stream => {
+			// we need to tell the client we are starting now
+			// so they know that until now everything was correct
+			await stream.writeSSE({ data: "generation-started" })
 
-		logger("Alright. Starting background generation.")
-		return c.json({ success: true }, 202)
+			// the ai response will be synced to the client via jazz
+			await generateAIResponse({
+				user,
+				userWorker,
+				modelMessages,
+				requestStartTime,
+			})
+
+			// keep the stream alive until we're done generating so
+			// our server function won't get killed
+			await stream.writeSSE({ data: "generation-finished" })
+		})
 	})
 
 function getCachedTokenCount(metadata: unknown): number {
@@ -251,10 +257,9 @@ let messagesQuery = {
 	root: { assistant: { stringifiedMessages: { $each: true } } },
 } as const
 
-async function runBackgroundGeneration(params: {
+async function generateAIResponse(params: {
 	user: User
 	userWorker: Loaded<typeof UserAccount, typeof messagesQuery>
-	subscriptionStatus: SubscriptionStatus
 	modelMessages: ReturnType<typeof convertToModelMessages>
 	requestStartTime: number
 }) {
@@ -319,16 +324,11 @@ async function runBackgroundGeneration(params: {
 				}
 			},
 			onFinish: async finishResult => {
-				await updateUsage(
-					params.user,
-					params.userWorker,
-					params.subscriptionStatus,
-					{
-						inputTokens: finishResult.usage.inputTokens ?? 0,
-						cachedTokens: getCachedTokenCount(finishResult.providerMetadata),
-						outputTokens: finishResult.usage.outputTokens ?? 0,
-					},
-				)
+				await updateUsage(params.user, params.userWorker, {
+					inputTokens: finishResult.usage.inputTokens ?? 0,
+					cachedTokens: getCachedTokenCount(finishResult.providerMetadata),
+					outputTokens: finishResult.usage.outputTokens ?? 0,
+				})
 
 				await sendAssistantCompletionNotification(
 					params.user,

@@ -11,7 +11,6 @@ import {
 import { addDays, isPast } from "date-fns"
 import { co, Group, type ResolveQuery } from "jazz-tools"
 import { clerkClient } from "./auth-client"
-import { type SubscriptionStatus } from "./chat-subscription"
 import { initServerWorker, initUserWorker } from "./utils"
 
 export { checkInputSize, checkUsageLimits, updateUsage }
@@ -55,7 +54,6 @@ async function checkUsageLimits(
 async function updateUsage(
 	user: ChatUser,
 	worker: UserWorker,
-	subscription: SubscriptionStatus,
 	usage: UsageUpdatePayload,
 ): Promise<void> {
 	let serverWorkerResult = await tryCatch(initServerWorker())
@@ -93,7 +91,7 @@ async function updateUsage(
 	let usagePercent = update.percentUsed.toFixed(1)
 
 	console.log(
-		`[Chat] ${user.id} | tokens(in=${usage.inputTokens}, cached=${usage.cachedTokens}, out=${usage.outputTokens}) | cacheHit=${cacheHit ? "yes" : "no"} | cost=$${update.cost.toFixed(4)} | usage=${usagePercent}% | tier=${subscription.tier} | trial=${subscription.isTrial ? "yes" : "no"}`,
+		`[Chat] ${user.id} | tokens(in=${usage.inputTokens}, cached=${usage.cachedTokens}, out=${usage.outputTokens}) | cacheHit=${cacheHit ? "yes" : "no"} | cost=$${update.cost.toFixed(4)} | usage=${usagePercent}%`,
 	)
 }
 
