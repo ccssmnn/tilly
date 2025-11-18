@@ -17,7 +17,6 @@ import {
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
@@ -28,12 +27,10 @@ import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
 import { tryCatch } from "#shared/lib/trycatch"
-
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
-
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
 
@@ -48,7 +45,7 @@ function NoteListItem(props: {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
-	let [isExpanded, setIsExpanded] = useState(false)
+	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
 
 	let { contentRef, hasOverflow } = useContentOverflow(
@@ -140,7 +137,7 @@ function NoteListItem(props: {
 					data-overflow={hasOverflow}
 				>
 					<button
-						onClick={() => setIsExpanded(!isExpanded)}
+						onClick={toggleExpanded}
 						className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
 					>
 						{isExpanded ? <T k="note.showLess" /> : <T k="note.showMore" />}
@@ -647,4 +644,25 @@ function RestoreNoteDialog({
 			</AlertDialog>
 		</>
 	)
+}
+
+let expandedNoteIDs = new Set<string>()
+
+/**
+ * we need this hook to remember which notes have been expanded even when
+ * unmounted. otherwise the list virtualization gets messed up
+ */
+function useExpanded(id: string) {
+	let [isExpanded, setIsExpanded] = useState(() => expandedNoteIDs.has(id))
+	function toggleExpanded() {
+		if (isExpanded) {
+			setIsExpanded(false)
+			expandedNoteIDs.delete(id)
+		} else {
+			setIsExpanded(true)
+			expandedNoteIDs.add(id)
+		}
+	}
+
+	return { isExpanded, toggleExpanded }
 }
