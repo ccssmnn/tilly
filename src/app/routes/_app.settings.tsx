@@ -70,7 +70,7 @@ export const Route = createFileRoute("/_app/settings")({
 		if (!context.me) throw notFound()
 
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
-			resolve: query,
+			resolve: resolve,
 		})
 		if (!loadedMe.$isLoaded) throw notFound()
 		return { me: loadedMe }
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/_app/settings")({
 	component: SettingsScreen,
 })
 
-let query = {
+let resolve = {
 	profile: true,
 	root: {
 		assistant: true,
@@ -91,7 +91,7 @@ function SettingsScreen() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
 	let subscribedMe = useAccount(UserAccount, {
-		resolve: query,
+		resolve: resolve,
 	})
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 	let { status: accessStatus } = useAssistantAccess()
@@ -119,26 +119,13 @@ function SettingsScreen() {
 function LanguageSection() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let subscribedMe = useAccount(UserAccount, {
-		resolve: query,
-		select: subscribedMe =>
-			subscribedMe.$isLoaded
-				? subscribedMe
-				: subscribedMe.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
-	let currentMe = subscribedMe ?? data.me
+	let subscribedMe = useAccount(UserAccount, { resolve })
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 
-	let currentLang = currentMe?.root?.language || "en"
+	let currentLang = currentMe.root.language || "en"
 
 	function setLanguage(lang: "de" | "en") {
-		if (!currentMe?.root) return
 		currentMe.root.$jazz.set("language", lang)
-	}
-
-	if (!currentMe) {
-		return null
 	}
 
 	return (
@@ -288,7 +275,7 @@ let assistantFormSchema = z.object({
 function AssistantSection({
 	me,
 }: {
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, typeof resolve>
 }) {
 	let [isDisplayNameDialogOpen, setIsDisplayNameDialogOpen] = useState(false)
 	let [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -591,7 +578,7 @@ function DataSection() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
 	let subscribedMe = useAccount(UserAccount, {
-		resolve: query,
+		resolve: resolve,
 	})
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 
@@ -772,17 +759,9 @@ function AboutSection() {
 	let t = useIntl()
 	let setTourSkipped = useAppStore(s => s.setTourSkipped)
 	let data = Route.useLoaderData()
-	let subscribedMe = useAccount(UserAccount, {
-		resolve: query,
-		select: subscribedMe =>
-			subscribedMe.$isLoaded
-				? subscribedMe
-				: subscribedMe.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
-	let currentMe = subscribedMe ?? data.me
-	let currentLang = currentMe?.root?.language || "en"
+	let subscribedMe = useAccount(UserAccount, { resolve })
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
+	let currentLang = currentMe.root.language || "en"
 
 	return (
 		<SettingsSection

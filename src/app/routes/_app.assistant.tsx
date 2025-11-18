@@ -37,19 +37,24 @@ import { nanoid } from "nanoid"
 
 export let Route = createFileRoute("/_app/assistant")({
 	loader: async ({ context }) => {
-		if (!context.me) throw notFound()
 		let loadedMe = await context.me.$jazz.ensureLoaded({ resolve })
+		if (!loadedMe.$isLoaded) throw notFound()
 		let initialMessages =
-			loadedMe.root.assistant?.stringifiedMessages?.map(
-				s => JSON.parse(s) as TillyUIMessage,
-			) ?? []
+			loadedMe.root.assistant?.stringifiedMessages
+				.values()
+				.map(s => JSON.parse(s) as TillyUIMessage) ?? []
 		return { me: loadedMe, initialMessages }
 	},
 	component: AssistantScreen,
 })
 
 let resolve = {
-	root: { people: { $each: true }, assistant: true },
+	profile: true,
+	root: {
+		people: { $each: true },
+		assistant: { stringifiedMessages: true },
+		notificationSettings: true,
+	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 function AssistantScreen() {
@@ -131,16 +136,8 @@ function AuthenticatedChat() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
 
-	let subscribedMe = useAccount(UserAccount, {
-		resolve,
-		select: subscribedMe =>
-			subscribedMe.$isLoaded
-				? subscribedMe
-				: subscribedMe.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
-	let me = subscribedMe ?? data.me
+	let subscribedMe = useAccount(UserAccount, { resolve })
+	let me = subscribedMe.$isLoaded ? subscribedMe : data.me
 	let assistant = me.root.assistant
 
 	let isOnline = useOnlineStatus()
@@ -356,15 +353,7 @@ function UserInput(props: {
 	placeholder: string
 	disabled?: boolean
 }) {
-	let me = useAccount(UserAccount, {
-		resolve,
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount, { resolve })
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },
@@ -383,7 +372,7 @@ function UserInput(props: {
 	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
 
 	function handleSubmit(data: { prompt: string }) {
-		if (!me) return
+		if (!me.$isLoaded) return
 		if (!data.prompt.trim()) return
 
 		let metadata = {
@@ -442,7 +431,7 @@ function UserInput(props: {
 									<Textarea
 										placeholder={props.placeholder}
 										rows={1}
-										className="max-h-[9rem] min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
+										className="max-h-36 min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
 										style={{ height: "auto" }}
 										autoResize={false}
 										disabled={props.disabled}

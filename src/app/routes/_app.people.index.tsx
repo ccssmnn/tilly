@@ -42,15 +42,9 @@ function PeopleScreen() {
 
 	let subscribedMe = useAccount(UserAccount, {
 		resolve: personListQuery,
-		select: subscribedMe =>
-			subscribedMe.$isLoaded
-				? subscribedMe
-				: subscribedMe.$jazz.loadingState === "loading"
-					? undefined
-					: null,
 	})
 
-	let currentMe: LoadedAccount = subscribedMe ?? data
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 	let allPeople = filterVisiblePeople(currentMe.root?.people)
 
 	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()

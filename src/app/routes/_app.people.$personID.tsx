@@ -51,16 +51,14 @@ export const Route = createFileRoute("/_app/people/$personID")({
 		tab: z.enum(["notes", "reminders"]).optional().default("notes"),
 	}),
 	loader: async ({ params }) => {
-		let person = await Person.load(params.personID, {
-			resolve: query,
-		})
-		if (!person) throw notFound()
+		let person = await Person.load(params.personID, { resolve })
+		if (!person.$isLoaded) throw notFound()
 		return { person }
 	},
 	component: PersonScreen,
 })
 
-let query = {
+let resolve = {
 	avatar: true,
 	notes: { $each: true },
 	reminders: { $each: true },
@@ -70,16 +68,8 @@ function PersonScreen() {
 	let { me } = Route.useRouteContext()
 	let { personID } = Route.useParams()
 	let data = Route.useLoaderData()
-	let subscribedPerson = useCoState(Person, personID, {
-		resolve: query,
-		select: subscribedPerson =>
-			subscribedPerson.$isLoaded
-				? subscribedPerson
-				: subscribedPerson.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
-	let person = subscribedPerson ?? data.person
+	let subscribedPerson = useCoState(Person, personID, { resolve })
+	let person = subscribedPerson.$isLoaded ? subscribedPerson : data.person
 	let { tab } = Route.useSearch()
 	let isMobile = useIsMobile()
 	let [searchQuery, setSearchQuery] = useState("")
@@ -232,7 +222,7 @@ function NotesList({
 			priority: "high" | "normal"
 		}>
 	}
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, typeof resolve>
 	searchQuery: string
 }) {
 	let didSearch = !!searchQuery
@@ -332,7 +322,7 @@ function RemindersList({
 		done: Array<co.loaded<typeof Reminder>>
 		deleted: Array<co.loaded<typeof Reminder>>
 	}
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, typeof resolve>
 	me: co.loaded<typeof UserAccount>
 	searchQuery: string
 }) {
@@ -473,7 +463,7 @@ function RemindersList({
 }
 
 function AddItemButton(props: {
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, typeof resolve>
 	activeTab: "notes" | "reminders"
 	me: co.loaded<typeof UserAccount>
 	onItemCreated: () => void

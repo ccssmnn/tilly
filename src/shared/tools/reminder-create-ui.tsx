@@ -32,14 +32,7 @@ export { AddReminderResult, ReminderDetails }
 type _AddReminderTool = InferUITool<ReturnType<typeof createAddReminderTool>>
 
 function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -55,7 +48,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {

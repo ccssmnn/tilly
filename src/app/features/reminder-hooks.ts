@@ -22,10 +22,10 @@ function useReminders<Q extends ResolveQuery<typeof Person>>(
 
 	for (let person of people) {
 		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
-		if (!person.reminders) continue
+		if (!person.reminders.$isLoaded) continue
 
-		for (let reminder of person.reminders) {
-			if (!reminder || isPermanentlyDeleted(reminder)) continue
+		for (let reminder of person.reminders.values()) {
+			if (!reminder.$isLoaded || isPermanentlyDeleted(reminder)) continue
 			allReminderPairs.push({ reminder, person })
 		}
 	}
@@ -91,26 +91,26 @@ function usePersonReminders<Q extends ResolveQuery<typeof Person>>(
 	person: co.loaded<typeof Person, Q>,
 	searchQuery: string,
 ) {
-	if (!person.reminders) return { open: [], done: [], deleted: [] }
+	if (!person.reminders.$isLoaded) return { open: [], done: [], deleted: [] }
 
 	let filteredReminders = searchQuery
 		? person.reminders.filter(reminder => {
-				if (!reminder || isPermanentlyDeleted(reminder)) return false
+				if (!reminder.$isLoaded || isPermanentlyDeleted(reminder)) return false
 				let searchLower = searchQuery.toLowerCase()
 				return reminder.text.toLowerCase().includes(searchLower)
 			})
 		: person.reminders.filter(
-				reminder => reminder && !isPermanentlyDeleted(reminder),
+				reminder => reminder.$isLoaded && !isPermanentlyDeleted(reminder),
 			)
 
 	let open = filteredReminders.filter(
-		r => r && !isDeleted(r) && !r.done,
+		r => r.$isLoaded && !isDeleted(r) && !r.done,
 	) as Array<co.loaded<typeof Reminder>>
 	let done = filteredReminders.filter(
-		r => r && !isDeleted(r) && r.done,
+		r => r.$isLoaded && !isDeleted(r) && r.done,
 	) as Array<co.loaded<typeof Reminder>>
 	let deleted = filteredReminders.filter(
-		r => r && isDeleted(r) && !isPermanentlyDeleted(r),
+		r => r.$isLoaded && isDeleted(r) && !isPermanentlyDeleted(r),
 	) as Array<co.loaded<typeof Reminder>>
 
 	sortByDueAt(open)

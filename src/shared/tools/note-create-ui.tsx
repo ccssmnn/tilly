@@ -36,14 +36,7 @@ function AddNoteResult({
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 
 	if ("error" in result) {
 		return (
@@ -54,7 +47,7 @@ function AddNoteResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {

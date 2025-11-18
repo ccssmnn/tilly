@@ -28,22 +28,17 @@ function NewNote(props: {
 	personId?: string
 }) {
 	let t = useIntl()
-	let me = useAccount(UserAccount, {
+	let me = useAccount(UserAccount)
+	let people = useAccount(UserAccount, {
 		resolve: { root: { people: { $each: true } } },
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(person => person && !isDeleted(person))
+		},
 	})
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let [direction, setDirection] = useState<"left" | "right">()
-
-	let people = (me?.root?.people ?? []).filter(
-		person => person && !isDeleted(person),
-	)
 
 	let selectedPersonLabel =
 		people.find(person => person.$jazz.id === selectedPersonId)?.name ?? ""
@@ -66,7 +61,7 @@ function NewNote(props: {
 	}
 
 	async function handleSave(values: { content: string; pinned: boolean }) {
-		if (!me || !selectedPersonId) return
+		if (!me.$isLoaded || !selectedPersonId) return
 
 		let result = await tryCatch(
 			createNote(

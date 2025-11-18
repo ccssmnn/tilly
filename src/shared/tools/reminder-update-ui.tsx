@@ -38,14 +38,7 @@ function UpdateReminderResult({
 }: {
 	result: _UpdateReminderTool["output"]
 }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -61,7 +54,7 @@ function UpdateReminderResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
@@ -206,14 +199,7 @@ function RemoveReminderResult({
 }: {
 	result: _RemoveReminderTool["output"]
 }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -229,7 +215,7 @@ function RemoveReminderResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {

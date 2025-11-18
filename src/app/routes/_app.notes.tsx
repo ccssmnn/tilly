@@ -24,17 +24,17 @@ export let Route = createFileRoute("/_app/notes")({
 		if (!context.me) throw notFound()
 
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
-			resolve: query,
+			resolve: resolve,
 		})
 
-		if (!loadedMe) throw notFound()
+		if (!loadedMe.$isLoaded) throw notFound()
 
 		return { me: loadedMe }
 	},
 	component: NotesScreen,
 })
 
-let query = {
+let resolve = {
 	root: {
 		people: {
 			$each: {
@@ -48,22 +48,14 @@ let query = {
 function NotesScreen() {
 	let { me: data } = Route.useLoaderData()
 
-	let subscribedMe = useAccount(UserAccount, {
-		resolve: query,
-		select: subscribedMe =>
-			subscribedMe.$isLoaded
-				? subscribedMe
-				: subscribedMe.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let subscribedMe = useAccount(UserAccount, { resolve })
 
-	let currentMe = subscribedMe ?? data
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 
 	let { notesSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(notesSearchQuery)
 
-	let people = (currentMe.root?.people ?? []).filter(
+	let people = currentMe.root.people.filter(
 		person => person && !isDeleted(person),
 	)
 

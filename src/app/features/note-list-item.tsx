@@ -46,14 +46,7 @@ function NoteListItem(props: {
 	showPerson?: boolean
 }) {
 	let t = useIntl()
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let [isExpanded, setIsExpanded] = useState(false)
 	let showPerson = props.showPerson ?? true
@@ -161,7 +154,7 @@ function NoteListItem(props: {
 				open={openDialog === "actions"}
 				onOpenChange={() => setOpenDialog(undefined)}
 				onDelete={async () => {
-					if (!me) return
+					if (!me.$isLoaded) return
 					await deleteNote(
 						{
 							personId: props.person.$jazz.id,
@@ -174,7 +167,7 @@ function NoteListItem(props: {
 				}}
 				onEdit={() => setOpenDialog("edit")}
 				onPin={async () => {
-					if (!me) return
+					if (!me.$isLoaded) return
 					await pinOrUnpinNote(
 						{
 							personId: props.person.$jazz.id,
@@ -338,16 +331,9 @@ function EditDialog(props: {
 	person: co.loaded<typeof Person>
 }) {
 	let t = useIntl()
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	async function handleSubmit(data: { content: string; pinned: boolean }) {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await editNote(
 			data,
 			{
@@ -514,14 +500,7 @@ function RestoreNoteDialog({
 	onOpenChange: (open: boolean) => void
 }) {
 	let t = useIntl()
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
 	let deletionInfo = null
@@ -536,7 +515,7 @@ function RestoreNoteDialog({
 	}
 
 	async function handleRestore() {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
 			updateNote(
 				{ deletedAt: undefined },
@@ -559,7 +538,7 @@ function RestoreNoteDialog({
 	}
 
 	async function handlePermanentDelete() {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
 			updateNote(
 				{

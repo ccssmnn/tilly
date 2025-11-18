@@ -191,14 +191,7 @@ function RestorePersonDialog({
 	person: PersonListItemPerson
 	children: ReactNode
 }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	let [open, setOpen] = useState(false)
@@ -216,7 +209,7 @@ function RestorePersonDialog({
 	})()
 
 	async function handleRestore() {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
 			updatePerson(person.$jazz.id, { deletedAt: undefined }, me),
 		)
@@ -232,7 +225,7 @@ function RestorePersonDialog({
 	}
 
 	async function handlePermanentDelete() {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
 			updatePerson(person.$jazz.id, { permanentlyDeletedAt: new Date() }, me),
 		)

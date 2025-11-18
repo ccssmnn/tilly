@@ -33,14 +33,7 @@ function UpdatePersonResult({
 }: {
 	result: _UpdatePersonTool["output"]
 }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -56,7 +49,7 @@ function UpdatePersonResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return setIsUndoing(true)
+		if (!me.$isLoaded) return setIsUndoing(true)
 		setDialogOpen(false)
 		try {
 			// Now we have access to previous values for proper undo functionality
@@ -199,14 +192,7 @@ function DeletePersonResult({
 }: {
 	result: _DeletePersonTool["output"]
 }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -222,7 +208,7 @@ function DeletePersonResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {

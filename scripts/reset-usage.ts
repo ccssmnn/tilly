@@ -55,7 +55,7 @@ async function initJazzWorker() {
 async function resetUsageForUser(usageTrackingId: string, userId: string) {
 	try {
 		let usageTracking = await UsageTracking.load(usageTrackingId)
-		if (!usageTracking) {
+		if (!usageTracking.$isLoaded) {
 			console.warn(`  ⚠️  Usage tracking not found for user ${userId}`)
 			return false
 		}

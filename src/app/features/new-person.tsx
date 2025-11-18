@@ -24,14 +24,7 @@ function NewPerson({
 	children: ReactNode
 	onSuccess?: (personId: string) => void
 }) {
-	let me = useAccount(UserAccount, {
-		select: me =>
-			me.$isLoaded
-				? me
-				: me.$jazz.loadingState === "loading"
-					? undefined
-					: null,
-	})
+	let me = useAccount(UserAccount)
 	let t = useIntl()
 
 	async function handleSave(values: {
@@ -39,8 +32,6 @@ function NewPerson({
 		summary?: string
 		avatar?: File | null
 	}) {
-		if (!me) return
-
 		let result = await tryCatch(
 			createPerson(me.$jazz.id, {
 				name: values.name,
