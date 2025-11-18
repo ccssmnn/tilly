@@ -158,7 +158,7 @@ async function loadUsageTrackingForUser(
 			UsageTracking.load(existingUsageId, { loadAs: serverWorker }),
 		)
 
-		if (existingResult.ok && existingResult.data) {
+		if (existingResult.ok && existingResult.data.$isLoaded) {
 			let usageTracking = existingResult.data
 			await synchronizeUsageTracking(usageTracking)
 			await ensureMetadata(user, usageTracking)
@@ -303,7 +303,7 @@ async function applyUsageUpdate(
 		UsageTracking.load(usageTracking.$jazz.id),
 	)
 
-	if (!serverUsageResult.ok || !serverUsageResult.data) {
+	if (!serverUsageResult.ok || !serverUsageResult.data.$isLoaded) {
 		throw new Error("Failed to load usage tracking for updates")
 	}
 

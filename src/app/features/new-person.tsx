@@ -24,7 +24,14 @@ function NewPerson({
 	children: ReactNode
 	onSuccess?: (personId: string) => void
 }) {
-	let { me } = useAccount(UserAccount, {})
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	let t = useIntl()
 
 	async function handleSave(values: {

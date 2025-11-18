@@ -167,12 +167,11 @@ async function markOldDeletedItemsAsPermanent(
 			root: migrationResolveQuery,
 		},
 	})
-	if (!root.people) return
 
 	let thirtyDaysAgo = new Date()
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-	for (let person of root.people) {
+	for (let person of root.people.values()) {
 		if (
 			person.deletedAt &&
 			!person.permanentlyDeletedAt &&
@@ -181,7 +180,7 @@ async function markOldDeletedItemsAsPermanent(
 			person.$jazz.set("permanentlyDeletedAt", person.deletedAt)
 		}
 
-		for (let reminder of person.reminders) {
+		for (let reminder of person.reminders.values()) {
 			if (
 				reminder.deletedAt &&
 				!reminder.permanentlyDeletedAt &&
@@ -191,7 +190,7 @@ async function markOldDeletedItemsAsPermanent(
 			}
 		}
 
-		for (let note of person.notes) {
+		for (let note of person.notes.values()) {
 			if (
 				note.deletedAt &&
 				!note.permanentlyDeletedAt &&

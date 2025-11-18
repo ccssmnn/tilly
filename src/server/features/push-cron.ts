@@ -360,11 +360,11 @@ function getDueReminderCount(
 	let userLocalTime = toZonedTime(currentUtc, userTimezone)
 	let userLocalDateStr = format(userLocalTime, "yyyy-MM-dd")
 
-	let people = userAccount?.root?.people ?? []
+	let people = userAccount.root.people
 	let dueReminderCount = 0
-	for (let person of people) {
+	for (let person of people.values()) {
 		if (!person?.reminders || isDeleted(person)) continue
-		for (let reminder of person.reminders) {
+		for (let reminder of person.reminders.values()) {
 			if (!reminder || reminder.done || isDeleted(reminder)) continue
 			let dueDate = new Date(reminder.dueAtDate)
 			let dueDateInUserTimezone = toZonedTime(dueDate, userTimezone)

@@ -191,7 +191,14 @@ function RestorePersonDialog({
 	person: PersonListItemPerson
 	children: ReactNode
 }) {
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	let [open, setOpen] = useState(false)

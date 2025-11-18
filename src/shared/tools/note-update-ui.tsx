@@ -39,7 +39,14 @@ function EditNoteResult({
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 
 	if ("error" in result) {
 		return (
@@ -213,7 +220,14 @@ function DeleteNoteResult({
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 
 	if ("error" in result) {
 		return (

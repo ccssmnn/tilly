@@ -28,8 +28,14 @@ function NewNote(props: {
 	personId?: string
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount, {
+	let me = useAccount(UserAccount, {
 		resolve: { root: { people: { $each: true } } },
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
 	})
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
 	let [dialogOpen, setDialogOpen] = useState(false)

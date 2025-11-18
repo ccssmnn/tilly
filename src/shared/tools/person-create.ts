@@ -18,7 +18,7 @@ async function createPerson(
 	let account = await UserAccount.load(userId, {
 		resolve: { root: { people: { $each: true } } },
 	})
-	if (!account?.root?.people) throw errors.USER_ACCOUNT_NOT_FOUND
+	if (!account.$isLoaded) throw errors.USER_ACCOUNT_NOT_FOUND
 
 	let now = new Date()
 	let person = Person.create({

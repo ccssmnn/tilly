@@ -46,14 +46,20 @@ function JazzWithClerk() {
 }
 
 function RouterWithJazz() {
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, { resolve: { root: true } })
 
 	// Only show splash screen if account is still loading
-	if (me === undefined) return <SplashScreen />
+	if (me.$jazz.loadingState === "loading") return <SplashScreen />
 
 	// Pass null for unauthenticated users, me object for authenticated users
-	let contextMe = me ? me : null
-	let locale = me?.root?.language || "en"
+	let contextMe
+	if (me.$isLoaded) {
+		contextMe = me
+	} else {
+		contextMe = null
+	}
+
+	let locale = contextMe?.root?.language || "en"
 
 	if (locale === "de") {
 		return (

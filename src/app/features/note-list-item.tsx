@@ -46,7 +46,14 @@ function NoteListItem(props: {
 	showPerson?: boolean
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let [isExpanded, setIsExpanded] = useState(false)
 	let showPerson = props.showPerson ?? true
@@ -331,7 +338,14 @@ function EditDialog(props: {
 	person: co.loaded<typeof Person>
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	async function handleSubmit(data: { content: string; pinned: boolean }) {
 		if (!me) return
 		let result = await editNote(
@@ -500,7 +514,14 @@ function RestoreNoteDialog({
 	onOpenChange: (open: boolean) => void
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount, {
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
 	let deletionInfo = null

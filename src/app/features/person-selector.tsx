@@ -13,7 +13,7 @@ function PersonSelector(props: {
 	emptyMessage: string
 	selectedPersonId?: string
 }) {
-	let { me } = useAccount(UserAccount, {
+	let me = useAccount(UserAccount, {
 		resolve: {
 			root: {
 				people: {
@@ -21,6 +21,12 @@ function PersonSelector(props: {
 				},
 			},
 		},
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
 	})
 	let [searchQuery, setSearchQuery] = useState("")
 

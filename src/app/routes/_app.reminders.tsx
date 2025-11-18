@@ -45,8 +45,14 @@ let query = {
 function Reminders() {
 	let { me: data } = Route.useLoaderData()
 
-	let { me: subscribedMe } = useAccount(UserAccount, {
+	let subscribedMe = useAccount(UserAccount, {
 		resolve: query,
+		select: subscribedMe =>
+			subscribedMe.$isLoaded
+				? subscribedMe
+				: subscribedMe.$jazz.loadingState === "loading"
+					? undefined
+					: null,
 	})
 
 	let currentMe = subscribedMe ?? data

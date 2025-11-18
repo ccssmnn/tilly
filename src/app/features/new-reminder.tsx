@@ -26,7 +26,7 @@ function NewReminder(props: {
 	onSuccess?: (reminderId: string) => void
 	personId?: string
 }) {
-	let { me } = useAccount(UserAccount, {
+	let me = useAccount(UserAccount, {
 		resolve: {
 			root: {
 				people: {
@@ -34,6 +34,12 @@ function NewReminder(props: {
 				},
 			},
 		},
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
 	})
 	let t = useIntl()
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")

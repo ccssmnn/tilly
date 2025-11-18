@@ -27,7 +27,7 @@ import {
 } from "../lib/chat-usage"
 import { initUserWorker, initServerWorker } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
-import { co, type Loaded } from "jazz-tools"
+import { co, type Loaded, type ResolveQuery } from "jazz-tools"
 import { UserAccount, Assistant } from "#shared/schema/user"
 import {
 	getEnabledDevices,
@@ -254,8 +254,8 @@ function buildUserContext(meta: MessageMetadata): string | null {
 }
 
 let messagesQuery = {
-	root: { assistant: { stringifiedMessages: { $each: true } } },
-} as const
+	root: { assistant: { stringifiedMessages: true } },
+} as const satisfies ResolveQuery<typeof UserAccount>
 
 async function generateAIResponse(params: {
 	user: User
@@ -491,7 +491,7 @@ async function sendAssistantCompletionNotification(
 	user: User,
 	worker: Loaded<
 		typeof UserAccount,
-		{ root: { assistant: { stringifiedMessages: { $each: true } } } }
+		{ root: { assistant: { stringifiedMessages: true } } }
 	>,
 	logger: (step: string) => void,
 ) {

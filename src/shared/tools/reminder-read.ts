@@ -30,26 +30,19 @@ async function listReminders(options: {
 	includeDeleted?: boolean
 	includeDone?: boolean
 }): Promise<ListRemindersResult> {
-	let userResult = await tryCatch(
-		options.worker.$jazz.ensureLoaded({ resolve: query }),
-	)
-	if (!userResult.ok) throw errors.USER_NOT_FOUND
-
-	let user = userResult.data
-	if (!user) throw errors.USER_NOT_FOUND
-
-	let people = user.root?.people ?? []
+	let worker = await options.worker.$jazz.ensureLoaded({ resolve: query })
+	if (!worker.$isLoaded) throw errors.USER_NOT_FOUND
 
 	let allReminders: Array<{
 		reminder: co.loaded<typeof Reminder>
 		person: co.loaded<typeof Person>
 	}> = []
 
-	for (let person of people) {
+	for (let person of worker.root.people.values()) {
 		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
 		if (!person.reminders) continue
 
-		for (let reminder of person.reminders) {
+		for (let reminder of person.reminders.values()) {
 			if (isPermanentlyDeleted(reminder)) continue
 			if (!options.includeDone && reminder.done) continue
 			if (!options.includeDeleted && isDeleted(reminder)) continue

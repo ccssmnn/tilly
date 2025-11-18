@@ -15,13 +15,14 @@ export const Route = createFileRoute("/_app")({
 })
 
 function AppComponent() {
-	let { me } = useAccount(UserAccount, { resolve: query })
+	let me = useAccount(UserAccount, {
+		resolve: query,
+	})
 
-	let people = me?.root?.people ?? []
-	let dueReminderCount = people
+	let dueReminderCount = (me.$isLoaded ? me.root.people : [])
 		.filter(person => !isDeleted(person))
 		.flatMap(person => person.reminders)
-		.filter(reminder => reminder != null)
+		.filter(reminder => reminder.$isLoaded)
 		.filter(reminder => !reminder.done && !isDeleted(reminder))
 		.filter(reminder => isDueToday(reminder)).length
 

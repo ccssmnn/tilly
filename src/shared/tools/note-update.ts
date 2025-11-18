@@ -24,12 +24,12 @@ async function updateNote(
 	let person = await Person.load(options.personId, {
 		loadAs: options.worker,
 	})
-	if (!person) throw errors.PERSON_NOT_FOUND
+	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let note = await Note.load(options.noteId, {
 		loadAs: options.worker,
 	})
-	if (!note) throw errors.NOTE_NOT_FOUND
+	if (!note.$isLoaded) throw errors.NOTE_NOT_FOUND
 
 	let previous = { ...note }
 

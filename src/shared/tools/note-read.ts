@@ -14,26 +14,24 @@ export { createListNotesTool }
 export type { ListNotesResult }
 
 async function listNotes(
-	options: {
-		searchQuery?: string
-	},
+	options: { searchQuery?: string },
 	worker: Loaded<typeof UserAccount>,
 ): Promise<ListNotesResult> {
-	let user = worker
-
-	let people = user.root?.people ?? []
+	let user = await worker.$jazz.ensureLoaded({
+		resolve: { root: { people: { $each: { notes: { $each: true } } } } },
+	})
 
 	let notePairs: Array<{
 		note: co.loaded<typeof Note>
 		person: co.loaded<typeof Person>
 	}> = []
 
-	for (let person of people) {
+	for (let person of user.root.people.values()) {
 		if (!person) continue
 		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
 		if (!person.notes) continue
 
-		for (let note of person.notes) {
+		for (let note of person.notes.values()) {
 			if (!note) continue
 			if (isPermanentlyDeleted(note)) continue
 			notePairs.push({ note, person })

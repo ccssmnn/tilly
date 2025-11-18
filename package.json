@@ -35,7 +35,7 @@
 		"date-fns-tz": "^3.2.0",
 		"hono": "^4.10.6",
 		"idb-keyval": "^6.2.2",
-		"jazz-tools": "^0.18.38",
+		"jazz-tools": "^0.19.3",
 		"motion": "^12.23.24",
 		"nanoid": "^5.1.6",
 		"radix-ui": "^1.4.3",

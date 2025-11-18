@@ -72,7 +72,7 @@ export const Route = createFileRoute("/_app/settings")({
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
 			resolve: query,
 		})
-		if (!loadedMe) throw notFound()
+		if (!loadedMe.$isLoaded) throw notFound()
 		return { me: loadedMe }
 	},
 	component: SettingsScreen,
@@ -81,6 +81,7 @@ export const Route = createFileRoute("/_app/settings")({
 let query = {
 	profile: true,
 	root: {
+		assistant: true,
 		notificationSettings: true,
 		usageTracking: true,
 	},
@@ -89,10 +90,10 @@ let query = {
 function SettingsScreen() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
+	let subscribedMe = useAccount(UserAccount, {
 		resolve: query,
 	})
-	let currentMe = subscribedMe ?? data.me
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 	let { status: accessStatus } = useAssistantAccess()
 	let isPWAInstalled = useIsPWAInstalled()
 
@@ -118,8 +119,14 @@ function SettingsScreen() {
 function LanguageSection() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
+	let subscribedMe = useAccount(UserAccount, {
 		resolve: query,
+		select: subscribedMe =>
+			subscribedMe.$isLoaded
+				? subscribedMe
+				: subscribedMe.$jazz.loadingState === "loading"
+					? undefined
+					: null,
 	})
 	let currentMe = subscribedMe ?? data.me
 
@@ -303,7 +310,7 @@ function AssistantSection({
 		(me.root.notificationSettings?.pushDevices?.length ?? 0) > 0
 
 	function handleNotifyOnCompleteChange(checked: boolean) {
-		if (!me.root.assistant) return
+		if (!me.root.assistant?.$isLoaded) return
 		me.root.assistant.$jazz.set("notifyOnComplete", checked)
 	}
 
@@ -583,14 +590,10 @@ function PWASection() {
 function DataSection() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
+	let subscribedMe = useAccount(UserAccount, {
 		resolve: query,
 	})
-	let currentMe = subscribedMe ?? data.me
-
-	if (!currentMe) {
-		return null
-	}
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 
 	return (
 		<SettingsSection
@@ -662,7 +665,7 @@ function DeleteDataButton({
 				resolve: { root: { people: true } },
 			}),
 		)
-		if (!accountResult.ok || !accountResult.data) {
+		if (!accountResult.ok || !accountResult.data.$isLoaded) {
 			toast.error(t("settings.data.delete.error.load"))
 			return
 		}
@@ -769,8 +772,14 @@ function AboutSection() {
 	let t = useIntl()
 	let setTourSkipped = useAppStore(s => s.setTourSkipped)
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
+	let subscribedMe = useAccount(UserAccount, {
 		resolve: query,
+		select: subscribedMe =>
+			subscribedMe.$isLoaded
+				? subscribedMe
+				: subscribedMe.$jazz.loadingState === "loading"
+					? undefined
+					: null,
 	})
 	let currentMe = subscribedMe ?? data.me
 	let currentLang = currentMe?.root?.language || "en"

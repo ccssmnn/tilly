@@ -131,7 +131,15 @@ function AuthenticatedChat() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
 
-	let { me: subscribedMe } = useAccount(UserAccount, { resolve })
+	let subscribedMe = useAccount(UserAccount, {
+		resolve,
+		select: subscribedMe =>
+			subscribedMe.$isLoaded
+				? subscribedMe
+				: subscribedMe.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	let me = subscribedMe ?? data.me
 	let assistant = me.root.assistant
 
@@ -348,7 +356,15 @@ function UserInput(props: {
 	placeholder: string
 	disabled?: boolean
 }) {
-	let { me } = useAccount(UserAccount, { resolve })
+	let me = useAccount(UserAccount, {
+		resolve,
+		select: me =>
+			me.$isLoaded
+				? me
+				: me.$jazz.loadingState === "loading"
+					? undefined
+					: null,
+	})
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },
