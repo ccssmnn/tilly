@@ -1,8 +1,5 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
-import { UserAccount, isDeleted } from "#shared/schema/user"
+import { createFileRoute } from "@tanstack/react-router"
 import { useNotes } from "#app/features/note-hooks"
-import { useAccount } from "jazz-tools/react"
-import { type ResolveQuery } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
@@ -20,46 +17,14 @@ import { NoteTour } from "#app/features/note-tour"
 import { cn } from "#app/lib/utils"
 
 export let Route = createFileRoute("/_app/notes")({
-	loader: async ({ context }) => {
-		if (!context.me) throw notFound()
-
-		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
-			resolve: resolve,
-		})
-
-		if (!loadedMe.$isLoaded) throw notFound()
-
-		return { me: loadedMe }
-	},
 	component: NotesScreen,
 })
 
-let resolve = {
-	root: {
-		people: {
-			$each: {
-				avatar: true,
-				notes: { $each: true },
-			},
-		},
-	},
-} as const satisfies ResolveQuery<typeof UserAccount>
-
 function NotesScreen() {
-	let { me: data } = Route.useLoaderData()
-
-	let subscribedMe = useAccount(UserAccount, { resolve })
-
-	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
-
 	let { notesSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(notesSearchQuery)
 
-	let people = currentMe.root.people.filter(
-		person => person && !isDeleted(person),
-	)
-
-	let notes = useNotes(people, searchQuery)
+	let notes = useNotes(searchQuery)
 
 	let didSearch = !!searchQuery
 	let hasMatches = notes.active.length > 0 || notes.deleted.length > 0

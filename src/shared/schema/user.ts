@@ -6,6 +6,7 @@ export {
 	isPermanentlyDeleted,
 	isDueToday,
 	sortByDueAt,
+	sortByCreatedAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
 }
@@ -221,6 +222,21 @@ function isDueToday(reminder: { dueAtDate: string }): boolean {
 function sortByDueAt<T extends { dueAtDate: string }>(arr: Array<T>): Array<T> {
 	return arr.sort((a, b) => {
 		return new Date(a.dueAtDate).getTime() - new Date(b.dueAtDate).getTime()
+	})
+}
+
+function sortByCreatedAt<
+	T extends {
+		createdAt?: Date
+		$jazz: {
+			createdAt: number
+		}
+	},
+>(arr: Array<T>): Array<T> {
+	return arr.sort((a, b) => {
+		let aTime = (a.createdAt || new Date(a.$jazz.createdAt)).getTime()
+		let bTime = (b.createdAt || new Date(b.$jazz.createdAt)).getTime()
+		return bTime - aTime
 	})
 }
 

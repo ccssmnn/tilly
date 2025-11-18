@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
-import { UserAccount, isDeleted } from "#shared/schema/user"
+import { UserAccount } from "#shared/schema/user"
 import { useReminders } from "#app/features/reminder-hooks"
 import { useAccount } from "jazz-tools/react"
 import { type ResolveQuery } from "jazz-tools"
@@ -52,11 +52,7 @@ function Reminders() {
 	let { remindersSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(remindersSearchQuery)
 
-	let people = currentMe.root.people.filter(
-		person => person && !isDeleted(person),
-	)
-
-	let reminders = useReminders(people, searchQuery)
+	let reminders = useReminders(searchQuery)
 
 	let didSearch = !!searchQuery
 	let hasMatches =

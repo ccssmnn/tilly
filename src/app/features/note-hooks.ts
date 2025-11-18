@@ -1,96 +1,64 @@
 import {
 	Person,
-	Note,
 	isDeleted,
 	isPermanentlyDeleted,
+	UserAccount,
+	sortByDeletedAt,
+	sortByCreatedAt,
 } from "#shared/schema/user"
-import { co, type ResolveQuery } from "jazz-tools"
+import { useAccount, useCoState } from "jazz-tools/react-core"
 
 export { usePersonNotes, useNotes }
 
-function usePersonNotes<Q extends ResolveQuery<typeof Person>>(
-	person: co.loaded<typeof Person, Q>,
-	searchQuery: string,
-) {
-	if (!person.notes.$isLoaded) return { active: [], deleted: [] }
+function usePersonNotes(personId: string, searchQuery: string) {
+	let notes = useCoState(Person, personId, {
+		resolve: { notes: { $each: true } },
+		select: person => {
+			if (!person.$isLoaded) return []
+			return person.notes.filter(n => !isPermanentlyDeleted(n))
+		},
+	})
 
 	let filteredNotes = searchQuery
-		? person.notes.filter(note => {
-				if (!note.$isLoaded || isPermanentlyDeleted(note)) return false
+		? notes.filter(note => {
 				let searchLower = searchQuery.toLowerCase()
 				return note.content.toLowerCase().includes(searchLower)
 			})
-		: person.notes.filter(note => note.$isLoaded && !isPermanentlyDeleted(note))
+		: notes
 
-	let active: Array<{
-		type: "note"
-		item: co.loaded<typeof Note>
-		timestamp: Date
-		priority: "high" | "normal"
-	}> = []
+	let active = []
+	let deleted = []
 
-	let deleted: Array<{
-		type: "note"
-		item: co.loaded<typeof Note>
-		timestamp: Date
-		priority: "high" | "normal"
-	}> = []
-
-	filteredNotes.forEach(note => {
-		if (!note.$isLoaded) return
-
-		let item = {
-			type: "note" as const,
-			item: note,
-			timestamp: note.createdAt || new Date(note.$jazz.createdAt),
-			priority: note.pinned ? ("high" as const) : ("normal" as const),
-		}
-
+	for (let note of filteredNotes) {
 		if (isDeleted(note) && !isPermanentlyDeleted(note)) {
-			deleted.push(item)
+			deleted.push(note)
 		} else if (!isDeleted(note)) {
-			active.push(item)
+			active.push(note)
 		}
-	})
+	}
 
-	sortByPriorityAndDate(active)
-	deleted.sort((a, b) => {
-		let aTime = a.item.deletedAt?.getTime() ?? a.timestamp.getTime()
-		let bTime = b.item.deletedAt?.getTime() ?? b.timestamp.getTime()
-		return bTime - aTime
-	})
+	sortByCreatedAt(active)
+	active = [...active.filter(n => n.pinned), ...active.filter(n => !n.pinned)]
+
+	sortByDeletedAt(deleted)
 
 	return { active, deleted }
 }
 
-function sortByPriorityAndDate(
-	arr: Array<{
-		priority: "high" | "normal"
-		timestamp: Date
-	}>,
-) {
-	return arr.sort((a, b) => {
-		if (a.priority === "high" && b.priority !== "high") return -1
-		if (b.priority === "high" && a.priority !== "high") return 1
-		return b.timestamp.getTime() - a.timestamp.getTime()
+function useNotes(searchQuery: string) {
+	let people = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: { notes: { $each: true } } } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => !isDeleted(p))
+		},
 	})
-}
 
-function useNotes<Q extends ResolveQuery<typeof Person>>(
-	people: Array<co.loaded<typeof Person, Q>>,
-	searchQuery: string,
-) {
-	let allNotePairs: Array<{
-		note: co.loaded<typeof Note>
-		person: co.loaded<typeof Person>
-	}> = []
+	let allNotePairs = []
 
 	for (let person of people) {
-		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
-		if (!person.notes.$isLoaded) continue
-
 		for (let note of person.notes.values()) {
-			if (!note.$isLoaded || isPermanentlyDeleted(note)) continue
+			if (isPermanentlyDeleted(note)) continue
 			allNotePairs.push({ note, person })
 		}
 	}
@@ -105,8 +73,8 @@ function useNotes<Q extends ResolveQuery<typeof Person>>(
 			})
 		: allNotePairs
 
-	let active: typeof allNotePairs = []
-	let deleted: typeof allNotePairs = []
+	let active = []
+	let deleted = []
 
 	for (let { note, person } of filteredPairs) {
 		if (isDeleted(note) && !isPermanentlyDeleted(note)) {

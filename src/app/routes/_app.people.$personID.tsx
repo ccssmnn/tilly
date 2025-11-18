@@ -68,18 +68,19 @@ function PersonScreen() {
 	let { me } = Route.useRouteContext()
 	let { personID } = Route.useParams()
 	let data = Route.useLoaderData()
+	let { tab } = Route.useSearch()
+
 	let subscribedPerson = useCoState(Person, personID, { resolve })
 	let person = subscribedPerson.$isLoaded ? subscribedPerson : data.person
-	let { tab } = Route.useSearch()
 	let isMobile = useIsMobile()
 	let [searchQuery, setSearchQuery] = useState("")
 	let deferredSearchQuery = useDeferredValue(searchQuery)
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
-	let notes = usePersonNotes(person, deferredSearchQuery)
+	let notes = usePersonNotes(person.$jazz.id, deferredSearchQuery)
 	let searchInputId = useId()
 
-	let reminders = usePersonReminders(person, deferredSearchQuery)
+	let reminders = usePersonReminders(person.$jazz.id, deferredSearchQuery)
 	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
 
 	if (!me) {
@@ -209,18 +210,8 @@ function NotesList({
 	searchQuery,
 }: {
 	notes: {
-		active: Array<{
-			type: "note"
-			item: co.loaded<typeof Note>
-			timestamp: Date
-			priority: "high" | "normal"
-		}>
-		deleted: Array<{
-			type: "note"
-			item: co.loaded<typeof Note>
-			timestamp: Date
-			priority: "high" | "normal"
-		}>
+		active: Array<co.loaded<typeof Note>>
+		deleted: Array<co.loaded<typeof Note>>
 	}
 	person: co.loaded<typeof Person, typeof resolve>
 	searchQuery: string
@@ -250,8 +241,8 @@ function NotesList({
 		<>
 			{notes.active.map(entry => (
 				<NoteListItem
-					key={entry.item.$jazz.id}
-					note={entry.item}
+					key={entry.$jazz.id}
+					note={entry}
 					person={person}
 					searchQuery={searchQuery}
 					showPerson={false}
@@ -271,8 +262,8 @@ function NotesList({
 							<AccordionContent>
 								{notes.deleted.map(entry => (
 									<NoteListItem
-										key={entry.item.$jazz.id}
-										note={entry.item}
+										key={entry.$jazz.id}
+										note={entry}
 										person={person}
 										searchQuery={searchQuery}
 										showPerson={false}
@@ -296,8 +287,8 @@ function NotesList({
 							</h3>
 							{notes.deleted.map(entry => (
 								<NoteListItem
-									key={entry.item.$jazz.id}
-									note={entry.item}
+									key={entry.$jazz.id}
+									note={entry}
 									person={person}
 									searchQuery={searchQuery}
 									showPerson={false}
