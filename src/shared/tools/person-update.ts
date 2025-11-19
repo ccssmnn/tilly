@@ -21,7 +21,7 @@ async function updatePerson(
 	worker: Loaded<typeof UserAccount>,
 ): Promise<PersonUpdated> {
 	let person = await Person.load(personId, { loadAs: worker })
-	if (!person) throw errors.PERSON_NOT_FOUND
+	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let previous = {
 		name: person.name,

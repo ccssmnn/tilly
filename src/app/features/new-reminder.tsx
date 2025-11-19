@@ -26,23 +26,18 @@ function NewReminder(props: {
 	onSuccess?: (reminderId: string) => void
 	personId?: string
 }) {
-	let { me } = useAccount(UserAccount, {
-		resolve: {
-			root: {
-				people: {
-					$each: true,
-				},
-			},
+	let me = useAccount(UserAccount)
+	let people = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: true } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => !isDeleted(p))
 		},
 	})
 	let t = useIntl()
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let [direction, setDirection] = useState<"left" | "right">()
-
-	let people = (me?.root?.people ?? []).filter(
-		person => person && !isDeleted(person),
-	)
 
 	let selectedPersonLabel =
 		people.find(person => person.$jazz.id === selectedPersonId)?.name ?? ""
@@ -69,8 +64,7 @@ function NewReminder(props: {
 		dueAtDate: string
 		repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
 	}) {
-		if (!me || !selectedPersonId) return
-
+		if (!me.$isLoaded || !selectedPersonId) return
 		let result = await tryCatch(
 			createReminder(
 				{

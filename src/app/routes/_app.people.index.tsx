@@ -40,11 +40,11 @@ function PeopleScreen() {
 	let { me: data, eagerCount } = Route.useLoaderData()
 	let navigate = Route.useNavigate()
 
-	let { me: subscribedMe } = useAccount(UserAccount, {
+	let subscribedMe = useAccount(UserAccount, {
 		resolve: personListQuery,
 	})
 
-	let currentMe: LoadedAccount = subscribedMe ?? data
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 	let allPeople = filterVisiblePeople(currentMe.root?.people)
 
 	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()

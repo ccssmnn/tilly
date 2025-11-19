@@ -6,13 +6,12 @@ import { co, z } from "jazz-tools"
 export { useChatHistory }
 
 function useChatHistory() {
-	let { me } = useAccount(UserAccount, {
-		resolve: { root: { assistant: { stringifiedMessages: { $each: true } } } },
+	let me = useAccount(UserAccount, {
+		resolve: { root: { assistant: { stringifiedMessages: true } } },
 	})
 
 	function addMessage(message: TillyUIMessage) {
-		if (!me) return
-		if (!me.root) return
+		if (!me.$isLoaded) return
 		if (!me.root.assistant) {
 			me.root.$jazz.set("assistant", {
 				version: 1,
@@ -23,7 +22,7 @@ function useChatHistory() {
 			return
 		}
 
-		me.root.assistant.stringifiedMessages?.$jazz.push(JSON.stringify(message))
+		me.root.assistant.stringifiedMessages.$jazz.push(JSON.stringify(message))
 	}
 
 	return { addMessage }

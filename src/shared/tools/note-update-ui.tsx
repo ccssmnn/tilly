@@ -39,7 +39,7 @@ function EditNoteResult({
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 
 	if ("error" in result) {
 		return (
@@ -50,7 +50,7 @@ function EditNoteResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {
@@ -213,7 +213,7 @@ function DeleteNoteResult({
 	let [dialogOpen, setDialogOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 
 	if ("error" in result) {
 		return (
@@ -224,7 +224,7 @@ function DeleteNoteResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {

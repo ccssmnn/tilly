@@ -77,26 +77,25 @@ export function UploadButton({ userID }: { userID: string }) {
 				},
 			},
 		})
-		let root = account?.root
-		if (!root?.people) return
+		if (!account.$isLoaded) return
 
 		let jsonData: FileData = check.data
 
 		if (values.mode === "replace") {
-			root.people.$jazz.splice(0, root.people.length)
+			account.root.people.$jazz.splice(0, account.root.people.length)
 		}
 
 		for (let personData of jsonData.people) {
 			try {
 				let existingPersonIndex = -1
 				if (values.mode === "merge") {
-					existingPersonIndex = root.people.findIndex(
+					existingPersonIndex = account.root.people.findIndex(
 						p => p?.$jazz.id === personData.id,
 					)
 				}
 
 				if (existingPersonIndex >= 0) {
-					let existingPerson = root.people[existingPersonIndex]
+					let existingPerson = account.root.people[existingPersonIndex]
 					if (!existingPerson) continue
 
 					if (personData.name) {
@@ -356,7 +355,7 @@ export function UploadButton({ userID }: { userID: string }) {
 						}
 					}
 
-					root.people.$jazz.push(person)
+					account.root.people.$jazz.push(person)
 				}
 			} catch (error) {
 				console.error(`Error processing person ${personData.name}:`, error)

@@ -24,12 +24,12 @@ async function updateNote(
 	let person = await Person.load(options.personId, {
 		loadAs: options.worker,
 	})
-	if (!person) throw errors.PERSON_NOT_FOUND
+	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let note = await Note.load(options.noteId, {
 		loadAs: options.worker,
 	})
-	if (!note) throw errors.NOTE_NOT_FOUND
+	if (!note.$isLoaded) throw errors.NOTE_NOT_FOUND
 
 	let previous = { ...note }
 
@@ -106,7 +106,10 @@ function createEditNoteTool(worker: Loaded<typeof UserAccount>) {
 			personId: z.string().describe("The person's ID who owns the note"),
 			noteId: z.string().describe("The note's ID"),
 			title: z.string().optional().describe("Updated title"),
-			content: z.string().optional().describe("The updated note content"),
+			content: z
+				.string()
+				.optional()
+				.describe("The updated note content. Supports markdown formatting."),
 			pinned: z
 				.boolean()
 				.optional()

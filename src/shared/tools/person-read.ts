@@ -113,7 +113,7 @@ function createGetPersonDetailsTool(worker: Loaded<typeof UserAccount>) {
 				loadAs: worker,
 			})
 
-			if (!fullPerson) {
+			if (!fullPerson.$isLoaded) {
 				return { error: `Person with ID "${input.personId}" not found` }
 			}
 

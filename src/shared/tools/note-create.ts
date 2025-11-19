@@ -20,7 +20,7 @@ async function createNote(
 		loadAs: options.worker,
 	})
 
-	if (!person) throw errors.PERSON_NOT_FOUND
+	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let now = new Date()
 	let note = Note.create({
@@ -65,7 +65,9 @@ function createAddNoteTool(worker: Loaded<typeof UserAccount>) {
 		inputSchema: z.object({
 			personId: z.string().describe("The person's ID"),
 			title: z.string().describe("A short title for the note"),
-			content: z.string().describe("The note content"),
+			content: z
+				.string()
+				.describe("The note content. Supports markdown formatting."),
 			pinned: z
 				.boolean()
 				.optional()

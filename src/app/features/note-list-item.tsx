@@ -17,27 +17,27 @@ import {
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow, differenceInDays } from "date-fns"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
 import { tryCatch } from "#shared/lib/trycatch"
-
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
-
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
 
 export { NoteListItem }
+
+let CHAR_LIMIT = 280
+let LINE_LIMIT = 4
 
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
@@ -46,15 +46,25 @@ function NoteListItem(props: {
 	showPerson?: boolean
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
-	let [isExpanded, setIsExpanded] = useState(false)
+	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
 
-	let { contentRef, hasOverflow } = useContentOverflow(
-		props.note.content,
-		isExpanded,
-	)
+	let lines = props.note.content.split("\n")
+	let hasCharOverflow = props.note.content.length > CHAR_LIMIT
+	let hasLineOverflow = lines.length > LINE_LIMIT
+	let hasOverflow = hasCharOverflow || hasLineOverflow
+
+	let displayContent = props.note.content
+	if (!isExpanded && hasOverflow) {
+		if (hasLineOverflow) {
+			displayContent = lines.slice(0, LINE_LIMIT).join("\n") + "..."
+		}
+		if (hasCharOverflow && displayContent.length > CHAR_LIMIT) {
+			displayContent = displayContent.slice(0, CHAR_LIMIT) + "..."
+		}
+	}
 
 	return (
 		<>
@@ -117,15 +127,13 @@ function NoteListItem(props: {
 						</div>
 						<div>
 							<div
-								ref={contentRef}
 								className={cn(
 									"text-left text-wrap select-text",
 									props.note.deletedAt && "text-muted-foreground",
-									!isExpanded && "line-clamp-2",
 								)}
 							>
 								<MarkdownWithHighlight
-									content={props.note.content}
+									content={displayContent}
 									searchQuery={props.searchQuery}
 								/>
 							</div>
@@ -140,7 +148,7 @@ function NoteListItem(props: {
 					data-overflow={hasOverflow}
 				>
 					<button
-						onClick={() => setIsExpanded(!isExpanded)}
+						onClick={toggleExpanded}
 						className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
 					>
 						{isExpanded ? <T k="note.showLess" /> : <T k="note.showMore" />}
@@ -154,7 +162,7 @@ function NoteListItem(props: {
 				open={openDialog === "actions"}
 				onOpenChange={() => setOpenDialog(undefined)}
 				onDelete={async () => {
-					if (!me) return
+					if (!me.$isLoaded) return
 					await deleteNote(
 						{
 							personId: props.person.$jazz.id,
@@ -167,7 +175,7 @@ function NoteListItem(props: {
 				}}
 				onEdit={() => setOpenDialog("edit")}
 				onPin={async () => {
-					if (!me) return
+					if (!me.$isLoaded) return
 					await pinOrUnpinNote(
 						{
 							personId: props.person.$jazz.id,
@@ -331,9 +339,9 @@ function EditDialog(props: {
 	person: co.loaded<typeof Person>
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 	async function handleSubmit(data: { content: string; pinned: boolean }) {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await editNote(
 			data,
 			{
@@ -376,31 +384,6 @@ function EditDialog(props: {
 			</DialogContent>
 		</Dialog>
 	)
-}
-
-function useContentOverflow(content: string, isExpanded: boolean) {
-	let contentRef = useRef<HTMLDivElement>(null)
-	let [hasOverflow, setHasOverflow] = useState(false)
-
-	useEffect(() => {
-		if (!contentRef.current) return
-		let element = contentRef.current
-
-		// Always check if content would overflow when collapsed
-		let wasExpanded = !element.classList.contains("line-clamp-2")
-		element.classList.add("line-clamp-2")
-
-		let isOverflowing = element.scrollHeight > element.clientHeight
-
-		// Restore the expanded state if it was expanded
-		if (wasExpanded && isExpanded) {
-			element.classList.remove("line-clamp-2")
-		}
-
-		setHasOverflow(isOverflowing)
-	}, [content, isExpanded])
-
-	return { contentRef, hasOverflow }
 }
 
 async function editNote(
@@ -500,7 +483,7 @@ function RestoreNoteDialog({
 	onOpenChange: (open: boolean) => void
 }) {
 	let t = useIntl()
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
 	let deletionInfo = null
@@ -515,7 +498,7 @@ function RestoreNoteDialog({
 	}
 
 	async function handleRestore() {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
 			updateNote(
 				{ deletedAt: undefined },
@@ -538,7 +521,7 @@ function RestoreNoteDialog({
 	}
 
 	async function handlePermanentDelete() {
-		if (!me) return
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
 			updateNote(
 				{
@@ -647,4 +630,25 @@ function RestoreNoteDialog({
 			</AlertDialog>
 		</>
 	)
+}
+
+let expandedNoteIDs = new Set<string>()
+
+/**
+ * we need this hook to remember which notes have been expanded even when
+ * unmounted. otherwise the list virtualization gets messed up
+ */
+function useExpanded(id: string) {
+	let [isExpanded, setIsExpanded] = useState(() => expandedNoteIDs.has(id))
+	function toggleExpanded() {
+		if (isExpanded) {
+			setIsExpanded(false)
+			expandedNoteIDs.delete(id)
+		} else {
+			setIsExpanded(true)
+			expandedNoteIDs.add(id)
+		}
+	}
+
+	return { isExpanded, toggleExpanded }
 }

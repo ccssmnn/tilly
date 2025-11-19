@@ -54,12 +54,12 @@ function CreatePersonConfirmation({
 	}
 	addToolResult: AddToolResultFunction
 }) {
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 	let [isCreating, setIsCreating] = useState(false)
 	let t = useIntl()
 
 	let handleConfirm = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsCreating(true)
 		let res = await tryCatch(createPersonExecute(me.$jazz.id, part.input))
 		if (res.ok) {
@@ -132,7 +132,7 @@ function CreatePersonResult({
 }: {
 	result: CreatePersonToolUI["output"]
 }) {
-	let { me } = useAccount(UserAccount)
+	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDialogOpen] = useState(false)
@@ -156,7 +156,7 @@ function CreatePersonResult({
 	}
 
 	let handleUndo = async () => {
-		if (!me) return
+		if (!me.$isLoaded) return
 		setIsUndoing(true)
 		setDialogOpen(false)
 		try {

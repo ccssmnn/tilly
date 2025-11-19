@@ -10,7 +10,7 @@ import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { toast } from "sonner"
 
 export interface MyRouterContext {
-	me: co.loaded<typeof UserAccount> | null
+	me: Extract<co.loaded<typeof UserAccount>, { $isLoaded: true }> | null
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
@@ -24,7 +24,7 @@ function RootComponent() {
 		<>
 			<main
 				id="scroll-area"
-				className="max-h-[100%] overflow-y-scroll"
+				className="max-h-full overflow-y-scroll"
 				style={{
 					paddingTop: "max(1.5rem, env(safe-area-inset-top))",
 					paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",

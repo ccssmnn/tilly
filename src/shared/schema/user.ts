@@ -6,6 +6,7 @@ export {
 	isPermanentlyDeleted,
 	isDueToday,
 	sortByDueAt,
+	sortByCreatedAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
 }
@@ -167,12 +168,11 @@ async function markOldDeletedItemsAsPermanent(
 			root: migrationResolveQuery,
 		},
 	})
-	if (!root.people) return
 
 	let thirtyDaysAgo = new Date()
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-	for (let person of root.people) {
+	for (let person of root.people.values()) {
 		if (
 			person.deletedAt &&
 			!person.permanentlyDeletedAt &&
@@ -181,7 +181,7 @@ async function markOldDeletedItemsAsPermanent(
 			person.$jazz.set("permanentlyDeletedAt", person.deletedAt)
 		}
 
-		for (let reminder of person.reminders) {
+		for (let reminder of person.reminders.values()) {
 			if (
 				reminder.deletedAt &&
 				!reminder.permanentlyDeletedAt &&
@@ -191,7 +191,7 @@ async function markOldDeletedItemsAsPermanent(
 			}
 		}
 
-		for (let note of person.notes) {
+		for (let note of person.notes.values()) {
 			if (
 				note.deletedAt &&
 				!note.permanentlyDeletedAt &&
@@ -222,6 +222,21 @@ function isDueToday(reminder: { dueAtDate: string }): boolean {
 function sortByDueAt<T extends { dueAtDate: string }>(arr: Array<T>): Array<T> {
 	return arr.sort((a, b) => {
 		return new Date(a.dueAtDate).getTime() - new Date(b.dueAtDate).getTime()
+	})
+}
+
+function sortByCreatedAt<
+	T extends {
+		createdAt?: Date
+		$jazz: {
+			createdAt: number
+		}
+	},
+>(arr: Array<T>): Array<T> {
+	return arr.sort((a, b) => {
+		let aTime = (a.createdAt || new Date(a.$jazz.createdAt)).getTime()
+		let bTime = (b.createdAt || new Date(b.$jazz.createdAt)).getTime()
+		return bTime - aTime
 	})
 }
 

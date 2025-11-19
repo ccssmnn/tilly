@@ -1,31 +1,29 @@
 import {
 	Person,
-	Reminder,
 	isDeleted,
 	isPermanentlyDeleted,
 	sortByDueAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
+	UserAccount,
 } from "#shared/schema/user"
-import { co, type ResolveQuery } from "jazz-tools"
+import { useAccount, useCoState } from "jazz-tools/react-core"
 
 export { useReminders, usePersonReminders }
 
-function useReminders<Q extends ResolveQuery<typeof Person>>(
-	people: Array<co.loaded<typeof Person, Q>>,
-	searchQuery: string,
-) {
-	let allReminderPairs: Array<{
-		reminder: co.loaded<typeof Reminder>
-		person: co.loaded<typeof Person>
-	}> = []
+function useReminders(searchQuery: string) {
+	let people = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: { reminders: { $each: true } } } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => !isDeleted(p))
+		},
+	})
 
+	let allReminderPairs = []
 	for (let person of people) {
-		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
-		if (!person.reminders) continue
-
-		for (let reminder of person.reminders) {
-			if (!reminder || isPermanentlyDeleted(reminder)) continue
+		for (let reminder of person.reminders.values()) {
+			if (isPermanentlyDeleted(reminder)) continue
 			allReminderPairs.push({ reminder, person })
 		}
 	}
@@ -40,9 +38,9 @@ function useReminders<Q extends ResolveQuery<typeof Person>>(
 			})
 		: allReminderPairs
 
-	let open: typeof allReminderPairs = []
-	let done: typeof allReminderPairs = []
-	let deleted: typeof allReminderPairs = []
+	let open = []
+	let done = []
+	let deleted = []
 
 	for (let { reminder, person } of filteredPairs) {
 		if (isDeleted(reminder) && !isPermanentlyDeleted(reminder)) {
@@ -87,31 +85,25 @@ function useReminders<Q extends ResolveQuery<typeof Person>>(
 	return { open, done, deleted, total: allReminderPairs.length }
 }
 
-function usePersonReminders<Q extends ResolveQuery<typeof Person>>(
-	person: co.loaded<typeof Person, Q>,
-	searchQuery: string,
-) {
-	if (!person.reminders) return { open: [], done: [], deleted: [] }
+function usePersonReminders(personId: string, searchQuery: string) {
+	let reminders = useCoState(Person, personId, {
+		resolve: { reminders: { $each: true } },
+		select: person => {
+			if (!person.$isLoaded) return []
+			return person.reminders.filter(r => !isPermanentlyDeleted(r))
+		},
+	})
 
 	let filteredReminders = searchQuery
-		? person.reminders.filter(reminder => {
-				if (!reminder || isPermanentlyDeleted(reminder)) return false
+		? reminders.filter(reminder => {
 				let searchLower = searchQuery.toLowerCase()
 				return reminder.text.toLowerCase().includes(searchLower)
 			})
-		: person.reminders.filter(
-				reminder => reminder && !isPermanentlyDeleted(reminder),
-			)
+		: reminders
 
-	let open = filteredReminders.filter(
-		r => r && !isDeleted(r) && !r.done,
-	) as Array<co.loaded<typeof Reminder>>
-	let done = filteredReminders.filter(
-		r => r && !isDeleted(r) && r.done,
-	) as Array<co.loaded<typeof Reminder>>
-	let deleted = filteredReminders.filter(
-		r => r && isDeleted(r) && !isPermanentlyDeleted(r),
-	) as Array<co.loaded<typeof Reminder>>
+	let open = filteredReminders.filter(r => !r.done && !isDeleted(r))
+	let done = filteredReminders.filter(r => r.done && !isDeleted(r))
+	let deleted = filteredReminders.filter(r => isDeleted(r))
 
 	sortByDueAt(open)
 	sortByUpdatedAt(done)

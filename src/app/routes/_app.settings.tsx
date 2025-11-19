@@ -70,17 +70,18 @@ export const Route = createFileRoute("/_app/settings")({
 		if (!context.me) throw notFound()
 
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
-			resolve: query,
+			resolve: resolve,
 		})
-		if (!loadedMe) throw notFound()
+		if (!loadedMe.$isLoaded) throw notFound()
 		return { me: loadedMe }
 	},
 	component: SettingsScreen,
 })
 
-let query = {
+let resolve = {
 	profile: true,
 	root: {
+		assistant: true,
 		notificationSettings: true,
 		usageTracking: true,
 	},
@@ -89,10 +90,10 @@ let query = {
 function SettingsScreen() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
+	let subscribedMe = useAccount(UserAccount, {
+		resolve: resolve,
 	})
-	let currentMe = subscribedMe ?? data.me
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 	let { status: accessStatus } = useAssistantAccess()
 	let isPWAInstalled = useIsPWAInstalled()
 
@@ -118,20 +119,13 @@ function SettingsScreen() {
 function LanguageSection() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
-	})
-	let currentMe = subscribedMe ?? data.me
+	let subscribedMe = useAccount(UserAccount, { resolve })
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 
-	let currentLang = currentMe?.root?.language || "en"
+	let currentLang = currentMe.root.language || "en"
 
 	function setLanguage(lang: "de" | "en") {
-		if (!currentMe?.root) return
 		currentMe.root.$jazz.set("language", lang)
-	}
-
-	if (!currentMe) {
-		return null
 	}
 
 	return (
@@ -281,7 +275,7 @@ let assistantFormSchema = z.object({
 function AssistantSection({
 	me,
 }: {
-	me: co.loaded<typeof UserAccount, typeof query>
+	me: co.loaded<typeof UserAccount, typeof resolve>
 }) {
 	let [isDisplayNameDialogOpen, setIsDisplayNameDialogOpen] = useState(false)
 	let [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -303,7 +297,7 @@ function AssistantSection({
 		(me.root.notificationSettings?.pushDevices?.length ?? 0) > 0
 
 	function handleNotifyOnCompleteChange(checked: boolean) {
-		if (!me.root.assistant) return
+		if (!me.root.assistant?.$isLoaded) return
 		me.root.assistant.$jazz.set("notifyOnComplete", checked)
 	}
 
@@ -583,14 +577,10 @@ function PWASection() {
 function DataSection() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
+	let subscribedMe = useAccount(UserAccount, {
+		resolve: resolve,
 	})
-	let currentMe = subscribedMe ?? data.me
-
-	if (!currentMe) {
-		return null
-	}
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
 
 	return (
 		<SettingsSection
@@ -662,7 +652,7 @@ function DeleteDataButton({
 				resolve: { root: { people: true } },
 			}),
 		)
-		if (!accountResult.ok || !accountResult.data) {
+		if (!accountResult.ok || !accountResult.data.$isLoaded) {
 			toast.error(t("settings.data.delete.error.load"))
 			return
 		}
@@ -769,11 +759,9 @@ function AboutSection() {
 	let t = useIntl()
 	let setTourSkipped = useAppStore(s => s.setTourSkipped)
 	let data = Route.useLoaderData()
-	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
-	})
-	let currentMe = subscribedMe ?? data.me
-	let currentLang = currentMe?.root?.language || "en"
+	let subscribedMe = useAccount(UserAccount, { resolve })
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
+	let currentLang = currentMe.root.language || "en"
 
 	return (
 		<SettingsSection

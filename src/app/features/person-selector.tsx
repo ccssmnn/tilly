@@ -13,20 +13,15 @@ function PersonSelector(props: {
 	emptyMessage: string
 	selectedPersonId?: string
 }) {
-	let { me } = useAccount(UserAccount, {
-		resolve: {
-			root: {
-				people: {
-					$each: true,
-				},
-			},
+	let people = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: true } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => !isDeleted(p))
 		},
 	})
-	let [searchQuery, setSearchQuery] = useState("")
 
-	let people = (me?.root?.people ?? []).filter(
-		person => person && !isDeleted(person),
-	)
+	let [searchQuery, setSearchQuery] = useState("")
 
 	let filteredPeople = useMemo(() => {
 		if (!searchQuery) return people

@@ -51,16 +51,14 @@ export const Route = createFileRoute("/_app/people/$personID")({
 		tab: z.enum(["notes", "reminders"]).optional().default("notes"),
 	}),
 	loader: async ({ params }) => {
-		let person = await Person.load(params.personID, {
-			resolve: query,
-		})
-		if (!person) throw notFound()
+		let person = await Person.load(params.personID, { resolve })
+		if (!person.$isLoaded) throw notFound()
 		return { person }
 	},
 	component: PersonScreen,
 })
 
-let query = {
+let resolve = {
 	avatar: true,
 	notes: { $each: true },
 	reminders: { $each: true },
@@ -70,20 +68,19 @@ function PersonScreen() {
 	let { me } = Route.useRouteContext()
 	let { personID } = Route.useParams()
 	let data = Route.useLoaderData()
-	let subscribedPerson = useCoState(Person, personID, {
-		resolve: query,
-	})
-	let person = subscribedPerson ?? data.person
 	let { tab } = Route.useSearch()
+
+	let subscribedPerson = useCoState(Person, personID, { resolve })
+	let person = subscribedPerson.$isLoaded ? subscribedPerson : data.person
 	let isMobile = useIsMobile()
 	let [searchQuery, setSearchQuery] = useState("")
 	let deferredSearchQuery = useDeferredValue(searchQuery)
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
-	let notes = usePersonNotes(person, deferredSearchQuery)
+	let notes = usePersonNotes(person.$jazz.id, deferredSearchQuery)
 	let searchInputId = useId()
 
-	let reminders = usePersonReminders(person, deferredSearchQuery)
+	let reminders = usePersonReminders(person.$jazz.id, deferredSearchQuery)
 	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
 
 	if (!me) {
@@ -213,20 +210,10 @@ function NotesList({
 	searchQuery,
 }: {
 	notes: {
-		active: Array<{
-			type: "note"
-			item: co.loaded<typeof Note>
-			timestamp: Date
-			priority: "high" | "normal"
-		}>
-		deleted: Array<{
-			type: "note"
-			item: co.loaded<typeof Note>
-			timestamp: Date
-			priority: "high" | "normal"
-		}>
+		active: Array<co.loaded<typeof Note>>
+		deleted: Array<co.loaded<typeof Note>>
 	}
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, typeof resolve>
 	searchQuery: string
 }) {
 	let didSearch = !!searchQuery
@@ -254,8 +241,8 @@ function NotesList({
 		<>
 			{notes.active.map(entry => (
 				<NoteListItem
-					key={entry.item.$jazz.id}
-					note={entry.item}
+					key={entry.$jazz.id}
+					note={entry}
 					person={person}
 					searchQuery={searchQuery}
 					showPerson={false}
@@ -275,8 +262,8 @@ function NotesList({
 							<AccordionContent>
 								{notes.deleted.map(entry => (
 									<NoteListItem
-										key={entry.item.$jazz.id}
-										note={entry.item}
+										key={entry.$jazz.id}
+										note={entry}
 										person={person}
 										searchQuery={searchQuery}
 										showPerson={false}
@@ -300,8 +287,8 @@ function NotesList({
 							</h3>
 							{notes.deleted.map(entry => (
 								<NoteListItem
-									key={entry.item.$jazz.id}
-									note={entry.item}
+									key={entry.$jazz.id}
+									note={entry}
 									person={person}
 									searchQuery={searchQuery}
 									showPerson={false}
@@ -326,7 +313,7 @@ function RemindersList({
 		done: Array<co.loaded<typeof Reminder>>
 		deleted: Array<co.loaded<typeof Reminder>>
 	}
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, typeof resolve>
 	me: co.loaded<typeof UserAccount>
 	searchQuery: string
 }) {
@@ -467,7 +454,7 @@ function RemindersList({
 }
 
 function AddItemButton(props: {
-	person: co.loaded<typeof Person, typeof query>
+	person: co.loaded<typeof Person, typeof resolve>
 	activeTab: "notes" | "reminders"
 	me: co.loaded<typeof UserAccount>
 	onItemCreated: () => void

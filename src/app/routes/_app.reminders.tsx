@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
-import { UserAccount, isDeleted } from "#shared/schema/user"
+import { UserAccount } from "#shared/schema/user"
 import { useReminders } from "#app/features/reminder-hooks"
 import { useAccount } from "jazz-tools/react"
 import { type ResolveQuery } from "jazz-tools"
@@ -23,15 +23,15 @@ export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
 		if (!context.me) throw notFound()
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
-			resolve: query,
+			resolve: resolve,
 		})
-		if (!loadedMe) throw notFound()
+		if (!loadedMe.$isLoaded) throw notFound()
 		return { me: loadedMe }
 	},
 	component: Reminders,
 })
 
-let query = {
+let resolve = {
 	root: {
 		people: {
 			$each: {
@@ -45,20 +45,14 @@ let query = {
 function Reminders() {
 	let { me: data } = Route.useLoaderData()
 
-	let { me: subscribedMe } = useAccount(UserAccount, {
-		resolve: query,
-	})
+	let subscribedMe = useAccount(UserAccount, { resolve })
 
-	let currentMe = subscribedMe ?? data
+	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 
 	let { remindersSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(remindersSearchQuery)
 
-	let people = (currentMe.root?.people ?? []).filter(
-		person => person && !isDeleted(person),
-	)
-
-	let reminders = useReminders(people, searchQuery)
+	let reminders = useReminders(searchQuery)
 
 	let didSearch = !!searchQuery
 	let hasMatches =
