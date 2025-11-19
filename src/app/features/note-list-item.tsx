@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow, differenceInDays } from "date-fns"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
@@ -36,6 +36,8 @@ import { TextHighlight } from "#shared/ui/text-highlight"
 
 export { NoteListItem }
 
+let CHAR_LIMIT = 280
+
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
@@ -48,10 +50,11 @@ function NoteListItem(props: {
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
 
-	let { contentRef, hasOverflow } = useContentOverflow(
-		props.note.content,
-		isExpanded,
-	)
+	let hasOverflow = props.note.content.length > CHAR_LIMIT
+	let displayContent =
+		isExpanded || !hasOverflow
+			? props.note.content
+			: props.note.content.slice(0, CHAR_LIMIT) + "..."
 
 	return (
 		<>
@@ -114,15 +117,13 @@ function NoteListItem(props: {
 						</div>
 						<div>
 							<div
-								ref={contentRef}
 								className={cn(
 									"text-left text-wrap select-text",
 									props.note.deletedAt && "text-muted-foreground",
-									!isExpanded && "line-clamp-2",
 								)}
 							>
 								<MarkdownWithHighlight
-									content={props.note.content}
+									content={displayContent}
 									searchQuery={props.searchQuery}
 								/>
 							</div>
@@ -373,31 +374,6 @@ function EditDialog(props: {
 			</DialogContent>
 		</Dialog>
 	)
-}
-
-function useContentOverflow(content: string, isExpanded: boolean) {
-	let contentRef = useRef<HTMLDivElement>(null)
-	let [hasOverflow, setHasOverflow] = useState(false)
-
-	useEffect(() => {
-		if (!contentRef.current) return
-		let element = contentRef.current
-
-		// Always check if content would overflow when collapsed
-		let wasExpanded = !element.classList.contains("line-clamp-2")
-		element.classList.add("line-clamp-2")
-
-		let isOverflowing = element.scrollHeight > element.clientHeight
-
-		// Restore the expanded state if it was expanded
-		if (wasExpanded && isExpanded) {
-			element.classList.remove("line-clamp-2")
-		}
-
-		setHasOverflow(isOverflowing)
-	}, [content, isExpanded])
-
-	return { contentRef, hasOverflow }
 }
 
 async function editNote(
