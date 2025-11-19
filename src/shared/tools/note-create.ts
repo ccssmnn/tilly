@@ -65,7 +65,9 @@ function createAddNoteTool(worker: Loaded<typeof UserAccount>) {
 		inputSchema: z.object({
 			personId: z.string().describe("The person's ID"),
 			title: z.string().describe("A short title for the note"),
-			content: z.string().describe("The note content"),
+			content: z
+				.string()
+				.describe("The note content. Supports markdown formatting."),
 			pinned: z
 				.boolean()
 				.optional()

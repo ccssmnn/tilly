@@ -106,7 +106,10 @@ function createEditNoteTool(worker: Loaded<typeof UserAccount>) {
 			personId: z.string().describe("The person's ID who owns the note"),
 			noteId: z.string().describe("The note's ID"),
 			title: z.string().optional().describe("Updated title"),
-			content: z.string().optional().describe("The updated note content"),
+			content: z
+				.string()
+				.optional()
+				.describe("The updated note content. Supports markdown formatting."),
 			pinned: z
 				.boolean()
 				.optional()

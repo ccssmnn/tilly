@@ -141,7 +141,7 @@ type ListNotesResult = {
 function createListNotesTool(worker: Loaded<typeof UserAccount>) {
 	return tool({
 		description:
-			"List notes across all people with optional search on note content, titles, and person names.",
+			"List notes across all people with optional search on note content, titles, and person names. Note content supports markdown formatting.",
 		inputSchema: z.object({
 			searchQuery: z
 				.string()
