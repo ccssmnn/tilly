@@ -37,6 +37,7 @@ import { TextHighlight } from "#shared/ui/text-highlight"
 export { NoteListItem }
 
 let CHAR_LIMIT = 280
+let LINE_LIMIT = 4
 
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
@@ -50,11 +51,20 @@ function NoteListItem(props: {
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
 
-	let hasOverflow = props.note.content.length > CHAR_LIMIT
-	let displayContent =
-		isExpanded || !hasOverflow
-			? props.note.content
-			: props.note.content.slice(0, CHAR_LIMIT) + "..."
+	let lines = props.note.content.split("\n")
+	let hasCharOverflow = props.note.content.length > CHAR_LIMIT
+	let hasLineOverflow = lines.length > LINE_LIMIT
+	let hasOverflow = hasCharOverflow || hasLineOverflow
+
+	let displayContent = props.note.content
+	if (!isExpanded && hasOverflow) {
+		if (hasLineOverflow) {
+			displayContent = lines.slice(0, LINE_LIMIT).join("\n") + "..."
+		}
+		if (hasCharOverflow && displayContent.length > CHAR_LIMIT) {
+			displayContent = displayContent.slice(0, CHAR_LIMIT) + "..."
+		}
+	}
 
 	return (
 		<>
