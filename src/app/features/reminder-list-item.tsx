@@ -6,12 +6,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
-import {
-	Popover,
-	PopoverContent,
-	PopoverAnchor,
-	PopoverTrigger,
-} from "#shared/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "#shared/ui/popover"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -39,16 +34,10 @@ import { useState, type ReactNode } from "react"
 import { ReminderForm } from "./reminder-form"
 import { Link } from "@tanstack/react-router"
 import { Image as JazzImage } from "jazz-tools/react"
-import {
-	isBefore,
-	isToday,
-	formatDistanceToNow,
-	differenceInDays,
-} from "date-fns"
+import { isBefore, isToday, formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale, useIntl, T } from "#shared/intl/setup"
-import { useIsMobile } from "#app/hooks/use-mobile"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -78,14 +67,9 @@ function ReminderListItem({
 	let [dialogOpen, setDialogOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
-	let [anchorPos, setAnchorPos] = useState<{ x: number; y: number }>({
-		x: 0,
-		y: 0,
-	})
 	let operations = useReminderItemOperations({ reminder, person, me })
 
-	function handleReminderClick(e: React.MouseEvent) {
-		setAnchorPos({ x: e.clientX, y: e.clientY })
+	function handleReminderClick(_e: React.MouseEvent) {
 		setDialogOpen("actions")
 	}
 
@@ -103,35 +87,35 @@ function ReminderListItem({
 
 		return (
 			<>
-				<ReminderItemContainer
-					reminder={reminder}
-					person={person}
-					showPerson={showPerson}
-					className={dialogOpen === "restore" ? "bg-accent" : ""}
-					onClick={_e => setDialogOpen("restore")}
-				>
-					<div className="space-y-1 select-text">
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-							<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
-								<Trash />
-								<span>{deletedLabel}</span>
-							</span>
-							{showPerson ? (
-								<span className="text-muted-foreground font-normal">
-									<TextHighlight text={person.name} query={searchQuery} />
-								</span>
-							) : null}
-						</div>
-						<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
-					</div>
-				</ReminderItemContainer>
 				<RestoreReminderDialog
-					reminder={reminder}
 					open={dialogOpen === "restore"}
 					onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
 					onRestore={operations.restore}
 					onPermanentDelete={operations.deletePermanently}
-				/>
+				>
+					<ReminderItemContainer
+						reminder={reminder}
+						person={person}
+						showPerson={showPerson}
+						className={dialogOpen === "restore" ? "bg-accent" : ""}
+						onClick={() => setDialogOpen("restore")}
+					>
+						<div className="space-y-1 select-text">
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+								<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
+									<Trash />
+									<span>{deletedLabel}</span>
+								</span>
+								{showPerson ? (
+									<span className="text-muted-foreground font-normal">
+										<TextHighlight text={person.name} query={searchQuery} />
+									</span>
+								) : null}
+							</div>
+							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
+						</div>
+					</ReminderItemContainer>
+				</RestoreReminderDialog>
 			</>
 		)
 	}
@@ -150,34 +134,35 @@ function ReminderListItem({
 
 		return (
 			<>
-				<ReminderItemContainer
-					reminder={reminder}
-					person={person}
-					showPerson={showPerson}
-					className={dialogOpen === "done" ? "bg-accent" : ""}
-					onClick={_e => setDialogOpen("done")}
-				>
-					<div className="space-y-1 select-text">
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-							<span className="inline-flex items-center gap-1 text-emerald-500 [&>svg]:size-3">
-								<CheckLg />
-								<span>{doneLabel}</span>
-							</span>
-							{showPerson ? (
-								<span className="text-muted-foreground font-normal">
-									<TextHighlight text={person.name} query={searchQuery} />
-								</span>
-							) : null}
-						</div>
-						<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
-					</div>
-				</ReminderItemContainer>
 				<DoneReminderActionsDialog
 					open={dialogOpen === "done"}
 					onOpenChange={open => setDialogOpen(open ? "done" : undefined)}
 					onUndo={operations.markUndone}
 					onDelete={operations.deleteReminder}
-				/>
+				>
+					<ReminderItemContainer
+						reminder={reminder}
+						person={person}
+						showPerson={showPerson}
+						className={dialogOpen === "done" ? "bg-accent" : ""}
+						onClick={_e => setDialogOpen("done")}
+					>
+						<div className="space-y-1 select-text">
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+								<span className="inline-flex items-center gap-1 text-emerald-500 [&>svg]:size-3">
+									<CheckLg />
+									<span>{doneLabel}</span>
+								</span>
+								{showPerson ? (
+									<span className="text-muted-foreground font-normal">
+										<TextHighlight text={person.name} query={searchQuery} />
+									</span>
+								) : null}
+							</div>
+							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
+						</div>
+					</ReminderItemContainer>
+				</DoneReminderActionsDialog>
 			</>
 		)
 	}
@@ -257,14 +242,16 @@ function ReminderItemContainer({
 	children: React.ReactNode
 	onClick: (e: React.MouseEvent) => void
 }) {
+	let baseClassName = cn(
+		"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
+		className,
+	)
+
 	return (
 		<div className="-mx-3">
 			<PopoverTrigger
 				id={`reminder-${reminder.$jazz.id}`}
-				className={cn(
-					"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
-					className,
-				)}
+				className={baseClassName}
 				onClick={e => {
 					if (isTextSelectionOngoing()) return
 					onClick(e)
@@ -373,18 +360,22 @@ function ActionsPopover({
 		<Popover open={open} onOpenChange={onOpenChange} modal>
 			{children}
 			<PopoverContent
-				className="w-48 p-1.5"
+				className="w-auto min-w-48 p-1"
 				align={"center"}
 				side={"top"}
 				sideOffset={8}
 			>
-				<div className="flex flex-col gap-1.5">
-					<Button className="h-11 justify-start" onClick={handleDone}>
+				<div className="flex flex-col">
+					<Button
+						variant="ghost"
+						className="h-11 justify-start"
+						onClick={handleDone}
+					>
 						<CheckLg />
 						<T k="reminder.actions.markDone" />
 					</Button>
 					<Button
-						variant="outline"
+						variant="ghost"
 						className="h-11 justify-start"
 						onClick={onEditClick}
 					>
@@ -392,7 +383,7 @@ function ActionsPopover({
 						<T k="reminder.actions.edit" />
 					</Button>
 					<Button
-						variant="outline"
+						variant="ghost"
 						className="h-11 justify-start"
 						onClick={onAddNoteClick}
 					>
@@ -401,7 +392,7 @@ function ActionsPopover({
 					</Button>
 					{showPerson && (
 						<Button
-							variant="outline"
+							variant="ghost"
 							className="h-11 justify-start"
 							onClick={() => onOpenChange(false)}
 							asChild
@@ -416,8 +407,8 @@ function ActionsPopover({
 						</Button>
 					)}
 					<Button
-						variant="destructive"
-						className="h-11 justify-start"
+						variant="ghost"
+						className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-11 justify-start"
 						onClick={handleDelete}
 					>
 						<Trash />
@@ -527,30 +518,19 @@ function AddNoteDialog({
 }
 
 function RestoreReminderDialog({
-	reminder,
 	open,
 	onOpenChange,
 	onRestore,
 	onPermanentDelete,
+	children,
 }: {
-	reminder: co.loaded<typeof Reminder>
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onRestore: () => Promise<boolean>
 	onPermanentDelete: () => Promise<boolean>
+	children: ReactNode
 }) {
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-
-	let deletionInfo = (() => {
-		if (!reminder.deletedAt) return null
-		let daysSinceDeletion = differenceInDays(new Date(), reminder.deletedAt)
-		let daysUntilPermanentDeletion = Math.max(0, 30 - daysSinceDeletion)
-		return {
-			daysSinceDeletion,
-			daysUntilPermanentDeletion,
-			isDueForPermanentDeletion: daysSinceDeletion >= 30,
-		}
-	})()
 
 	async function handleRestore() {
 		let restored = await onRestore()
@@ -563,72 +543,40 @@ function RestoreReminderDialog({
 		let deleted = await onPermanentDelete()
 		if (deleted) {
 			onOpenChange(false)
+			setConfirmDeleteOpen(false)
 		}
 	}
 
 	return (
 		<>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="reminder.restore.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="reminder.restore.deletionInfo"
-									params={{
-										timeAgo: formatDistanceToNow(
-											reminder.deletedAt ||
-												reminder.updatedAt ||
-												reminder.createdAt ||
-												new Date(
-													reminder.$jazz.lastUpdatedAt ||
-														reminder.$jazz.createdAt,
-												),
-											{
-												addSuffix: true,
-												locale: useLocale() === "de" ? dfnsDe : undefined,
-											},
-										),
-									}}
-								/>
-								{deletionInfo && (
-									<>
-										{deletionInfo.isDueForPermanentDeletion ? (
-											<span className="text-destructive">
-												<T k="reminder.restore.permanentDeletionWarning" />
-											</span>
-										) : (
-											<T
-												k="reminder.restore.permanentDeletionCountdown"
-												params={{
-													days: deletionInfo.daysUntilPermanentDeletion,
-												}}
-											/>
-										)}
-									</>
-								)}
-								<T k="reminder.restore.question" />
-							</DialogDescription>
-						</DialogHeader>
-					}
+			<Popover open={open} onOpenChange={onOpenChange} modal>
+				{children}
+				<PopoverContent
+					className="w-auto min-w-48 p-1"
+					align={"center"}
+					side={"top"}
+					sideOffset={8}
 				>
-					<div className="space-y-3">
-						<Button className="h-12 w-full" onClick={handleRestore}>
+					<div className="flex flex-col">
+						<Button
+							variant="ghost"
+							className="h-11 justify-start"
+							onClick={handleRestore}
+						>
+							<ArrowCounterclockwise />
 							<T k="reminder.restore.button" />
 						</Button>
 						<Button
-							variant="destructive"
-							className="h-12 w-full"
+							variant="ghost"
+							className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-11 justify-start"
 							onClick={() => setConfirmDeleteOpen(true)}
 						>
+							<Trash />
 							<T k="reminder.restore.permanentDelete" />
 						</Button>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</PopoverContent>
+			</Popover>
 
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
@@ -659,11 +607,13 @@ function DoneReminderActionsDialog({
 	onOpenChange,
 	onUndo,
 	onDelete,
+	children,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onUndo: () => Promise<void>
 	onDelete: () => Promise<void>
+	children: ReactNode
 }) {
 	async function handleUndone() {
 		onOpenChange(false)
@@ -676,35 +626,34 @@ function DoneReminderActionsDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="reminder.done.actions.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="reminder.done.actions.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
+		<Popover open={open} onOpenChange={onOpenChange} modal>
+			{children}
+			<PopoverContent
+				className="w-auto min-w-48 p-1"
+				align={"center"}
+				side={"top"}
+				sideOffset={8}
 			>
-				<div className="space-y-3">
-					<Button className="h-12 w-full" onClick={handleUndone}>
+				<div className="flex flex-col">
+					<Button
+						variant="ghost"
+						className="h-11 justify-start"
+						onClick={handleUndone}
+					>
 						<ArrowCounterclockwise />
 						<T k="reminder.done.markUndone" />
 					</Button>
 					<Button
-						variant="destructive"
-						className="h-12 w-full"
+						variant="ghost"
+						className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-11 justify-start"
 						onClick={handleDelete}
 					>
 						<Trash />
 						<T k="reminder.actions.delete" />
 					</Button>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</PopoverContent>
+		</Popover>
 	)
 }
 
