@@ -69,10 +69,6 @@ function ReminderListItem({
 	>()
 	let operations = useReminderItemOperations({ reminder, person, me })
 
-	function handleReminderClick(_e: React.MouseEvent) {
-		setDialogOpen("actions")
-	}
-
 	if (reminder.deletedAt) {
 		let deletedRelativeTime = formatDistanceToNow(
 			getReminderDeletedDate(reminder),
@@ -87,11 +83,10 @@ function ReminderListItem({
 
 		return (
 			<>
-				<RestoreReminderDialog
+				<RestoreReminderPopover
 					open={dialogOpen === "restore"}
 					onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
-					onRestore={operations.restore}
-					onPermanentDelete={operations.deletePermanently}
+					operations={operations}
 				>
 					<ReminderItemContainer
 						reminder={reminder}
@@ -115,7 +110,7 @@ function ReminderListItem({
 							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
 						</div>
 					</ReminderItemContainer>
-				</RestoreReminderDialog>
+				</RestoreReminderPopover>
 			</>
 		)
 	}
@@ -134,11 +129,10 @@ function ReminderListItem({
 
 		return (
 			<>
-				<DoneReminderActionsDialog
+				<DoneReminderPopover
 					open={dialogOpen === "done"}
 					onOpenChange={open => setDialogOpen(open ? "done" : undefined)}
-					onUndo={operations.markUndone}
-					onDelete={operations.deleteReminder}
+					operations={operations}
 				>
 					<ReminderItemContainer
 						reminder={reminder}
@@ -162,7 +156,7 @@ function ReminderListItem({
 							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
 						</div>
 					</ReminderItemContainer>
-				</DoneReminderActionsDialog>
+				</DoneReminderPopover>
 			</>
 		)
 	}
@@ -170,21 +164,20 @@ function ReminderListItem({
 	return (
 		<>
 			<ActionsPopover
-				showPerson={showPerson}
-				person={person}
 				open={dialogOpen === "actions"}
 				onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
 				onEditClick={() => setDialogOpen("edit")}
 				onAddNoteClick={() => setDialogOpen("note")}
-				onDone={operations.markDone}
-				onDelete={operations.deleteReminder}
+				showPerson={showPerson}
+				person={person}
+				operations={operations}
 			>
 				<ReminderItemContainer
 					reminder={reminder}
 					person={person}
 					showPerson={showPerson}
 					className={dialogOpen ? "bg-accent" : ""}
-					onClick={handleReminderClick}
+					onClick={() => setDialogOpen("actions")}
 				>
 					<div className="flex items-start gap-3 select-text">
 						<div
@@ -214,14 +207,14 @@ function ReminderListItem({
 				open={dialogOpen === "edit"}
 				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
 				reminder={reminder}
-				onSubmit={operations.updateReminder}
+				operations={operations}
 			/>
 			<AddNoteDialog
 				person={person}
 				open={dialogOpen === "note"}
 				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
 				onClose={() => setDialogOpen(undefined)}
-				onSubmit={operations.addNote}
+				operations={operations}
 			/>
 		</>
 	)
@@ -326,34 +319,32 @@ function getReminderDeletedDate(reminder: co.loaded<typeof Reminder>) {
 }
 
 function ActionsPopover({
-	showPerson,
-	person,
 	open,
 	onOpenChange,
 	onEditClick,
 	onAddNoteClick,
-	onDone,
-	onDelete,
+	showPerson,
+	person,
+	operations,
 	children,
 }: {
-	children: ReactNode
-	showPerson: boolean
-	person: co.loaded<typeof Person>
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onEditClick: () => void
 	onAddNoteClick: () => void
-	onDone: () => Promise<void>
-	onDelete: () => Promise<void>
+	showPerson: boolean
+	person: co.loaded<typeof Person>
+	operations: ReminderItemOperations
+	children: ReactNode
 }) {
 	async function handleDone() {
 		onOpenChange(false)
-		await onDone()
+		await operations.markDone()
 	}
 
 	async function handleDelete() {
 		onOpenChange(false)
-		await onDelete()
+		await operations.deleteReminder()
 	}
 
 	return (
@@ -424,17 +415,15 @@ function EditReminderDialog({
 	open,
 	onOpenChange,
 	reminder,
-	onSubmit,
+	operations,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	reminder: co.loaded<typeof Reminder>
-	onSubmit: (
-		data: ReminderUpdateInput,
-	) => Promise<{ success: true } | undefined>
+	operations: ReminderItemOperations
 }) {
 	async function handleEdit(data: ReminderUpdateInput) {
-		let result = await onSubmit(data)
+		let result = await operations.updateReminder(data)
 		if (result?.success) {
 			onOpenChange(false)
 		}
@@ -473,16 +462,16 @@ function AddNoteDialog({
 	open,
 	onOpenChange,
 	onClose,
-	onSubmit,
+	operations,
 }: {
 	person: co.loaded<typeof Person>
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onClose: () => void
-	onSubmit: (data: NoteFormInput) => Promise<{ success: true } | undefined>
+	operations: ReminderItemOperations
 }) {
 	async function handleAddNote(data: NoteFormInput) {
-		let result = await onSubmit(data)
+		let result = await operations.addNote(data)
 		if (result?.success) {
 			onClose()
 		}
@@ -517,30 +506,28 @@ function AddNoteDialog({
 	)
 }
 
-function RestoreReminderDialog({
+function RestoreReminderPopover({
 	open,
 	onOpenChange,
-	onRestore,
-	onPermanentDelete,
+	operations,
 	children,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	onRestore: () => Promise<boolean>
-	onPermanentDelete: () => Promise<boolean>
+	operations: ReminderItemOperations
 	children: ReactNode
 }) {
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
 	async function handleRestore() {
-		let restored = await onRestore()
+		let restored = await operations.restore()
 		if (restored) {
 			onOpenChange(false)
 		}
 	}
 
 	async function handlePermanentDelete() {
-		let deleted = await onPermanentDelete()
+		let deleted = await operations.deletePermanently()
 		if (deleted) {
 			onOpenChange(false)
 			setConfirmDeleteOpen(false)
@@ -602,27 +589,25 @@ function RestoreReminderDialog({
 	)
 }
 
-function DoneReminderActionsDialog({
+function DoneReminderPopover({
 	open,
 	onOpenChange,
-	onUndo,
-	onDelete,
+	operations,
 	children,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	onUndo: () => Promise<void>
-	onDelete: () => Promise<void>
+	operations: ReminderItemOperations
 	children: ReactNode
 }) {
 	async function handleUndone() {
 		onOpenChange(false)
-		await onUndo()
+		await operations.markUndone()
 	}
 
 	async function handleDelete() {
 		onOpenChange(false)
-		await onDelete()
+		await operations.deleteReminder()
 	}
 
 	return (
