@@ -6,7 +6,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
-import { Popover, PopoverContent, PopoverAnchor } from "#shared/ui/popover"
+import {
+	Popover,
+	PopoverContent,
+	PopoverAnchor,
+	PopoverTrigger,
+} from "#shared/ui/popover"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -30,7 +35,7 @@ import {
 	CheckLg,
 	ArrowCounterclockwise,
 } from "react-bootstrap-icons"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { ReminderForm } from "./reminder-form"
 import { Link } from "@tanstack/react-router"
 import { Image as JazzImage } from "jazz-tools/react"
@@ -179,36 +184,6 @@ function ReminderListItem({
 
 	return (
 		<>
-			<ReminderItemContainer
-				reminder={reminder}
-				person={person}
-				showPerson={showPerson}
-				className={dialogOpen ? "bg-accent" : ""}
-				onClick={handleReminderClick}
-			>
-				<div className="flex items-start gap-3 select-text">
-					<div
-						className={cn(
-							"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
-							isToday(new Date(reminder.dueAtDate)) ||
-								isBefore(new Date(reminder.dueAtDate), new Date())
-								? "text-destructive"
-								: "text-foreground",
-						)}
-					>
-						{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
-						{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
-					</div>
-					{showPerson && (
-						<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-							<TextHighlight text={person.name} query={searchQuery} />
-						</p>
-					)}
-				</div>
-				<p className="text-md/tight text-left select-text">
-					<TextHighlight text={reminder.text} query={searchQuery} />
-				</p>
-			</ReminderItemContainer>
 			<ActionsPopover
 				showPerson={showPerson}
 				person={person}
@@ -218,8 +193,38 @@ function ReminderListItem({
 				onAddNoteClick={() => setDialogOpen("note")}
 				onDone={operations.markDone}
 				onDelete={operations.deleteReminder}
-				anchorPos={anchorPos}
-			/>
+			>
+				<ReminderItemContainer
+					reminder={reminder}
+					person={person}
+					showPerson={showPerson}
+					className={dialogOpen ? "bg-accent" : ""}
+					onClick={handleReminderClick}
+				>
+					<div className="flex items-start gap-3 select-text">
+						<div
+							className={cn(
+								"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
+								isToday(new Date(reminder.dueAtDate)) ||
+									isBefore(new Date(reminder.dueAtDate), new Date())
+									? "text-destructive"
+									: "text-foreground",
+							)}
+						>
+							{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
+							{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
+						</div>
+						{showPerson && (
+							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+								<TextHighlight text={person.name} query={searchQuery} />
+							</p>
+						)}
+					</div>
+					<p className="text-md/tight text-left select-text">
+						<TextHighlight text={reminder.text} query={searchQuery} />
+					</p>
+				</ReminderItemContainer>
+			</ActionsPopover>
 			<EditReminderDialog
 				open={dialogOpen === "edit"}
 				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
@@ -254,7 +259,7 @@ function ReminderItemContainer({
 }) {
 	return (
 		<div className="-mx-3">
-			<button
+			<PopoverTrigger
 				id={`reminder-${reminder.$jazz.id}`}
 				className={cn(
 					"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
@@ -288,7 +293,7 @@ function ReminderItemContainer({
 					</div>
 				) : null}
 				<div className="min-w-0 flex-1 space-y-1">{children}</div>
-			</button>
+			</PopoverTrigger>
 		</div>
 	)
 }
@@ -342,8 +347,9 @@ function ActionsPopover({
 	onAddNoteClick,
 	onDone,
 	onDelete,
-	anchorPos,
+	children,
 }: {
+	children: ReactNode
 	showPerson: boolean
 	person: co.loaded<typeof Person>
 	open: boolean
@@ -352,10 +358,7 @@ function ActionsPopover({
 	onAddNoteClick: () => void
 	onDone: () => Promise<void>
 	onDelete: () => Promise<void>
-	anchorPos: { x: number; y: number }
 }) {
-	let isMobile = useIsMobile()
-
 	async function handleDone() {
 		onOpenChange(false)
 		await onDone()
@@ -366,42 +369,22 @@ function ActionsPopover({
 		await onDelete()
 	}
 
-	let virtualRef = {
-		current: {
-			getBoundingClientRect: () => ({
-				width: 0,
-				height: 0,
-				x: anchorPos.x,
-				y: anchorPos.y,
-				top: anchorPos.y,
-				left: anchorPos.x,
-				right: anchorPos.x,
-				bottom: anchorPos.y,
-				toJSON: () => {},
-			}),
-		},
-	}
-
 	return (
 		<Popover open={open} onOpenChange={onOpenChange} modal>
-			<PopoverAnchor virtualRef={virtualRef} />
+			{children}
 			<PopoverContent
-				className="w-48 p-1.5 duration-75"
-				align={isMobile ? "center" : "start"}
-				side={isMobile ? "top" : "bottom"}
+				className="w-48 p-1.5"
+				align={"center"}
+				side={"top"}
 				sideOffset={8}
 			>
-				<div className="flex flex-col gap-1">
-					<Button
-						variant="ghost"
-						className="h-11 justify-start"
-						onClick={handleDone}
-					>
+				<div className="flex flex-col gap-1.5">
+					<Button className="h-11 justify-start" onClick={handleDone}>
 						<CheckLg />
 						<T k="reminder.actions.markDone" />
 					</Button>
 					<Button
-						variant="ghost"
+						variant="outline"
 						className="h-11 justify-start"
 						onClick={onEditClick}
 					>
@@ -409,7 +392,7 @@ function ActionsPopover({
 						<T k="reminder.actions.edit" />
 					</Button>
 					<Button
-						variant="ghost"
+						variant="outline"
 						className="h-11 justify-start"
 						onClick={onAddNoteClick}
 					>
@@ -418,7 +401,7 @@ function ActionsPopover({
 					</Button>
 					{showPerson && (
 						<Button
-							variant="ghost"
+							variant="outline"
 							className="h-11 justify-start"
 							onClick={() => onOpenChange(false)}
 							asChild
@@ -433,8 +416,8 @@ function ActionsPopover({
 						</Button>
 					)}
 					<Button
-						variant="ghost"
-						className="text-destructive hover:text-destructive h-11 justify-start"
+						variant="destructive"
+						className="h-11 justify-start"
 						onClick={handleDelete}
 					>
 						<Trash />
