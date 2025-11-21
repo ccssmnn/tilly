@@ -6,6 +6,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import { Popover, PopoverContent, PopoverAnchor } from "#shared/ui/popover"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -42,6 +43,7 @@ import {
 import { toast } from "sonner"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale, useIntl, T } from "#shared/intl/setup"
+import { useIsMobile } from "#app/hooks/use-mobile"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -71,7 +73,16 @@ function ReminderListItem({
 	let [dialogOpen, setDialogOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
+	let [anchorPos, setAnchorPos] = useState<{ x: number; y: number }>({
+		x: 0,
+		y: 0,
+	})
 	let operations = useReminderItemOperations({ reminder, person, me })
+
+	function handleReminderClick(e: React.MouseEvent) {
+		setAnchorPos({ x: e.clientX, y: e.clientY })
+		setDialogOpen("actions")
+	}
 
 	if (reminder.deletedAt) {
 		let deletedRelativeTime = formatDistanceToNow(
@@ -92,7 +103,7 @@ function ReminderListItem({
 					person={person}
 					showPerson={showPerson}
 					className={dialogOpen === "restore" ? "bg-accent" : ""}
-					onClick={() => setDialogOpen("restore")}
+					onClick={_e => setDialogOpen("restore")}
 				>
 					<div className="space-y-1 select-text">
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
@@ -139,7 +150,7 @@ function ReminderListItem({
 					person={person}
 					showPerson={showPerson}
 					className={dialogOpen === "done" ? "bg-accent" : ""}
-					onClick={() => setDialogOpen("done")}
+					onClick={_e => setDialogOpen("done")}
 				>
 					<div className="space-y-1 select-text">
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
@@ -173,7 +184,7 @@ function ReminderListItem({
 				person={person}
 				showPerson={showPerson}
 				className={dialogOpen ? "bg-accent" : ""}
-				onClick={() => setDialogOpen("actions")}
+				onClick={handleReminderClick}
 			>
 				<div className="flex items-start gap-3 select-text">
 					<div
@@ -198,7 +209,7 @@ function ReminderListItem({
 					<TextHighlight text={reminder.text} query={searchQuery} />
 				</p>
 			</ReminderItemContainer>
-			<ActionsDialog
+			<ActionsPopover
 				showPerson={showPerson}
 				person={person}
 				open={dialogOpen === "actions"}
@@ -207,6 +218,7 @@ function ReminderListItem({
 				onAddNoteClick={() => setDialogOpen("note")}
 				onDone={operations.markDone}
 				onDelete={operations.deleteReminder}
+				anchorPos={anchorPos}
 			/>
 			<EditReminderDialog
 				open={dialogOpen === "edit"}
@@ -238,7 +250,7 @@ function ReminderItemContainer({
 	showPerson: boolean
 	className?: string
 	children: React.ReactNode
-	onClick: () => void
+	onClick: (e: React.MouseEvent) => void
 }) {
 	return (
 		<div className="-mx-3">
@@ -248,9 +260,9 @@ function ReminderItemContainer({
 					"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
 					className,
 				)}
-				onClick={() => {
+				onClick={e => {
 					if (isTextSelectionOngoing()) return
-					onClick()
+					onClick(e)
 				}}
 			>
 				{showPerson ? (
@@ -321,7 +333,7 @@ function getReminderDeletedDate(reminder: co.loaded<typeof Reminder>) {
 	return reminder.deletedAt ?? getReminderReferenceDate(reminder)
 }
 
-function ActionsDialog({
+function ActionsPopover({
 	showPerson,
 	person,
 	open,
@@ -330,6 +342,7 @@ function ActionsDialog({
 	onAddNoteClick,
 	onDone,
 	onDelete,
+	anchorPos,
 }: {
 	showPerson: boolean
 	person: co.loaded<typeof Person>
@@ -339,7 +352,10 @@ function ActionsDialog({
 	onAddNoteClick: () => void
 	onDone: () => Promise<void>
 	onDelete: () => Promise<void>
+	anchorPos: { x: number; y: number }
 }) {
+	let isMobile = useIsMobile()
+
 	async function handleDone() {
 		onOpenChange(false)
 		await onDone()
@@ -350,72 +366,83 @@ function ActionsDialog({
 		await onDelete()
 	}
 
+	let virtualRef = {
+		current: {
+			getBoundingClientRect: () => ({
+				width: 0,
+				height: 0,
+				x: anchorPos.x,
+				y: anchorPos.y,
+				top: anchorPos.y,
+				left: anchorPos.x,
+				right: anchorPos.x,
+				bottom: anchorPos.y,
+				toJSON: () => {},
+			}),
+		},
+	}
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="reminder.actions.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="reminder.actions.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
+		<Popover open={open} onOpenChange={onOpenChange} modal>
+			<PopoverAnchor virtualRef={virtualRef} />
+			<PopoverContent
+				className="w-48 p-1.5 duration-75"
+				align={isMobile ? "center" : "start"}
+				side={isMobile ? "top" : "bottom"}
+				sideOffset={8}
 			>
-				<div className="space-y-3">
-					<Button className="h-12 w-full" onClick={handleDone}>
+				<div className="flex flex-col gap-1">
+					<Button
+						variant="ghost"
+						className="h-11 justify-start"
+						onClick={handleDone}
+					>
 						<CheckLg />
 						<T k="reminder.actions.markDone" />
 					</Button>
-					<div className="flex items-center gap-3">
-						{showPerson && (
-							<Button
-								variant="outline"
-								className="h-12 flex-1"
-								onClick={() => onOpenChange(false)}
-								asChild
+					<Button
+						variant="ghost"
+						className="h-11 justify-start"
+						onClick={onEditClick}
+					>
+						<PencilSquare />
+						<T k="reminder.actions.edit" />
+					</Button>
+					<Button
+						variant="ghost"
+						className="h-11 justify-start"
+						onClick={onAddNoteClick}
+					>
+						<FileEarmarkText />
+						<T k="reminder.actions.addNote" />
+					</Button>
+					{showPerson && (
+						<Button
+							variant="ghost"
+							className="h-11 justify-start"
+							onClick={() => onOpenChange(false)}
+							asChild
+						>
+							<Link
+								to="/people/$personID"
+								params={{ personID: person.$jazz.id }}
 							>
-								<Link
-									to="/people/$personID"
-									params={{ personID: person.$jazz.id }}
-								>
-									<PersonFill />
-									<T k="reminder.actions.viewPerson" />
-								</Link>
-							</Button>
-						)}
-						<Button
-							variant="outline"
-							className="h-12 flex-1"
-							onClick={onAddNoteClick}
-						>
-							<FileEarmarkText />
-							<T k="reminder.actions.addNote" />
+								<PersonFill />
+								<T k="reminder.actions.viewPerson" />
+							</Link>
 						</Button>
-					</div>
-					<div className="flex items-center gap-3">
-						<Button
-							variant="destructive"
-							className="h-12 flex-1"
-							onClick={handleDelete}
-						>
-							<Trash />
-							<T k="reminder.actions.delete" />
-						</Button>
-						<Button
-							variant="secondary"
-							className="h-12 flex-1"
-							onClick={onEditClick}
-						>
-							<PencilSquare />
-							<T k="reminder.actions.edit" />
-						</Button>
-					</div>
+					)}
+					<Button
+						variant="ghost"
+						className="text-destructive hover:text-destructive h-11 justify-start"
+						onClick={handleDelete}
+					>
+						<Trash />
+						<T k="reminder.actions.delete" />
+					</Button>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</PopoverContent>
+		</Popover>
 	)
 }
 
