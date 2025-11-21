@@ -1,4 +1,3 @@
-import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -6,7 +5,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "#shared/ui/popover"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+	DropdownMenuItem,
+} from "#shared/ui/dropdown-menu"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -83,7 +87,7 @@ function ReminderListItem({
 
 		return (
 			<>
-				<RestoreReminderPopover
+				<RestoreReminderDropdown
 					open={dialogOpen === "restore"}
 					onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
 					operations={operations}
@@ -110,7 +114,7 @@ function ReminderListItem({
 							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
 						</div>
 					</ReminderItemContainer>
-				</RestoreReminderPopover>
+				</RestoreReminderDropdown>
 			</>
 		)
 	}
@@ -129,7 +133,7 @@ function ReminderListItem({
 
 		return (
 			<>
-				<DoneReminderPopover
+				<DoneReminderDropdown
 					open={dialogOpen === "done"}
 					onOpenChange={open => setDialogOpen(open ? "done" : undefined)}
 					operations={operations}
@@ -156,14 +160,14 @@ function ReminderListItem({
 							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
 						</div>
 					</ReminderItemContainer>
-				</DoneReminderPopover>
+				</DoneReminderDropdown>
 			</>
 		)
 	}
 
 	return (
 		<>
-			<ActionsPopover
+			<ActionsDropdown
 				open={dialogOpen === "actions"}
 				onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
 				onEditClick={() => setDialogOpen("edit")}
@@ -202,7 +206,7 @@ function ReminderListItem({
 						<TextHighlight text={reminder.text} query={searchQuery} />
 					</p>
 				</ReminderItemContainer>
-			</ActionsPopover>
+			</ActionsDropdown>
 			<EditReminderDialog
 				open={dialogOpen === "edit"}
 				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
@@ -242,7 +246,7 @@ function ReminderItemContainer({
 
 	return (
 		<div className="-mx-3">
-			<PopoverTrigger
+			<DropdownMenuTrigger
 				id={`reminder-${reminder.$jazz.id}`}
 				className={baseClassName}
 				onClick={e => {
@@ -273,7 +277,7 @@ function ReminderItemContainer({
 					</div>
 				) : null}
 				<div className="min-w-0 flex-1 space-y-1">{children}</div>
-			</PopoverTrigger>
+			</DropdownMenuTrigger>
 		</div>
 	)
 }
@@ -318,7 +322,7 @@ function getReminderDeletedDate(reminder: co.loaded<typeof Reminder>) {
 	return reminder.deletedAt ?? getReminderReferenceDate(reminder)
 }
 
-function ActionsPopover({
+function ActionsDropdown({
 	open,
 	onOpenChange,
 	onEditClick,
@@ -348,66 +352,48 @@ function ActionsPopover({
 	}
 
 	return (
-		<Popover open={open} onOpenChange={onOpenChange} modal>
+		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<PopoverContent
-				className="w-auto min-w-48 p-1"
+			<DropdownMenuContent
+				className="w-auto min-w-48"
 				align={"center"}
 				side={"top"}
 				sideOffset={8}
 			>
-				<div className="flex flex-col">
-					<Button
-						variant="ghost"
-						className="h-11 justify-start"
-						onClick={handleDone}
-					>
-						<CheckLg />
-						<T k="reminder.actions.markDone" />
-					</Button>
-					<Button
-						variant="ghost"
-						className="h-11 justify-start"
-						onClick={onEditClick}
-					>
-						<PencilSquare />
-						<T k="reminder.actions.edit" />
-					</Button>
-					<Button
-						variant="ghost"
-						className="h-11 justify-start"
-						onClick={onAddNoteClick}
-					>
-						<FileEarmarkText />
-						<T k="reminder.actions.addNote" />
-					</Button>
-					{showPerson && (
-						<Button
-							variant="ghost"
-							className="h-11 justify-start"
+				<DropdownMenuItem className="h-11" onClick={handleDone}>
+					<T k="reminder.actions.markDone" />
+					<CheckLg />
+				</DropdownMenuItem>
+				<DropdownMenuItem className="h-11" onClick={onEditClick}>
+					<T k="reminder.actions.edit" />
+					<PencilSquare />
+				</DropdownMenuItem>
+				<DropdownMenuItem className="h-11" onClick={onAddNoteClick}>
+					<T k="reminder.actions.addNote" />
+					<FileEarmarkText />
+				</DropdownMenuItem>
+				{showPerson && (
+					<DropdownMenuItem className="h-11" asChild>
+						<Link
+							to="/people/$personID"
+							params={{ personID: person.$jazz.id }}
 							onClick={() => onOpenChange(false)}
-							asChild
 						>
-							<Link
-								to="/people/$personID"
-								params={{ personID: person.$jazz.id }}
-							>
-								<PersonFill />
-								<T k="reminder.actions.viewPerson" />
-							</Link>
-						</Button>
-					)}
-					<Button
-						variant="ghost"
-						className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-11 justify-start"
-						onClick={handleDelete}
-					>
-						<Trash />
-						<T k="reminder.actions.delete" />
-					</Button>
-				</div>
-			</PopoverContent>
-		</Popover>
+							<T k="reminder.actions.viewPerson" />
+							<PersonFill />
+						</Link>
+					</DropdownMenuItem>
+				)}
+				<DropdownMenuItem
+					className="h-11"
+					variant="destructive"
+					onClick={handleDelete}
+				>
+					<T k="reminder.actions.delete" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 
@@ -506,7 +492,7 @@ function AddNoteDialog({
 	)
 }
 
-function RestoreReminderPopover({
+function RestoreReminderDropdown({
 	open,
 	onOpenChange,
 	operations,
@@ -536,34 +522,28 @@ function RestoreReminderPopover({
 
 	return (
 		<>
-			<Popover open={open} onOpenChange={onOpenChange} modal>
+			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 				{children}
-				<PopoverContent
-					className="w-auto min-w-48 p-1"
+				<DropdownMenuContent
+					className="w-auto min-w-48"
 					align={"center"}
 					side={"top"}
 					sideOffset={8}
 				>
-					<div className="flex flex-col">
-						<Button
-							variant="ghost"
-							className="h-11 justify-start"
-							onClick={handleRestore}
-						>
-							<ArrowCounterclockwise />
-							<T k="reminder.restore.button" />
-						</Button>
-						<Button
-							variant="ghost"
-							className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-11 justify-start"
-							onClick={() => setConfirmDeleteOpen(true)}
-						>
-							<Trash />
-							<T k="reminder.restore.permanentDelete" />
-						</Button>
-					</div>
-				</PopoverContent>
-			</Popover>
+					<DropdownMenuItem className="h-11" onClick={handleRestore}>
+						<T k="reminder.restore.button" />
+						<ArrowCounterclockwise />
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						className="h-11"
+						variant="destructive"
+						onClick={() => setConfirmDeleteOpen(true)}
+					>
+						<T k="reminder.restore.permanentDelete" />
+						<Trash />
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
@@ -589,7 +569,7 @@ function RestoreReminderPopover({
 	)
 }
 
-function DoneReminderPopover({
+function DoneReminderDropdown({
 	open,
 	onOpenChange,
 	operations,
@@ -611,34 +591,28 @@ function DoneReminderPopover({
 	}
 
 	return (
-		<Popover open={open} onOpenChange={onOpenChange} modal>
+		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<PopoverContent
-				className="w-auto min-w-48 p-1"
+			<DropdownMenuContent
+				className="w-auto min-w-48"
 				align={"center"}
 				side={"top"}
 				sideOffset={8}
 			>
-				<div className="flex flex-col">
-					<Button
-						variant="ghost"
-						className="h-11 justify-start"
-						onClick={handleUndone}
-					>
-						<ArrowCounterclockwise />
-						<T k="reminder.done.markUndone" />
-					</Button>
-					<Button
-						variant="ghost"
-						className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-11 justify-start"
-						onClick={handleDelete}
-					>
-						<Trash />
-						<T k="reminder.actions.delete" />
-					</Button>
-				</div>
-			</PopoverContent>
-		</Popover>
+				<DropdownMenuItem className="h-11" onClick={handleUndone}>
+					<T k="reminder.done.markUndone" />
+					<ArrowCounterclockwise />
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					className="h-11"
+					variant="destructive"
+					onClick={handleDelete}
+				>
+					<T k="reminder.actions.delete" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 
