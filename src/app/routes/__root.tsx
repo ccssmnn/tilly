@@ -32,7 +32,7 @@ function RootComponent() {
 					paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
 				}}
 			>
-				<div className="container mx-auto max-w-6xl">
+				<div className="container mx-auto max-w-4xl">
 					<Outlet />
 				</div>
 			</main>
