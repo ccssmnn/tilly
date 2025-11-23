@@ -354,26 +354,21 @@ function ActionsDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent
-				className="w-auto min-w-48"
-				align={"center"}
-				side={"top"}
-				sideOffset={8}
-			>
-				<DropdownMenuItem className="h-11" onClick={handleDone}>
+			<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+				<DropdownMenuItem onClick={handleDone}>
 					<T k="reminder.actions.markDone" />
 					<CheckLg />
 				</DropdownMenuItem>
-				<DropdownMenuItem className="h-11" onClick={onEditClick}>
+				<DropdownMenuItem onClick={onEditClick}>
 					<T k="reminder.actions.edit" />
 					<PencilSquare />
 				</DropdownMenuItem>
-				<DropdownMenuItem className="h-11" onClick={onAddNoteClick}>
+				<DropdownMenuItem onClick={onAddNoteClick}>
 					<T k="reminder.actions.addNote" />
 					<FileEarmarkText />
 				</DropdownMenuItem>
 				{showPerson && (
-					<DropdownMenuItem className="h-11" asChild>
+					<DropdownMenuItem asChild>
 						<Link
 							to="/people/$personID"
 							params={{ personID: person.$jazz.id }}
@@ -384,11 +379,7 @@ function ActionsDropdown({
 						</Link>
 					</DropdownMenuItem>
 				)}
-				<DropdownMenuItem
-					className="h-11"
-					variant="destructive"
-					onClick={handleDelete}
-				>
+				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
 					<T k="reminder.actions.delete" />
 					<Trash />
 				</DropdownMenuItem>
@@ -524,18 +515,12 @@ function RestoreReminderDropdown({
 		<>
 			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 				{children}
-				<DropdownMenuContent
-					className="w-auto min-w-48"
-					align={"center"}
-					side={"top"}
-					sideOffset={8}
-				>
-					<DropdownMenuItem className="h-11" onClick={handleRestore}>
+				<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+					<DropdownMenuItem onClick={handleRestore}>
 						<T k="reminder.restore.button" />
 						<ArrowCounterclockwise />
 					</DropdownMenuItem>
 					<DropdownMenuItem
-						className="h-11"
 						variant="destructive"
 						onClick={() => setConfirmDeleteOpen(true)}
 					>
@@ -593,21 +578,12 @@ function DoneReminderDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent
-				className="w-auto min-w-48"
-				align={"center"}
-				side={"top"}
-				sideOffset={8}
-			>
-				<DropdownMenuItem className="h-11" onClick={handleUndone}>
+			<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+				<DropdownMenuItem onClick={handleUndone}>
 					<T k="reminder.done.markUndone" />
 					<ArrowCounterclockwise />
 				</DropdownMenuItem>
-				<DropdownMenuItem
-					className="h-11"
-					variant="destructive"
-					onClick={handleDelete}
-				>
+				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
 					<T k="reminder.actions.delete" />
 					<Trash />
 				</DropdownMenuItem>
