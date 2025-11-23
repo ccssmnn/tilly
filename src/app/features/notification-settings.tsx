@@ -26,11 +26,18 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#shared/ui/dialog"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "#shared/ui/dropdown-menu"
 import z from "zod"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { PencilSquare, Trash, Power, BellFill } from "react-bootstrap-icons"
 import {
 	Form,
 	FormControl,
@@ -589,217 +596,93 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 	let notifications = me?.root.notificationSettings
 	let [currentEndpoint, refreshEndpoint] = useCurrentEndpoint()
 	let isCurrentDevice = device.endpoint === currentEndpoint
-	let [actionsDialogOpen, setActionsDialogOpen] = useState(false)
 	let [editDialogOpen, setEditDialogOpen] = useState(false)
 	let [editName, setEditName] = useState(device.deviceName)
-	let [isSendingTest, setIsSendingTest] = useState(false)
-
-	function deletePushDevice(endpoint: string) {
-		if (!notifications) return
-
-		notifications.$jazz.set(
-			"pushDevices",
-			notifications.pushDevices.filter(d => d.endpoint !== endpoint),
-		)
-		refreshEndpoint()
-	}
-
-	function updatePushDevice(
-		endpoint: string,
-		updates: Partial<z.infer<typeof PushDevice>>,
-	) {
-		if (!notifications) return
-
-		notifications.$jazz.set(
-			"pushDevices",
-			notifications.pushDevices.map(d =>
-				d.endpoint === endpoint ? { ...d, ...updates } : d,
-			),
-		)
-	}
-
-	async function handleRemove() {
-		if (isCurrentDevice) {
-			let unsubscribeResult = await tryCatch(unsubscribeFromPushNotifications())
-			if (!unsubscribeResult.ok) {
-				toast.error(t("notifications.toast.unsubscribeFailed"))
-				return
-			}
-		}
-
-		deletePushDevice(device.endpoint)
-		toast.success(t("notifications.toast.deviceRemoved"))
-		setActionsDialogOpen(false)
-	}
-
-	async function handleToggleEnabled() {
-		if (device.isEnabled && isCurrentDevice) {
-			let unsubscribeResult = await tryCatch(unsubscribeFromPushNotifications())
-			if (!unsubscribeResult.ok) {
-				toast.error(t("notifications.toast.unsubscribeFailed"))
-				return
-			}
-		}
-
-		updatePushDevice(device.endpoint, { isEnabled: !device.isEnabled })
-		setActionsDialogOpen(false)
-	}
-
-	function handleSaveName() {
-		if (editName.trim()) {
-			updatePushDevice(device.endpoint, { deviceName: editName.trim() })
-			setEditDialogOpen(false)
-			toast.success(t("notifications.toast.nameUpdated"))
-		}
-	}
-
-	function handleCancelEdit() {
-		setEditName(device.deviceName)
-		setEditDialogOpen(false)
-	}
-
-	function handleEditNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-		setEditName(e.target.value)
-	}
-
-	function handleEditNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-		if (e.key === "Enter") handleSaveName()
-		if (e.key === "Escape") handleCancelEdit()
-	}
-
-	function handleEditDevice() {
-		setActionsDialogOpen(false)
-		setEditDialogOpen(true)
-	}
-
-	async function handleSendTestNotification() {
-		setIsSendingTest(true)
-		let result = await tryCatch(
-			apiClient.push["send-test-notification"].$post({
-				json: { endpoint: device.endpoint },
-			}),
-		)
-
-		if (!result.ok) {
-			toast.error(t("notifications.toast.testSendFailed"))
-			setIsSendingTest(false)
-			return
-		}
-
-		if (result.data.ok) {
-			let data = await tryCatch(result.data.json())
-			if (data.ok) {
-				toast.success(data.data.message)
-			} else {
-				toast.success(t("notifications.toast.testSendSuccess"))
-			}
-		} else {
-			let data = await tryCatch(result.data.json())
-			let message =
-				data.ok && "message" in data.data
-					? data.data.message
-					: t("notifications.toast.testSendFailed")
-			toast.error(message)
-		}
-		setIsSendingTest(false)
-	}
 
 	return (
 		<div
 			className={cn(
 				"flex items-start justify-between py-4 transition-all",
-				(actionsDialogOpen || editDialogOpen) &&
-					"bg-accent -mx-1 rounded-md px-1",
+				editDialogOpen && "bg-accent -mx-1 rounded-md px-1",
 			)}
 		>
-			<div
-				className="flex flex-1 cursor-pointer items-start gap-3"
-				onClick={() => setActionsDialogOpen(true)}
-			>
-				<div className="min-w-0 flex-1 space-y-1">
-					<div className="flex items-center gap-2">
-						<p className="text-sm font-medium">{device.deviceName}</p>
-						<div className="flex-1" />
-						{isCurrentDevice && (
-							<Badge variant="secondary" className="text-xs">
-								<T k="notifications.devices.thisDevice" />
-							</Badge>
-						)}
-						<Badge
-							variant={device.isEnabled ? "default" : "outline"}
-							className="text-xs"
-						>
-							{device.isEnabled ? (
-								<T k="notifications.devices.enabled" />
-							) : (
-								<T k="notifications.devices.disabled" />
-							)}
-						</Badge>
-					</div>
-					<p className="text-muted-foreground text-xs">
-						<T k="notifications.devices.endpointPrefix" />{" "}
-						{device.endpoint.split("/").pop()?.slice(0, 16)}...
-					</p>
-				</div>
-			</div>
-
-			<Dialog open={actionsDialogOpen} onOpenChange={setActionsDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="notifications.devices.actions.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="notifications.devices.actions.description"
-									params={{ deviceName: device.deviceName }}
-								/>
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
-					<div className="space-y-3">
-						<Button className="w-full" onClick={handleToggleEnabled}>
-							{device.isEnabled ? (
-								<T k="notifications.devices.disable" />
-							) : (
-								<T k="notifications.devices.enable" />
-							)}
-						</Button>
-						{device.isEnabled && (
-							<Button
-								variant="outline"
-								className="w-full"
-								onClick={handleSendTestNotification}
-								disabled={isSendingTest}
-							>
-								{isSendingTest ? (
-									<T k="notifications.devices.sendingTest" />
-								) : (
-									<T k="notifications.devices.sendTest" />
+			<DropdownMenu modal>
+				<DropdownMenuTrigger asChild>
+					<div className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+						<div className="min-w-0 flex-1 space-y-1">
+							<div className="flex items-center gap-2">
+								<p className="text-sm font-medium">{device.deviceName}</p>
+								<div className="flex-1" />
+								{isCurrentDevice && (
+									<Badge variant="secondary" className="text-xs">
+										<T k="notifications.devices.thisDevice" />
+									</Badge>
 								)}
-							</Button>
-						)}
-						<div className="flex items-center gap-3">
-							<Button
-								variant="destructive"
-								className="flex-1"
-								onClick={handleRemove}
-							>
-								<T k="notifications.devices.remove" />
-							</Button>
-							<Button
-								variant="secondary"
-								className="flex-1"
-								onClick={handleEditDevice}
-							>
-								<T k="notifications.devices.editName" />
-							</Button>
+								<Badge
+									variant={device.isEnabled ? "default" : "outline"}
+									className="text-xs"
+								>
+									{device.isEnabled ? (
+										<T k="notifications.devices.enabled" />
+									) : (
+										<T k="notifications.devices.disabled" />
+									)}
+								</Badge>
+							</div>
+							<p className="text-muted-foreground text-xs">
+								<T k="notifications.devices.endpointPrefix" />{" "}
+								{device.endpoint.split("/").pop()?.slice(0, 16)}...
+							</p>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="center" side="top" sideOffset={8}>
+					<DropdownMenuItem
+						onClick={() =>
+							handleToggleDeviceEnabled(
+								device,
+								isCurrentDevice,
+								notifications,
+								t,
+							)
+						}
+					>
+						{device.isEnabled ? (
+							<T k="notifications.devices.disable" />
+						) : (
+							<T k="notifications.devices.enable" />
+						)}
+						<Power />
+					</DropdownMenuItem>
+					{device.isEnabled && (
+						<DropdownMenuItem
+							onClick={() => handleSendTestNotification(device.endpoint, t)}
+						>
+							<T k="notifications.devices.sendTest" />
+							<BellFill />
+						</DropdownMenuItem>
+					)}
+					<DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+						<T k="notifications.devices.editName" />
+						<PencilSquare />
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={() =>
+							handleRemoveDevice(
+								device.endpoint,
+								isCurrentDevice,
+								notifications,
+								refreshEndpoint,
+								t,
+							)
+						}
+						variant="destructive"
+					>
+						<T k="notifications.devices.remove" />
+						<Trash />
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 
 			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
 				<DialogContent
@@ -818,22 +701,172 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 					<div className="space-y-4">
 						<Input
 							value={editName}
-							onChange={handleEditNameChange}
+							onChange={e => setEditName(e.target.value)}
 							placeholder=""
-							onKeyDown={handleEditNameKeyDown}
+							onKeyDown={e => {
+								if (e.key === "Enter") {
+									handleSaveDeviceName(
+										device.endpoint,
+										editName,
+										notifications,
+										() => setEditDialogOpen(false),
+										t,
+									)
+								}
+								if (e.key === "Escape") {
+									setEditName(device.deviceName)
+									setEditDialogOpen(false)
+								}
+							}}
 						/>
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={handleCancelEdit}>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setEditName(device.deviceName)
+								setEditDialogOpen(false)
+							}}
+						>
 							<T k="common.cancel" />
 						</Button>
-						<Button onClick={handleSaveName} disabled={!editName.trim()}>
+						<Button
+							onClick={() =>
+								handleSaveDeviceName(
+									device.endpoint,
+									editName,
+									notifications,
+									() => setEditDialogOpen(false),
+									t,
+								)
+							}
+							disabled={!editName.trim()}
+						>
 							<T k="common.save" />
 						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>
+	)
+}
+
+type NotificationSettingsType = NonNullable<
+	co.loaded<typeof UserAccount, Query>["root"]["notificationSettings"]
+>
+
+async function handleToggleDeviceEnabled(
+	device: DeviceListItemProps["device"],
+	isCurrentDevice: boolean,
+	notifications: NotificationSettingsType | undefined,
+	t: ReturnType<typeof useIntl>,
+) {
+	if (device.isEnabled && isCurrentDevice) {
+		let unsubscribeResult = await tryCatch(unsubscribeFromPushNotifications())
+		if (!unsubscribeResult.ok) {
+			toast.error(t("notifications.toast.unsubscribeFailed"))
+			return
+		}
+	}
+
+	updatePushDevice(
+		device.endpoint,
+		{ isEnabled: !device.isEnabled },
+		notifications,
+	)
+}
+
+async function handleSendTestNotification(
+	endpoint: string,
+	t: ReturnType<typeof useIntl>,
+) {
+	let result = await tryCatch(
+		apiClient.push["send-test-notification"].$post({
+			json: { endpoint },
+		}),
+	)
+
+	if (!result.ok) {
+		toast.error(t("notifications.toast.testSendFailed"))
+		return
+	}
+
+	if (result.data.ok) {
+		let data = await tryCatch(result.data.json())
+		if (data.ok) {
+			toast.success(data.data.message)
+		} else {
+			toast.success(t("notifications.toast.testSendSuccess"))
+		}
+	} else {
+		let data = await tryCatch(result.data.json())
+		let message =
+			data.ok && "message" in data.data
+				? data.data.message
+				: t("notifications.toast.testSendFailed")
+		toast.error(message)
+	}
+}
+
+async function handleRemoveDevice(
+	endpoint: string,
+	isCurrentDevice: boolean,
+	notifications: NotificationSettingsType | undefined,
+	refreshEndpoint: () => void,
+	t: ReturnType<typeof useIntl>,
+) {
+	if (isCurrentDevice) {
+		let unsubscribeResult = await tryCatch(unsubscribeFromPushNotifications())
+		if (!unsubscribeResult.ok) {
+			toast.error(t("notifications.toast.unsubscribeFailed"))
+			return
+		}
+	}
+
+	deletePushDevice(endpoint, notifications, refreshEndpoint)
+	toast.success(t("notifications.toast.deviceRemoved"))
+}
+
+function handleSaveDeviceName(
+	endpoint: string,
+	editName: string,
+	notifications: NotificationSettingsType | undefined,
+	onClose: () => void,
+	t: ReturnType<typeof useIntl>,
+) {
+	if (editName.trim()) {
+		updatePushDevice(endpoint, { deviceName: editName.trim() }, notifications)
+		onClose()
+		toast.success(t("notifications.toast.nameUpdated"))
+	}
+}
+
+function deletePushDevice(
+	endpoint: string,
+	notifications: NotificationSettingsType | undefined,
+	refreshEndpoint: () => void,
+) {
+	if (!notifications) return
+
+	notifications.$jazz.set(
+		"pushDevices",
+		notifications.pushDevices.filter(d => d.endpoint !== endpoint),
+	)
+	refreshEndpoint()
+}
+
+function updatePushDevice(
+	endpoint: string,
+	updates: Partial<z.infer<typeof PushDevice>>,
+	notifications: NotificationSettingsType | undefined,
+) {
+	if (!notifications) return
+
+	notifications.$jazz.set(
+		"pushDevices",
+		notifications.pushDevices.map(d =>
+			d.endpoint === endpoint ? { ...d, ...updates } : d,
+		),
 	)
 }
 
