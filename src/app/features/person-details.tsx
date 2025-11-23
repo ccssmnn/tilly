@@ -9,6 +9,12 @@ import {
 	DialogTitle,
 } from "#shared/ui/dialog"
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+	DropdownMenuItem,
+} from "#shared/ui/dropdown-menu"
+import {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
@@ -31,6 +37,7 @@ import { isTextSelectionOngoing } from "#app/lib/utils"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
+import type { ReactNode } from "react"
 
 type Query = {
 	avatar: true
@@ -38,7 +45,48 @@ type Query = {
 	reminders: { $each: true }
 }
 
-export function PersonDetails({
+export { PersonDetails }
+
+function ActionsDropdown({
+	children,
+	onEdit,
+	onDelete,
+}: {
+	children: ReactNode
+	onEdit: () => void
+	onDelete: () => void
+}) {
+	let [open, setOpen] = useState(false)
+
+	return (
+		<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenuContent>
+				<DropdownMenuItem
+					onClick={() => {
+						setOpen(false)
+						onEdit()
+					}}
+				>
+					<T k="person.edit.title" />
+					<PencilSquare />
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					variant="destructive"
+					onClick={() => {
+						setOpen(false)
+						onDelete()
+					}}
+				>
+					<T k="person.delete.title" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}
+
+function PersonDetails({
 	person,
 	me,
 }: {
@@ -50,7 +98,6 @@ export function PersonDetails({
 	let t = useIntl()
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-	let [actionsDialogOpen, setActionsDialogOpen] = useState(false)
 
 	async function handleFormSave(values: {
 		name: string
@@ -135,35 +182,43 @@ export function PersonDetails({
 	return (
 		<>
 			<div className="flex flex-col items-center gap-6 md:flex-row">
-				<Avatar
-					className="size-48 cursor-pointer"
-					onClick={() => {
-						if (isTextSelectionOngoing()) return
-						setActionsDialogOpen(true)
-					}}
+				<ActionsDropdown
+					onEdit={() => setIsEditDialogOpen(true)}
+					onDelete={() => setIsDeleteDialogOpen(true)}
 				>
-					{person.avatar ? (
-						<JazzImage
-							imageId={person.avatar.$jazz.id}
-							alt={person.name}
-							width={192}
-							data-slot="avatar-image"
-							className="aspect-square size-full object-cover shadow-inner"
-						/>
-					) : (
-						<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-					)}
-				</Avatar>
+					<Avatar
+						className="size-48 cursor-pointer"
+						onClick={e => {
+							if (isTextSelectionOngoing()) {
+								e.preventDefault()
+								return
+							}
+						}}
+					>
+						{person.avatar ? (
+							<JazzImage
+								imageId={person.avatar.$jazz.id}
+								alt={person.name}
+								width={192}
+								data-slot="avatar-image"
+								className="aspect-square size-full object-cover shadow-inner"
+							/>
+						) : (
+							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+						)}
+					</Avatar>
+				</ActionsDropdown>
 				<div className="w-full flex-1 md:w-auto">
 					<div className="flex items-center justify-between gap-3">
 						<h1 className="text-3xl font-bold select-text">{person.name}</h1>
-						<Button
-							variant="secondary"
-							size="sm"
-							onClick={() => setActionsDialogOpen(true)}
+						<ActionsDropdown
+							onEdit={() => setIsEditDialogOpen(true)}
+							onDelete={() => setIsDeleteDialogOpen(true)}
 						>
-							<T k="person.actions.title" />
-						</Button>
+							<Button variant="secondary" size="sm">
+								<T k="person.actions.title" />
+							</Button>
+						</ActionsDropdown>
 					</div>
 
 					{person.summary && (
@@ -203,48 +258,6 @@ export function PersonDetails({
 					</p>
 				</div>
 			</div>
-			<Dialog open={actionsDialogOpen} onOpenChange={setActionsDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="person.actions.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="person.actions.description"
-									params={{ name: person.name }}
-								/>
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
-					<div className="flex flex-col items-center gap-3">
-						<Button
-							variant="secondary"
-							className="h-12 w-full"
-							onClick={() => {
-								setActionsDialogOpen(false)
-								setIsEditDialogOpen(true)
-							}}
-						>
-							<PencilSquare />
-							<T k="person.edit.title" />
-						</Button>
-						<Button
-							variant="destructive"
-							className="h-12 w-full"
-							onClick={() => {
-								setActionsDialogOpen(false)
-								setIsDeleteDialogOpen(true)
-							}}
-						>
-							<Trash />
-							<T k="person.delete.title" />
-						</Button>
-					</div>
-				</DialogContent>
-			</Dialog>
 			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<DialogContent
 					titleSlot={
