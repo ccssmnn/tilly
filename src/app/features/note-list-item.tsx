@@ -1,4 +1,3 @@
-import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -6,6 +5,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+	DropdownMenuItem,
+} from "#shared/ui/dropdown-menu"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -18,11 +23,17 @@ import {
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Note, Person, UserAccount } from "#shared/schema/user"
-import { co } from "jazz-tools"
-import { PencilSquare, Trash, PinFill, PersonFill } from "react-bootstrap-icons"
-import { useState } from "react"
+import { co, type Loaded } from "jazz-tools"
+import {
+	PencilSquare,
+	Trash,
+	PinFill,
+	PersonFill,
+	ArrowCounterclockwise,
+} from "react-bootstrap-icons"
+import { useState, type ReactNode } from "react"
 import { NoteForm } from "./note-form"
-import { formatDistanceToNow, differenceInDays } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
@@ -45,11 +56,17 @@ function NoteListItem(props: {
 	searchQuery?: string
 	showPerson?: boolean
 }) {
-	let t = useIntl()
 	let me = useAccount(UserAccount)
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
+	let operations = useNoteItemOperations({
+		note: props.note,
+		person: props.person,
+		me,
+	})
+
+	if (!me.$isLoaded) return null
 
 	let lines = props.note.content.split("\n")
 	let hasCharOverflow = props.note.content.length > CHAR_LIMIT
@@ -66,141 +83,186 @@ function NoteListItem(props: {
 		}
 	}
 
-	return (
-		<>
-			<div
-				className={cn(
-					openDialog !== undefined && "bg-accent",
-					"hover:bg-muted has-active:bg-accent -mx-3 rounded-md px-3",
-				)}
-			>
-				<button
-					id={`note-${props.note.$jazz.id}`}
-					onClick={() => {
-						if (isTextSelectionOngoing()) return
-						setOpenDialog(props.note.deletedAt ? "restore" : "actions")
-					}}
-					className={cn(
-						"flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
-						hasOverflow && "pt-4 pb-0",
-					)}
+	if (props.note.deletedAt) {
+		return (
+			<>
+				<RestoreNoteDropdown
+					open={openDialog === "restore"}
+					onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
+					operations={operations}
 				>
-					{showPerson && (
-						<Avatar
-							className={props.note.deletedAt ? "size-16 grayscale" : "size-16"}
-						>
-							{props.person.avatar ? (
-								<JazzImage
-									imageId={props.person.avatar.$jazz.id}
-									loading="lazy"
-									alt={props.person.name}
-									width={64}
-									data-slot="avatar-image"
-									className="aspect-square size-full object-cover shadow-inner"
-								/>
-							) : (
-								<AvatarFallback>{props.person.name.slice(0, 1)}</AvatarFallback>
-							)}
-						</Avatar>
-					)}
-					<div className="min-w-0 flex-1 space-y-1">
+					<NoteItemContainer
+						note={props.note}
+						person={props.person}
+						showPerson={showPerson}
+						hasOverflow={hasOverflow}
+						className={openDialog === "restore" ? "bg-accent" : ""}
+						onClick={() => setOpenDialog("restore")}
+					>
 						<div className="flex items-center gap-3 select-text">
-							{props.note.deletedAt ? (
-								<span className="text-destructive">
-									<T k="note.status.deleted" />
-								</span>
-							) : (
-								<>
-									{showPerson && (
-										<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-											<TextHighlight
-												text={props.person.name}
-												query={props.searchQuery}
-											/>
-										</p>
-									)}
-									<Pinned pinned={props.note.pinned} />
-									<div className="flex-1" />
-									<TimeStamp record={props.note} />
-								</>
-							)}
+							<span className="text-destructive">
+								<T k="note.status.deleted" />
+							</span>
 						</div>
 						<div>
-							<div
-								className={cn(
-									"text-left text-wrap select-text",
-									props.note.deletedAt && "text-muted-foreground",
-								)}
-							>
+							<div className="text-muted-foreground text-left text-wrap select-text">
 								<MarkdownWithHighlight
 									content={displayContent}
 									searchQuery={props.searchQuery}
 								/>
 							</div>
 						</div>
-					</div>
-				</button>
-				<div
-					className={cn(
-						"hidden pb-4 text-right data-[overflow=true]:block",
-						showPerson && "ml-[76px]",
-					)}
-					data-overflow={hasOverflow}
-				>
-					<button
-						onClick={toggleExpanded}
-						className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
-					>
-						{isExpanded ? <T k="note.showLess" /> : <T k="note.showMore" />}
-					</button>
-				</div>
-			</div>
-			<ActionsDialog
-				note={props.note}
-				person={props.person}
-				showPerson={showPerson}
+					</NoteItemContainer>
+				</RestoreNoteDropdown>
+				{hasOverflow && (
+					<ExpandCollapseButton
+						isExpanded={isExpanded}
+						toggleExpanded={toggleExpanded}
+						showPerson={showPerson}
+					/>
+				)}
+			</>
+		)
+	}
+
+	return (
+		<>
+			<ActionsDropdown
 				open={openDialog === "actions"}
-				onOpenChange={() => setOpenDialog(undefined)}
-				onDelete={async () => {
-					if (!me.$isLoaded) return
-					await deleteNote(
-						{
-							personId: props.person.$jazz.id,
-							noteId: props.note.$jazz.id,
-							worker: me,
-						},
-						t,
-					)
-					setOpenDialog(undefined)
-				}}
-				onEdit={() => setOpenDialog("edit")}
-				onPin={async () => {
-					if (!me.$isLoaded) return
-					await pinOrUnpinNote(
-						{
-							personId: props.person.$jazz.id,
-							noteId: props.note.$jazz.id,
-							worker: me,
-						},
-						t,
-						props.note.pinned,
-					)
-					setOpenDialog(undefined)
-				}}
-			/>
+				onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
+				onEditClick={() => setOpenDialog("edit")}
+				showPerson={showPerson}
+				person={props.person}
+				operations={operations}
+			>
+				<NoteItemContainer
+					note={props.note}
+					person={props.person}
+					showPerson={showPerson}
+					hasOverflow={hasOverflow}
+					className={openDialog ? "bg-accent" : ""}
+					onClick={() => setOpenDialog("actions")}
+				>
+					<div className="flex items-center gap-3 select-text">
+						{showPerson && (
+							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+								<TextHighlight
+									text={props.person.name}
+									query={props.searchQuery}
+								/>
+							</p>
+						)}
+						<Pinned pinned={props.note.pinned} />
+						<div className="flex-1" />
+						<TimeStamp record={props.note} />
+					</div>
+					<div>
+						<div className="text-left text-wrap select-text">
+							<MarkdownWithHighlight
+								content={displayContent}
+								searchQuery={props.searchQuery}
+							/>
+						</div>
+					</div>
+				</NoteItemContainer>
+			</ActionsDropdown>
+			{hasOverflow && (
+				<ExpandCollapseButton
+					isExpanded={isExpanded}
+					toggleExpanded={toggleExpanded}
+					showPerson={showPerson}
+				/>
+			)}
 			<EditDialog
 				note={props.note}
 				person={props.person}
 				open={openDialog === "edit"}
 				onOpenChange={() => setOpenDialog(undefined)}
-			/>
-			<RestoreNoteDialog
-				note={props.note}
-				person={props.person}
-				open={openDialog === "restore"}
-				onOpenChange={() => setOpenDialog(undefined)}
+				operations={operations}
 			/>
 		</>
+	)
+}
+
+function NoteItemContainer({
+	note,
+	person,
+	showPerson,
+	hasOverflow,
+	className,
+	children,
+	onClick,
+}: {
+	note: co.loaded<typeof Note>
+	person: co.loaded<typeof Person>
+	showPerson: boolean
+	hasOverflow: boolean
+	className?: string
+	children: React.ReactNode
+	onClick: (e: React.MouseEvent) => void
+}) {
+	let baseClassName = cn(
+		"flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
+		hasOverflow && "pt-4 pb-0",
+	)
+
+	return (
+		<div
+			className={cn(
+				className,
+				"hover:bg-muted has-active:bg-accent -mx-3 rounded-md px-3",
+			)}
+		>
+			<DropdownMenuTrigger
+				id={`note-${note.$jazz.id}`}
+				className={baseClassName}
+				onClick={e => {
+					if (isTextSelectionOngoing()) return
+					onClick(e)
+				}}
+			>
+				{showPerson && (
+					<Avatar className={note.deletedAt ? "size-16 grayscale" : "size-16"}>
+						{person.avatar ? (
+							<JazzImage
+								imageId={person.avatar.$jazz.id}
+								loading="lazy"
+								alt={person.name}
+								width={64}
+								data-slot="avatar-image"
+								className="aspect-square size-full object-cover shadow-inner"
+							/>
+						) : (
+							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+						)}
+					</Avatar>
+				)}
+				<div className="min-w-0 flex-1 space-y-1">{children}</div>
+			</DropdownMenuTrigger>
+		</div>
+	)
+}
+
+function ExpandCollapseButton({
+	isExpanded,
+	toggleExpanded,
+	showPerson,
+}: {
+	isExpanded: boolean
+	toggleExpanded: () => void
+	showPerson: boolean
+}) {
+	return (
+		<div
+			className={cn("-mx-3 px-3 pb-4 text-right", showPerson && "ml-[76px]")}
+		>
+			<button
+				onClick={toggleExpanded}
+				className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
+			>
+				{isExpanded ? <T k="note.showLess" /> : <T k="note.showMore" />}
+			</button>
+		</div>
 	)
 }
 
@@ -266,69 +328,54 @@ function TimeStamp({
 	return <div className="text-muted-foreground text-xs">{createdText}</div>
 }
 
-function ActionsDialog(props: {
+function ActionsDropdown({
+	open,
+	onOpenChange,
+	onEditClick,
+	showPerson,
+	person,
+	operations,
+	children,
+}: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-
-	note: co.loaded<typeof Note>
-	person: co.loaded<typeof Person>
+	onEditClick: () => void
 	showPerson: boolean
-
-	onEdit: () => void
-	onDelete: () => void
-	onPin: () => void
+	person: co.loaded<typeof Person>
+	operations: NoteItemOperations
+	children: ReactNode
 }) {
+	async function handleDelete() {
+		onOpenChange(false)
+		await operations.deleteNote()
+	}
+
 	return (
-		<Dialog open={props.open} onOpenChange={props.onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="note.actions.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="note.actions.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<div className="space-y-3">
-					<Button className="h-12 w-full" onClick={props.onEdit}>
-						<PencilSquare />
-						<T k="note.actions.edit" />
-					</Button>
-					<div className="flex items-center gap-3">
-						{props.showPerson && (
-							<Button
-								variant="outline"
-								className="h-12 flex-1"
-								onClick={() => props.onOpenChange(false)}
-								asChild
-							>
-								<Link
-									to="/people/$personID"
-									params={{ personID: props.person.$jazz.id }}
-								>
-									<PersonFill />
-									<T k="note.actions.viewPerson" />
-								</Link>
-							</Button>
-						)}
-						<Button
-							variant="destructive"
-							className={cn(
-								"h-12 flex-1",
-								props.showPerson && "max-w-[calc(50%-6px)]",
-							)}
-							onClick={props.onDelete}
+		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
+			{children}
+			<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+				<DropdownMenuItem onClick={onEditClick}>
+					<T k="note.actions.edit" />
+					<PencilSquare />
+				</DropdownMenuItem>
+				{showPerson && (
+					<DropdownMenuItem asChild>
+						<Link
+							to="/people/$personID"
+							params={{ personID: person.$jazz.id }}
+							onClick={() => onOpenChange(false)}
 						>
-							<Trash />
-							<T k="note.actions.delete" />
-						</Button>
-					</div>
-				</div>
-			</DialogContent>
-		</Dialog>
+							<T k="note.actions.viewPerson" />
+							<PersonFill />
+						</Link>
+					</DropdownMenuItem>
+				)}
+				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
+					<T k="note.actions.delete" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 
@@ -337,20 +384,10 @@ function EditDialog(props: {
 	onOpenChange: (open: boolean) => void
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
+	operations: NoteItemOperations
 }) {
-	let t = useIntl()
-	let me = useAccount(UserAccount)
 	async function handleSubmit(data: { content: string; pinned: boolean }) {
-		if (!me.$isLoaded) return
-		let result = await editNote(
-			data,
-			{
-				personId: props.person.$jazz.id,
-				noteId: props.note.$jazz.id,
-				worker: me,
-			},
-			t,
-		)
+		let result = await props.operations.editNote(data)
 		if (result?.success) {
 			props.onOpenChange(false)
 		}
@@ -386,227 +423,57 @@ function EditDialog(props: {
 	)
 }
 
-async function editNote(
-	data: Partial<{ content: string; pinned: boolean }>,
-	options: {
-		personId: string
-		noteId: string
-		worker: co.loaded<typeof UserAccount>
-	},
-	t: ReturnType<typeof useIntl>,
-) {
-	let result = await tryCatch(updateNote(data, options))
-	if (!result.ok) {
-		toast.error(
-			typeof result.error === "string" ? result.error : result.error.message,
-		)
-		return
-	}
-
-	toast.success(t("note.toast.updated"), {
-		action: {
-			label: "Undo",
-			onClick: async () => {
-				let undoResult = await tryCatch(
-					updateNote(result.data.previous, options),
-				)
-				if (undoResult.ok) {
-					toast.success(t("note.toast.updateUndone"))
-				} else {
-					toast.error(
-						typeof undoResult.error === "string"
-							? undoResult.error
-							: undoResult.error.message,
-					)
-				}
-			},
-		},
-	})
-	return { success: true }
-}
-
-async function deleteNote(
-	options: {
-		personId: string
-		noteId: string
-		worker: co.loaded<typeof UserAccount>
-	},
-	t: ReturnType<typeof useIntl>,
-) {
-	let result = await tryCatch(updateNote({ deletedAt: new Date() }, options))
-	if (!result.ok) {
-		toast.error(
-			typeof result.error === "string" ? result.error : result.error.message,
-		)
-		return
-	}
-
-	toast.success(t("note.toast.deleted"))
-}
-
-async function pinOrUnpinNote(
-	options: {
-		personId: string
-		noteId: string
-		worker: co.loaded<typeof UserAccount>
-	},
-	t: ReturnType<typeof useIntl>,
-	currentPinned?: boolean,
-) {
-	let result = await tryCatch(updateNote({ pinned: !currentPinned }, options))
-	if (!result.ok) {
-		toast.error(
-			typeof result.error === "string" ? result.error : result.error.message,
-		)
-		return
-	}
-
-	toast.success(
-		currentPinned ? t("note.toast.unpinned") : t("note.toast.pinned"),
-	)
-}
-
 type MarkdownWithHighlightProps = {
 	content: string
 	searchQuery?: string
 }
 
-function RestoreNoteDialog({
-	note,
-	person,
+function RestoreNoteDropdown({
 	open,
 	onOpenChange,
+	operations,
+	children,
 }: {
-	note: co.loaded<typeof Note>
-	person: co.loaded<typeof Person>
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	operations: NoteItemOperations
+	children: ReactNode
 }) {
-	let t = useIntl()
-	let me = useAccount(UserAccount)
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
-	let deletionInfo = null
-	if (note.deletedAt) {
-		let daysSinceDeletion = differenceInDays(new Date(), note.deletedAt)
-		let daysUntilPermanentDeletion = Math.max(0, 30 - daysSinceDeletion)
-		deletionInfo = {
-			daysSinceDeletion,
-			daysUntilPermanentDeletion,
-			isDueForPermanentDeletion: daysSinceDeletion >= 30,
-		}
-	}
-
 	async function handleRestore() {
-		if (!me.$isLoaded) return
-		let result = await tryCatch(
-			updateNote(
-				{ deletedAt: undefined },
-				{
-					personId: person.$jazz.id,
-					noteId: note.$jazz.id,
-					worker: me,
-				},
-			),
-		)
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
+		let restored = await operations.restore()
+		if (restored) {
+			onOpenChange(false)
 		}
-
-		toast.success(t("note.toast.restored"))
-		onOpenChange(false)
 	}
 
 	async function handlePermanentDelete() {
-		if (!me.$isLoaded) return
-		let result = await tryCatch(
-			updateNote(
-				{
-					permanentlyDeletedAt: new Date(),
-				},
-				{
-					personId: person.$jazz.id,
-					noteId: note.$jazz.id,
-					worker: me,
-				},
-			),
-		)
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
+		let deleted = await operations.deletePermanently()
+		if (deleted) {
+			onOpenChange(false)
+			setConfirmDeleteOpen(false)
 		}
-
-		toast.success(t("note.toast.permanentlyDeleted"))
-		onOpenChange(false)
 	}
 
 	return (
 		<>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="note.restore.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="note.restore.deletionInfo"
-									params={{
-										timeAgo: formatDistanceToNow(
-											note.deletedAt ||
-												note.updatedAt ||
-												note.createdAt ||
-												new Date(
-													note.$jazz.lastUpdatedAt || note.$jazz.createdAt,
-												),
-											{
-												addSuffix: true,
-												locale: useLocale() === "de" ? dfnsDe : undefined,
-											},
-										),
-									}}
-								/>
-								{deletionInfo && (
-									<>
-										{deletionInfo.isDueForPermanentDeletion ? (
-											<span className="text-destructive">
-												<T k="note.restore.permanentDeletionWarning" />
-											</span>
-										) : (
-											<T
-												k="note.restore.permanentDeletionCountdown"
-												params={{
-													days: deletionInfo.daysUntilPermanentDeletion,
-												}}
-											/>
-										)}
-									</>
-								)}
-								<T k="note.restore.question" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
-					<div className="space-y-3">
-						<Button className="h-12 w-full" onClick={handleRestore}>
-							<T k="note.restore.button" />
-						</Button>
-						<Button
-							variant="destructive"
-							className="h-12 w-full"
-							onClick={() => setConfirmDeleteOpen(true)}
-						>
-							<T k="note.restore.permanentDelete" />
-						</Button>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
+				{children}
+				<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+					<DropdownMenuItem onClick={handleRestore}>
+						<T k="note.restore.button" />
+						<ArrowCounterclockwise />
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						variant="destructive"
+						onClick={() => setConfirmDeleteOpen(true)}
+					>
+						<T k="note.restore.permanentDelete" />
+						<Trash />
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
@@ -632,12 +499,153 @@ function RestoreNoteDialog({
 	)
 }
 
+type NoteItemOperations = {
+	editNote: (data: {
+		content: string
+		pinned: boolean
+	}) => Promise<{ success: true } | undefined>
+	deleteNote: () => Promise<void>
+	restore: () => Promise<boolean>
+	deletePermanently: () => Promise<boolean>
+}
+
+function useNoteItemOperations({
+	note,
+	person,
+	me,
+}: {
+	note: co.loaded<typeof Note>
+	person: co.loaded<typeof Person>
+	me: ReturnType<typeof useAccount<typeof UserAccount>>
+}): NoteItemOperations {
+	let t = useIntl()
+
+	if (!me.$isLoaded) {
+		throw new Error("useNoteItemOperations called with unloaded account")
+	}
+	let loadedMe: Loaded<typeof UserAccount> = me
+
+	async function editNote(
+		data: Partial<{
+			content: string
+			pinned: boolean
+		}>,
+	): Promise<{ success: true } | undefined> {
+		let result = await tryCatch(
+			updateNote(data, {
+				personId: person.$jazz.id,
+				noteId: note.$jazz.id,
+				worker: loadedMe,
+			}),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		toast.success(t("note.toast.updated"), {
+			action: {
+				label: "Undo",
+				onClick: async () => {
+					let undoResult = await tryCatch(
+						updateNote(result.data.previous, {
+							personId: person.$jazz.id,
+							noteId: note.$jazz.id,
+							worker: loadedMe,
+						}),
+					)
+					if (undoResult.ok) {
+						toast.success(t("note.toast.updateUndone"))
+					} else {
+						toast.error(
+							typeof undoResult.error === "string"
+								? undoResult.error
+								: undoResult.error.message,
+						)
+					}
+				},
+			},
+		})
+		return { success: true }
+	}
+
+	async function deleteNote() {
+		let result = await tryCatch(
+			updateNote(
+				{ deletedAt: new Date() },
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: loadedMe,
+				},
+			),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		toast.success(t("note.toast.deleted"))
+	}
+
+	async function restore(): Promise<boolean> {
+		let result = await tryCatch(
+			updateNote(
+				{ deletedAt: undefined },
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: loadedMe,
+				},
+			),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return false
+		}
+
+		toast.success(t("note.toast.restored"))
+		return true
+	}
+
+	async function deletePermanently(): Promise<boolean> {
+		let result = await tryCatch(
+			updateNote(
+				{ permanentlyDeletedAt: new Date() },
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: loadedMe,
+				},
+			),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return false
+		}
+
+		toast.success(t("note.toast.permanentlyDeleted"))
+		return true
+	}
+
+	return {
+		editNote,
+		deleteNote,
+		restore,
+		deletePermanently,
+	}
+}
+
 let expandedNoteIDs = new Set<string>()
 
-/**
- * we need this hook to remember which notes have been expanded even when
- * unmounted. otherwise the list virtualization gets messed up
- */
 function useExpanded(id: string) {
 	let [isExpanded, setIsExpanded] = useState(() => expandedNoteIDs.has(id))
 	function toggleExpanded() {
