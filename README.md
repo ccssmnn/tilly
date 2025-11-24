@@ -99,4 +99,4 @@ AGPL-3.0 - Personal use permitted. Any modifications (including server-side) mus
 
 ## Status
 
-Actively maintained and used daily by the creator. Available as a hosted service at [tilly.social](https://tilly.social) (7 day free tier + $6/month for AI features) to make development sustainable and cover token costs.
+Actively maintained and used daily by the creator. Available as a hosted service at [tilly.social](https://tilly.social) (30 day free trial + $6/month for AI features) to make development sustainable and cover token costs.
