@@ -3,6 +3,7 @@ import {
 	isDeleted,
 	isPermanentlyDeleted,
 	Person as PersonSchema,
+	sortByUpdatedAt,
 	UserAccount,
 } from "#shared/schema/user"
 import type { co } from "jazz-tools"
@@ -57,8 +58,10 @@ function getStarterPrompts(
 		]
 	}
 
-	let randomPerson = people[0]
-	let hasReminders = people.some(
+	let recentPeople = sortByUpdatedAt(people).slice(0, 5)
+	let randomPerson =
+		recentPeople[Math.floor(Math.random() * recentPeople.length)]
+	let hasReminders = recentPeople.some(
 		person => person.reminders && person.reminders.length > 0,
 	)
 
