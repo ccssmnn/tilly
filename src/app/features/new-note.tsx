@@ -161,7 +161,7 @@ function NewNote(props: {
 					</div>
 				}
 			>
-				<div className="relative overflow-hidden">
+				<div className="relative">
 					<AnimatePresence mode="wait" custom={direction}>
 						{!selectedPersonId ? (
 							<motion.div

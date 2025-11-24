@@ -7,6 +7,13 @@ import { ReminderListItem } from "#app/features/reminder-list-item"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
 import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useDeferredValue, useId, type ReactNode, type RefObject } from "react"
@@ -326,36 +333,42 @@ function NoRemindersState() {
 function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 	return (
 		<div className="container mx-auto max-w-6xl px-3 py-6">
-			<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-				<Search className="text-muted-foreground size-8" />
-				<div className="space-y-2">
-					<p className="text-muted-foreground text-lg">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Search />
+					</EmptyMedia>
+					<EmptyTitle>
 						<T
 							k="reminders.noResults.message"
 							params={{ query: searchQuery }}
 						/>
-					</p>
-					<p className="text-muted-foreground text-sm">
+					</EmptyTitle>
+					<EmptyDescription>
 						<T k="reminders.noResults.suggestion" />
-					</p>
-				</div>
-			</div>
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		</div>
 	)
 }
 
 function AllCaughtUpState() {
 	return (
-		<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-			<Bell className="text-muted-foreground size-8" />
-			<div className="space-y-2">
-				<h2 className="text-xl font-semibold">
-					<T k="reminders.allCaughtUp.title" />
-				</h2>
-				<p className="text-muted-foreground">
-					<T k="reminders.allCaughtUp.description" />
-				</p>
-			</div>
+		<div className="flex flex-col items-center justify-center py-12">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Bell />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="reminders.allCaughtUp.title" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="reminders.allCaughtUp.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		</div>
 	)
 }

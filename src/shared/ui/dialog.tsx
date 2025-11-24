@@ -60,7 +60,7 @@ function DialogContent({
 			<DialogPrimitive.Content
 				data-slot="dialog-content"
 				className={cn(
-					"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out md:data-[state=open]:fade-in-0 md:data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-md:data-[state=closed]:slide-out-to-bottom max-md:data-[state=open]:slide-in-from-bottom fixed z-50 flex max-h-[85dvh] w-full flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-lg duration-300 ease-out max-md:bottom-0 max-md:rounded-t-3xl max-md:rounded-b-none md:top-6 md:left-[50%] md:w-full md:max-w-lg md:translate-x-[-50%] md:border",
+					"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out md:data-[state=open]:fade-in-0 md:data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-md:data-[state=closed]:slide-out-to-bottom max-md:data-[state=open]:slide-in-from-bottom fixed z-50 flex max-h-[95dvh] w-full flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-lg duration-300 ease-out max-md:bottom-0 max-md:rounded-t-3xl max-md:rounded-b-none md:top-6 md:left-[50%] md:w-full md:max-w-lg md:translate-x-[-50%] md:border",
 					className,
 				)}
 				style={

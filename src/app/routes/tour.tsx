@@ -4,11 +4,15 @@ import { Button } from "#shared/ui/button"
 import { useAppStore } from "#app/lib/store"
 import { motion, AnimatePresence } from "motion/react"
 import { useIsAndroid, useIsIOS, useIsPWAInstalled } from "#app/hooks/use-pwa"
+import { TypographyH1 } from "#shared/ui/typography"
 import {
-	TypographyH1,
-	TypographyH2,
-	TypographyLead,
-} from "#shared/ui/typography"
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
 import { T } from "#shared/intl"
 import {
 	CheckCircleFill,
@@ -196,25 +200,35 @@ function renderStep(
 
 function WelcomeStep() {
 	return (
-		<div className="space-y-3 text-left">
-			<Stars className="text-muted-foreground size-16" />
-			<TypographyH2>Welcome to Tilly</TypographyH2>
-			<TypographyLead>
-				<T k="welcome.description" />
-			</TypographyLead>
-		</div>
+		<Empty>
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<Stars />
+				</EmptyMedia>
+				<EmptyTitle>Welcome to Tilly</EmptyTitle>
+				<EmptyDescription>
+					<T k="welcome.description" />
+				</EmptyDescription>
+			</EmptyHeader>
+		</Empty>
 	)
 }
 
 function InstallPWAStep(props: { onSuccess: () => void }) {
 	return (
-		<div className="text-muted-foreground space-y-3 text-left">
-			<Phone className="text-muted-foreground size-16" />
-			<TypographyH2>
-				<T k="install.title" />
-			</TypographyH2>
-			<InstallationInstructions onInstallComplete={props.onSuccess} />
-		</div>
+		<Empty>
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<Phone />
+				</EmptyMedia>
+				<EmptyTitle>
+					<T k="install.title" />
+				</EmptyTitle>
+			</EmptyHeader>
+			<EmptyContent>
+				<InstallationInstructions onInstallComplete={props.onSuccess} />
+			</EmptyContent>
+		</Empty>
 	)
 }
 
@@ -222,41 +236,42 @@ function FinishSetupStep() {
 	let setTourSkipped = useAppStore(s => s.setTourSkipped)
 
 	return (
-		<div className="space-y-3 text-left">
-			<GearFill className="text-muted-foreground size-16" />
-			<TypographyH2>
-				<T k="finish.title" />
-			</TypographyH2>
-			<div className="space-y-3">
-				<div className="flex items-center gap-3">
-					<CheckCircleFill className="text-primary size-4" />
-					<p>
-						<T k="finish.backup" />
-					</p>
-				</div>
-				<div className="flex items-center gap-3">
-					<CheckCircleFill className="text-primary size-4" />
-					<p>
-						<T k="finish.notifications" />
-					</p>
-				</div>
-				<div className="flex items-center gap-3">
-					<CheckCircleFill className="text-primary size-4" />
-					<p>
-						<T k="finish.plus" />
-					</p>
-				</div>
-			</div>
-			<TypographyLead>
-				<T k="finish.description" />
-			</TypographyLead>
-			<div className="mt-8 flex justify-end">
+		<Empty>
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<GearFill />
+				</EmptyMedia>
+				<EmptyTitle>Finish your Setup in the Settings</EmptyTitle>
+				<EmptyDescription>
+					<div className="space-y-3">
+						<div className="flex items-center gap-3">
+							<CheckCircleFill className="text-primary size-4" />
+							<p>
+								<T k="finish.backup" />
+							</p>
+						</div>
+						<div className="flex items-center gap-3">
+							<CheckCircleFill className="text-primary size-4" />
+							<p>
+								<T k="finish.notifications" />
+							</p>
+						</div>
+						<div className="flex items-center gap-3">
+							<CheckCircleFill className="text-primary size-4" />
+							<p>
+								<T k="finish.plus" />
+							</p>
+						</div>
+					</div>
+				</EmptyDescription>
+			</EmptyHeader>
+			<EmptyContent>
 				<Button asChild>
 					<Link to="/settings" onClick={() => setTourSkipped(true)}>
 						<T k="finish.button" />
 					</Link>
 				</Button>
-			</div>
-		</div>
+			</EmptyContent>
+		</Empty>
 	)
 }

@@ -1,7 +1,14 @@
 import { Button } from "#shared/ui/button"
 import { NewNote } from "#app/features/new-note"
 import { NewPerson } from "#app/features/new-person"
-import { TypographyH2, TypographyLead } from "#shared/ui/typography"
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
 import { FileEarmarkText, PersonPlusFill } from "react-bootstrap-icons"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
@@ -29,33 +36,35 @@ function NoteTour({
 		: people.at(0)
 
 	return (
-		<div className="max-w-md space-y-3 text-left">
-			<FileEarmarkText className="text-muted-foreground size-16" />
-			<TypographyH2>
-				<T k="addNote.title" />
-			</TypographyH2>
-			<TypographyLead>
-				<T k="addNote.description" />
-			</TypographyLead>
-			{targetPerson !== undefined ? (
-				<div className="mt-8 flex justify-end">
+		<Empty>
+			<EmptyHeader>
+				<EmptyMedia variant="icon">
+					<FileEarmarkText />
+				</EmptyMedia>
+				<EmptyTitle>
+					<T k="addNote.title" />
+				</EmptyTitle>
+				<EmptyDescription>
+					<T k="addNote.description" />
+				</EmptyDescription>
+			</EmptyHeader>
+			<EmptyContent>
+				{targetPerson !== undefined ? (
 					<NewNote onSuccess={onSuccess} personId={targetPerson.$jazz.id}>
 						<Button>
 							<FileEarmarkText />
 							<T k="addNote.button" params={{ name: targetPerson.name }} />
 						</Button>
 					</NewNote>
-				</div>
-			) : (
-				<div className="mt-8 flex justify-end">
+				) : (
 					<NewPerson>
 						<Button>
 							<PersonPlusFill />
 							<T k="addPerson.button" />
 						</Button>
 					</NewPerson>
-				</div>
-			)}
-		</div>
+				)}
+			</EmptyContent>
+		</Empty>
 	)
 }

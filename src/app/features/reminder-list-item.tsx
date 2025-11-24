@@ -1,4 +1,3 @@
-import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
@@ -6,6 +5,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+	DropdownMenuItem,
+} from "#shared/ui/dropdown-menu"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -29,16 +34,11 @@ import {
 	CheckLg,
 	ArrowCounterclockwise,
 } from "react-bootstrap-icons"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { ReminderForm } from "./reminder-form"
 import { Link } from "@tanstack/react-router"
 import { Image as JazzImage } from "jazz-tools/react"
-import {
-	isBefore,
-	isToday,
-	formatDistanceToNow,
-	differenceInDays,
-} from "date-fns"
+import { isBefore, isToday, formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale, useIntl, T } from "#shared/intl/setup"
@@ -87,35 +87,34 @@ function ReminderListItem({
 
 		return (
 			<>
-				<ReminderItemContainer
-					reminder={reminder}
-					person={person}
-					showPerson={showPerson}
-					className={dialogOpen === "restore" ? "bg-accent" : ""}
-					onClick={() => setDialogOpen("restore")}
-				>
-					<div className="space-y-1 select-text">
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-							<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
-								<Trash />
-								<span>{deletedLabel}</span>
-							</span>
-							{showPerson ? (
-								<span className="text-muted-foreground font-normal">
-									<TextHighlight text={person.name} query={searchQuery} />
-								</span>
-							) : null}
-						</div>
-						<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
-					</div>
-				</ReminderItemContainer>
-				<RestoreReminderDialog
-					reminder={reminder}
+				<RestoreReminderDropdown
 					open={dialogOpen === "restore"}
 					onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
-					onRestore={operations.restore}
-					onPermanentDelete={operations.deletePermanently}
-				/>
+					operations={operations}
+				>
+					<ReminderItemContainer
+						reminder={reminder}
+						person={person}
+						showPerson={showPerson}
+						className={dialogOpen === "restore" ? "bg-accent" : ""}
+						onClick={() => setDialogOpen("restore")}
+					>
+						<div className="space-y-1 select-text">
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+								<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
+									<Trash />
+									<span>{deletedLabel}</span>
+								</span>
+								{showPerson ? (
+									<span className="text-muted-foreground font-normal">
+										<TextHighlight text={person.name} query={searchQuery} />
+									</span>
+								) : null}
+							</div>
+							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
+						</div>
+					</ReminderItemContainer>
+				</RestoreReminderDropdown>
 			</>
 		)
 	}
@@ -134,92 +133,92 @@ function ReminderListItem({
 
 		return (
 			<>
-				<ReminderItemContainer
-					reminder={reminder}
-					person={person}
-					showPerson={showPerson}
-					className={dialogOpen === "done" ? "bg-accent" : ""}
-					onClick={() => setDialogOpen("done")}
-				>
-					<div className="space-y-1 select-text">
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-							<span className="inline-flex items-center gap-1 text-emerald-500 [&>svg]:size-3">
-								<CheckLg />
-								<span>{doneLabel}</span>
-							</span>
-							{showPerson ? (
-								<span className="text-muted-foreground font-normal">
-									<TextHighlight text={person.name} query={searchQuery} />
-								</span>
-							) : null}
-						</div>
-						<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
-					</div>
-				</ReminderItemContainer>
-				<DoneReminderActionsDialog
+				<DoneReminderDropdown
 					open={dialogOpen === "done"}
 					onOpenChange={open => setDialogOpen(open ? "done" : undefined)}
-					onUndo={operations.markUndone}
-					onDelete={operations.deleteReminder}
-				/>
+					operations={operations}
+				>
+					<ReminderItemContainer
+						reminder={reminder}
+						person={person}
+						showPerson={showPerson}
+						className={dialogOpen === "done" ? "bg-accent" : ""}
+						onClick={_e => setDialogOpen("done")}
+					>
+						<div className="space-y-1 select-text">
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+								<span className="inline-flex items-center gap-1 text-emerald-500 [&>svg]:size-3">
+									<CheckLg />
+									<span>{doneLabel}</span>
+								</span>
+								{showPerson ? (
+									<span className="text-muted-foreground font-normal">
+										<TextHighlight text={person.name} query={searchQuery} />
+									</span>
+								) : null}
+							</div>
+							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
+						</div>
+					</ReminderItemContainer>
+				</DoneReminderDropdown>
 			</>
 		)
 	}
 
 	return (
 		<>
-			<ReminderItemContainer
-				reminder={reminder}
-				person={person}
-				showPerson={showPerson}
-				className={dialogOpen ? "bg-accent" : ""}
-				onClick={() => setDialogOpen("actions")}
-			>
-				<div className="flex items-start gap-3 select-text">
-					<div
-						className={cn(
-							"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
-							isToday(new Date(reminder.dueAtDate)) ||
-								isBefore(new Date(reminder.dueAtDate), new Date())
-								? "text-destructive"
-								: "text-foreground",
-						)}
-					>
-						{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
-						{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
-					</div>
-					{showPerson && (
-						<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-							<TextHighlight text={person.name} query={searchQuery} />
-						</p>
-					)}
-				</div>
-				<p className="text-md/tight text-left select-text">
-					<TextHighlight text={reminder.text} query={searchQuery} />
-				</p>
-			</ReminderItemContainer>
-			<ActionsDialog
-				showPerson={showPerson}
-				person={person}
+			<ActionsDropdown
 				open={dialogOpen === "actions"}
 				onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
 				onEditClick={() => setDialogOpen("edit")}
 				onAddNoteClick={() => setDialogOpen("note")}
-				onDone={operations.markDone}
-				onDelete={operations.deleteReminder}
-			/>
+				showPerson={showPerson}
+				person={person}
+				operations={operations}
+			>
+				<ReminderItemContainer
+					reminder={reminder}
+					person={person}
+					showPerson={showPerson}
+					className={dialogOpen ? "bg-accent" : ""}
+					onClick={() => setDialogOpen("actions")}
+				>
+					<div className="flex items-start gap-3 select-text">
+						<div
+							className={cn(
+								"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
+								isToday(new Date(reminder.dueAtDate)) ||
+									isBefore(new Date(reminder.dueAtDate), new Date())
+									? "text-destructive"
+									: "text-foreground",
+							)}
+						>
+							{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
+							{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
+						</div>
+						{showPerson && (
+							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+								<TextHighlight text={person.name} query={searchQuery} />
+							</p>
+						)}
+					</div>
+					<p className="text-md/tight text-left select-text">
+						<TextHighlight text={reminder.text} query={searchQuery} />
+					</p>
+				</ReminderItemContainer>
+			</ActionsDropdown>
 			<EditReminderDialog
 				open={dialogOpen === "edit"}
 				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
 				reminder={reminder}
-				onSubmit={operations.updateReminder}
+				operations={operations}
 			/>
 			<AddNoteDialog
 				person={person}
 				open={dialogOpen === "note"}
 				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
 				onClose={() => setDialogOpen(undefined)}
-				onSubmit={operations.addNote}
+				operations={operations}
 			/>
 		</>
 	)
@@ -238,19 +237,26 @@ function ReminderItemContainer({
 	showPerson: boolean
 	className?: string
 	children: React.ReactNode
-	onClick: () => void
+	onClick: (e: React.MouseEvent) => void
 }) {
+	let baseClassName = cn(
+		"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
+		className,
+	)
+
 	return (
 		<div className="-mx-3">
-			<button
+			<DropdownMenuTrigger
 				id={`reminder-${reminder.$jazz.id}`}
-				className={cn(
-					"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
-					className,
-				)}
-				onClick={() => {
+				className={baseClassName}
+				onPointerDown={e => {
+					if (e.pointerType === "touch") {
+						e.preventDefault()
+					}
+				}}
+				onClick={e => {
 					if (isTextSelectionOngoing()) return
-					onClick()
+					onClick(e)
 				}}
 			>
 				{showPerson ? (
@@ -276,7 +282,7 @@ function ReminderItemContainer({
 					</div>
 				) : null}
 				<div className="min-w-0 flex-1 space-y-1">{children}</div>
-			</button>
+			</DropdownMenuTrigger>
 		</div>
 	)
 }
@@ -321,101 +327,69 @@ function getReminderDeletedDate(reminder: co.loaded<typeof Reminder>) {
 	return reminder.deletedAt ?? getReminderReferenceDate(reminder)
 }
 
-function ActionsDialog({
-	showPerson,
-	person,
+function ActionsDropdown({
 	open,
 	onOpenChange,
 	onEditClick,
 	onAddNoteClick,
-	onDone,
-	onDelete,
+	showPerson,
+	person,
+	operations,
+	children,
 }: {
-	showPerson: boolean
-	person: co.loaded<typeof Person>
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onEditClick: () => void
 	onAddNoteClick: () => void
-	onDone: () => Promise<void>
-	onDelete: () => Promise<void>
+	showPerson: boolean
+	person: co.loaded<typeof Person>
+	operations: ReminderItemOperations
+	children: ReactNode
 }) {
 	async function handleDone() {
 		onOpenChange(false)
-		await onDone()
+		await operations.markDone()
 	}
 
 	async function handleDelete() {
 		onOpenChange(false)
-		await onDelete()
+		await operations.deleteReminder()
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="reminder.actions.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="reminder.actions.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<div className="space-y-3">
-					<Button className="h-12 w-full" onClick={handleDone}>
-						<CheckLg />
-						<T k="reminder.actions.markDone" />
-					</Button>
-					<div className="flex items-center gap-3">
-						{showPerson && (
-							<Button
-								variant="outline"
-								className="h-12 flex-1"
-								onClick={() => onOpenChange(false)}
-								asChild
-							>
-								<Link
-									to="/people/$personID"
-									params={{ personID: person.$jazz.id }}
-								>
-									<PersonFill />
-									<T k="reminder.actions.viewPerson" />
-								</Link>
-							</Button>
-						)}
-						<Button
-							variant="outline"
-							className="h-12 flex-1"
-							onClick={onAddNoteClick}
+		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
+			{children}
+			<DropdownMenuContent align={"center"} side={"top"}>
+				<DropdownMenuItem onClick={handleDone}>
+					<T k="reminder.actions.markDone" />
+					<CheckLg />
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={onEditClick}>
+					<T k="reminder.actions.edit" />
+					<PencilSquare />
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={onAddNoteClick}>
+					<T k="reminder.actions.addNote" />
+					<FileEarmarkText />
+				</DropdownMenuItem>
+				{showPerson && (
+					<DropdownMenuItem asChild>
+						<Link
+							to="/people/$personID"
+							params={{ personID: person.$jazz.id }}
+							onClick={() => onOpenChange(false)}
 						>
-							<FileEarmarkText />
-							<T k="reminder.actions.addNote" />
-						</Button>
-					</div>
-					<div className="flex items-center gap-3">
-						<Button
-							variant="destructive"
-							className="h-12 flex-1"
-							onClick={handleDelete}
-						>
-							<Trash />
-							<T k="reminder.actions.delete" />
-						</Button>
-						<Button
-							variant="secondary"
-							className="h-12 flex-1"
-							onClick={onEditClick}
-						>
-							<PencilSquare />
-							<T k="reminder.actions.edit" />
-						</Button>
-					</div>
-				</div>
-			</DialogContent>
-		</Dialog>
+							<T k="reminder.actions.viewPerson" />
+							<PersonFill />
+						</Link>
+					</DropdownMenuItem>
+				)}
+				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
+					<T k="reminder.actions.delete" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 
@@ -423,17 +397,15 @@ function EditReminderDialog({
 	open,
 	onOpenChange,
 	reminder,
-	onSubmit,
+	operations,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	reminder: co.loaded<typeof Reminder>
-	onSubmit: (
-		data: ReminderUpdateInput,
-	) => Promise<{ success: true } | undefined>
+	operations: ReminderItemOperations
 }) {
 	async function handleEdit(data: ReminderUpdateInput) {
-		let result = await onSubmit(data)
+		let result = await operations.updateReminder(data)
 		if (result?.success) {
 			onOpenChange(false)
 		}
@@ -472,16 +444,16 @@ function AddNoteDialog({
 	open,
 	onOpenChange,
 	onClose,
-	onSubmit,
+	operations,
 }: {
 	person: co.loaded<typeof Person>
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	onClose: () => void
-	onSubmit: (data: NoteFormInput) => Promise<{ success: true } | undefined>
+	operations: ReminderItemOperations
 }) {
 	async function handleAddNote(data: NoteFormInput) {
-		let result = await onSubmit(data)
+		let result = await operations.addNote(data)
 		if (result?.success) {
 			onClose()
 		}
@@ -516,109 +488,52 @@ function AddNoteDialog({
 	)
 }
 
-function RestoreReminderDialog({
-	reminder,
+function RestoreReminderDropdown({
 	open,
 	onOpenChange,
-	onRestore,
-	onPermanentDelete,
+	operations,
+	children,
 }: {
-	reminder: co.loaded<typeof Reminder>
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	onRestore: () => Promise<boolean>
-	onPermanentDelete: () => Promise<boolean>
+	operations: ReminderItemOperations
+	children: ReactNode
 }) {
 	let [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
-	let deletionInfo = (() => {
-		if (!reminder.deletedAt) return null
-		let daysSinceDeletion = differenceInDays(new Date(), reminder.deletedAt)
-		let daysUntilPermanentDeletion = Math.max(0, 30 - daysSinceDeletion)
-		return {
-			daysSinceDeletion,
-			daysUntilPermanentDeletion,
-			isDueForPermanentDeletion: daysSinceDeletion >= 30,
-		}
-	})()
-
 	async function handleRestore() {
-		let restored = await onRestore()
+		let restored = await operations.restore()
 		if (restored) {
 			onOpenChange(false)
 		}
 	}
 
 	async function handlePermanentDelete() {
-		let deleted = await onPermanentDelete()
+		let deleted = await operations.deletePermanently()
 		if (deleted) {
 			onOpenChange(false)
+			setConfirmDeleteOpen(false)
 		}
 	}
 
 	return (
 		<>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="reminder.restore.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="reminder.restore.deletionInfo"
-									params={{
-										timeAgo: formatDistanceToNow(
-											reminder.deletedAt ||
-												reminder.updatedAt ||
-												reminder.createdAt ||
-												new Date(
-													reminder.$jazz.lastUpdatedAt ||
-														reminder.$jazz.createdAt,
-												),
-											{
-												addSuffix: true,
-												locale: useLocale() === "de" ? dfnsDe : undefined,
-											},
-										),
-									}}
-								/>
-								{deletionInfo && (
-									<>
-										{deletionInfo.isDueForPermanentDeletion ? (
-											<span className="text-destructive">
-												<T k="reminder.restore.permanentDeletionWarning" />
-											</span>
-										) : (
-											<T
-												k="reminder.restore.permanentDeletionCountdown"
-												params={{
-													days: deletionInfo.daysUntilPermanentDeletion,
-												}}
-											/>
-										)}
-									</>
-								)}
-								<T k="reminder.restore.question" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
-					<div className="space-y-3">
-						<Button className="h-12 w-full" onClick={handleRestore}>
-							<T k="reminder.restore.button" />
-						</Button>
-						<Button
-							variant="destructive"
-							className="h-12 w-full"
-							onClick={() => setConfirmDeleteOpen(true)}
-						>
-							<T k="reminder.restore.permanentDelete" />
-						</Button>
-					</div>
-				</DialogContent>
-			</Dialog>
+			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
+				{children}
+				<DropdownMenuContent align={"center"} side={"top"}>
+					<DropdownMenuItem onClick={handleRestore}>
+						<T k="reminder.restore.button" />
+						<ArrowCounterclockwise />
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						variant="destructive"
+						onClick={() => setConfirmDeleteOpen(true)}
+					>
+						<T k="reminder.restore.permanentDelete" />
+						<Trash />
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
@@ -644,57 +559,41 @@ function RestoreReminderDialog({
 	)
 }
 
-function DoneReminderActionsDialog({
+function DoneReminderDropdown({
 	open,
 	onOpenChange,
-	onUndo,
-	onDelete,
+	operations,
+	children,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	onUndo: () => Promise<void>
-	onDelete: () => Promise<void>
+	operations: ReminderItemOperations
+	children: ReactNode
 }) {
 	async function handleUndone() {
 		onOpenChange(false)
-		await onUndo()
+		await operations.markUndone()
 	}
 
 	async function handleDelete() {
 		onOpenChange(false)
-		await onDelete()
+		await operations.deleteReminder()
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="reminder.done.actions.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="reminder.done.actions.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<div className="space-y-3">
-					<Button className="h-12 w-full" onClick={handleUndone}>
-						<ArrowCounterclockwise />
-						<T k="reminder.done.markUndone" />
-					</Button>
-					<Button
-						variant="destructive"
-						className="h-12 w-full"
-						onClick={handleDelete}
-					>
-						<Trash />
-						<T k="reminder.actions.delete" />
-					</Button>
-				</div>
-			</DialogContent>
-		</Dialog>
+		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
+			{children}
+			<DropdownMenuContent align={"center"} side={"top"}>
+				<DropdownMenuItem onClick={handleUndone}>
+					<T k="reminder.done.markUndone" />
+					<ArrowCounterclockwise />
+				</DropdownMenuItem>
+				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
+					<T k="reminder.actions.delete" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 

@@ -110,7 +110,7 @@ export function NoteForm({
 								<T k="note.form.createdAt.label" />
 							</FormLabel>
 							<FormControl>
-								<Input type="date" {...field} />
+								<Input type="date" className="w-auto" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
