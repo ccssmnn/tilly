@@ -249,6 +249,11 @@ function ReminderItemContainer({
 			<DropdownMenuTrigger
 				id={`reminder-${reminder.$jazz.id}`}
 				className={baseClassName}
+				onPointerDown={e => {
+					if (e.pointerType === "touch") {
+						e.preventDefault()
+					}
+				}}
 				onClick={e => {
 					if (isTextSelectionOngoing()) return
 					onClick(e)
