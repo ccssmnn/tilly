@@ -8,6 +8,14 @@ import { Textarea, useResizeTextarea } from "#shared/ui/textarea"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
 import { Assistant, UserAccount } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
@@ -16,12 +24,11 @@ import {
 	Pause,
 	WifiOff,
 	InfoCircleFill,
-	ChatFill,
+	BoxArrowInUp,
 } from "react-bootstrap-icons"
 import {
 	TypographyH1,
 	TypographyH2,
-	TypographyLead,
 	TypographyMuted,
 } from "#shared/ui/typography"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
@@ -62,7 +69,7 @@ function AssistantScreen() {
 
 	if (access.status === "loading") {
 		return (
-			<AssistantLayout>
+			<AssistantLayout hideTitle>
 				<AssistantLoading />
 			</AssistantLayout>
 		)
@@ -70,7 +77,7 @@ function AssistantScreen() {
 
 	if (access.status === "denied") {
 		return (
-			<AssistantLayout>
+			<AssistantLayout hideTitle>
 				<SubscribePrompt />
 			</AssistantLayout>
 		)
@@ -79,21 +86,25 @@ function AssistantScreen() {
 	// just to be sure :)
 	access.status satisfies "granted"
 
-	return (
-		<AssistantLayout>
-			<AuthenticatedChat />
-		</AssistantLayout>
-	)
+	return <AuthenticatedChat />
 }
 
-function AssistantLayout({ children }: { children: ReactNode }) {
+function AssistantLayout({
+	children,
+	hideTitle = false,
+}: {
+	children: ReactNode
+	hideTitle?: boolean
+}) {
 	let t = useIntl()
 	return (
 		<div className="space-y-6 md:mt-12">
 			<title>{t("assistant.pageTitle")}</title>
-			<TypographyH1>
-				<T k="assistant.title" />
-			</TypographyH1>
+			{!hideTitle && (
+				<TypographyH1>
+					<T k="assistant.title" />
+				</TypographyH1>
+			)}
 			{children}
 		</div>
 	)
@@ -111,24 +122,29 @@ function AssistantLoading() {
 
 function SubscribePrompt() {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
-			<div className="max-w-md space-y-3 text-left">
-				<ChatFill className="text-muted-foreground size-16" />
-				<TypographyH2>
+		<Empty className="min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] md:min-h-[calc(100dvh-6rem)]">
+			<EmptyHeader>
+				<EmptyMedia>
+					<Avatar className="size-20">
+						<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly" />
+						<AvatarFallback>T</AvatarFallback>
+					</Avatar>
+				</EmptyMedia>
+				<EmptyTitle>
 					<T k="assistant.subscribe.title" />
-				</TypographyH2>
-				<TypographyLead>
+				</EmptyTitle>
+				<EmptyDescription>
 					<T k="assistant.subscribe.description" />
-				</TypographyLead>
-				<div className="mt-8 flex justify-end">
-					<Button asChild>
-						<Link to="/settings">
-							<T k="assistant.subscribe.settings" />
-						</Link>
-					</Button>
-				</div>
-			</div>
-		</div>
+				</EmptyDescription>
+			</EmptyHeader>
+			<EmptyContent>
+				<Button asChild>
+					<Link to="/settings">
+						<T k="assistant.subscribe.settings" />
+					</Link>
+				</Button>
+			</EmptyContent>
+		</Empty>
 	)
 }
 
@@ -158,59 +174,241 @@ function AuthenticatedChat() {
 	let isGenerating = !!assistant?.submittedAt
 	let isBusy = isSending || isGenerating
 
+	let isEmpty = messages.length === 0
+
 	return (
-		<div className="space-y-4">
-			{!isOnline && <OfflineAlert />}
+		<AssistantLayout hideTitle={isEmpty}>
+			<div className="space-y-4">
+				{!isOnline && <OfflineAlert />}
 
-			{messages.length === 0 ? (
-				<TypographyMuted>
-					<T k="assistant.emptyState" />
-				</TypographyMuted>
-			) : (
-				messages.map(message => (
-					<MessageRenderer
-						key={message.id}
-						message={message}
-						addToolResult={addToolResult}
+				{isEmpty ? (
+					<EmptyChatState
+						onSubmit={sendMessage}
+						isOnline={isOnline}
+						isBusy={isBusy}
+						abort={isBusy ? abort : undefined}
 					/>
-				))
-			)}
+				) : (
+					<>
+						{messages.map(message => (
+							<MessageRenderer
+								key={message.id}
+								message={message}
+								addToolResult={addToolResult}
+							/>
+						))}
 
-			{isSending ? (
-				<LoadingIndicator state="sending" />
-			) : isGenerating ? (
-				<LoadingIndicator state="generating" />
-			) : null}
+						{isSending ? (
+							<LoadingIndicator state="sending" />
+						) : isGenerating ? (
+							<LoadingIndicator state="generating" />
+						) : null}
 
-			<SendingError error={failedToSend} />
-			<GenerationError error={assistant?.errorMessage} />
+						<SendingError error={failedToSend} />
+						<GenerationError error={assistant?.errorMessage} />
 
-			{messages.length > 0 && !isBusy && (
-				<>
-					<ClearChatHint assistant={assistant} />
-					<ClearChatButton assistant={assistant} />
-				</>
-			)}
+						{!isBusy && (
+							<>
+								<ClearChatHint assistant={assistant} />
+								<ClearChatButton assistant={assistant} />
+							</>
+						)}
 
-			<ScrollIntoView trigger={messages} />
+						<ScrollIntoView trigger={messages} />
 
-			<div className="h-22" />
+						<div className="h-22" />
 
-			<UserInput
-				placeholder={
-					isGenerating
-						? t("assistant.placeholder.generating")
-						: !isOnline
-							? t("assistant.placeholder.offline")
-							: messages.length > 0
-								? t("assistant.placeholder.reply")
-								: t("assistant.placeholder.initial")
-				}
-				onSubmit={sendMessage}
-				chatSize={messages.length}
-				stopGeneratingResponse={isBusy ? abort : undefined}
-				disabled={!isOnline || isBusy}
-			/>
+						<UserInput
+							placeholder={
+								isGenerating
+									? t("assistant.placeholder.generating")
+									: !isOnline
+										? t("assistant.placeholder.offline")
+										: t("assistant.placeholder.reply")
+							}
+							onSubmit={sendMessage}
+							chatSize={messages.length}
+							stopGeneratingResponse={isBusy ? abort : undefined}
+							disabled={!isOnline || isBusy}
+						/>
+					</>
+				)}
+			</div>
+		</AssistantLayout>
+	)
+}
+
+function EmptyChatState({
+	onSubmit,
+	isOnline,
+	isBusy,
+	abort,
+}: {
+	onSubmit: (message: TillyUIMessage) => void
+	isOnline: boolean
+	isBusy: boolean
+	abort?: () => void
+}) {
+	let me = useAccount(UserAccount, { resolve })
+	let t = useIntl()
+	let form = useForm({
+		resolver: zodResolver(z.object({ prompt: z.string() })),
+		defaultValues: { prompt: "" },
+	})
+
+	let promptValue = useWatch({
+		control: form.control,
+		name: "prompt",
+		defaultValue: "",
+	})
+
+	let autoFocusRef = useAutoFocusInput()
+	let textareaRef = useRef<HTMLTextAreaElement>(null)
+	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
+
+	function handleSubmit(data: { prompt: string }) {
+		if (!me.$isLoaded) return
+		if (!data.prompt.trim()) return
+
+		let metadata = {
+			userName: me.profile?.name || "Anonymous",
+			timezone: me.root.notificationSettings?.timezone || "UTC",
+			locale: me.root.language || "en",
+			// eslint-disable-next-line react-hooks/purity
+			timestamp: Date.now(),
+		}
+
+		let newMessage: TillyUIMessage = {
+			id: nanoid(),
+			role: "user",
+			parts: [{ type: "text", text: data.prompt }],
+			metadata,
+		}
+
+		onSubmit(newMessage)
+		form.reset()
+	}
+
+	function submitOnKeyCtrlEnter(
+		event: React.KeyboardEvent<HTMLTextAreaElement>,
+	) {
+		if (event.key !== "Enter") return
+
+		let shouldSubmit = event.metaKey || event.ctrlKey || event.shiftKey
+		if (!shouldSubmit) return
+
+		if (!promptValue.trim()) return
+		if (form.formState.isSubmitting) return
+
+		event.preventDefault()
+
+		form.handleSubmit(handleSubmit)()
+		textareaRef.current?.blur()
+	}
+
+	function prefillStarter(text: string) {
+		form.setValue("prompt", text)
+		textareaRef.current?.focus()
+	}
+
+	let starters = [
+		{ key: "note", text: t("assistant.emptyState.starter.note") },
+		{ key: "reminder", text: t("assistant.emptyState.starter.reminder") },
+		{ key: "person", text: t("assistant.emptyState.starter.person") },
+	]
+
+	return (
+		<div className="flex flex-col items-center gap-6 py-12 text-center">
+			<div className="space-y-4">
+				<Avatar className="mx-auto size-20">
+					<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly" />
+					<AvatarFallback>T</AvatarFallback>
+				</Avatar>
+				<div className="space-y-2">
+					<TypographyH2>
+						<T k="assistant.emptyState.welcome" />
+					</TypographyH2>
+					<TypographyMuted className="max-w-md">
+						<T k="assistant.emptyState.description" />
+					</TypographyMuted>
+				</div>
+			</div>
+
+			<div className="w-full max-w-xl">
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(handleSubmit)}>
+						<FormField
+							control={form.control}
+							name="prompt"
+							render={({ field }) => (
+								<FormItem>
+									<FormControl>
+										<div className="relative">
+											<Textarea
+												placeholder={
+													!isOnline
+														? t("assistant.placeholder.offline")
+														: t("assistant.placeholder.initial")
+												}
+												rows={2}
+												className="min-h-20 max-w-full resize-none overflow-x-hidden overflow-y-auto rounded-3xl pr-14"
+												style={{
+													height: "auto",
+													wordWrap: "break-word",
+													width: "100%",
+												}}
+												autoResize={false}
+												disabled={!isOnline || isBusy}
+												{...field}
+												onKeyDown={submitOnKeyCtrlEnter}
+												ref={r => {
+													textareaRef.current = r
+													autoFocusRef.current = r
+													field.ref(r)
+												}}
+											/>
+											{abort ? (
+												<Button
+													type="button"
+													variant="destructive"
+													onClick={abort}
+													size="icon"
+													className="absolute right-2 bottom-2 size-10 rounded-3xl"
+												>
+													<Pause />
+												</Button>
+											) : (
+												<Button
+													type="submit"
+													size="icon"
+													className="absolute right-2 bottom-2 size-10 rounded-3xl"
+													disabled={!isOnline || isBusy}
+												>
+													<Send />
+												</Button>
+											)}
+										</div>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
+					</form>
+				</Form>
+			</div>
+			<div className="flex w-full max-w-xl flex-col gap-2">
+				{starters.map(starter => (
+					<Button
+						key={starter.key}
+						variant="ghost"
+						className="justify-start"
+						onClick={() => prefillStarter(starter.text)}
+						disabled={!isOnline || isBusy}
+					>
+						<BoxArrowInUp />
+						{starter.text}
+					</Button>
+				))}
+			</div>
 		</div>
 	)
 }

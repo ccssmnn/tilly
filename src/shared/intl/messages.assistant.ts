@@ -19,6 +19,12 @@ const baseAssistantMessages = messages({
 		"Tilly chat requires an internet connection. All other features work offline.",
 	"assistant.emptyState":
 		"Share a story, and I'll help you remember what matters",
+	"assistant.emptyState.welcome": "Hi, I'm Tilly",
+	"assistant.emptyState.description":
+		"I help you turn conversations into notes and reminders. Share a story, thought, or just chat!",
+	"assistant.emptyState.starter.note": "Add a note about someone",
+	"assistant.emptyState.starter.reminder": "Set a reminder",
+	"assistant.emptyState.starter.person": "Tell me about someone",
 	"assistant.sending": "Sending to server...",
 	"assistant.generating": "Generating response...",
 	"assistant.generatingOnOtherDevice": "Generating response on other device...",
@@ -232,6 +238,12 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		"Der Tilly-Chat benötigt eine Internetverbindung. Alle anderen Funktionen funktionieren offline.",
 	"assistant.emptyState":
 		"Erzähle eine Geschichte – ich helfe dir, das Wichtige zu behalten",
+	"assistant.emptyState.welcome": "Hi, ich bin Tilly",
+	"assistant.emptyState.description":
+		"Ich helfe dir, Gespräche in Notizen und Erinnerungen zu verwandeln. Erzähl mir eine Geschichte, einen Gedanken, oder chatte einfach!",
+	"assistant.emptyState.starter.note": "Notiz über jemanden hinzufügen",
+	"assistant.emptyState.starter.reminder": "Erinnerung erstellen",
+	"assistant.emptyState.starter.person": "Erzähl mir von jemandem",
 	"assistant.sending": "Wird an Server gesendet...",
 	"assistant.generating": "Antwort wird erstellt...",
 	"assistant.generatingOnOtherDevice":
