@@ -7,6 +7,13 @@ import { useDeferredValue, useId, type ReactNode } from "react"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
 import { X, Search, Plus } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
@@ -235,17 +242,19 @@ function NoNotesState() {
 function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 	return (
 		<div className="container mx-auto max-w-6xl px-3 py-6">
-			<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-				<Search className="text-muted-foreground size-8" />
-				<div className="space-y-2">
-					<p className="text-muted-foreground text-lg">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Search />
+					</EmptyMedia>
+					<EmptyTitle>
 						<T k="notes.noResults.message" params={{ query: searchQuery }} />
-					</p>
-					<p className="text-muted-foreground text-sm">
+					</EmptyTitle>
+					<EmptyDescription>
 						<T k="notes.noResults.suggestion" />
-					</p>
-				</div>
-			</div>
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		</div>
 	)
 }

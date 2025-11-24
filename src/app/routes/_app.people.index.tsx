@@ -2,6 +2,14 @@ import { createFileRoute, notFound } from "@tanstack/react-router"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
 import { useAccount } from "jazz-tools/react"
 import { co } from "jazz-tools"
 import { usePeople } from "#app/features/person-hooks"
@@ -338,23 +346,29 @@ function NoActivePeopleState({
 	setPeopleSearchQuery: (query: string) => void
 }) {
 	return (
-		<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-			<p className="text-muted-foreground text-lg">
-				<T k="people.noActive.message" />
-			</p>
-			<NewPerson
-				onSuccess={personId => {
-					setPeopleSearchQuery("")
-					navigate({
-						to: "/people/$personID",
-						params: { personID: personId },
-					})
-				}}
-			>
-				<Button>
-					<T k="people.noActive.addButton" />
-				</Button>
-			</NewPerson>
+		<div className="flex flex-col items-center justify-center py-12">
+			<Empty>
+				<EmptyHeader>
+					<EmptyDescription>
+						<T k="people.noActive.message" />
+					</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
+					<NewPerson
+						onSuccess={personId => {
+							setPeopleSearchQuery("")
+							navigate({
+								to: "/people/$personID",
+								params: { personID: personId },
+							})
+						}}
+					>
+						<Button>
+							<T k="people.noActive.addButton" />
+						</Button>
+					</NewPerson>
+				</EmptyContent>
+			</Empty>
 		</div>
 	)
 }
@@ -362,20 +376,22 @@ function NoActivePeopleState({
 function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 	return (
 		<div className="container mx-auto mt-6 max-w-6xl px-3 py-6">
-			<div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-				<Search className="text-muted-foreground size-8" />
-				<div className="space-y-2">
-					<p className="text-muted-foreground text-lg">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Search />
+					</EmptyMedia>
+					<EmptyTitle>
 						<T
 							k="people.search.noResults.message"
 							params={{ query: searchQuery }}
 						/>
-					</p>
-					<p className="text-muted-foreground text-sm">
+					</EmptyTitle>
+					<EmptyDescription>
 						<T k="people.search.noResults.suggestion" />
-					</p>
-				</div>
-			</div>
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		</div>
 	)
 }

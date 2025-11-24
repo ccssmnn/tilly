@@ -108,7 +108,7 @@ function AndroidChromeInstructions({
 	}
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 text-left">
 			<p className="text-muted-foreground">
 				<T k="pwa.install.dialog.browser.title" />
 			</p>
@@ -121,11 +121,11 @@ function AndroidChromeInstructions({
 
 function AndroidManualInstructions() {
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 text-left">
 			<p className="text-muted-foreground">
 				<T k="pwa.install.android.title" />
 			</p>
-			<ol className="text-muted-foreground list-inside list-decimal space-y-2">
+			<ol className="text-muted-foreground list-decimal space-y-2 pl-4">
 				<li>
 					<T
 						k="pwa.install.android.menuStep"
@@ -151,11 +151,11 @@ function AndroidManualInstructions() {
 
 function IOSInstructions() {
 	return (
-		<div className="text-muted-foreground space-y-3">
+		<div className="text-muted-foreground space-y-3 text-left">
 			<p>
 				<T k="pwa.install.ios.title" />
 			</p>
-			<ol className="list-inside list-decimal space-y-2">
+			<ol className="list-decimal space-y-2 pl-4">
 				<li>
 					<T
 						k="pwa.install.ios.shareStep"
@@ -203,7 +203,7 @@ function DesktopInstructions({
 
 	if (canInstall) {
 		return (
-			<div className="space-y-3">
+			<div className="space-y-3 text-left">
 				<p className="text-muted-foreground text-sm">
 					<T k="pwa.install.desktop.browser.title" />
 				</p>
@@ -215,7 +215,7 @@ function DesktopInstructions({
 	}
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 text-left">
 			<p className="text-muted-foreground text-sm">
 				<T k="pwa.install.desktop.title" />
 			</p>
@@ -251,11 +251,11 @@ function DesktopInstructions({
 
 function GenericInstructions() {
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 text-left">
 			<p className="text-muted-foreground text-sm">
 				<T k="pwa.install.generic.title" />
 			</p>
-			<ol className="text-muted-foreground list-inside list-decimal space-y-2 pl-2 text-sm">
+			<ol className="text-muted-foreground list-decimal space-y-2 pl-4 text-sm">
 				<li>
 					<T k="pwa.install.generic.step1" />
 				</li>

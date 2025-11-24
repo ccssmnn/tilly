@@ -23,6 +23,13 @@ import { ReminderForm } from "#app/features/reminder-form"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#shared/ui/empty"
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -225,14 +232,20 @@ function NotesList({
 		}
 
 		return (
-			<div className="flex flex-col items-center justify-center py-12 text-center">
-				<FileEarmarkText className="text-muted-foreground size-8" />
-				<p className="text-muted-foreground mt-4 text-lg">
-					<T k="notes.empty.withSearch" params={{ query: searchQuery }} />
-				</p>
-				<p className="text-muted-foreground text-sm">
-					<T k="notes.empty.suggestion.withSearch" />
-				</p>
+			<div className="flex flex-col items-center justify-center py-12">
+				<Empty>
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<FileEarmarkText />
+						</EmptyMedia>
+						<EmptyTitle>
+							<T k="notes.empty.withSearch" params={{ query: searchQuery }} />
+						</EmptyTitle>
+						<EmptyDescription>
+							<T k="notes.empty.suggestion.withSearch" />
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</div>
 		)
 	}
@@ -331,14 +344,23 @@ function RemindersList({
 		}
 
 		return (
-			<div className="flex flex-col items-center justify-center py-12 text-center">
-				<Bell className="text-muted-foreground size-8" />
-				<p className="text-muted-foreground mt-4 text-lg">
-					<T k="reminders.empty.withSearch" params={{ query: searchQuery }} />
-				</p>
-				<p className="text-muted-foreground text-sm">
-					<T k="reminders.empty.suggestion.withSearch" />
-				</p>
+			<div className="flex flex-col items-center justify-center py-12">
+				<Empty>
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Bell />
+						</EmptyMedia>
+						<EmptyTitle>
+							<T
+								k="reminders.empty.withSearch"
+								params={{ query: searchQuery }}
+							/>
+						</EmptyTitle>
+						<EmptyDescription>
+							<T k="reminders.empty.suggestion.withSearch" />
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			</div>
 		)
 	}
