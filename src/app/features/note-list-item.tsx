@@ -96,7 +96,7 @@ function NoteListItem(props: {
 						person={props.person}
 						showPerson={showPerson}
 						hasOverflow={hasOverflow}
-						className={openDialog === "restore" ? "bg-accent" : ""}
+						className={openDialog ? "bg-accent" : ""}
 						onClick={() => setOpenDialog("restore")}
 					>
 						<div className="flex items-center gap-3 select-text">

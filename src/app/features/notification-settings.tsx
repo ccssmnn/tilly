@@ -596,6 +596,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 	let notifications = me?.root.notificationSettings
 	let [currentEndpoint, refreshEndpoint] = useCurrentEndpoint()
 	let isCurrentDevice = device.endpoint === currentEndpoint
+	let [dropdownOpen, setDropdownOpen] = useState(false)
 	let [editDialogOpen, setEditDialogOpen] = useState(false)
 	let [editName, setEditName] = useState(device.deviceName)
 
@@ -603,10 +604,10 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 		<div
 			className={cn(
 				"flex items-start justify-between py-4 transition-all",
-				editDialogOpen && "bg-accent -mx-1 rounded-md px-1",
+				(dropdownOpen || editDialogOpen) && "bg-accent -mx-1 rounded-md px-1",
 			)}
 		>
-			<DropdownMenu modal>
+			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal>
 				<DropdownMenuTrigger asChild>
 					<div className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
 						<div className="min-w-0 flex-1 space-y-1">
