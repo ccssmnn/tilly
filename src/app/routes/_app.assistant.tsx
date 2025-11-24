@@ -24,7 +24,7 @@ import {
 	Pause,
 	WifiOff,
 	InfoCircleFill,
-	BoxArrowInUp,
+	Arrow90degUp,
 } from "react-bootstrap-icons"
 import {
 	TypographyH1,
@@ -40,6 +40,7 @@ import { MessageRenderer } from "#app/features/assistant-message-components"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAssistantAccess } from "#app/features/plus"
+import { useStarterPrompts } from "#app/features/personalized-prompts"
 import { nanoid } from "nanoid"
 
 export let Route = createFileRoute("/_app/assistant")({
@@ -58,7 +59,11 @@ export let Route = createFileRoute("/_app/assistant")({
 let resolve = {
 	profile: true,
 	root: {
-		people: { $each: true },
+		people: {
+			$each: {
+				reminders: { $each: true },
+			},
+		},
 		assistant: { stringifiedMessages: true },
 		notificationSettings: true,
 	},
@@ -251,6 +256,8 @@ function EmptyChatState({
 }) {
 	let me = useAccount(UserAccount, { resolve })
 	let t = useIntl()
+	let starters = useStarterPrompts(t)
+
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },
@@ -310,12 +317,6 @@ function EmptyChatState({
 		form.setValue("prompt", text)
 		textareaRef.current?.focus()
 	}
-
-	let starters = [
-		{ key: "note", text: t("assistant.emptyState.starter.note") },
-		{ key: "reminder", text: t("assistant.emptyState.starter.reminder") },
-		{ key: "person", text: t("assistant.emptyState.starter.person") },
-	]
 
 	return (
 		<div className="flex flex-col items-center gap-6 py-12 text-center">
@@ -396,16 +397,16 @@ function EmptyChatState({
 				</Form>
 			</div>
 			<div className="flex w-full max-w-xl flex-col gap-2">
-				{starters.map(starter => (
+				{starters.slice(0, 3).map(starter => (
 					<Button
 						key={starter.key}
 						variant="ghost"
-						className="justify-start"
+						className="h-auto min-w-0 justify-start text-left text-wrap whitespace-normal"
 						onClick={() => prefillStarter(starter.text)}
 						disabled={!isOnline || isBusy}
 					>
-						<BoxArrowInUp />
-						{starter.text}
+						<Arrow90degUp className="shrink-0" />
+						<span className="min-w-0 break-words">{starter.text}</span>
 					</Button>
 				))}
 			</div>

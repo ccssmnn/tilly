@@ -22,9 +22,18 @@ const baseAssistantMessages = messages({
 	"assistant.emptyState.welcome": "Hi, I'm Tilly",
 	"assistant.emptyState.description":
 		"I help you turn conversations into notes and reminders. Share a story, thought, or just chat!",
-	"assistant.emptyState.starter.note": "Add a note about someone",
-	"assistant.emptyState.starter.reminder": "Set a reminder",
-	"assistant.emptyState.starter.person": "Tell me about someone",
+	"assistant.emptyState.starter.note":
+		"I've had a call with {$name} today. {$name} told me about...",
+	"assistant.emptyState.starter.reminder":
+		"Remind me next week to ask {$name} about...",
+	"assistant.emptyState.starter.followUp.single":
+		"Suggest a text for my reminder for {$name}.",
+	"assistant.emptyState.starter.followUp.multiple":
+		"Suggest a text for each due reminder today.",
+	"assistant.emptyState.starter.followUp.none":
+		"What should I follow up with {$name} about?",
+	"assistant.emptyState.starter.person": "Add a new person to your journal",
+	"assistant.emptyState.starter.talkAbout": "What do you know about {$name}?",
 	"assistant.sending": "Sending to server...",
 	"assistant.generating": "Generating response...",
 	"assistant.generatingOnOtherDevice": "Generating response on other device...",
@@ -241,9 +250,19 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.emptyState.welcome": "Hi, ich bin Tilly",
 	"assistant.emptyState.description":
 		"Ich helfe dir, Gespräche in Notizen und Erinnerungen zu verwandeln. Erzähl mir eine Geschichte, einen Gedanken, oder chatte einfach!",
-	"assistant.emptyState.starter.note": "Notiz über jemanden hinzufügen",
-	"assistant.emptyState.starter.reminder": "Erinnerung erstellen",
-	"assistant.emptyState.starter.person": "Erzähl mir von jemandem",
+	"assistant.emptyState.starter.note":
+		"Ich hatte heute ein Gespräch mit {$name}. {$name} erzählte mir von...",
+	"assistant.emptyState.starter.reminder":
+		"Erinnere mich nächste Woche daran, {$name} zu fragen nach...",
+	"assistant.emptyState.starter.followUp.single":
+		"Schlage einen Text für meine Erinnerung für {$name} vor.",
+	"assistant.emptyState.starter.followUp.multiple":
+		"Schlage einen Text für jede fällige Erinnerung heute vor.",
+	"assistant.emptyState.starter.followUp.none":
+		"Wobei sollte ich mich bei {$name} melden?",
+	"assistant.emptyState.starter.person":
+		"Füge eine neue Person zu deinem Journal hinzu",
+	"assistant.emptyState.starter.talkAbout": "Was weißt du über {$name}?",
 	"assistant.sending": "Wird an Server gesendet...",
 	"assistant.generating": "Antwort wird erstellt...",
 	"assistant.generatingOnOtherDevice":
