@@ -17,7 +17,7 @@ import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
-import { Plus, X, Search } from "react-bootstrap-icons"
+import { Plus, X, Search, PeopleFill } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { NewPerson } from "#app/features/new-person"
 import { PersonTour } from "#app/features/person-tour"
@@ -349,6 +349,12 @@ function NoActivePeopleState({
 		<div className="flex flex-col items-center justify-center py-12">
 			<Empty>
 				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<PeopleFill />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="addPerson.title" />
+					</EmptyTitle>
 					<EmptyDescription>
 						<T k="people.noActive.message" />
 					</EmptyDescription>
@@ -364,7 +370,7 @@ function NoActivePeopleState({
 						}}
 					>
 						<Button>
-							<T k="people.noActive.addButton" />
+							<T k="addPerson.button" />
 						</Button>
 					</NewPerson>
 				</EmptyContent>

@@ -14,7 +14,6 @@ const basePeopleMessages = messages({
 		"Tilly organizes your journal by person. Get started by adding someone important.",
 	"people.empty.addButton": "Add someone special",
 	"people.noActive.message": "Start adding the people who matter to you.",
-	"people.noActive.addButton": "Add someone special",
 	"people.search.noResults.message": 'No one found matching "{$query}"',
 	"people.search.noResults.suggestion":
 		"Try adjusting your search terms or add someone new",
@@ -82,7 +81,6 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"people.empty.addButton": "Jemand Besonderes hinzufügen",
 	"people.noActive.message":
 		"Fang an, die Menschen hinzuzufügen, die dir wichtig sind.",
-	"people.noActive.addButton": "Jemand Besonderen hinzufügen",
 	"people.search.noResults.message":
 		'Keine passende Person zu "{$query}" gefunden',
 	"people.search.noResults.suggestion":

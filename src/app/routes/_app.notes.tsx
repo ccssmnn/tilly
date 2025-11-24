@@ -49,9 +49,13 @@ function NotesScreen() {
 	} else if (didSearch && !hasMatches) {
 		virtualItems.push({ type: "no-results", searchQuery })
 	} else {
-		notes.active.forEach(({ note, person }) => {
-			virtualItems.push({ type: "note", note, person })
-		})
+		if (notes.active.length === 0) {
+			virtualItems.push({ type: "no-notes" })
+		} else {
+			notes.active.forEach(({ note, person }) => {
+				virtualItems.push({ type: "note", note, person })
+			})
+		}
 		if (notes.deleted.length > 0) {
 			virtualItems.push({
 				type: "deleted-notes-heading",
@@ -233,7 +237,7 @@ function SearchSection() {
 
 function NoNotesState() {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+		<div className="flex flex-col items-center justify-center gap-8 text-center">
 			<NoteTour />
 		</div>
 	)
