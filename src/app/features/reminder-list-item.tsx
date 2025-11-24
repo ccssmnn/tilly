@@ -354,7 +354,7 @@ function ActionsDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+			<DropdownMenuContent align={"center"} side={"top"}>
 				<DropdownMenuItem onClick={handleDone}>
 					<T k="reminder.actions.markDone" />
 					<CheckLg />
@@ -515,7 +515,7 @@ function RestoreReminderDropdown({
 		<>
 			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 				{children}
-				<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+				<DropdownMenuContent align={"center"} side={"top"}>
 					<DropdownMenuItem onClick={handleRestore}>
 						<T k="reminder.restore.button" />
 						<ArrowCounterclockwise />
@@ -578,7 +578,7 @@ function DoneReminderDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent align={"center"} side={"top"} sideOffset={8}>
+			<DropdownMenuContent align={"center"} side={"top"}>
 				<DropdownMenuItem onClick={handleUndone}>
 					<T k="reminder.done.markUndone" />
 					<ArrowCounterclockwise />
