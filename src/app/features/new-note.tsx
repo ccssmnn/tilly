@@ -60,7 +60,11 @@ function NewNote(props: {
 		setSelectedPersonId("")
 	}
 
-	async function handleSave(values: { content: string; pinned: boolean }) {
+	async function handleSave(values: {
+		content: string
+		pinned: boolean
+		images?: File[]
+	}) {
 		if (!me.$isLoaded || !selectedPersonId) return
 
 		let result = await tryCatch(
@@ -69,6 +73,7 @@ function NewNote(props: {
 					title: "",
 					content: values.content,
 					pinned: values.pinned,
+					imageFiles: values.images,
 				},
 				{
 					personId: selectedPersonId,

@@ -12,7 +12,7 @@ export { usePersonNotes, useNotes }
 
 function usePersonNotes(personId: string, searchQuery: string) {
 	let notes = useCoState(Person, personId, {
-		resolve: { notes: { $each: true } },
+		resolve: { notes: { $each: { images: { $each: true } } } },
 		select: person => {
 			if (!person.$isLoaded) return []
 			return person.notes.filter(n => !isPermanentlyDeleted(n))
@@ -47,7 +47,11 @@ function usePersonNotes(personId: string, searchQuery: string) {
 
 function useNotes(searchQuery: string) {
 	let people = useAccount(UserAccount, {
-		resolve: { root: { people: { $each: { notes: { $each: true } } } } },
+		resolve: {
+			root: {
+				people: { $each: { notes: { $each: { images: { $each: true } } } } },
+			},
+		},
 		select: account => {
 			if (!account.$isLoaded) return []
 			return account.root.people.filter(p => !isDeleted(p))

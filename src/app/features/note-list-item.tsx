@@ -156,6 +156,7 @@ function NoteListItem(props: {
 						<div className="flex-1" />
 						<TimeStamp record={props.note} />
 					</div>
+					{props.note.images && <NoteImageGrid images={props.note.images} />}
 					<div>
 						<div className="text-left text-wrap select-text">
 							<MarkdownWithHighlight
@@ -391,7 +392,12 @@ function EditDialog(props: {
 	person: co.loaded<typeof Person>
 	operations: NoteItemOperations
 }) {
-	async function handleSubmit(data: { content: string; pinned: boolean }) {
+	async function handleSubmit(data: {
+		content: string
+		pinned: boolean
+		images?: File[]
+		removedImageIds?: string[]
+	}) {
 		let result = await props.operations.editNote(data)
 		if (result?.success) {
 			props.onOpenChange(false)
@@ -413,6 +419,7 @@ function EditDialog(props: {
 				}
 			>
 				<NoteForm
+					note={props.note}
 					defaultValues={{
 						content: props.note.content,
 						pinned: props.note.pinned || false,
@@ -508,6 +515,8 @@ type NoteItemOperations = {
 	editNote: (data: {
 		content: string
 		pinned: boolean
+		images?: File[]
+		removedImageIds?: string[]
 	}) => Promise<{ success: true } | undefined>
 	deleteNote: () => Promise<void>
 	restore: () => Promise<boolean>
@@ -534,14 +543,24 @@ function useNoteItemOperations({
 		data: Partial<{
 			content: string
 			pinned: boolean
+			images: File[]
+			removedImageIds: string[]
 		}>,
 	): Promise<{ success: true } | undefined> {
 		let result = await tryCatch(
-			updateNote(data, {
-				personId: person.$jazz.id,
-				noteId: note.$jazz.id,
-				worker: loadedMe,
-			}),
+			updateNote(
+				{
+					content: data.content,
+					pinned: data.pinned,
+					imageFiles: data.images,
+					removedImageIds: data.removedImageIds,
+				},
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: loadedMe,
+				},
+			),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -664,4 +683,52 @@ function useExpanded(id: string) {
 	}
 
 	return { isExpanded, toggleExpanded }
+}
+
+function NoteImageGrid({
+	images,
+}: {
+	images: co.loaded<typeof Note>["images"]
+}) {
+	if (!images?.$isLoaded) return null
+
+	let imageArray = Array.from(images.values())
+	let imageCount = imageArray.length
+
+	if (imageCount === 0) return null
+
+	let gridClass =
+		imageCount === 1
+			? "grid-cols-1"
+			: imageCount === 2
+				? "grid-cols-2"
+				: imageCount === 3
+					? "grid-cols-3"
+					: "grid-cols-2"
+
+	return (
+		<div className={`grid gap-1 ${gridClass}`}>
+			{imageArray.slice(0, 4).map((image, index) => {
+				if (!image) return null
+				return (
+					<div
+						key={index}
+						className={`relative ${imageCount === 3 && index === 0 ? "col-span-3" : ""}`}
+					>
+						<JazzImage
+							imageId={image.$jazz.id}
+							loading="lazy"
+							alt=""
+							className="max-h-96 w-full rounded-lg object-cover"
+						/>
+						{imageCount > 4 && index === 3 && (
+							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
+								+{imageCount - 4}
+							</div>
+						)}
+					</div>
+				)
+			})}
+		</div>
+	)
 }
