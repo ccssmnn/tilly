@@ -30,7 +30,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
-import { T, useLocale } from "#shared/intl/setup"
+import { T, useLocale, useIntl } from "#shared/intl/setup"
 import type { LoadedPerson } from "#app/features/person-query"
 
 export { PersonListItem }
@@ -192,6 +192,7 @@ function RestorePersonDialog({
 	children: ReactNode
 }) {
 	let me = useAccount(UserAccount)
+	let t = useIntl()
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 	let [open, setOpen] = useState(false)
@@ -220,7 +221,7 @@ function RestorePersonDialog({
 			return
 		}
 
-		toast.success(`${person.name} has been restored`)
+		toast.success(t("person.toast.restored", { name: person.name }))
 		setOpen(false)
 	}
 
@@ -236,7 +237,7 @@ function RestorePersonDialog({
 			return
 		}
 
-		toast.success(`${person.name} has been permanently deleted`)
+		toast.success(t("person.toast.permanentlyDeleted", { name: person.name }))
 		setOpen(false)
 	}
 
@@ -321,7 +322,7 @@ function RestorePersonDialog({
 							<T k="common.cancel" />
 						</AlertDialogCancel>
 						<AlertDialogAction onClick={handlePermanentDelete}>
-							Permanently Delete
+							<T k="person.permanentDelete.button" />
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

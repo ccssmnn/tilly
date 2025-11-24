@@ -66,6 +66,9 @@ const basePeopleMessages = messages({
 	"person.permanentDelete.title": "Permanently Delete Person",
 	"person.permanentDelete.confirmation":
 		"Are you sure you want to permanently delete this person? This will also permanently delete all associated notes and reminders.",
+	"person.permanentDelete.button": "Permanently Delete",
+	"person.toast.restored": "{$name} has been restored",
+	"person.toast.permanentlyDeleted": "{$name} has been permanently deleted",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -136,4 +139,7 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.permanentDelete.title": "Person endgültig löschen",
 	"person.permanentDelete.confirmation":
 		"Möchtest du diese Person wirklich endgültig löschen? Dadurch werden alle zugehörigen Notizen und Erinnerungen dauerhaft gelöscht.",
+	"person.permanentDelete.button": "Endgültig löschen",
+	"person.toast.restored": "{$name} wurde wiederhergestellt",
+	"person.toast.permanentlyDeleted": "{$name} wurde endgültig gelöscht",
 })

@@ -659,10 +659,12 @@ function useReminderItemOperations({
 		let wasRescheduled = wasRepeating && !result.data.current.done
 
 		toast.success(
-			wasRescheduled ? "Reminder rescheduled" : "Reminder marked as done",
+			wasRescheduled
+				? t("reminder.toast.rescheduled")
+				: t("reminder.toast.markedDone"),
 			{
 				action: {
-					label: "Undo",
+					label: t("common.undo"),
 					onClick: async () => {
 						let undoUpdates = wasRescheduled
 							? { done: false, dueAtDate: result.data.previous.dueAtDate }
@@ -678,8 +680,8 @@ function useReminderItemOperations({
 						if (undoResult.ok) {
 							toast.success(
 								wasRescheduled
-									? "Reminder restored to previous date"
-									: "Reminder marked as not done",
+									? t("reminder.toast.restoredToPreviousDate")
+									: t("reminder.toast.markedNotDone"),
 							)
 						} else {
 							toast.error(
@@ -714,7 +716,7 @@ function useReminderItemOperations({
 
 		toast.success(t("reminder.toast.markedUndone"), {
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updateReminder(
@@ -765,7 +767,7 @@ function useReminderItemOperations({
 
 		toast.success(t("reminder.toast.updated"), {
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updateReminder(result.data.previous, {
@@ -810,7 +812,7 @@ function useReminderItemOperations({
 		toast.success(t("reminder.toast.deleted"), {
 			duration: 5000,
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updateReminder(
@@ -861,7 +863,7 @@ function useReminderItemOperations({
 
 		toast.success(t("note.toast.added"), {
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updateNote(
