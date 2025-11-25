@@ -47,7 +47,7 @@ import { Markdown } from "#shared/ui/markdown"
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
-import { motion } from "motion/react"
+import { motion, AnimatePresence } from "motion/react"
 
 export { NoteListItem }
 
@@ -727,38 +727,41 @@ function NoteImageGrid({
 				)}
 			>
 				{imageArray.slice(0, 4).map((image, index) => (
-					<div
+					<motion.div
 						key={index}
+						layoutId={image.$jazz.id}
 						className={cn(
-							"relative aspect-[4/3] cursor-pointer overflow-hidden",
+							"relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg",
 							isDeleted && "pointer-events-none",
+							selectedImageIndex === index && "opacity-0",
 						)}
 						onClick={() => !isDeleted && setSelectedImageIndex(index)}
+						style={{ willChange: "transform" }}
 					>
 						<JazzImage
 							imageId={image.$jazz.id}
 							loading="lazy"
 							alt=""
-							className={cn(
-								"size-full rounded-lg object-cover",
-								isDeleted && "grayscale",
-							)}
+							className={cn("size-full object-cover", isDeleted && "grayscale")}
 						/>
 						{imageCount > 4 && index === 3 && (
 							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
 								+{imageCount - 4}
 							</div>
 						)}
-					</div>
+					</motion.div>
 				))}
 			</div>
-			{!isDeleted && selectedImageIndex !== undefined && (
-				<ImageCarousel
-					images={imageArray}
-					selectedIndex={selectedImageIndex}
-					onClose={() => setSelectedImageIndex(undefined)}
-				/>
-			)}
+			<AnimatePresence mode="wait">
+				{!isDeleted && selectedImageIndex !== undefined && (
+					<ImageCarousel
+						key="carousel"
+						images={imageArray}
+						selectedIndex={selectedImageIndex}
+						onClose={() => setSelectedImageIndex(undefined)}
+					/>
+				)}
+			</AnimatePresence>
 		</>
 	)
 }
@@ -796,8 +799,9 @@ function ImageCarousel({
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+			className="absolute inset-0 z-50 flex flex-col bg-black/95"
 			onClick={onClose}
+			style={{ willChange: "opacity" }}
 		>
 			<button
 				onClick={onClose}
@@ -807,56 +811,57 @@ function ImageCarousel({
 			</button>
 
 			<div
-				className="relative h-full w-full max-w-7xl"
+				className="flex flex-1 items-center justify-center p-4"
 				onClick={e => e.stopPropagation()}
 			>
 				<motion.div
-					key={currentIndex}
-					initial={{ opacity: 0, scale: 0.9 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ duration: 0.3 }}
-					className="flex h-full items-center justify-center p-12"
-					style={{ willChange: "transform, opacity" }}
+					layoutId={currentImage.$jazz.id}
+					className="relative max-h-full max-w-full"
+					style={{ willChange: "transform" }}
 				>
 					<JazzImage
 						imageId={currentImage.$jazz.id}
 						alt=""
-						className="max-h-full max-w-full rounded-lg object-contain"
+						className="max-h-[calc(100vh-8rem)] max-w-full rounded-lg object-contain"
 					/>
 				</motion.div>
-
-				{images.length > 1 && (
-					<>
-						<button
-							onClick={handlePrevious}
-							className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-						>
-							<ChevronLeft className="size-6" />
-						</button>
-						<button
-							onClick={handleNext}
-							className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-						>
-							<ChevronRight className="size-6" />
-						</button>
-
-						<div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
-							{images.map((_, index) => (
-								<button
-									key={index}
-									onClick={() => handleDotClick(index)}
-									className={cn(
-										"size-2 rounded-full transition-all",
-										currentIndex === index
-											? "w-6 bg-white"
-											: "bg-white/50 hover:bg-white/75",
-									)}
-								/>
-							))}
-						</div>
-					</>
-				)}
 			</div>
+
+			{images.length > 1 && (
+				<div
+					className="flex items-center justify-center gap-4 pb-8"
+					onClick={e => e.stopPropagation()}
+				>
+					<button
+						onClick={handlePrevious}
+						className="rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+					>
+						<ChevronLeft className="size-6" />
+					</button>
+
+					<div className="flex gap-2">
+						{images.map((_, index) => (
+							<button
+								key={index}
+								onClick={() => handleDotClick(index)}
+								className={cn(
+									"size-2 rounded-full transition-all",
+									currentIndex === index
+										? "w-6 bg-white"
+										: "bg-white/50 hover:bg-white/75",
+								)}
+							/>
+						))}
+					</div>
+
+					<button
+						onClick={handleNext}
+						className="rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+					>
+						<ChevronRight className="size-6" />
+					</button>
+				</div>
+			)}
 		</motion.div>
 	)
 }
