@@ -22,7 +22,6 @@ import {
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { Button } from "#shared/ui/button"
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
 import {
@@ -31,6 +30,9 @@ import {
 	PinFill,
 	PersonFill,
 	ArrowCounterclockwise,
+	X,
+	ChevronLeft,
+	ChevronRight,
 } from "react-bootstrap-icons"
 import { useState, type ReactNode } from "react"
 import { NoteForm } from "./note-form"
@@ -45,6 +47,7 @@ import { Markdown } from "#shared/ui/markdown"
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
+import { motion } from "motion/react"
 
 export { NoteListItem }
 
@@ -715,21 +718,11 @@ function NoteImageGrid({
 
 	if (imageCount === 0) return null
 
-	let gridClass =
-		imageCount === 1
-			? "grid-cols-1"
-			: imageCount === 2
-				? "grid-cols-2"
-				: imageCount === 3
-					? "grid-cols-3"
-					: "grid-cols-2"
-
 	return (
 		<>
 			<div
 				className={cn(
-					"grid gap-1",
-					gridClass,
+					"grid grid-cols-2 gap-1 md:auto-cols-fr md:grid-flow-col",
 					showPerson && "-mx-3 ml-[76px] px-3",
 				)}
 			>
@@ -737,8 +730,7 @@ function NoteImageGrid({
 					<div
 						key={index}
 						className={cn(
-							"relative cursor-pointer",
-							imageCount === 3 && index === 0 && "col-span-3",
+							"relative aspect-[4/3] cursor-pointer overflow-hidden",
 							isDeleted && "pointer-events-none",
 						)}
 						onClick={() => !isDeleted && setSelectedImageIndex(index)}
@@ -748,7 +740,7 @@ function NoteImageGrid({
 							loading="lazy"
 							alt=""
 							className={cn(
-								"h-24 w-full rounded-lg object-cover",
+								"size-full rounded-lg object-cover",
 								isDeleted && "grayscale",
 							)}
 						/>
@@ -761,11 +753,10 @@ function NoteImageGrid({
 				))}
 			</div>
 			{!isDeleted && selectedImageIndex !== undefined && (
-				<ImageViewerDialog
+				<ImageCarousel
 					images={imageArray}
 					selectedIndex={selectedImageIndex}
 					onClose={() => setSelectedImageIndex(undefined)}
-					onNavigate={setSelectedImageIndex}
 				/>
 			)}
 		</>
@@ -774,70 +765,98 @@ function NoteImageGrid({
 
 type ImageItem = co.loaded<ReturnType<typeof co.image>>
 
-function ImageViewerDialog({
+function ImageCarousel({
 	images,
 	selectedIndex,
 	onClose,
-	onNavigate,
 }: {
 	images: ImageItem[]
 	selectedIndex: number
 	onClose: () => void
-	onNavigate: (index: number) => void
 }) {
-	let currentImage = images[selectedIndex]
-	if (!currentImage) return null
+	let [currentIndex, setCurrentIndex] = useState(selectedIndex)
 
 	function handlePrevious() {
-		if (selectedIndex > 0) {
-			onNavigate(selectedIndex - 1)
-		}
+		setCurrentIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))
 	}
 
 	function handleNext() {
-		if (selectedIndex < images.length - 1) {
-			onNavigate(selectedIndex + 1)
-		}
+		setCurrentIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))
 	}
 
+	function handleDotClick(index: number) {
+		setCurrentIndex(index)
+	}
+
+	let currentImage = images[currentIndex]
+	if (!currentImage) return null
+
 	return (
-		<Dialog open={true} onOpenChange={open => !open && onClose()}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							{selectedIndex + 1} / {images.length}
-						</DialogTitle>
-					</DialogHeader>
-				}
-				className="max-w-4xl"
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+			onClick={onClose}
+		>
+			<button
+				onClick={onClose}
+				className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
 			>
-				<div className="flex items-center justify-center">
+				<X className="size-6" />
+			</button>
+
+			<div
+				className="relative h-full w-full max-w-7xl"
+				onClick={e => e.stopPropagation()}
+			>
+				<motion.div
+					key={currentIndex}
+					initial={{ opacity: 0, scale: 0.9 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ duration: 0.3 }}
+					className="flex h-full items-center justify-center p-12"
+					style={{ willChange: "transform, opacity" }}
+				>
 					<JazzImage
 						imageId={currentImage.$jazz.id}
 						alt=""
-						className="max-h-[70vh] w-auto rounded-lg object-contain"
+						className="max-h-full max-w-full rounded-lg object-contain"
 					/>
-				</div>
+				</motion.div>
+
 				{images.length > 1 && (
-					<div className="flex justify-center gap-2">
-						<Button
+					<>
+						<button
 							onClick={handlePrevious}
-							disabled={selectedIndex === 0}
-							variant="secondary"
+							className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
 						>
-							Previous
-						</Button>
-						<Button
+							<ChevronLeft className="size-6" />
+						</button>
+						<button
 							onClick={handleNext}
-							disabled={selectedIndex === images.length - 1}
-							variant="secondary"
+							className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
 						>
-							Next
-						</Button>
-					</div>
+							<ChevronRight className="size-6" />
+						</button>
+
+						<div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
+							{images.map((_, index) => (
+								<button
+									key={index}
+									onClick={() => handleDotClick(index)}
+									className={cn(
+										"size-2 rounded-full transition-all",
+										currentIndex === index
+											? "w-6 bg-white"
+											: "bg-white/50 hover:bg-white/75",
+									)}
+								/>
+							))}
+						</div>
+					</>
 				)}
-			</DialogContent>
-		</Dialog>
+			</div>
+		</motion.div>
 	)
 }
