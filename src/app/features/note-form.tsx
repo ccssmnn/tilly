@@ -302,7 +302,7 @@ function ImagesField({
 									type="button"
 									variant="destructive"
 									size="icon"
-									className="absolute top-2 right-2 size-6 opacity-0 transition-opacity group-hover:opacity-100"
+									className="absolute top-2 right-2 size-6"
 									onClick={() => removeExistingImage(image.$jazz.id)}
 								>
 									<X className="size-4" />
@@ -323,7 +323,7 @@ function ImagesField({
 								type="button"
 								variant="destructive"
 								size="icon"
-								className="absolute top-2 right-2 size-6 opacity-0 transition-opacity group-hover:opacity-100"
+								className="absolute top-2 right-2 size-6"
 								onClick={() => removeNewImage(index)}
 							>
 								<X className="size-4" />

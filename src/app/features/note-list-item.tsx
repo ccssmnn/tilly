@@ -22,6 +22,7 @@ import {
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
+import { Button } from "#shared/ui/button"
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
 import {
@@ -114,6 +115,9 @@ function NoteListItem(props: {
 						</div>
 					</NoteItemContainer>
 				</RestoreNoteDropdown>
+				{props.note.images && (
+					<NoteImageGrid images={props.note.images} isDeleted={true} />
+				)}
 				{hasOverflow && (
 					<ExpandCollapseButton
 						isExpanded={isExpanded}
@@ -156,7 +160,6 @@ function NoteListItem(props: {
 						<div className="flex-1" />
 						<TimeStamp record={props.note} />
 					</div>
-					{props.note.images && <NoteImageGrid images={props.note.images} />}
 					<div>
 						<div className="text-left text-wrap select-text">
 							<MarkdownWithHighlight
@@ -167,6 +170,13 @@ function NoteListItem(props: {
 					</div>
 				</NoteItemContainer>
 			</ActionsDropdown>
+			{props.note.images && (
+				<NoteImageGrid
+					images={props.note.images}
+					isDeleted={false}
+					showPerson={showPerson}
+				/>
+			)}
 			{hasOverflow && (
 				<ExpandCollapseButton
 					isExpanded={isExpanded}
@@ -687,12 +697,20 @@ function useExpanded(id: string) {
 
 function NoteImageGrid({
 	images,
+	isDeleted,
+	showPerson,
 }: {
 	images: co.loaded<typeof Note>["images"]
+	isDeleted: boolean
+	showPerson?: boolean
 }) {
+	let [selectedImageIndex, setSelectedImageIndex] = useState<number>()
+
 	if (!images?.$isLoaded) return null
 
-	let imageArray = Array.from(images.values())
+	let imageArray = Array.from(images.values()).filter(
+		(img): img is ImageItem => img?.$isLoaded === true,
+	)
 	let imageCount = imageArray.length
 
 	if (imageCount === 0) return null
@@ -707,19 +725,32 @@ function NoteImageGrid({
 					: "grid-cols-2"
 
 	return (
-		<div className={`grid gap-1 ${gridClass}`}>
-			{imageArray.slice(0, 4).map((image, index) => {
-				if (!image) return null
-				return (
+		<>
+			<div
+				className={cn(
+					"grid gap-1",
+					gridClass,
+					showPerson && "-mx-3 ml-[76px] px-3",
+				)}
+			>
+				{imageArray.slice(0, 4).map((image, index) => (
 					<div
 						key={index}
-						className={`relative ${imageCount === 3 && index === 0 ? "col-span-3" : ""}`}
+						className={cn(
+							"relative cursor-pointer",
+							imageCount === 3 && index === 0 && "col-span-3",
+							isDeleted && "pointer-events-none",
+						)}
+						onClick={() => !isDeleted && setSelectedImageIndex(index)}
 					>
 						<JazzImage
 							imageId={image.$jazz.id}
 							loading="lazy"
 							alt=""
-							className="max-h-96 w-full rounded-lg object-cover"
+							className={cn(
+								"h-24 w-full rounded-lg object-cover",
+								isDeleted && "grayscale",
+							)}
 						/>
 						{imageCount > 4 && index === 3 && (
 							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
@@ -727,8 +758,86 @@ function NoteImageGrid({
 							</div>
 						)}
 					</div>
-				)
-			})}
-		</div>
+				))}
+			</div>
+			{!isDeleted && selectedImageIndex !== undefined && (
+				<ImageViewerDialog
+					images={imageArray}
+					selectedIndex={selectedImageIndex}
+					onClose={() => setSelectedImageIndex(undefined)}
+					onNavigate={setSelectedImageIndex}
+				/>
+			)}
+		</>
+	)
+}
+
+type ImageItem = co.loaded<ReturnType<typeof co.image>>
+
+function ImageViewerDialog({
+	images,
+	selectedIndex,
+	onClose,
+	onNavigate,
+}: {
+	images: ImageItem[]
+	selectedIndex: number
+	onClose: () => void
+	onNavigate: (index: number) => void
+}) {
+	let currentImage = images[selectedIndex]
+	if (!currentImage) return null
+
+	function handlePrevious() {
+		if (selectedIndex > 0) {
+			onNavigate(selectedIndex - 1)
+		}
+	}
+
+	function handleNext() {
+		if (selectedIndex < images.length - 1) {
+			onNavigate(selectedIndex + 1)
+		}
+	}
+
+	return (
+		<Dialog open={true} onOpenChange={open => !open && onClose()}>
+			<DialogContent
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							{selectedIndex + 1} / {images.length}
+						</DialogTitle>
+					</DialogHeader>
+				}
+				className="max-w-4xl"
+			>
+				<div className="flex items-center justify-center">
+					<JazzImage
+						imageId={currentImage.$jazz.id}
+						alt=""
+						className="max-h-[70vh] w-auto rounded-lg object-contain"
+					/>
+				</div>
+				{images.length > 1 && (
+					<div className="flex justify-center gap-2">
+						<Button
+							onClick={handlePrevious}
+							disabled={selectedIndex === 0}
+							variant="secondary"
+						>
+							Previous
+						</Button>
+						<Button
+							onClick={handleNext}
+							disabled={selectedIndex === images.length - 1}
+							variant="secondary"
+						>
+							Next
+						</Button>
+					</div>
+				)}
+			</DialogContent>
+		</Dialog>
 	)
 }
