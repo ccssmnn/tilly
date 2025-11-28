@@ -1,6 +1,4 @@
 import { useState } from "react"
-import { Button } from "#shared/ui/button"
-import { Input } from "#shared/ui/input"
 import {
 	Dialog,
 	DialogContent,
@@ -8,9 +6,20 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#shared/ui/alert-dialog"
 import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, extractHashtags } from "#shared/schema/user"
+import { ListForm } from "#app/features/list-form"
 
 export { EditListDialog }
 
@@ -29,9 +38,8 @@ function EditListDialog({
 		summary?: string
 	}>
 }) {
-	let [newHashtag, setNewHashtag] = useState(hashtag || "")
 	let [isLoading, setIsLoading] = useState(false)
-
+	let [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 	let me = useAccount(UserAccount)
 
 	let peopleInList = hashtag
@@ -41,93 +49,91 @@ function EditListDialog({
 			})
 		: []
 
-	let handleRemovePerson = async (personId: string) => {
-		if (!me.$isLoaded) return
-		setIsLoading(true)
-		try {
-			let person = people.find(p => p.$jazz.id === personId)
-			if (!person) return
+	let initialSelectedPeople = new Set(peopleInList.map(p => p.$jazz.id))
+	let initialListName = hashtag ? hashtag.substring(1) : ""
 
-			let tags = extractHashtags(person.summary)
-			let filteredTags = tags.filter(tag => tag !== hashtag?.toLowerCase())
-			let newSummary = filteredTags.join(" ")
+	let handleSave = async (values: {
+		listName: string
+		selectedPeople: Set<string>
+	}) => {
+		if (!me.$isLoaded || !hashtag) return
 
-			await updatePerson(personId, { summary: newSummary }, me)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	let handleAddPerson = async (personId: string) => {
-		if (!me.$isLoaded || !newHashtag.trim()) return
-		setIsLoading(true)
-		try {
-			let person = people.find(p => p.$jazz.id === personId)
-			if (!person) return
-
-			let currentSummary = person.summary || ""
-			let hashtag = `#${newHashtag.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
-			let newSummary = `${currentSummary} ${hashtag}`.trim()
-
-			await updatePerson(personId, { summary: newSummary }, me)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	let handleRename = async () => {
-		if (!me.$isLoaded || !hashtag || !newHashtag.trim()) return
 		setIsLoading(true)
 		try {
 			let oldTag = hashtag.toLowerCase()
-			let newTag = `#${newHashtag.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
+			let newTag = `#${values.listName.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
 
-			for (let person of peopleInList) {
+			let peopleToRemoveFrom = peopleInList.filter(
+				p => !values.selectedPeople.has(p.$jazz.id),
+			)
+			let peopleToAddTo = [...values.selectedPeople].filter(
+				id => !initialSelectedPeople.has(id),
+			)
+
+			for (let person of peopleToRemoveFrom) {
+				let tags = extractHashtags(person.summary)
+				let filteredTags = tags.filter(tag => tag !== oldTag)
+				let newSummary = filteredTags.join(" ").trim()
+				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+			}
+
+			for (let personId of peopleToAddTo) {
+				let person = people.find(p => p.$jazz.id === personId)
+				if (!person) continue
+
 				let tags = extractHashtags(person.summary)
 				let filteredTags = tags.filter(tag => tag !== oldTag)
 				let updatedTags = [...filteredTags, newTag]
 				let newSummary = updatedTags.join(" ").trim()
 
-				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+				await updatePerson(personId, { summary: newSummary }, me)
 			}
 
-			setNewHashtag("")
+			for (let person of peopleInList.filter(p =>
+				values.selectedPeople.has(p.$jazz.id),
+			)) {
+				if (oldTag !== newTag) {
+					let tags = extractHashtags(person.summary)
+					let filteredTags = tags.filter(tag => tag !== oldTag)
+					let updatedTags = [...filteredTags, newTag]
+					let newSummary = updatedTags.join(" ").trim()
+
+					await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+				}
+			}
+
 			onOpenChange(false)
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
-	let handleDeleteList = async () => {
+	let handleDeleteConfirm = async () => {
 		if (!me.$isLoaded || !hashtag) return
-		if (!confirm("Delete this list and remove it from all people?")) return
 
 		setIsLoading(true)
 		try {
+			let oldTag = hashtag.toLowerCase()
+
 			for (let person of peopleInList) {
 				let tags = extractHashtags(person.summary)
-				let filteredTags = tags.filter(tag => tag !== hashtag.toLowerCase())
+				let filteredTags = tags.filter(tag => tag !== oldTag)
 				let newSummary = filteredTags.join(" ").trim()
 
 				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
 			}
 
+			setIsDeleteConfirmOpen(false)
 			onOpenChange(false)
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
-	let peopleNotInList = people.filter(
-		p => !peopleInList.find(pl => pl.$jazz.id === p.$jazz.id),
-	)
-
-	let hasChanges = newHashtag !== hashtag
-
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
-				className="sm:max-w-md"
+				className="max-h-[80vh] overflow-y-auto sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
 						<DialogTitle>Edit list {hashtag}</DialogTitle>
@@ -137,106 +143,39 @@ function EditListDialog({
 					</DialogHeader>
 				}
 			>
-				<div className="space-y-4">
-					<div className="space-y-2">
-						<label htmlFor="new-hashtag" className="text-sm font-medium">
-							List name
-						</label>
-						<div className="flex items-center gap-2">
-							<span className="text-muted-foreground">#</span>
-							<Input
-								id="new-hashtag"
-								placeholder="family"
-								value={newHashtag}
-								onChange={e => setNewHashtag(e.target.value)}
-								disabled={isLoading}
-								className="flex-1"
-							/>
-						</div>
-					</div>
-
-					<div className="space-y-2">
-						<label className="text-sm font-medium">
-							People ({peopleInList.length})
-						</label>
-						<div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
-							{peopleInList.length === 0 ? (
-								<p className="text-muted-foreground py-2 text-xs">
-									No people in this list
-								</p>
-							) : (
-								peopleInList.map(person => (
-									<div
-										key={person.$jazz.id}
-										className="hover:bg-accent flex items-center justify-between rounded p-2"
-									>
-										<span className="text-sm">{person.name}</span>
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => handleRemovePerson(person.$jazz.id)}
-											disabled={isLoading}
-										>
-											Remove
-										</Button>
-									</div>
-								))
-							)}
-						</div>
-					</div>
-
-					{peopleNotInList.length > 0 && (
-						<div className="space-y-2">
-							<label className="text-sm font-medium">
-								Add people ({peopleNotInList.length})
-							</label>
-							<div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
-								{peopleNotInList.map(person => (
-									<div
-										key={person.$jazz.id}
-										className="hover:bg-accent flex items-center justify-between rounded p-2"
-									>
-										<span className="text-sm">{person.name}</span>
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => handleAddPerson(person.$jazz.id)}
-											disabled={isLoading}
-										>
-											Add
-										</Button>
-									</div>
-								))}
-							</div>
-						</div>
-					)}
-
-					<div className="flex justify-between gap-2 pt-2">
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={handleDeleteList}
-							disabled={isLoading}
-						>
-							Delete list
-						</Button>
-						<div className="flex gap-2">
-							<Button
-								variant="outline"
-								onClick={() => onOpenChange(false)}
+				<ListForm
+					defaultListName={initialListName}
+					defaultSelectedPeople={initialSelectedPeople}
+					onSubmit={handleSave}
+					onCancel={() => onOpenChange(false)}
+					onDelete={() => setIsDeleteConfirmOpen(true)}
+					isLoading={isLoading}
+					mode="edit"
+				/>
+				<AlertDialog
+					open={isDeleteConfirmOpen}
+					onOpenChange={setIsDeleteConfirmOpen}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Delete list {hashtag}</AlertDialogTitle>
+							<AlertDialogDescription>
+								This will remove {hashtag} from {peopleInList.length} person
+								{peopleInList.length !== 1 ? "s" : ""}. This action cannot be
+								undone.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>Cancel</AlertDialogCancel>
+							<AlertDialogAction
+								onClick={handleDeleteConfirm}
 								disabled={isLoading}
 							>
-								Close
-							</Button>
-							<Button
-								onClick={handleRename}
-								disabled={!hasChanges || isLoading}
-							>
-								{isLoading ? "Saving..." : "Save"}
-							</Button>
-						</div>
-					</div>
-				</div>
+								Delete
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			</DialogContent>
 		</Dialog>
 	)

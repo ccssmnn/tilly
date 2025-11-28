@@ -66,8 +66,8 @@ function NotesScreen() {
 	virtualItems.push({ type: "heading" })
 
 	if (notes.total > 0) {
-		virtualItems.push({ type: "filters" })
 		virtualItems.push({ type: "search" })
+		virtualItems.push({ type: "filters" })
 	}
 
 	if (notes.total === 0 || (!didSearch && !hasMatches)) {

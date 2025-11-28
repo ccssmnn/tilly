@@ -1,4 +1,4 @@
-import { Image as JazzImage } from "jazz-tools/react"
+import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Button } from "#shared/ui/button"
 import {
@@ -24,10 +24,11 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
-import { Person, UserAccount } from "#shared/schema/user"
+import { Person, UserAccount, isDeleted } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { PencilSquare, Trash } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
+import { AddToListDialog } from "./add-to-list-dialog"
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -51,10 +52,12 @@ function ActionsDropdown({
 	children,
 	onEdit,
 	onDelete,
+	onAddToList,
 }: {
 	children: ReactNode
 	onEdit: () => void
 	onDelete: () => void
+	onAddToList: () => void
 }) {
 	let [open, setOpen] = useState(false)
 
@@ -62,6 +65,14 @@ function ActionsDropdown({
 		<DropdownMenu open={open} onOpenChange={setOpen}>
 			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent>
+				<DropdownMenuItem
+					onClick={() => {
+						setOpen(false)
+						onAddToList()
+					}}
+				>
+					Add to list
+				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => {
 						setOpen(false)
@@ -98,6 +109,15 @@ function PersonDetails({
 	let t = useIntl()
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	let [isAddToListDialogOpen, setIsAddToListDialogOpen] = useState(false)
+
+	let allPeople = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: true } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => p && !isDeleted(p))
+		},
+	})
 
 	async function handleFormSave(values: {
 		name: string
@@ -185,6 +205,7 @@ function PersonDetails({
 				<ActionsDropdown
 					onEdit={() => setIsEditDialogOpen(true)}
 					onDelete={() => setIsDeleteDialogOpen(true)}
+					onAddToList={() => setIsAddToListDialogOpen(true)}
 				>
 					<Avatar
 						className="size-48 cursor-pointer"
@@ -214,6 +235,7 @@ function PersonDetails({
 						<ActionsDropdown
 							onEdit={() => setIsEditDialogOpen(true)}
 							onDelete={() => setIsDeleteDialogOpen(true)}
+							onAddToList={() => setIsAddToListDialogOpen(true)}
 						>
 							<Button variant="secondary" size="sm">
 								<T k="person.actions.title" />
@@ -298,6 +320,14 @@ function PersonDetails({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+			<AddToListDialog
+				open={isAddToListDialogOpen}
+				onOpenChange={setIsAddToListDialogOpen}
+				personId={person.$jazz.id}
+				personName={person.name}
+				personSummary={person.summary}
+				allPeople={allPeople}
+			/>
 		</>
 	)
 }

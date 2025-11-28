@@ -77,8 +77,8 @@ function PeopleScreen() {
 	virtualItems.push({ type: "heading" })
 
 	if (hasPeople) {
-		virtualItems.push({ type: "filters" })
 		virtualItems.push({ type: "controls" })
+		virtualItems.push({ type: "filters" })
 	}
 
 	if (!hasPeople) {

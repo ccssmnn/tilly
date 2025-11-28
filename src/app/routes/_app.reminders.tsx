@@ -87,8 +87,8 @@ function Reminders() {
 	virtualItems.push({ type: "heading" })
 
 	if (reminders.total > 0) {
-		virtualItems.push({ type: "filters" })
 		virtualItems.push({ type: "search" })
+		virtualItems.push({ type: "filters" })
 	} else {
 		virtualItems.push({ type: "no-reminders" })
 	}
@@ -313,7 +313,7 @@ function SearchSection() {
 	let searchInputId = useId()
 
 	return (
-		<div className="my-6 flex items-center justify-end gap-3">
+		<div className="mt-6 mb-3 flex items-center justify-end gap-3">
 			<div className="relative w-full">
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("reminders.search.placeholder")}
