@@ -41,7 +41,7 @@ import { UploadButton } from "#app/features/data-upload-button"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { NotificationSettings } from "#app/features/notification-settings"
 import { SettingsSection } from "#app/components/settings-section"
-import { useIsPWAInstalled, useIsMobileDevice } from "#app/hooks/use-pwa"
+import { isMobileDevice, useIsPWAInstalled } from "#app/hooks/use-pwa"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { PWAInstallDialog } from "#app/components/pwa-install-dialog"
 import { Progress } from "#shared/ui/progress"
@@ -533,7 +533,6 @@ function AgentNameDialog({
 function PWASection() {
 	let t = useIntl()
 	let isPWAInstalled = useIsPWAInstalled()
-	let isMobileDevice = useIsMobileDevice()
 	let [showInstallDialog, setShowInstallDialog] = useState(false)
 
 	if (isPWAInstalled) {
@@ -545,7 +544,7 @@ function PWASection() {
 			<SettingsSection
 				title={t("settings.pwa.title")}
 				description={
-					isMobileDevice
+					isMobileDevice()
 						? t("settings.pwa.description.mobile")
 						: t("settings.pwa.description.desktop")
 				}
@@ -556,7 +555,7 @@ function PWASection() {
 							<T k="settings.pwa.install.button" />
 						</Button>
 						<p className="text-muted-foreground mt-2 text-xs">
-							{isMobileDevice ? (
+							{isMobileDevice() ? (
 								<T k="settings.pwa.install.description.mobile" />
 							) : (
 								<T k="settings.pwa.install.description.desktop" />

@@ -54,7 +54,7 @@ import { apiClient } from "#app/lib/api-client"
 import { PUBLIC_VAPID_KEY } from "astro:env/client"
 import { getServiceWorkerRegistration } from "#app/lib/service-worker"
 import { tryCatch } from "#shared/lib/trycatch"
-import { useIsInAppBrowser } from "#app/hooks/use-pwa"
+import { isInAppBrowser } from "#app/hooks/use-pwa"
 
 export function NotificationSettings({
 	me,
@@ -63,7 +63,6 @@ export function NotificationSettings({
 }) {
 	let t = useIntl()
 	let isAuthenticated = useIsAuthenticated()
-	let isInAppBrowser = useIsInAppBrowser()
 
 	let [currentEndpoint] = useCurrentEndpoint()
 
@@ -74,7 +73,7 @@ export function NotificationSettings({
 	let isServiceWorkerSupported = "serviceWorker" in navigator
 	let isPushSupported = "PushManager" in window && "Notification" in window
 	let canAddDevice = isServiceWorkerSupported && isPushSupported
-	let browserRecommendation = getBrowserRecommendation(isInAppBrowser)
+	let browserRecommendation = getBrowserRecommendation(isInAppBrowser())
 
 	return (
 		<SettingsSection

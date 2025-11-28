@@ -1,6 +1,9 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { UserAccount } from "#shared/schema/user"
-import { useReminders } from "#app/features/reminder-hooks"
+import {
+	useReminders,
+	type RemindersLoadedAccount,
+} from "#app/features/reminder-hooks"
 import { useAccount } from "jazz-tools/react"
 import { type ResolveQuery } from "jazz-tools"
 import { ReminderListItem } from "#app/features/reminder-list-item"
@@ -30,7 +33,7 @@ export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
 		if (!context.me) throw notFound()
 		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
-			resolve: resolve,
+			resolve,
 		})
 		if (!loadedMe.$isLoaded) throw notFound()
 		return { me: loadedMe }
@@ -59,7 +62,7 @@ function Reminders() {
 	let { remindersSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(remindersSearchQuery)
 
-	let reminders = useReminders(searchQuery)
+	let reminders = useReminders(searchQuery, data as RemindersLoadedAccount)
 
 	let didSearch = !!searchQuery
 	let hasMatches =

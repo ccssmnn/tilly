@@ -22,7 +22,6 @@
 		"@clerk/clerk-react": "5.56.0",
 		"@hono/zod-validator": "^0.7.5",
 		"@hookform/resolvers": "^5.2.2",
-		"@radix-ui/react-accordion": "^1.2.12",
 		"@tailwindcss/typography": "^0.5.19",
 		"@tanstack/react-router": "^1.136.15",
 		"@tanstack/react-virtual": "^3.13.12",
@@ -99,5 +98,5 @@
 		"workbox-precaching": "^7.4.0",
 		"workbox-routing": "^7.4.0"
 	},
-	"packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c"
+	"packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
 }

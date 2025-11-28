@@ -74,6 +74,15 @@ const baseNotesMessages = messages({
 	"note.toast.removed": "Note removed",
 
 	"note.form.placeholder": "Document your conversation and what matters most",
+
+	// Image-related messages
+	"note.form.images.label": "Images",
+	"note.form.images.label.requires-plus": "Images (requires Plus)",
+	"note.form.images.add": "Add images ({$count}/10)",
+	"note.form.images.requiresPlus": "Adjust subscription in settings",
+	"note.image.viewer.title": "Image viewer",
+	"note.image.navigation.previous": "Previous",
+	"note.image.navigation.next": "Next",
 })
 
 const deNotesMessages = translate(baseNotesMessages, {
@@ -149,4 +158,12 @@ const deNotesMessages = translate(baseNotesMessages, {
 
 	"note.form.placeholder":
 		"Dokumentiere euer Gespräch und was am wichtigsten ist",
+
+	"note.form.images.label": "Bilder",
+	"note.form.images.label.requires-plus": "Bilder (erfordert Plus)",
+	"note.form.images.add": "Bilder hinzufügen ({$count}/10)",
+	"note.form.images.requiresPlus": "Abonnement in den Einstellungen anpassen",
+	"note.image.viewer.title": "Bildbetrachter",
+	"note.image.navigation.previous": "Vorheriges",
+	"note.image.navigation.next": "Nächstes",
 })

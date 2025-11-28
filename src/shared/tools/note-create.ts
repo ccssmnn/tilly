@@ -1,15 +1,18 @@
 import { tool } from "ai"
 import { z } from "zod"
 import { Note, Person, UserAccount } from "#shared/schema/user"
-import type { co, Loaded } from "jazz-tools"
+import { co, type Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
+import { createImage } from "jazz-tools/media"
 
 export { createAddNoteTool, createNote }
 
 export type { NoteData, NoteCreated }
 
 async function createNote(
-	data: Omit<NoteData, "version" | "createdAt" | "updatedAt">,
+	data: Omit<NoteData, "version" | "createdAt" | "updatedAt"> & {
+		imageFiles?: File[]
+	},
 	options: {
 		personId: string
 		worker: Loaded<typeof UserAccount>
@@ -31,6 +34,22 @@ async function createNote(
 		createdAt: now,
 		updatedAt: now,
 	})
+
+	if (data.imageFiles && data.imageFiles.length > 0) {
+		let imageList = co.list(co.image()).create([])
+		for (let file of data.imageFiles.slice(0, 10)) {
+			let image = await createImage(file, {
+				owner: person.$jazz.owner,
+				maxSize: 2048,
+				placeholder: "blur",
+				progressive: true,
+			})
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			imageList.$jazz.push(image as any)
+		}
+		note.$jazz.set("images", imageList)
+		note.$jazz.set("imageCount", imageList.length)
+	}
 
 	person.notes.$jazz.push(note)
 	person.$jazz.set("updatedAt", new Date())

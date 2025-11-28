@@ -8,14 +8,45 @@ import {
 	UserAccount,
 } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
+import { co, type ResolveQuery } from "jazz-tools"
 
-export { useReminders, usePersonReminders }
+export {
+	useReminders,
+	usePersonReminders,
+	type RemindersLoadedAccount,
+	type PersonRemindersLoadedPerson,
+}
 
-function useReminders(searchQuery: string) {
+let remindersResolve = {
+	root: { people: { $each: { reminders: { $each: true } } } },
+} as const satisfies ResolveQuery<typeof UserAccount>
+
+let personRemindersResolve = {
+	reminders: { $each: true },
+} as const satisfies ResolveQuery<typeof Person>
+
+type RemindersLoadedAccount = co.loaded<
+	typeof UserAccount,
+	typeof remindersResolve
+>
+type PersonRemindersLoadedPerson = co.loaded<
+	typeof Person,
+	typeof personRemindersResolve
+>
+
+function useReminders(
+	searchQuery: string,
+	defaultAccount?: RemindersLoadedAccount,
+) {
 	let people = useAccount(UserAccount, {
-		resolve: { root: { people: { $each: { reminders: { $each: true } } } } },
+		resolve: remindersResolve,
 		select: account => {
-			if (!account.$isLoaded) return []
+			if (!account.$isLoaded) {
+				if (defaultAccount) {
+					return defaultAccount.root.people.filter(p => !isDeleted(p))
+				}
+				return []
+			}
 			return account.root.people.filter(p => !isDeleted(p))
 		},
 	})
@@ -85,11 +116,20 @@ function useReminders(searchQuery: string) {
 	return { open, done, deleted, total: allReminderPairs.length }
 }
 
-function usePersonReminders(personId: string, searchQuery: string) {
+function usePersonReminders(
+	personId: string,
+	searchQuery: string,
+	defaultPerson?: PersonRemindersLoadedPerson,
+) {
 	let reminders = useCoState(Person, personId, {
-		resolve: { reminders: { $each: true } },
+		resolve: personRemindersResolve,
 		select: person => {
-			if (!person.$isLoaded) return []
+			if (!person.$isLoaded) {
+				if (defaultPerson && defaultPerson.$jazz.id === personId) {
+					return defaultPerson.reminders.filter(r => !isPermanentlyDeleted(r))
+				}
+				return []
+			}
 			return person.reminders.filter(r => !isPermanentlyDeleted(r))
 		},
 	})

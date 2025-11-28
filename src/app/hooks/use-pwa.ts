@@ -2,11 +2,11 @@ import { useEffect, useState } from "react"
 
 export {
 	useIsPWAInstalled,
-	useIsAndroid,
-	useIsIOS,
-	useIsMac,
-	useIsMobileDevice,
-	useIsInAppBrowser,
+	isAndroid,
+	isIOS,
+	isMac,
+	isMobileDevice,
+	isInAppBrowser,
 	usePWAInstallPrompt,
 }
 export type { BeforeInstallPromptEvent }
@@ -34,25 +34,25 @@ function useIsPWAInstalled(): boolean {
 	return isInstalled
 }
 
-function useIsAndroid(): boolean {
+function isAndroid(): boolean {
 	let userAgent = navigator.userAgent.toLowerCase()
 	let isAndroidResult = userAgent.includes("android")
 	return isAndroidResult
 }
 
-function useIsIOS(): boolean {
+function isIOS(): boolean {
 	let userAgent = navigator.userAgent.toLowerCase()
 	let isIOSDevice = /iphone|ipad|ipod/.test(userAgent)
 	return isIOSDevice
 }
 
-function useIsMac(): boolean {
+function isMac(): boolean {
 	let userAgent = navigator.userAgent
 	let isMacDevice = /Mac|iPhone|iPod|iPad/.test(userAgent)
 	return isMacDevice
 }
 
-function useIsMobileDevice(): boolean {
+function isMobileDevice(): boolean {
 	let userAgent = navigator.userAgent.toLowerCase()
 	let isMobile =
 		/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
@@ -64,7 +64,7 @@ function useIsMobileDevice(): boolean {
 	return isMobileResult
 }
 
-function useIsInAppBrowser(): boolean {
+function isInAppBrowser(): boolean {
 	let userAgent = navigator.userAgent
 	let isInApp =
 		userAgent.includes("Instagram") ||

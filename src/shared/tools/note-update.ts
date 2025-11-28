@@ -1,8 +1,9 @@
 import { tool } from "ai"
 import { z } from "zod"
 import { Note, Person, UserAccount } from "#shared/schema/user"
-import type { co, Loaded } from "jazz-tools"
+import { co, type Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
+import { createImage } from "jazz-tools/media"
 
 export { createEditNoteTool, createDeleteNoteTool, updateNote }
 
@@ -14,7 +15,10 @@ async function updateNote(
 			deletedAt: Date | string | undefined
 			permanentlyDeletedAt: Date | string | undefined
 		}
-	>,
+	> & {
+		imageFiles?: File[]
+		removedImageIds?: string[]
+	},
 	options: {
 		personId: string
 		noteId: string
@@ -27,11 +31,22 @@ async function updateNote(
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let note = await Note.load(options.noteId, {
+		resolve: { images: { $each: true } },
 		loadAs: options.worker,
 	})
 	if (!note.$isLoaded) throw errors.NOTE_NOT_FOUND
 
-	let previous = { ...note }
+	let previous = {
+		version: note.version,
+		title: note.title,
+		content: note.content,
+		pinned: note.pinned,
+		deletedAt: note.deletedAt,
+		permanentlyDeletedAt: note.permanentlyDeletedAt,
+		createdAt: note.createdAt,
+		updatedAt: note.updatedAt,
+		imageCount: note.imageCount,
+	}
 
 	if (updates.title !== undefined) {
 		note.$jazz.set("title", updates.title)
@@ -53,6 +68,47 @@ async function updateNote(
 			now.getMilliseconds(),
 		)
 		note.$jazz.set("createdAt", createdDate)
+	}
+
+	if (
+		updates.imageFiles !== undefined ||
+		updates.removedImageIds !== undefined
+	) {
+		let imageList = co.list(co.image()).create([])
+
+		// Add existing images that weren't removed
+		if (note.images?.$isLoaded) {
+			let removedIds = new Set(updates.removedImageIds || [])
+			for (let existingImage of note.images.values()) {
+				if (existingImage && !removedIds.has(existingImage.$jazz.id)) {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					imageList.$jazz.push(existingImage as any)
+				}
+			}
+		}
+
+		// Add new images
+		if (updates.imageFiles) {
+			let remainingSlots = 10 - imageList.length
+			for (let file of updates.imageFiles.slice(0, remainingSlots)) {
+				let image = await createImage(file, {
+					owner: person.$jazz.owner,
+					maxSize: 2048,
+					placeholder: "blur",
+					progressive: true,
+				})
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				imageList.$jazz.push(image as any)
+			}
+		}
+
+		if (imageList.length === 0) {
+			note.$jazz.delete("images")
+			note.$jazz.delete("imageCount")
+		} else {
+			note.$jazz.set("images", imageList)
+			note.$jazz.set("imageCount", imageList.length)
+		}
 	}
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
@@ -77,7 +133,17 @@ async function updateNote(
 		operation: "update",
 		noteID: options.noteId,
 		personID: options.personId,
-		current: { ...note },
+		current: {
+			version: note.version,
+			title: note.title,
+			content: note.content,
+			pinned: note.pinned,
+			deletedAt: note.deletedAt,
+			permanentlyDeletedAt: note.permanentlyDeletedAt,
+			createdAt: note.createdAt,
+			updatedAt: note.updatedAt,
+			imageCount: note.imageCount,
+		},
 		previous,
 		_ref: note,
 	}

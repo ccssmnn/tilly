@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Button } from "#shared/ui/button"
 import { useAppStore } from "#app/lib/store"
 import { motion, AnimatePresence } from "motion/react"
-import { useIsAndroid, useIsIOS, useIsPWAInstalled } from "#app/hooks/use-pwa"
+import { isIOS, useIsPWAInstalled, isAndroid } from "#app/hooks/use-pwa"
 import { TypographyH1 } from "#shared/ui/typography"
 import {
 	Empty,
@@ -153,11 +153,9 @@ function TourComponent() {
 type Direction = "left" | "right" | undefined
 
 function useSteps() {
-	let isAndroid = useIsAndroid()
-	let isIOS = useIsIOS()
 	let isPWAInstalled = useIsPWAInstalled()
 
-	let showPWAInstallStep = (isAndroid || isIOS) && !isPWAInstalled
+	let showPWAInstallStep = (isAndroid() || isIOS()) && !isPWAInstalled
 	return showPWAInstallStep
 		? ([
 				"welcome",

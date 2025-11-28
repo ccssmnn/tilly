@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { useNotes } from "#app/features/note-hooks"
+import { createFileRoute, notFound } from "@tanstack/react-router"
+import { useNotes, type NotesLoadedAccount } from "#app/features/note-hooks"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
-import { Note, Person } from "#shared/schema/user"
-import { co } from "jazz-tools"
+import { Note, Person, UserAccount } from "#shared/schema/user"
+import { co, type ResolveQuery } from "jazz-tools"
 import { useDeferredValue, useId, type ReactNode } from "react"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
@@ -24,14 +24,34 @@ import { NoteTour } from "#app/features/note-tour"
 import { cn } from "#app/lib/utils"
 
 export let Route = createFileRoute("/_app/notes")({
+	loader: async ({ context }) => {
+		if (!context.me) throw notFound()
+		let loadedMe = await UserAccount.load(context.me.$jazz.id, {
+			resolve,
+		})
+		if (!loadedMe.$isLoaded) throw notFound()
+		return { me: loadedMe }
+	},
 	component: NotesScreen,
 })
 
+let resolve = {
+	root: {
+		people: {
+			$each: {
+				notes: { $each: true },
+			},
+		},
+	},
+} as const satisfies ResolveQuery<typeof UserAccount>
+
 function NotesScreen() {
+	let { me: data } = Route.useLoaderData()
+
 	let { notesSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(notesSearchQuery)
 
-	let notes = useNotes(searchQuery)
+	let notes = useNotes(searchQuery, data as NotesLoadedAccount)
 
 	let didSearch = !!searchQuery
 	let hasMatches = notes.active.length > 0 || notes.deleted.length > 0
