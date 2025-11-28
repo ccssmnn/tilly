@@ -30,7 +30,6 @@ import {
 	PinFill,
 	PersonFill,
 	ArrowCounterclockwise,
-	X,
 	ChevronLeft,
 	ChevronRight,
 } from "react-bootstrap-icons"
@@ -47,8 +46,7 @@ import { Markdown } from "#shared/ui/markdown"
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
-import { motion } from "motion/react"
-
+import { Button } from "#shared/ui/button"
 export { NoteListItem }
 
 let CHAR_LIMIT = 280
@@ -723,14 +721,14 @@ function NoteImageGrid({
 			<div
 				className={cn(
 					"grid grid-cols-2 gap-1 md:auto-cols-fr md:grid-flow-col",
-					showPerson && "-mx-3 ml-[76px] px-3",
+					showPerson && "-mx-3 ml-[76px] pr-3",
 				)}
 			>
 				{imageArray.slice(0, 4).map((image, index) => (
 					<div
 						key={index}
 						className={cn(
-							"relative aspect-[4/3] cursor-pointer overflow-hidden",
+							"relative aspect-4/3 cursor-pointer overflow-hidden",
 							isDeleted && "pointer-events-none",
 						)}
 						onClick={() => !isDeleted && setSelectedImageIndex(index)}
@@ -792,71 +790,50 @@ function ImageCarousel({
 	if (!currentImage) return null
 
 	return (
-		<motion.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-			onClick={onClose}
-		>
-			<button
-				onClick={onClose}
-				className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+		<Dialog open onOpenChange={onClose}>
+			<DialogContent
+				titleSlot={<DialogTitle>Image viewer</DialogTitle>}
+				className="h-[90dvh] md:w-[90dvw] md:max-w-none"
 			>
-				<X className="size-6" />
-			</button>
+				<div className="relative h-full w-full">
+					<div className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center">
+						<JazzImage
+							imageId={currentImage.$jazz.id}
+							alt=""
+							className="max-h-full max-w-full rounded-lg object-contain"
+						/>
+					</div>
 
-			<div
-				className="relative h-full w-full max-w-7xl"
-				onClick={e => e.stopPropagation()}
-			>
-				<motion.div
-					key={currentIndex}
-					initial={{ opacity: 0, scale: 0.9 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ duration: 0.3 }}
-					className="flex h-full items-center justify-center p-12"
-					style={{ willChange: "transform, opacity" }}
-				>
-					<JazzImage
-						imageId={currentImage.$jazz.id}
-						alt=""
-						className="max-h-full max-w-full rounded-lg object-contain"
-					/>
-				</motion.div>
+					{images.length > 1 && (
+						<div className="absolute inset-x-0 bottom-0 flex h-24 items-center justify-center gap-4">
+							<Button onClick={handlePrevious} size="sm" variant="secondary">
+								<ChevronLeft />
+								Previous
+							</Button>
 
-				{images.length > 1 && (
-					<>
-						<button
-							onClick={handlePrevious}
-							className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-						>
-							<ChevronLeft className="size-6" />
-						</button>
-						<button
-							onClick={handleNext}
-							className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
-						>
-							<ChevronRight className="size-6" />
-						</button>
+							<div className="flex gap-2">
+								{images.map((_, index) => (
+									<button
+										key={index}
+										onClick={() => handleDotClick(index)}
+										className={cn(
+											"size-2 rounded-full transition-all",
+											currentIndex === index
+												? "bg-foreground w-6"
+												: "bg-foreground/50 hover:bg-foreground/75",
+										)}
+									/>
+								))}
+							</div>
 
-						<div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
-							{images.map((_, index) => (
-								<button
-									key={index}
-									onClick={() => handleDotClick(index)}
-									className={cn(
-										"size-2 rounded-full transition-all",
-										currentIndex === index
-											? "w-6 bg-white"
-											: "bg-white/50 hover:bg-white/75",
-									)}
-								/>
-							))}
+							<Button onClick={handleNext} variant="secondary">
+								Next
+								<ChevronRight />
+							</Button>
 						</div>
-					</>
-				)}
-			</div>
-		</motion.div>
+					)}
+				</div>
+			</DialogContent>
+		</Dialog>
 	)
 }
