@@ -43,7 +43,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
-import { Image as JazzImage, useAccount } from "jazz-tools/react"
+import { Image as JazzImage, useAccount, useCoState } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Button } from "#shared/ui/button"
@@ -124,7 +124,7 @@ function NoteListItem(props: {
 						showPerson={showPerson}
 					/>
 				)}
-				<NoteImageGrid images={props.note.images} isDeleted={true} />
+				<NoteImageGrid note={props.note} isDeleted={true} />
 			</>
 		)
 	}
@@ -178,7 +178,7 @@ function NoteListItem(props: {
 				/>
 			)}
 			<NoteImageGrid
-				images={props.note.images}
+				note={props.note}
 				isDeleted={false}
 				showPerson={showPerson}
 			/>
@@ -693,25 +693,34 @@ function useExpanded(id: string) {
 }
 
 function NoteImageGrid({
-	images,
+	note,
 	isDeleted,
 	showPerson,
 }: {
-	images: co.loaded<typeof Note>["images"]
+	note: co.loaded<typeof Note>
 	isDeleted: boolean
 	showPerson?: boolean
 }) {
 	let [carouselOpen, setCarouselOpen] = useState(false)
 	let [selectedImageIndex, setSelectedImageIndex] = useState<number>()
 
-	if (!images?.$isLoaded) return null
+	let loadedNote = useCoState(Note, note.$jazz.id, {
+		resolve: { images: { $each: true } },
+	})
 
-	let imageArray = Array.from(images.values()).filter(
-		(img): img is ImageItem => img?.$isLoaded === true,
-	)
-	let imageCount = imageArray.length
+	let imageCount =
+		loadedNote?.$isLoaded && loadedNote.images?.$isLoaded
+			? loadedNote.images.length
+			: 0
 
 	if (imageCount === 0) return null
+
+	let imageArray =
+		loadedNote?.$isLoaded && loadedNote.images?.$isLoaded
+			? Array.from(loadedNote.images.values()).filter(
+					(img): img is ImageItem => img?.$isLoaded === true,
+				)
+			: []
 
 	return (
 		<>
@@ -723,44 +732,51 @@ function NoteImageGrid({
 					imageCount >= 2 ? "grid-rows-2" : "grid-rows-1",
 				)}
 			>
-				{imageArray.slice(0, 4).map((image, index) => (
-					<div
-						key={index}
-						className={cn(
-							"relative cursor-pointer overflow-hidden",
-							isDeleted && "pointer-events-none",
-							imageCount === 3 && index === 0
-								? "col-span-1 row-span-2"
-								: "aspect-4/3 md:aspect-video",
-						)}
-						onClick={() => {
-							if (!isDeleted) {
-								setSelectedImageIndex(index)
-								setCarouselOpen(true)
-							}
-						}}
-					>
-						<JazzImage
-							imageId={image.$jazz.id}
-							loading="lazy"
-							alt=""
+				{Array.from({ length: Math.min(imageCount, 4) }).map((_, index) => {
+					let image = imageArray[index]
+					return (
+						<div
+							key={index}
 							className={cn(
-								"size-full rounded-lg object-cover",
-								isDeleted && "grayscale",
+								"relative cursor-pointer overflow-hidden",
+								isDeleted && "pointer-events-none",
+								imageCount === 3 && index === 0
+									? "col-span-1 row-span-2"
+									: "aspect-4/3 md:aspect-video",
 							)}
-						/>
-						{imageCount > 4 && index === 3 && (
-							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
-								+{imageCount - 4}
-							</div>
-						)}
-					</div>
-				))}
+							onClick={() => {
+								if (!isDeleted && image) {
+									setSelectedImageIndex(index)
+									setCarouselOpen(true)
+								}
+							}}
+						>
+							{image ? (
+								<JazzImage
+									imageId={image.$jazz.id}
+									loading="lazy"
+									alt=""
+									className={cn(
+										"size-full rounded-lg object-cover",
+										isDeleted && "grayscale",
+									)}
+								/>
+							) : (
+								<div className="bg-muted size-full animate-pulse rounded-lg" />
+							)}
+							{imageCount > 4 && index === 3 && (
+								<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
+									+{imageCount - 4}
+								</div>
+							)}
+						</div>
+					)
+				})}
 			</div>
 			<ImageCarousel
 				images={imageArray}
 				selectedIndex={selectedImageIndex ?? 0}
-				open={!isDeleted && carouselOpen}
+				open={!isDeleted && carouselOpen && imageArray.length > 0}
 				onClose={() => setCarouselOpen(false)}
 			/>
 		</>

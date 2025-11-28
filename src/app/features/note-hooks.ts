@@ -23,7 +23,7 @@ let notesResolve = {
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personNotesResolve = {
-	notes: { $each: { images: { $each: true } } },
+	notes: { $each: { images: true } },
 } as const satisfies ResolveQuery<typeof Person>
 
 type NotesLoadedAccount = co.loaded<typeof UserAccount, typeof notesResolve>
