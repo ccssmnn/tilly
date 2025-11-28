@@ -144,7 +144,7 @@ function NotesScreen() {
 							data-index={virtualRow.index}
 							ref={virtualizer.measureElement}
 							className={cn(
-								"absolute top-0 left-0 w-full",
+								"absolute top-0 left-0 w-full overflow-hidden",
 								itemIsNote && nextItemIsNote && "border-border border-b",
 							)}
 							style={{ transform: `translateY(${virtualRow.start}px)` }}

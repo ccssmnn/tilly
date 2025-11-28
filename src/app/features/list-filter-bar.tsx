@@ -3,7 +3,7 @@ import { Plus } from "react-bootstrap-icons"
 import { Badge } from "#shared/ui/badge"
 import { useAvailableLists, setListFilterInQuery } from "./list-hooks"
 import { EditListDialog } from "./edit-list-dialog"
-import { useRef, useState } from "react"
+import { useRef, useEffect, useState } from "react"
 
 export { ListFilterBar }
 
@@ -71,50 +71,66 @@ function ListFilterBar({
 		}
 	}
 
+	useEffect(() => {
+		if (scrollContainerRef.current) {
+			let activeButton = scrollContainerRef.current.querySelector(
+				'[data-active="true"]',
+			)
+			if (activeButton) {
+				activeButton.scrollIntoView({ behavior: "smooth", block: "nearest" })
+			}
+		}
+	}, [currentFilter])
+
 	return (
 		<>
-			<div
-				className="mb-6 flex flex-wrap items-center gap-2"
-				ref={scrollContainerRef}
-			>
-				{filterButtons.map(btn => (
-					<Button
-						key={btn.tag}
-						variant={currentFilter === btn.tag ? "default" : "outline"}
-						size="sm"
-						onClick={() => handleFilterClick(btn.tag)}
-						onContextMenu={e => {
-							e.preventDefault()
-							if (btn.tag !== "All" && btn.tag !== "#due") {
-								handleEditList(btn.tag)
-							}
-						}}
-						onTouchStart={() => handleTouchStart(btn.tag)}
-						onTouchEnd={handleTouchEnd}
-						data-active={currentFilter === btn.tag}
-						title={
-							btn.tag !== "All" && btn.tag !== "#due"
-								? "Right-click or long-press to edit"
-								: ""
-						}
-					>
-						<span>{btn.tag}</span>
-						{btn.count > 0 && (
-							<Badge variant="secondary" className="ml-2">
-								{btn.count}
-							</Badge>
-						)}
-					</Button>
-				))}
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onNewList}
-					title="Create new list"
+			<div className="mb-6 w-full">
+				<div
+					className="flex items-center gap-2 overflow-x-auto"
+					ref={scrollContainerRef}
+					style={{ maxWidth: "100vw" }}
 				>
-					<Plus className="size-4" />
-					<span className="sr-only">Create new list</span>
-				</Button>
+					{filterButtons.map(btn => (
+						<Button
+							key={btn.tag}
+							variant={currentFilter === btn.tag ? "default" : "outline"}
+							size="sm"
+							onClick={() => handleFilterClick(btn.tag)}
+							onContextMenu={e => {
+								e.preventDefault()
+								if (btn.tag !== "All" && btn.tag !== "#due") {
+									handleEditList(btn.tag)
+								}
+							}}
+							onTouchStart={() => handleTouchStart(btn.tag)}
+							onTouchEnd={handleTouchEnd}
+							data-active={currentFilter === btn.tag}
+							className="flex-shrink-0 whitespace-nowrap"
+							title={
+								btn.tag !== "All" && btn.tag !== "#due"
+									? "Right-click or long-press to edit"
+									: ""
+							}
+						>
+							<span>{btn.tag}</span>
+							{btn.count > 0 && (
+								<Badge variant="secondary" className="ml-2">
+									{btn.count}
+								</Badge>
+							)}
+						</Button>
+					))}
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onNewList}
+						className="flex-shrink-0 whitespace-nowrap"
+						title="Create new list"
+					>
+						<Plus className="size-4" />
+						<span className="sr-only">Create new list</span>
+					</Button>
+				</div>
 			</div>
 			<EditListDialog
 				open={editListOpen}
