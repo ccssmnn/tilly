@@ -494,7 +494,6 @@ function RestoreNoteDropdown({
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
-
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
@@ -702,6 +701,7 @@ function NoteImageGrid({
 	isDeleted: boolean
 	showPerson?: boolean
 }) {
+	let [carouselOpen, setCarouselOpen] = useState(false)
 	let [selectedImageIndex, setSelectedImageIndex] = useState<number>()
 
 	if (!images?.$isLoaded) return null
@@ -717,18 +717,27 @@ function NoteImageGrid({
 		<>
 			<div
 				className={cn(
-					"grid grid-cols-2 gap-1 md:auto-cols-fr md:grid-flow-col",
+					"grid grid-flow-col gap-1 pb-4",
 					showPerson && "-mx-3 ml-[76px] pr-3",
+					imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
+					imageCount >= 2 ? "grid-rows-2" : "grid-rows-1",
 				)}
 			>
 				{imageArray.slice(0, 4).map((image, index) => (
 					<div
 						key={index}
 						className={cn(
-							"relative aspect-4/3 cursor-pointer overflow-hidden",
+							"relative cursor-pointer overflow-hidden",
 							isDeleted && "pointer-events-none",
+							imageCount === 3 && index === 0
+								? "col-span-1 row-span-2"
+								: "aspect-4/3 md:aspect-video",
 						)}
-						onClick={() => !isDeleted && setSelectedImageIndex(index)}
+						onClick={() => {
+							!isDeleted
+							setSelectedImageIndex(index)
+							setCarouselOpen(true)
+						}}
 					>
 						<JazzImage
 							imageId={image.$jazz.id}
@@ -747,13 +756,12 @@ function NoteImageGrid({
 					</div>
 				))}
 			</div>
-			{!isDeleted && selectedImageIndex !== undefined && (
-				<ImageCarousel
-					images={imageArray}
-					selectedIndex={selectedImageIndex}
-					onClose={() => setSelectedImageIndex(undefined)}
-				/>
-			)}
+			<ImageCarousel
+				images={imageArray}
+				selectedIndex={selectedImageIndex ?? 0}
+				open={!isDeleted && carouselOpen}
+				onClose={() => setCarouselOpen(false)}
+			/>
 		</>
 	)
 }
@@ -764,13 +772,21 @@ type Direction = "left" | "right" | undefined
 function ImageCarousel({
 	images,
 	selectedIndex,
+	open,
 	onClose,
 }: {
 	images: ImageItem[]
 	selectedIndex: number
+	open: boolean
 	onClose: () => void
 }) {
 	let [currentIndex, setCurrentIndex] = useState(selectedIndex)
+	let [prevSelectedIndex, setPrevSelectedIndex] = useState(selectedIndex)
+	if (selectedIndex !== prevSelectedIndex) {
+		setPrevSelectedIndex(selectedIndex)
+		setCurrentIndex(selectedIndex)
+	}
+
 	let [direction, setDirection] = useState<Direction>()
 
 	function handlePrevious() {
@@ -813,7 +829,7 @@ function ImageCarousel({
 	if (!currentImage) return null
 
 	return (
-		<Dialog open onOpenChange={onClose}>
+		<Dialog open={open} onOpenChange={onClose}>
 			<DialogContent
 				titleSlot={<DialogTitle>Image viewer</DialogTitle>}
 				className="h-[90dvh] md:w-[90dvw] md:max-w-none"
