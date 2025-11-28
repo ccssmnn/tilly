@@ -27,6 +27,9 @@ import { cn } from "#app/lib/utils"
 import { UserAccount } from "#shared/schema/user"
 import { personListQuery } from "#app/features/person-query"
 import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
+import { ListFilterBar } from "#app/features/list-filter-bar"
+import { NewListDialog } from "#app/features/new-list-dialog"
+import { useState } from "react"
 
 export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
@@ -47,6 +50,7 @@ type LoadedPerson = PersonListLoadedPerson
 function PeopleScreen() {
 	let { me: data, eagerCount } = Route.useLoaderData()
 	let navigate = Route.useNavigate()
+	let [newListOpen, setNewListOpen] = useState(false)
 
 	let subscribedMe = useAccount(UserAccount, {
 		resolve: personListQuery,
@@ -73,6 +77,7 @@ function PeopleScreen() {
 	virtualItems.push({ type: "heading" })
 
 	if (hasPeople) {
+		virtualItems.push({ type: "filters" })
 		virtualItems.push({ type: "controls" })
 	}
 
@@ -134,47 +139,57 @@ function PeopleScreen() {
 	let virtualRows = virtualizer.getVirtualItems()
 
 	return (
-		<div
-			className="md:mt-12"
-			style={{
-				height: virtualizer.getTotalSize(),
-				width: "100%",
-				position: "relative",
-			}}
-		>
-			{virtualRows.map(virtualRow => {
-				let item = virtualItems.at(virtualRow.index)
-				if (!item) return null
+		<>
+			<div
+				className="md:mt-12"
+				style={{
+					height: virtualizer.getTotalSize(),
+					width: "100%",
+					position: "relative",
+				}}
+			>
+				{virtualRows.map(virtualRow => {
+					let item = virtualItems.at(virtualRow.index)
+					if (!item) return null
 
-				let itemIsPerson = item.type === "person"
-				let nextItemIsPerson =
-					virtualItems.at(virtualRow.index + 1)?.type === "person"
+					let itemIsPerson = item.type === "person"
+					let nextItemIsPerson =
+						virtualItems.at(virtualRow.index + 1)?.type === "person"
 
-				return (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						ref={virtualizer.measureElement}
-						className={cn(
-							"absolute top-0 left-0 w-full",
-							itemIsPerson && nextItemIsPerson && "border-border border-b",
-						)}
-						style={{ transform: `translateY(${virtualRow.start}px)` }}
-					>
-						{renderVirtualItem(item, {
-							searchQuery: deferredSearchQuery,
-							navigate,
-							setPeopleSearchQuery,
-						})}
-					</div>
-				)
-			})}
-		</div>
+					return (
+						<div
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							ref={virtualizer.measureElement}
+							className={cn(
+								"absolute top-0 left-0 w-full",
+								itemIsPerson && nextItemIsPerson && "border-border border-b",
+							)}
+							style={{ transform: `translateY(${virtualRow.start}px)` }}
+						>
+							{renderVirtualItem(item, {
+								searchQuery: deferredSearchQuery,
+								navigate,
+								setPeopleSearchQuery,
+								allPeople,
+								onNewList: () => setNewListOpen(true),
+							})}
+						</div>
+					)
+				})}
+			</div>
+			<NewListDialog
+				open={newListOpen}
+				onOpenChange={setNewListOpen}
+				people={allPeople}
+			/>
+		</>
 	)
 }
 
 type VirtualItem =
 	| { type: "heading" }
+	| { type: "filters" }
 	| { type: "controls" }
 	| { type: "person"; person: LoadedPerson; noLazy: boolean }
 	| { type: "no-results"; searchQuery: string }
@@ -189,11 +204,23 @@ function renderVirtualItem(
 		searchQuery: string
 		navigate: ReturnType<typeof Route.useNavigate>
 		setPeopleSearchQuery: (query: string) => void
+		allPeople: LoadedPerson[]
+		onNewList: () => void
 	},
 ): ReactNode {
 	switch (item.type) {
 		case "heading":
 			return <HeadingSection />
+
+		case "filters":
+			return (
+				<ListFilterBar
+					people={options.allPeople}
+					searchQuery={options.searchQuery}
+					setSearchQuery={options.setPeopleSearchQuery}
+					onNewList={options.onNewList}
+				/>
+			)
 
 		case "controls":
 			return (

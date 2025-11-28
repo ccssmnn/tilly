@@ -1,11 +1,17 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { isDueToday, isDeleted, UserAccount } from "#shared/schema/user"
+import {
+	isDueToday,
+	isDeleted,
+	UserAccount,
+	extractHashtags,
+} from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
 import { Button } from "#shared/ui/button"
 import { TextHighlight } from "#shared/ui/text-highlight"
+import { Badge } from "#shared/ui/badge"
 import { isTextSelectionOngoing } from "#app/lib/utils"
 import {
 	Dialog,
@@ -174,13 +180,28 @@ function PersonItemSummary({
 }) {
 	if (!person.summary) return null
 
+	let hashtags = extractHashtags(person.summary)
+	let summaryWithoutHashtags = person.summary
+		.replace(/#[a-zA-Z0-9_]+/g, "")
+		.trim()
+
 	return (
-		<p
-			className="text-muted-foreground mt-2 line-clamp-2 text-sm select-text"
-			onMouseDown={e => e.stopPropagation()}
-		>
-			<TextHighlight text={person.summary} query={searchQuery} />
-		</p>
+		<div className="mt-2 select-text" onMouseDown={e => e.stopPropagation()}>
+			{summaryWithoutHashtags && (
+				<p className="text-muted-foreground line-clamp-2 text-sm">
+					<TextHighlight text={summaryWithoutHashtags} query={searchQuery} />
+				</p>
+			)}
+			{hashtags.length > 0 && (
+				<div className="mt-1 flex flex-wrap gap-1">
+					{hashtags.map(tag => (
+						<Badge key={tag} variant="secondary" className="text-xs">
+							{tag}
+						</Badge>
+					))}
+				</div>
+			)}
+		</div>
 	)
 }
 

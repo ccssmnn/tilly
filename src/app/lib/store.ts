@@ -16,6 +16,15 @@ interface AppState {
 	notesSearchQuery: string
 	setNotesSearchQuery: (query: string) => void
 
+	peopleListFilter: string | null
+	setPeopleListFilter: (filter: string | null) => void
+
+	remindersListFilter: string | null
+	setRemindersListFilter: (filter: string | null) => void
+
+	notesListFilter: string | null
+	setNotesListFilter: (filter: string | null) => void
+
 	pwaInstallHintDismissed: boolean
 	setPWAInstallHintDismissed: (dismissed: boolean) => void
 
@@ -33,6 +42,9 @@ let storeStateSchema = z.object({
 	hideInstallNavItem: z.boolean(),
 	tourSkipped: z.boolean(),
 	lastAccessDate: z.string(),
+	peopleListFilter: z.string().nullable(),
+	remindersListFilter: z.string().nullable(),
+	notesListFilter: z.string().nullable(),
 })
 
 type PersistedState = Pick<
@@ -41,6 +53,9 @@ type PersistedState = Pick<
 	| "hideInstallNavItem"
 	| "tourSkipped"
 	| "lastAccessDate"
+	| "peopleListFilter"
+	| "remindersListFilter"
+	| "notesListFilter"
 >
 
 let initialPersistedState: PersistedState = {
@@ -48,6 +63,9 @@ let initialPersistedState: PersistedState = {
 	hideInstallNavItem: false,
 	tourSkipped: false,
 	lastAccessDate: format(new Date(), "yyyy-MM-dd"),
+	peopleListFilter: null,
+	remindersListFilter: null,
+	notesListFilter: null,
 }
 
 type StorageValue<T> = {
@@ -158,6 +176,18 @@ export let useAppStore = create<AppState>()(
 			notesSearchQuery: "",
 			setNotesSearchQuery: (query: string) => set({ notesSearchQuery: query }),
 
+			peopleListFilter: null,
+			setPeopleListFilter: (filter: string | null) =>
+				set({ peopleListFilter: filter }),
+
+			remindersListFilter: null,
+			setRemindersListFilter: (filter: string | null) =>
+				set({ remindersListFilter: filter }),
+
+			notesListFilter: null,
+			setNotesListFilter: (filter: string | null) =>
+				set({ notesListFilter: filter }),
+
 			pwaInstallHintDismissed: false,
 			setPWAInstallHintDismissed: (dismissed: boolean) =>
 				set({ pwaInstallHintDismissed: dismissed }),
@@ -179,6 +209,9 @@ export let useAppStore = create<AppState>()(
 				hideInstallNavItem: state.hideInstallNavItem,
 				tourSkipped: state.tourSkipped,
 				lastAccessDate: state.lastAccessDate,
+				peopleListFilter: state.peopleListFilter,
+				remindersListFilter: state.remindersListFilter,
+				notesListFilter: state.notesListFilter,
 			}),
 			onRehydrateStorage: () => state => {
 				if (!state) return

@@ -9,6 +9,9 @@ export {
 	sortByCreatedAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
+	extractHashtags,
+	hasHashtag,
+	hasDueReminders,
 }
 
 export let PushDevice = z.object({
@@ -295,4 +298,42 @@ function sortByDeletedAt<
 			).getTime()
 		return bTime - aTime
 	})
+}
+
+function extractHashtags(summary?: string): string[] {
+	if (!summary) return []
+	let matches = summary.match(/(?:^|\s)(#[a-zA-Z0-9_]+)/g)
+	return (matches || []).map(tag => tag.trim().toLowerCase())
+}
+
+function hasHashtag(
+	person: {
+		summary?: string
+		reminders?: {
+			$isLoaded?: boolean
+			values?: () => Array<{ done?: boolean; dueAtDate?: string }>
+		}
+	},
+	tag: string,
+): boolean {
+	if (tag === "#due") {
+		return hasDueReminders(person)
+	}
+	let hashtags = extractHashtags(person.summary)
+	return hashtags.includes(tag.toLowerCase())
+}
+
+function hasDueReminders(person: {
+	reminders?: {
+		$isLoaded?: boolean
+		values?: () => Array<{ done?: boolean; dueAtDate?: string }>
+	}
+}): boolean {
+	if (!person.reminders || !person.reminders.$isLoaded) return false
+	for (let reminder of person.reminders.values?.() || []) {
+		if (!reminder.done && isDueToday(reminder as { dueAtDate: string })) {
+			return true
+		}
+	}
+	return false
 }

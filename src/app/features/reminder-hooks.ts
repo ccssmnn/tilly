@@ -6,9 +6,15 @@ import {
 	sortByUpdatedAt,
 	sortByDeletedAt,
 	UserAccount,
+	hasHashtag,
 } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
+
+function extractListFilterFromQuery(query: string): string | null {
+	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	return match ? match[1].toLowerCase() : null
+}
 
 export {
 	useReminders,
@@ -59,15 +65,34 @@ function useReminders(
 		}
 	}
 
-	let filteredPairs = searchQuery
-		? allReminderPairs.filter(({ reminder, person }) => {
-				let searchLower = searchQuery.toLowerCase()
-				return (
-					reminder.text.toLowerCase().includes(searchLower) ||
-					person.name.toLowerCase().includes(searchLower)
-				)
-			})
-		: allReminderPairs
+	let searchLower = searchQuery.toLowerCase()
+	let listFilter = extractListFilterFromQuery(searchLower)
+	let searchWithoutFilter = searchLower.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
+
+	let filteredPairs = allReminderPairs.filter(({ reminder, person }) => {
+		let matchesSearch =
+			!searchWithoutFilter ||
+			reminder.text.toLowerCase().includes(searchWithoutFilter) ||
+			person.name.toLowerCase().includes(searchWithoutFilter)
+
+		let matchesFilter =
+			!listFilter ||
+			hasHashtag(
+				person as unknown as {
+					summary?: string
+					reminders?: {
+						$isLoaded?: boolean
+						values?: () => Array<{
+							done?: boolean
+							dueAtDate?: string
+						}>
+					}
+				},
+				listFilter,
+			)
+
+		return matchesSearch && matchesFilter
+	})
 
 	let open = []
 	let done = []

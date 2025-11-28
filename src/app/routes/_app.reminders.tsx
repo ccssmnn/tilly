@@ -19,7 +19,13 @@ import {
 } from "#shared/ui/empty"
 import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
-import { useDeferredValue, useId, type ReactNode, type RefObject } from "react"
+import {
+	useDeferredValue,
+	useId,
+	useState,
+	type ReactNode,
+	type RefObject,
+} from "react"
 import { NewReminder } from "#app/features/new-reminder"
 import { ReminderTour } from "#app/features/reminder-tour"
 import { useAppStore } from "#app/lib/store"
@@ -28,6 +34,8 @@ import { Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
+import { ListFilterBar } from "#app/features/list-filter-bar"
+import { NewListDialog } from "#app/features/new-list-dialog"
 
 export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
@@ -54,15 +62,20 @@ let resolve = {
 
 function Reminders() {
 	let { me: data } = Route.useLoaderData()
+	let [newListOpen, setNewListOpen] = useState(false)
 
 	let subscribedMe = useAccount(UserAccount, { resolve })
 
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 
-	let { remindersSearchQuery } = useAppStore()
+	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(remindersSearchQuery)
 
 	let reminders = useReminders(searchQuery, data as RemindersLoadedAccount)
+
+	let allPeople = Array.from(
+		(data as RemindersLoadedAccount).root.people.values(),
+	)
 
 	let didSearch = !!searchQuery
 	let hasMatches =
@@ -74,6 +87,7 @@ function Reminders() {
 	virtualItems.push({ type: "heading" })
 
 	if (reminders.total > 0) {
+		virtualItems.push({ type: "filters" })
 		virtualItems.push({ type: "search" })
 	} else {
 		virtualItems.push({ type: "no-reminders" })
@@ -153,46 +167,59 @@ function Reminders() {
 	let virtualRows = virtualizer.getVirtualItems()
 
 	return (
-		<div
-			className="md:mt-12"
-			style={{
-				height: virtualizer.getTotalSize(),
-				width: "100%",
-				position: "relative",
-			}}
-		>
-			{virtualRows.map(virtualRow => {
-				let item = virtualItems.at(virtualRow.index)
-				if (!item) return null
+		<>
+			<div
+				className="md:mt-12"
+				style={{
+					height: virtualizer.getTotalSize(),
+					width: "100%",
+					position: "relative",
+				}}
+			>
+				{virtualRows.map(virtualRow => {
+					let item = virtualItems.at(virtualRow.index)
+					if (!item) return null
 
-				let itemIsReminder = item.type === "reminder"
-				let nextItemIsReminder =
-					virtualItems.at(virtualRow.index + 1)?.type === "reminder"
+					let itemIsReminder = item.type === "reminder"
+					let nextItemIsReminder =
+						virtualItems.at(virtualRow.index + 1)?.type === "reminder"
 
-				return (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						ref={virtualizer.measureElement}
-						className={cn(
-							"absolute top-0 left-0 w-full",
-							itemIsReminder && nextItemIsReminder && "border-border border-b",
-						)}
-						style={{ transform: `translateY(${virtualRow.start}px)` }}
-					>
-						{renderVirtualItem(item, {
-							searchQuery,
-							me: currentMe,
-						})}
-					</div>
-				)
-			})}
-		</div>
+					return (
+						<div
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							ref={virtualizer.measureElement}
+							className={cn(
+								"absolute top-0 left-0 w-full",
+								itemIsReminder &&
+									nextItemIsReminder &&
+									"border-border border-b",
+							)}
+							style={{ transform: `translateY(${virtualRow.start}px)` }}
+						>
+							{renderVirtualItem(item, {
+								searchQuery,
+								me: currentMe,
+								allPeople,
+								onNewList: () => setNewListOpen(true),
+								setSearchQuery: setRemindersSearchQuery,
+							})}
+						</div>
+					)
+				})}
+			</div>
+			<NewListDialog
+				open={newListOpen}
+				onOpenChange={setNewListOpen}
+				people={allPeople}
+			/>
+		</>
 	)
 }
 
 type VirtualItem =
 	| { type: "heading" }
+	| { type: "filters" }
 	| { type: "search" }
 	| {
 			type: "reminder"
@@ -211,11 +238,27 @@ type VirtualItem =
 
 function renderVirtualItem(
 	item: VirtualItem,
-	options: { searchQuery: string; me: co.loaded<typeof UserAccount> },
+	options: {
+		searchQuery: string
+		me: co.loaded<typeof UserAccount>
+		allPeople: unknown[]
+		onNewList: () => void
+		setSearchQuery: (query: string) => void
+	},
 ): ReactNode {
 	switch (item.type) {
 		case "heading":
 			return <HeadingSection />
+
+		case "filters":
+			return (
+				<ListFilterBar
+					people={options.allPeople}
+					searchQuery={options.searchQuery}
+					setSearchQuery={options.setSearchQuery}
+					onNewList={options.onNewList}
+				/>
+			)
 
 		case "search":
 			return <SearchSection />
