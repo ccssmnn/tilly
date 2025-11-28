@@ -18,12 +18,12 @@ export {
 
 let notesResolve = {
 	root: {
-		people: { $each: { notes: { $each: { images: { $each: true } } } } },
+		people: { $each: { notes: { $each: true } } },
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personNotesResolve = {
-	notes: { $each: { images: true } },
+	notes: { $each: true },
 } as const satisfies ResolveQuery<typeof Person>
 
 type NotesLoadedAccount = co.loaded<typeof UserAccount, typeof notesResolve>

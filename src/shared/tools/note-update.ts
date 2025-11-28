@@ -45,6 +45,7 @@ async function updateNote(
 		permanentlyDeletedAt: note.permanentlyDeletedAt,
 		createdAt: note.createdAt,
 		updatedAt: note.updatedAt,
+		imageCount: note.imageCount,
 	}
 
 	if (updates.title !== undefined) {
@@ -103,8 +104,10 @@ async function updateNote(
 
 		if (imageList.length === 0) {
 			note.$jazz.delete("images")
+			note.$jazz.delete("imageCount")
 		} else {
 			note.$jazz.set("images", imageList)
+			note.$jazz.set("imageCount", imageList.length)
 		}
 	}
 
@@ -139,6 +142,7 @@ async function updateNote(
 			permanentlyDeletedAt: note.permanentlyDeletedAt,
 			createdAt: note.createdAt,
 			updatedAt: note.updatedAt,
+			imageCount: note.imageCount,
 		},
 		previous,
 		_ref: note,

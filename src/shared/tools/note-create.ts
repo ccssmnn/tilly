@@ -48,6 +48,7 @@ async function createNote(
 			imageList.$jazz.push(image as any)
 		}
 		note.$jazz.set("images", imageList)
+		note.$jazz.set("imageCount", imageList.length)
 	}
 
 	person.notes.$jazz.push(note)

@@ -53,6 +53,7 @@ export let Note = co.map({
 	title: z.string().optional(),
 	content: z.string(),
 	images: co.list(co.image()).optional(),
+	imageCount: z.number().optional(),
 	pinned: z.boolean().optional(),
 	deletedAt: z.date().optional(),
 	permanentlyDeletedAt: z.date().optional(),

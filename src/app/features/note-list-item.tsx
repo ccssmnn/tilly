@@ -704,14 +704,11 @@ function NoteImageGrid({
 	let [carouselOpen, setCarouselOpen] = useState(false)
 	let [selectedImageIndex, setSelectedImageIndex] = useState<number>()
 
+	let imageCount = note.imageCount ?? 0
+
 	let loadedNote = useCoState(Note, note.$jazz.id, {
 		resolve: { images: { $each: true } },
 	})
-
-	let imageCount =
-		loadedNote?.$isLoaded && loadedNote.images?.$isLoaded
-			? loadedNote.images.length
-			: 0
 
 	if (imageCount === 0) return null
 
@@ -729,11 +726,11 @@ function NoteImageGrid({
 					"grid grid-flow-col gap-1 pb-4",
 					showPerson && "-mx-3 ml-[76px] pr-3",
 					imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
-					imageCount >= 2 ? "grid-rows-2" : "grid-rows-1",
+					imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
 				)}
 			>
 				{Array.from({ length: Math.min(imageCount, 4) }).map((_, index) => {
-					let image = imageArray[index]
+					let image = imageArray.at(index)
 					return (
 						<div
 							key={index}
