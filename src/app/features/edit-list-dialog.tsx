@@ -21,7 +21,12 @@ import { useAccount } from "jazz-tools/react"
 import { UserAccount, extractHashtags } from "#shared/schema/user"
 import { ListForm } from "#app/features/list-form"
 
-export { EditListDialog }
+export {
+	EditListDialog,
+	removeHashtagFromSummary,
+	addHashtagToSummary,
+	replaceHashtagInSummary,
+}
 
 function EditListDialog({
 	open,
@@ -71,9 +76,7 @@ function EditListDialog({
 			)
 
 			for (let person of peopleToRemoveFrom) {
-				let tags = extractHashtags(person.summary)
-				let filteredTags = tags.filter(tag => tag !== oldTag)
-				let newSummary = filteredTags.join(" ").trim()
+				let newSummary = removeHashtagFromSummary(person.summary, oldTag)
 				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
 			}
 
@@ -81,10 +84,8 @@ function EditListDialog({
 				let person = people.find(p => p.$jazz.id === personId)
 				if (!person) continue
 
-				let tags = extractHashtags(person.summary)
-				let filteredTags = tags.filter(tag => tag !== oldTag)
-				let updatedTags = [...filteredTags, newTag]
-				let newSummary = updatedTags.join(" ").trim()
+				let withoutOldTag = removeHashtagFromSummary(person.summary, oldTag)
+				let newSummary = addHashtagToSummary(withoutOldTag, newTag)
 
 				await updatePerson(personId, { summary: newSummary }, me)
 			}
@@ -93,11 +94,11 @@ function EditListDialog({
 				values.selectedPeople.has(p.$jazz.id),
 			)) {
 				if (oldTag !== newTag) {
-					let tags = extractHashtags(person.summary)
-					let filteredTags = tags.filter(tag => tag !== oldTag)
-					let updatedTags = [...filteredTags, newTag]
-					let newSummary = updatedTags.join(" ").trim()
-
+					let newSummary = replaceHashtagInSummary(
+						person.summary,
+						oldTag,
+						newTag,
+					)
 					await updatePerson(person.$jazz.id, { summary: newSummary }, me)
 				}
 			}
@@ -116,10 +117,7 @@ function EditListDialog({
 			let oldTag = hashtag.toLowerCase()
 
 			for (let person of peopleInList) {
-				let tags = extractHashtags(person.summary)
-				let filteredTags = tags.filter(tag => tag !== oldTag)
-				let newSummary = filteredTags.join(" ").trim()
-
+				let newSummary = removeHashtagFromSummary(person.summary, oldTag)
 				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
 			}
 
@@ -179,4 +177,34 @@ function EditListDialog({
 			</DialogContent>
 		</Dialog>
 	)
+}
+
+function removeHashtagFromSummary(
+	summary: string | undefined,
+	hashtag: string,
+): string {
+	if (!summary) return ""
+	let escaped = hashtag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+	return summary
+		.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), "")
+		.replace(/\s+/g, " ")
+		.trim()
+}
+
+function addHashtagToSummary(
+	summary: string | undefined,
+	hashtag: string,
+): string {
+	let current = summary?.trim() || ""
+	return current ? `${current} ${hashtag}` : hashtag
+}
+
+function replaceHashtagInSummary(
+	summary: string | undefined,
+	oldTag: string,
+	newTag: string,
+): string {
+	if (!summary) return ""
+	let escaped = oldTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+	return summary.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), newTag).trim()
 }
