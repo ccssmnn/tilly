@@ -7,10 +7,10 @@ import {
 	DialogDescription,
 } from "#shared/ui/dialog"
 import {
-	useIsAndroid,
-	useIsIOS,
+	isAndroid,
+	isIOS,
+	isMobileDevice,
 	usePWAInstallPrompt,
-	useIsMobileDevice,
 } from "#app/hooks/use-pwa"
 import { BoxArrowUp, InfoCircleFill, Share } from "react-bootstrap-icons"
 import { T } from "#shared/intl/setup"
@@ -32,9 +32,6 @@ function PWAInstallDialog({
 	onInstallComplete,
 	onDismiss,
 }: PWAInstallDialogProps) {
-	let isAndroid = useIsAndroid()
-	let isIOS = useIsIOS()
-	let isMobileDevice = useIsMobileDevice()
 	let { canInstall, promptInstall } = usePWAInstallPrompt()
 
 	return (
@@ -48,7 +45,7 @@ function PWAInstallDialog({
 						<DialogDescription>
 							<T
 								k={
-									isMobileDevice
+									isMobileDevice()
 										? "pwa.install.dialog.description.mobile"
 										: "pwa.install.dialog.description.desktop"
 								}
@@ -58,16 +55,18 @@ function PWAInstallDialog({
 				}
 			>
 				<div className="space-y-4">
-					{isAndroid && canInstall && (
+					{isAndroid() && canInstall && (
 						<AndroidChromeInstructions
 							onInstall={promptInstall}
 							onInstallComplete={onInstallComplete}
 						/>
 					)}
-					{isAndroid && !canInstall && <AndroidManualInstructions />}
-					{isIOS && <IOSInstructions />}
-					{!isAndroid && !isIOS && isMobileDevice && <GenericInstructions />}
-					{!isMobileDevice && (
+					{isAndroid() && !canInstall && <AndroidManualInstructions />}
+					{isIOS() && <IOSInstructions />}
+					{!isAndroid() && !isIOS() && isMobileDevice() && (
+						<GenericInstructions />
+					)}
+					{!isMobileDevice() && (
 						<DesktopInstructions
 							canInstall={canInstall}
 							onInstall={promptInstall}
@@ -272,12 +271,9 @@ export function InstallationInstructions({
 }: {
 	onInstallComplete?: () => void
 } = {}) {
-	let isAndroid = useIsAndroid()
-	let isIOS = useIsIOS()
-	let isMobileDevice = useIsMobileDevice()
 	let { canInstall, promptInstall } = usePWAInstallPrompt()
 
-	if (isAndroid && canInstall) {
+	if (isAndroid() && canInstall) {
 		return (
 			<AndroidChromeInstructions
 				onInstall={promptInstall}
@@ -286,15 +282,15 @@ export function InstallationInstructions({
 		)
 	}
 
-	if (isAndroid && !canInstall) {
+	if (isAndroid() && !canInstall) {
 		return <AndroidManualInstructions />
 	}
 
-	if (isIOS) {
+	if (isIOS()) {
 		return <IOSInstructions />
 	}
 
-	if (!isAndroid && !isIOS && isMobileDevice) {
+	if (!isAndroid() && !isIOS() && isMobileDevice()) {
 		return <GenericInstructions />
 	}
 

@@ -33,7 +33,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 } from "react-bootstrap-icons"
-import { useState, type ReactNode } from "react"
+import { useState, useEffect, type ReactNode } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow } from "date-fns"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"

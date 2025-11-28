@@ -10,6 +10,7 @@ export const FileNoteSchema = z.object({
 	id: z.string().optional(),
 	content: z.string(),
 	pinned: z.boolean().optional(),
+	images: z.array(FileAvatarSchema).optional(),
 	deleted: z.boolean().optional(),
 	deletedAt: z.coerce.date().optional(),
 	permanentlyDeletedAt: z.coerce.date().optional(),

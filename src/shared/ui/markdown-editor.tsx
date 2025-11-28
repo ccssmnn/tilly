@@ -10,7 +10,6 @@ import {
 } from "./tooltip"
 import { Kbd, KbdGroup } from "./kbd"
 import { cn } from "#app/lib/utils"
-import { useIsMac } from "#app/hooks/use-pwa"
 import { T } from "#shared/intl/setup"
 import {
 	TypeBold,
@@ -21,6 +20,7 @@ import {
 	ListUl,
 	TypeH3,
 } from "react-bootstrap-icons"
+import { isMac } from "#app/hooks/use-pwa"
 
 export { MarkdownEditor }
 export type { MarkdownEditorProps }
@@ -36,7 +36,6 @@ function MarkdownEditor({
 }: MarkdownEditorProps) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
-	let isMac = useIsMac()
 
 	useResizeTextarea(textareaRef, value, { maxHeight: 400, minHeight: 80 })
 
@@ -118,7 +117,7 @@ function MarkdownEditor({
 								<TooltipContent>
 									<T k={tool.label} />{" "}
 									<KbdGroup>
-										<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+										<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
 										<Kbd>{tool.key}</Kbd>
 									</KbdGroup>
 								</TooltipContent>

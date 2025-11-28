@@ -18,7 +18,6 @@ import type { KeyboardEvent } from "react"
 import { useState, useRef } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
-import { useIsMac } from "#app/hooks/use-pwa"
 import { Input } from "#shared/ui/input"
 import { format } from "date-fns"
 import { X, Plus } from "react-bootstrap-icons"
@@ -26,6 +25,8 @@ import { Note } from "#shared/schema/user"
 import type { co } from "jazz-tools"
 import { useAssistantAccess } from "#app/features/plus"
 import { Image as JazzImage } from "jazz-tools/react"
+import { Link } from "@tanstack/react-router"
+import { isMac } from "#app/hooks/use-pwa"
 
 function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
 	return z.object({
@@ -57,7 +58,6 @@ export function NoteForm({
 	onSubmit: (data: NoteFormValues) => void
 }) {
 	let t = useIntl()
-	let isMac = useIsMac()
 	let access = useAssistantAccess()
 	let hasPlusAccess = access.status === "granted"
 	let noteFormSchema = createNoteFormSchema(t)
@@ -130,24 +130,29 @@ export function NoteForm({
 						</FormItem>
 					)}
 				/>
-				{hasPlusAccess && (
-					<FormField
-						control={form.control}
-						name="images"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Images</FormLabel>
-								<ImagesField
-									value={field.value || []}
-									note={note}
-									form={form}
-									fileInputRef={fileInputRef}
-								/>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				)}
+				<FormField
+					control={form.control}
+					name="images"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>
+								{hasPlusAccess ? (
+									<T k="note.form.images.label" />
+								) : (
+									<T k="note.form.images.label.requires-plus" />
+								)}
+							</FormLabel>
+							<ImagesField
+								value={field.value || []}
+								note={note}
+								form={form}
+								fileInputRef={fileInputRef}
+								hasPlusAccess={hasPlusAccess}
+							/>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 				<FormField
 					control={form.control}
 					name="createdAt"
@@ -210,7 +215,7 @@ export function NoteForm({
 						</TooltipTrigger>
 						<TooltipContent>
 							<KbdGroup>
-								<Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
+								<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
 								<span>+</span>
 								<Kbd>Enter</Kbd>
 							</KbdGroup>
@@ -227,11 +232,13 @@ function ImagesField({
 	note,
 	form,
 	fileInputRef,
+	hasPlusAccess,
 }: {
 	value: File[]
 	note?: co.loaded<typeof Note>
 	form: ReturnType<typeof useForm<NoteFormValues>>
 	fileInputRef: React.RefObject<HTMLInputElement | null>
+	hasPlusAccess: boolean
 }) {
 	let [previews, setPreviews] = useState<string[]>([])
 	let [removedExistingIds, setRemovedExistingIds] = useState<Set<string>>(
@@ -332,15 +339,30 @@ function ImagesField({
 				</div>
 			)}
 			{canAddMore && (
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => fileInputRef.current?.click()}
-					className="w-full"
-				>
-					<Plus />
-					Add images ({totalImages}/10)
-				</Button>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => fileInputRef.current?.click()}
+							disabled={!hasPlusAccess}
+							className="w-full"
+						>
+							<Plus />
+							<T
+								k="note.form.images.add"
+								params={{ count: totalImages.toString() }}
+							/>
+						</Button>
+					</TooltipTrigger>
+					{!hasPlusAccess && (
+						<TooltipContent>
+							<Link to="/settings" className="text-blue-500 hover:underline">
+								<T k="note.form.images.requiresPlus" />
+							</Link>
+						</TooltipContent>
+					)}
+				</Tooltip>
 			)}
 		</div>
 	)

@@ -18,7 +18,7 @@ import {
 } from "react-bootstrap-icons"
 import { cn } from "#app/lib/utils"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
-import { useIsPWAInstalled, useIsMobileDevice } from "#app/hooks/use-pwa"
+import { isMobileDevice, useIsPWAInstalled } from "#app/hooks/use-pwa"
 import { useAppStore } from "#app/lib/store"
 import { PWAInstallDialog } from "./pwa-install-dialog"
 import { T } from "#shared/intl/setup"
@@ -30,7 +30,6 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	let [showPWADialog, setShowPWADialog] = useState(false)
 	let isInputFocused = useInputFocusState()
 	let isPWAInstalled = useIsPWAInstalled()
-	let isMobileDevice = useIsMobileDevice()
 
 	let pwaInstallHintDismissed = useAppStore(
 		state => state.pwaInstallHintDismissed,
@@ -42,7 +41,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 	let setHideInstallNavItem = useAppStore(state => state.setHideInstallNavItem)
 
 	let shouldShowPWAButton =
-		isMobileDevice && !isPWAInstalled && !hideInstallNavItem
+		isMobileDevice() && !isPWAInstalled && !hideInstallNavItem
 	let shouldPulse = shouldShowPWAButton && !pwaInstallHintDismissed
 
 	function handleNavClick(routePath: string) {
@@ -70,7 +69,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 					"bg-background/50 border-border absolute inset-x-3 z-1 transform rounded-4xl border shadow-lg backdrop-blur-xl duration-300",
 					"md:top-4 md:bottom-auto md:left-1/2 md:w-fit md:-translate-x-1/2",
 					isInputFocused
-						? "bottom-0 max-md:translate-y-[100%] max-md:opacity-0"
+						? "bottom-0 max-md:translate-y-full max-md:opacity-0"
 						: "bottom-[max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))]",
 				)}
 			>
@@ -226,7 +225,7 @@ function NavBarButton({
 						<IconComponent className={iconClasses} />
 					</motion.div>
 					{hasBadge ? (
-						<span className="bg-primary text-primary-foreground absolute -top-1.5 -right-1.5 min-w-[20px] rounded-full px-1 py-0.5 text-center text-xs font-bold">
+						<span className="bg-primary text-primary-foreground absolute -top-1.5 -right-1.5 min-w-5 rounded-full px-1 py-0.5 text-center text-xs font-bold">
 							{badgeContent}
 						</span>
 					) : null}

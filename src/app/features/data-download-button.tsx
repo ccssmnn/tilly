@@ -23,7 +23,7 @@ let exportQuery = {
 		people: {
 			$each: {
 				avatar: true,
-				notes: { $each: true },
+				notes: { $each: { images: { $each: true } } },
 				reminders: { $each: true },
 			},
 		},
@@ -76,17 +76,43 @@ export function ExportButton(props: {
 						permanentlyDeletedAt: person.permanentlyDeletedAt,
 						createdAt: person.createdAt,
 						updatedAt: person.updatedAt,
-						notes: person.notes
-							.filter(note => note !== null)
-							?.map(note => ({
-								id: note.$jazz.id,
-								content: note.content,
-								pinned: note.pinned,
-								deletedAt: note.deletedAt,
-								permanentlyDeletedAt: note.permanentlyDeletedAt,
-								createdAt: note.createdAt,
-								updatedAt: note.updatedAt,
-							})),
+						notes: await Promise.all(
+							person.notes
+								.filter(note => note !== null)
+								?.map(async note => {
+									let images = null
+									if (note.images?.$isLoaded) {
+										images = await Promise.all(
+											Array.from(note.images.values())
+												.filter(img => img !== null)
+												.map(async img => {
+													let bestImage = highestResAvailable(img, 2048, 2048)
+													let blob = bestImage?.image.toBlob()
+													let dataURL = blob
+														? await new Promise<string>(resolve => {
+																let reader = new FileReader()
+																reader.onloadend = () =>
+																	resolve(reader.result as string)
+																reader.readAsDataURL(blob)
+															})
+														: undefined
+													return dataURL ? { dataURL } : null
+												}),
+										)
+										images = images.filter(Boolean)
+									}
+									return {
+										id: note.$jazz.id,
+										content: note.content,
+										pinned: note.pinned,
+										images: images || undefined,
+										deletedAt: note.deletedAt,
+										permanentlyDeletedAt: note.permanentlyDeletedAt,
+										createdAt: note.createdAt,
+										updatedAt: note.updatedAt,
+									}
+								}),
+						),
 						reminders: person.reminders
 							.filter(reminder => reminder !== null)
 							?.map(reminder => ({
