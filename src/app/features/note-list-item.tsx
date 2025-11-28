@@ -578,7 +578,7 @@ function useNoteItemOperations({
 
 		toast.success(t("note.toast.updated"), {
 			action: {
-				label: "Undo",
+				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
 						updateNote(result.data.previous, {
