@@ -47,6 +47,7 @@ import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Button } from "#shared/ui/button"
+import { motion, AnimatePresence } from "motion/react"
 export { NoteListItem }
 
 let CHAR_LIMIT = 280
@@ -116,9 +117,6 @@ function NoteListItem(props: {
 						</div>
 					</NoteItemContainer>
 				</RestoreNoteDropdown>
-				{props.note.images && (
-					<NoteImageGrid images={props.note.images} isDeleted={true} />
-				)}
 				{hasOverflow && (
 					<ExpandCollapseButton
 						isExpanded={isExpanded}
@@ -126,6 +124,7 @@ function NoteListItem(props: {
 						showPerson={showPerson}
 					/>
 				)}
+				<NoteImageGrid images={props.note.images} isDeleted={true} />
 			</>
 		)
 	}
@@ -171,13 +170,6 @@ function NoteListItem(props: {
 					</div>
 				</NoteItemContainer>
 			</ActionsDropdown>
-			{props.note.images && (
-				<NoteImageGrid
-					images={props.note.images}
-					isDeleted={false}
-					showPerson={showPerson}
-				/>
-			)}
 			{hasOverflow && (
 				<ExpandCollapseButton
 					isExpanded={isExpanded}
@@ -185,6 +177,11 @@ function NoteListItem(props: {
 					showPerson={showPerson}
 				/>
 			)}
+			<NoteImageGrid
+				images={props.note.images}
+				isDeleted={false}
+				showPerson={showPerson}
+			/>
 			<EditDialog
 				note={props.note}
 				person={props.person}
@@ -762,6 +759,7 @@ function NoteImageGrid({
 }
 
 type ImageItem = co.loaded<ReturnType<typeof co.image>>
+type Direction = "left" | "right" | undefined
 
 function ImageCarousel({
 	images,
@@ -773,18 +771,43 @@ function ImageCarousel({
 	onClose: () => void
 }) {
 	let [currentIndex, setCurrentIndex] = useState(selectedIndex)
+	let [direction, setDirection] = useState<Direction>()
 
 	function handlePrevious() {
-		setCurrentIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))
+		setDirection("left")
+		setTimeout(
+			() =>
+				setCurrentIndex(prev => (prev === 0 ? images.length - 1 : prev - 1)),
+			10,
+		)
 	}
 
 	function handleNext() {
-		setCurrentIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))
+		setDirection("right")
+		setTimeout(
+			() =>
+				setCurrentIndex(prev => (prev === images.length - 1 ? 0 : prev + 1)),
+			10,
+		)
 	}
 
 	function handleDotClick(index: number) {
-		setCurrentIndex(index)
+		setDirection(index > currentIndex ? "right" : "left")
+		setTimeout(() => setCurrentIndex(index), 10)
 	}
+
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "ArrowRight") {
+				handleNext()
+			} else if (event.key === "ArrowLeft") {
+				handlePrevious()
+			}
+		}
+
+		window.addEventListener("keydown", handleKeyDown)
+		return () => window.removeEventListener("keydown", handleKeyDown)
+	})
 
 	let currentImage = images[currentIndex]
 	if (!currentImage) return null
@@ -796,21 +819,43 @@ function ImageCarousel({
 				className="h-[90dvh] md:w-[90dvw] md:max-w-none"
 			>
 				<div className="relative h-full w-full">
-					<div className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center">
-						<JazzImage
-							imageId={currentImage.$jazz.id}
-							alt=""
-							className="max-h-full max-w-full rounded-lg object-contain"
-						/>
-					</div>
+					<AnimatePresence mode="wait" custom={direction}>
+						<motion.div
+							key={currentIndex}
+							custom={direction}
+							initial="enter"
+							animate="center"
+							exit="exit"
+							variants={{
+								enter: (dir: Direction) => ({
+									opacity: 0,
+									x: { left: -12, right: 12, _: 0 }[dir ?? "_"],
+								}),
+								center: { opacity: 1, x: 0 },
+								exit: (dir: Direction) => ({
+									opacity: 0,
+									x: { left: 12, right: -12, _: 0 }[dir ?? "_"],
+								}),
+							}}
+							transition={{
+								duration: 0.075,
+							}}
+							className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center"
+						>
+							<JazzImage
+								imageId={currentImage.$jazz.id}
+								alt=""
+								className="max-h-full max-w-full rounded-lg object-contain"
+							/>
+						</motion.div>
+					</AnimatePresence>
 
 					{images.length > 1 && (
 						<div className="absolute inset-x-0 bottom-0 flex h-24 items-center justify-center gap-4">
 							<Button onClick={handlePrevious} size="sm" variant="secondary">
 								<ChevronLeft />
-								Previous
+								<T k="navigation.previous" />
 							</Button>
-
 							<div className="flex gap-2">
 								{images.map((_, index) => (
 									<button
@@ -825,9 +870,8 @@ function ImageCarousel({
 									/>
 								))}
 							</div>
-
 							<Button onClick={handleNext} variant="secondary">
-								Next
+								<T k="navigation.next" />
 								<ChevronRight />
 							</Button>
 						</div>
