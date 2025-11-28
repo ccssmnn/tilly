@@ -199,7 +199,7 @@ function AuthenticatedChat() {
 							<MessageRenderer
 								key={message.id}
 								message={message}
-								addToolResult={addToolResult}
+								addToolResult={createAddToolResult(messages, sendMessage)}
 							/>
 						))}
 
@@ -406,7 +406,7 @@ function EmptyChatState({
 						disabled={!isOnline || isBusy}
 					>
 						<Arrow90degUp className="shrink-0" />
-						<span className="min-w-0 break-words">{starter.text}</span>
+						<span className="wrap-break-words min-w-0">{starter.text}</span>
 					</Button>
 				))}
 			</div>
@@ -740,30 +740,36 @@ function useChatMessaging(me: co.loaded<typeof UserAccount, typeof resolve>) {
 	return { isSending, failedToSend, sendMessage, abort }
 }
 
-async function addToolResult(
-	toolCallId: string,
-	output: unknown,
+function createAddToolResult(
 	messages: TillyUIMessage[],
 	sendMessage: (msg: TillyUIMessage, idx?: number) => Promise<void>,
 ) {
-	let messageIndex = messages.findIndex(msg => {
-		if (msg.role !== "assistant") return false
-		return msg.parts?.some(
-			p => "toolCallId" in p && p.toolCallId === toolCallId,
-		)
-	})
+	return async ({
+		toolCallId,
+		output,
+	}: {
+		toolCallId: string
+		output: unknown
+	}) => {
+		let messageIndex = messages.findIndex(msg => {
+			if (msg.role !== "assistant") return false
+			return msg.parts?.some(
+				p => "toolCallId" in p && p.toolCallId === toolCallId,
+			)
+		})
 
-	if (messageIndex === -1) return
+		if (messageIndex === -1) return
 
-	let msg = messages[messageIndex]
-	let updatedParts = msg.parts?.map(part => {
-		if (!("toolCallId" in part)) return part
-		if (part.toolCallId !== toolCallId) return part
-		return { ...part, output, state: "output-available" as const }
-	}) as TillyUIMessage["parts"]
+		let msg = messages[messageIndex]
+		let updatedParts = msg.parts?.map(part => {
+			if (!("toolCallId" in part)) return part
+			if (part.toolCallId !== toolCallId) return part
+			return { ...part, output, state: "output-available" as const }
+		}) as TillyUIMessage["parts"]
 
-	let updatedMessage: TillyUIMessage = { ...msg, parts: updatedParts }
-	await sendMessage(updatedMessage, messageIndex)
+		let updatedMessage: TillyUIMessage = { ...msg, parts: updatedParts }
+		await sendMessage(updatedMessage, messageIndex)
+	}
 }
 
 let GENERATION_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes

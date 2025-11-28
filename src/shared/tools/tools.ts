@@ -48,8 +48,11 @@ export const messageMetadataSchema = z.object({
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>
 
 // Type for addToolResult function from AI SDK
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AddToolResultFunction = (...args: any[]) => void
+export type AddToolResultFunction = (args: {
+	tool: string
+	toolCallId: string
+	output: unknown
+}) => void
 
 export type ToolSet = typeof clientTools & ReturnType<typeof createServerTools>
 export type MyTools = InferUITools<ToolSet>
