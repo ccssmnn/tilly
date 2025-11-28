@@ -734,9 +734,10 @@ function NoteImageGrid({
 								: "aspect-4/3 md:aspect-video",
 						)}
 						onClick={() => {
-							!isDeleted
-							setSelectedImageIndex(index)
-							setCarouselOpen(true)
+							if (!isDeleted) {
+								setSelectedImageIndex(index)
+								setCarouselOpen(true)
+							}
 						}}
 					>
 						<JazzImage

@@ -7,14 +7,45 @@ import {
 	sortByCreatedAt,
 } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
+import { co, type ResolveQuery } from "jazz-tools"
 
-export { usePersonNotes, useNotes }
+export {
+	usePersonNotes,
+	useNotes,
+	type NotesLoadedAccount,
+	type PersonNotesLoadedPerson,
+}
 
-function usePersonNotes(personId: string, searchQuery: string) {
+let notesResolve = {
+	root: {
+		people: { $each: { notes: { $each: { images: { $each: true } } } } },
+	},
+} as const satisfies ResolveQuery<typeof UserAccount>
+
+let personNotesResolve = {
+	notes: { $each: { images: { $each: true } } },
+} as const satisfies ResolveQuery<typeof Person>
+
+type NotesLoadedAccount = co.loaded<typeof UserAccount, typeof notesResolve>
+type PersonNotesLoadedPerson = co.loaded<
+	typeof Person,
+	typeof personNotesResolve
+>
+
+function usePersonNotes(
+	personId: string,
+	searchQuery: string,
+	defaultPerson?: PersonNotesLoadedPerson,
+) {
 	let notes = useCoState(Person, personId, {
-		resolve: { notes: { $each: { images: { $each: true } } } },
+		resolve: personNotesResolve,
 		select: person => {
-			if (!person.$isLoaded) return []
+			if (!person.$isLoaded) {
+				if (defaultPerson && defaultPerson.$jazz.id === personId) {
+					return defaultPerson.notes.filter(n => !isPermanentlyDeleted(n))
+				}
+				return []
+			}
 			return person.notes.filter(n => !isPermanentlyDeleted(n))
 		},
 	})
@@ -45,15 +76,16 @@ function usePersonNotes(personId: string, searchQuery: string) {
 	return { active, deleted }
 }
 
-function useNotes(searchQuery: string) {
+function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	let people = useAccount(UserAccount, {
-		resolve: {
-			root: {
-				people: { $each: { notes: { $each: { images: { $each: true } } } } },
-			},
-		},
+		resolve: notesResolve,
 		select: account => {
-			if (!account.$isLoaded) return []
+			if (!account.$isLoaded) {
+				if (defaultAccount) {
+					return defaultAccount.root.people.filter(p => !isDeleted(p))
+				}
+				return []
+			}
 			return account.root.people.filter(p => !isDeleted(p))
 		},
 	})
