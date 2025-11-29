@@ -22,7 +22,13 @@ import {
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { Note, Person, UserAccount } from "#shared/schema/user"
+import {
+	Note,
+	Person,
+	UserAccount,
+	isDeleted,
+	isDueToday,
+} from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
 import {
 	PencilSquare,
@@ -68,6 +74,16 @@ function NoteListItem(props: {
 		person: props.person,
 		me,
 	})
+
+	let hasDueReminders = props.person.reminders?.$isLoaded
+		? Array.from(props.person.reminders.values())
+				.filter(
+					(reminder): reminder is typeof reminder & { $isLoaded: true } =>
+						reminder != null && reminder.$isLoaded,
+				)
+				.filter(reminder => !isDeleted(reminder) && reminder.done !== true)
+				.some(reminder => isDueToday(reminder))
+		: false
 
 	if (!me.$isLoaded) return null
 
@@ -155,6 +171,9 @@ function NoteListItem(props: {
 									query={props.searchQuery}
 								/>
 							</p>
+						)}
+						{showPerson && hasDueReminders && (
+							<div className="bg-primary size-2 rounded-full" />
 						)}
 						<Pinned pinned={props.note.pinned} />
 						<div className="flex-1" />

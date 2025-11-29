@@ -42,6 +42,7 @@ let resolve = {
 		people: {
 			$each: {
 				notes: { $each: true },
+				reminders: { $each: true },
 			},
 		},
 	},
