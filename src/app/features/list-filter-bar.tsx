@@ -47,6 +47,14 @@ function ListFilterBar({
 	}
 
 	let handleFilterClick = (tag: string) => {
+		// If clicking the currently active filter, deactivate it (go back to All)
+		if (currentFilter === tag && tag !== "All") {
+			let newQuery = setListFilterInQuery(searchQuery, null)
+			setSearchQuery(newQuery)
+			return
+		}
+
+		// Otherwise, activate the clicked filter
 		let newQuery = setListFilterInQuery(searchQuery, tag === "All" ? null : tag)
 		setSearchQuery(newQuery)
 	}
