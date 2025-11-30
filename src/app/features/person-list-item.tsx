@@ -150,23 +150,23 @@ function PersonItemHeader({
 			className="flex items-center justify-between leading-none select-text"
 			onMouseDown={e => e.stopPropagation()}
 		>
-			<p className={nameColor}>
-				<TextHighlight text={person.name} query={searchQuery} />
-			</p>
 			<div className="flex items-center gap-1.5">
-				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
-				<p className="text-muted-foreground text-xs text-nowrap">
-					{formatDistanceToNow(
-						person.updatedAt ||
-							person.createdAt ||
-							new Date(person.$jazz.lastUpdatedAt || person.$jazz.createdAt),
-						{
-							addSuffix: true,
-							locale: dfnsLocale,
-						},
-					)}
+				<p className={nameColor}>
+					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
+				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
+			<p className="text-muted-foreground text-xs text-nowrap">
+				{formatDistanceToNow(
+					person.updatedAt ||
+						person.createdAt ||
+						new Date(person.$jazz.lastUpdatedAt || person.$jazz.createdAt),
+					{
+						addSuffix: true,
+						locale: dfnsLocale,
+					},
+				)}
+			</p>
 		</div>
 	)
 }
