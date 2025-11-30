@@ -138,7 +138,7 @@ function ListForm(props: {
 						>
 							<T k="person.listForm.cancel" />
 						</Button>
-						<Button type="submit" disabled={!hasChanges || props.isLoading}>
+						<Button type="submit" disabled={props.isLoading}>
 							{props.isLoading ? (
 								<T k="person.listForm.saving" />
 							) : (
