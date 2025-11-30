@@ -115,21 +115,7 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 			note.content.toLowerCase().includes(searchWithoutFilter) ||
 			person.name.toLowerCase().includes(searchWithoutFilter)
 
-		let matchesFilter =
-			!listFilter ||
-			hasHashtag(
-				person as unknown as {
-					summary?: string
-					reminders?: {
-						$isLoaded?: boolean
-						values?: () => Array<{
-							done?: boolean
-							dueAtDate?: string
-						}>
-					}
-				},
-				listFilter,
-			)
+		let matchesFilter = !listFilter || hasHashtag(person, listFilter)
 
 		return matchesSearch && matchesFilter
 	})

@@ -34,8 +34,9 @@ import { Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
-import { ListFilterBar } from "#app/features/list-filter-bar"
+import { ListFilterButton } from "#app/features/list-filter-button"
 import { NewListDialog } from "#app/features/new-list-dialog"
+import type { PersonWithSummary } from "#app/features/list-hooks"
 
 export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
@@ -88,7 +89,6 @@ function Reminders() {
 
 	if (reminders.total > 0) {
 		virtualItems.push({ type: "search" })
-		virtualItems.push({ type: "filters" })
 	} else {
 		virtualItems.push({ type: "no-reminders" })
 	}
@@ -219,7 +219,6 @@ function Reminders() {
 
 type VirtualItem =
 	| { type: "heading" }
-	| { type: "filters" }
 	| { type: "search" }
 	| {
 			type: "reminder"
@@ -241,7 +240,7 @@ function renderVirtualItem(
 	options: {
 		searchQuery: string
 		me: co.loaded<typeof UserAccount>
-		allPeople: unknown[]
+		allPeople: PersonWithSummary[]
 		onNewList: () => void
 		setSearchQuery: (query: string) => void
 	},
@@ -250,18 +249,15 @@ function renderVirtualItem(
 		case "heading":
 			return <HeadingSection />
 
-		case "filters":
+		case "search":
 			return (
-				<ListFilterBar
-					people={options.allPeople}
+				<SearchSection
+					allPeople={options.allPeople}
 					searchQuery={options.searchQuery}
 					setSearchQuery={options.setSearchQuery}
 					onNewList={options.onNewList}
 				/>
 			)
-
-		case "search":
-			return <SearchSection />
 
 		case "reminder":
 			return (
@@ -306,7 +302,17 @@ function HeadingSection() {
 	)
 }
 
-function SearchSection() {
+function SearchSection({
+	allPeople,
+	searchQuery,
+	setSearchQuery,
+	onNewList,
+}: {
+	allPeople: PersonWithSummary[]
+	searchQuery: string
+	setSearchQuery: (query: string) => void
+	onNewList: () => void
+}) {
 	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput() as RefObject<HTMLInputElement>
 	let t = useIntl()
@@ -339,6 +345,12 @@ function SearchSection() {
 					</span>
 				</Button>
 			) : null}
+			<ListFilterButton
+				people={allPeople}
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+				onNewList={onNewList}
+			/>
 			<NewReminder>
 				<Button>
 					<Plus className="size-4" />

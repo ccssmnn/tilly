@@ -116,9 +116,13 @@ const basePeopleMessages = messages({
 		"Erstelle eine hashtag-basierte Liste und füge Personen hinzu",
 
 	// List filter bar
+	"person.listFilter.lists": "Lists",
+	"person.listFilter.createNewList": "New List",
+	"person.listFilter.editList": "Edit {$listName}",
+	"person.listFilter.clearFilter": "Clear Filter",
 	"person.listFilter.editTooltip":
 		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
-	"person.listFilter.createTooltip": "Neue Liste erstellen",
+	"person.listFilter.createTooltip": "Create new list",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -239,6 +243,10 @@ const dePeopleMessages = translate(basePeopleMessages, {
 		"Erstelle eine hashtag-basierte Liste und füge Personen hinzu",
 
 	// List filter bar
+	"person.listFilter.lists": "Listen",
+	"person.listFilter.createNewList": "Neue Liste",
+	"person.listFilter.editList": "{$listName} bearbeiten",
+	"person.listFilter.clearFilter": "Filter löschen",
 	"person.listFilter.editTooltip":
 		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
 	"person.listFilter.createTooltip": "Neue Liste erstellen",

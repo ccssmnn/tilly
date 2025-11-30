@@ -26,21 +26,7 @@ function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 			person.name.toLowerCase().includes(searchWithoutFilter) ||
 			person.summary?.toLowerCase().includes(searchWithoutFilter)
 
-		let matchesFilter =
-			!listFilter ||
-			hasHashtag(
-				person as unknown as {
-					summary?: string
-					reminders?: {
-						$isLoaded?: boolean
-						values?: () => Array<{
-							done?: boolean
-							dueAtDate?: string
-						}>
-					}
-				},
-				listFilter,
-			)
+		let matchesFilter = !listFilter || hasHashtag(person, listFilter)
 
 		return matchesSearch && matchesFilter
 	})

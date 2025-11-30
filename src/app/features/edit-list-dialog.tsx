@@ -20,7 +20,7 @@ import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, extractHashtags } from "#shared/schema/user"
 import { ListForm } from "#app/features/list-form"
-import { T, useIntl } from "#shared/intl/setup"
+import { T } from "#shared/intl/setup"
 
 export { EditListDialog }
 export const _test = {
@@ -44,7 +44,6 @@ function EditListDialog({
 		summary?: string
 	}>
 }) {
-	let t = useIntl()
 	let [isLoading, setIsLoading] = useState(false)
 	let [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 	let me = useAccount(UserAccount)

@@ -1,44 +1,27 @@
-import { extractHashtags, hasDueReminders } from "#shared/schema/user"
+import { extractHashtags } from "#shared/schema/user"
 
 export { useAvailableLists, extractListFilterFromQuery, setListFilterInQuery }
+export type { PersonWithSummary, AvailableList }
 
-interface AvailableList {
+type PersonWithSummary = {
+	$jazz: { id: string }
+	name: string
+	summary?: string
+}
+
+type AvailableList = {
 	tag: string
 	count: number
 }
 
-function useAvailableLists(people: unknown[]): {
-	all: AvailableList
-	due: AvailableList
-	hashtags: AvailableList[]
-} {
+function useAvailableLists(people: PersonWithSummary[]): AvailableList[] {
 	let allHashtags = new Map<string, number>()
-	let dueCount = 0
-	let totalCount = 0
 
 	for (let person of people) {
-		if (!person || typeof person !== "object") continue
-		if (!("summary" in person) || !("reminders" in person)) continue
-
-		totalCount++
-		let summary = person.summary as string | undefined
-		let hashtags = extractHashtags(summary)
+		let hashtags = extractHashtags(person.summary)
 
 		for (let tag of hashtags) {
 			allHashtags.set(tag, (allHashtags.get(tag) ?? 0) + 1)
-		}
-
-		if (
-			hasDueReminders(
-				person as {
-					reminders?: {
-						$isLoaded?: boolean
-						values?: () => Array<{ done?: boolean; dueAtDate?: string }>
-					}
-				},
-			)
-		) {
-			dueCount++
 		}
 	}
 
@@ -46,11 +29,7 @@ function useAvailableLists(people: unknown[]): {
 		.map(([tag, count]) => ({ tag, count }))
 		.sort((a, b) => b.count - a.count)
 
-	return {
-		all: { tag: "All", count: totalCount },
-		due: { tag: "#due", count: dueCount },
-		hashtags,
-	}
+	return hashtags
 }
 
 function extractListFilterFromQuery(query: string): string | null {
@@ -61,6 +40,5 @@ function extractListFilterFromQuery(query: string): string | null {
 function setListFilterInQuery(query: string, filter: string | null): string {
 	let withoutFilter = query.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
 	if (!filter) return withoutFilter
-	if (filter === "All") return withoutFilter
-	return filter ? `${filter} ${withoutFilter}`.trim() : withoutFilter
+	return `${filter} ${withoutFilter}`.trim()
 }

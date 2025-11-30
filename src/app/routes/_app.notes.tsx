@@ -22,8 +22,9 @@ import { NoteListItem } from "#app/features/note-list-item"
 import { NewNote } from "#app/features/new-note"
 import { NoteTour } from "#app/features/note-tour"
 import { cn } from "#app/lib/utils"
-import { ListFilterBar } from "#app/features/list-filter-bar"
+import { ListFilterButton } from "#app/features/list-filter-button"
 import { NewListDialog } from "#app/features/new-list-dialog"
+import type { PersonWithSummary } from "#app/features/list-hooks"
 
 export let Route = createFileRoute("/_app/notes")({
 	loader: async ({ context }) => {
@@ -68,7 +69,6 @@ function NotesScreen() {
 
 	if (notes.total > 0) {
 		virtualItems.push({ type: "search" })
-		virtualItems.push({ type: "filters" })
 	}
 
 	if (notes.total === 0 || (!didSearch && !hasMatches)) {
@@ -172,7 +172,6 @@ function NotesScreen() {
 
 type VirtualItem =
 	| { type: "heading" }
-	| { type: "filters" }
 	| { type: "search" }
 	| {
 			type: "note"
@@ -187,7 +186,7 @@ type VirtualItem =
 function renderVirtualItem(
 	item: VirtualItem,
 	searchQuery: string,
-	allPeople: unknown[],
+	allPeople: PersonWithSummary[],
 	onNewList: () => void,
 	setSearchQuery: (query: string) => void,
 ): ReactNode {
@@ -195,18 +194,15 @@ function renderVirtualItem(
 		case "heading":
 			return <HeadingSection />
 
-		case "filters":
+		case "search":
 			return (
-				<ListFilterBar
-					people={allPeople}
+				<SearchSection
+					allPeople={allPeople}
 					searchQuery={searchQuery}
 					setSearchQuery={setSearchQuery}
 					onNewList={onNewList}
 				/>
 			)
-
-		case "search":
-			return <SearchSection />
 
 		case "note":
 			return (
@@ -247,7 +243,17 @@ function HeadingSection() {
 	)
 }
 
-function SearchSection() {
+function SearchSection({
+	allPeople,
+	searchQuery,
+	setSearchQuery,
+	onNewList,
+}: {
+	allPeople: PersonWithSummary[]
+	searchQuery: string
+	setSearchQuery: (query: string) => void
+	onNewList: () => void
+}) {
 	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
 	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
 	let t = useIntl()
@@ -280,6 +286,12 @@ function SearchSection() {
 					</span>
 				</Button>
 			) : null}
+			<ListFilterButton
+				people={allPeople}
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+				onNewList={onNewList}
+			/>
 			<NewNote>
 				<Button>
 					<Plus className="size-4" />

@@ -27,7 +27,7 @@ import { cn } from "#app/lib/utils"
 import { UserAccount } from "#shared/schema/user"
 import { personListQuery } from "#app/features/person-query"
 import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
-import { ListFilterBar } from "#app/features/list-filter-bar"
+import { ListFilterButton } from "#app/features/list-filter-button"
 import { NewListDialog } from "#app/features/new-list-dialog"
 import { useState } from "react"
 
@@ -78,7 +78,6 @@ function PeopleScreen() {
 
 	if (hasPeople) {
 		virtualItems.push({ type: "controls" })
-		virtualItems.push({ type: "filters" })
 	}
 
 	if (!hasPeople) {
@@ -189,7 +188,6 @@ function PeopleScreen() {
 
 type VirtualItem =
 	| { type: "heading" }
-	| { type: "filters" }
 	| { type: "controls" }
 	| { type: "person"; person: LoadedPerson; noLazy: boolean }
 	| { type: "no-results"; searchQuery: string }
@@ -212,21 +210,14 @@ function renderVirtualItem(
 		case "heading":
 			return <HeadingSection />
 
-		case "filters":
-			return (
-				<ListFilterBar
-					people={options.allPeople}
-					searchQuery={options.searchQuery}
-					setSearchQuery={options.setPeopleSearchQuery}
-					onNewList={options.onNewList}
-				/>
-			)
-
 		case "controls":
 			return (
 				<PeopleControls
 					setPeopleSearchQuery={options.setPeopleSearchQuery}
 					navigate={options.navigate}
+					allPeople={options.allPeople}
+					searchQuery={options.searchQuery}
+					onNewList={options.onNewList}
 				/>
 			)
 
@@ -285,9 +276,15 @@ function HeadingSection() {
 function PeopleControls({
 	setPeopleSearchQuery,
 	navigate,
+	allPeople,
+	searchQuery,
+	onNewList,
 }: {
 	setPeopleSearchQuery: (query: string) => void
 	navigate: ReturnType<typeof Route.useNavigate>
+	allPeople: LoadedPerson[]
+	searchQuery: string
+	onNewList: () => void
 }) {
 	let { peopleSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
@@ -323,6 +320,12 @@ function PeopleControls({
 					</span>
 				</Button>
 			) : null}
+			<ListFilterButton
+				people={allPeople}
+				searchQuery={searchQuery}
+				setSearchQuery={setPeopleSearchQuery}
+				onNewList={onNewList}
+			/>
 			<NewPerson
 				onSuccess={personId => {
 					setPeopleSearchQuery("")

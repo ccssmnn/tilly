@@ -309,16 +309,9 @@ function extractHashtags(summary?: string): string[] {
 function hasHashtag(
 	person: {
 		summary?: string
-		reminders?: {
-			$isLoaded?: boolean
-			values?: () => Array<{ done?: boolean; dueAtDate?: string }>
-		}
 	},
 	tag: string,
 ): boolean {
-	if (tag === "#due") {
-		return hasDueReminders(person)
-	}
 	let hashtags = extractHashtags(person.summary)
 	return hashtags.includes(tag.toLowerCase())
 }
