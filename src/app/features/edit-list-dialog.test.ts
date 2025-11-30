@@ -1,9 +1,8 @@
 import { describe, test, expect } from "vitest"
-import {
-	removeHashtagFromSummary,
-	addHashtagToSummary,
-	replaceHashtagInSummary,
-} from "./edit-list-dialog"
+import { _test } from "./edit-list-dialog"
+
+let { removeHashtagFromSummary, addHashtagToSummary, replaceHashtagInSummary } =
+	_test
 
 describe("removeHashtagFromSummary", () => {
 	test("removes hashtag from end of summary", () => {

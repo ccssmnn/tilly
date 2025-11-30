@@ -95,6 +95,30 @@ const basePeopleMessages = messages({
 	"person.listForm.save": "Save",
 	"person.listForm.saving": "Saving...",
 	"person.listForm.delete": "Delete list",
+	"person.listForm.validation.nameRequired": "List name is required",
+	"person.listForm.validation.nameFormat":
+		"Only lowercase letters, numbers, and underscores allowed",
+	"person.listForm.validation.peopleRequired":
+		"At least one person must be selected",
+
+	// Edit list dialog
+	"person.editList.title": "Liste {$hashtag} bearbeiten",
+	"person.editList.description":
+		"Verwalte Personen in dieser Liste und benenne sie um",
+	"person.editList.deleteConfirm.title": "Liste {$hashtag} löschen",
+	"person.editList.deleteConfirm.description":
+		"Dies entfernt {$hashtag} von {$count :number} Personen. Diese Aktion kann nicht rückgängig gemacht werden.",
+	"person.editList.deleteConfirm.delete": "Löschen",
+
+	// New list dialog
+	"person.newList.title": "Neue Liste erstellen",
+	"person.newList.description":
+		"Erstelle eine hashtag-basierte Liste und füge Personen hinzu",
+
+	// List filter bar
+	"person.listFilter.editTooltip":
+		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
+	"person.listFilter.createTooltip": "Neue Liste erstellen",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -194,4 +218,28 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.listForm.save": "Speichern",
 	"person.listForm.saving": "Speichern...",
 	"person.listForm.delete": "Liste löschen",
+	"person.listForm.validation.nameRequired": "Listenname erforderlich",
+	"person.listForm.validation.nameFormat":
+		"Nur Kleinbuchstaben, Zahlen und Unterstriche erlaubt",
+	"person.listForm.validation.peopleRequired":
+		"Mindestens eine Person muss ausgewählt werden",
+
+	// Edit list dialog
+	"person.editList.title": "Liste {$hashtag} bearbeiten",
+	"person.editList.description":
+		"Verwalte Personen in dieser Liste und benenne sie um",
+	"person.editList.deleteConfirm.title": "Liste {$hashtag} löschen",
+	"person.editList.deleteConfirm.description":
+		"Dies entfernt {$hashtag} von {$count :number} Personen. Diese Aktion kann nicht rückgängig gemacht werden.",
+	"person.editList.deleteConfirm.delete": "Löschen",
+
+	// New list dialog
+	"person.newList.title": "Neue Liste erstellen",
+	"person.newList.description":
+		"Erstelle eine hashtag-basierte Liste und füge Personen hinzu",
+
+	// List filter bar
+	"person.listFilter.editTooltip":
+		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
+	"person.listFilter.createTooltip": "Neue Liste erstellen",
 })

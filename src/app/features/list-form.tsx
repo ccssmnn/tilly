@@ -21,18 +21,17 @@ import {
 	FormMessage,
 } from "#shared/ui/form"
 
-let formSchema = z.object({
-	listName: z
-		.string()
-		.min(1, "List name is required")
-		.regex(
-			/^[a-z0-9_]+$/,
-			"Only lowercase letters, numbers, and underscores allowed",
-		),
-	selectedPeople: z
-		.set(z.string())
-		.min(1, "At least one person must be selected"),
-})
+function getFormSchema(t: ReturnType<typeof useIntl>) {
+	return z.object({
+		listName: z
+			.string()
+			.min(1, t("person.listForm.validation.nameRequired"))
+			.regex(/^[a-z0-9_]+$/, t("person.listForm.validation.nameFormat")),
+		selectedPeople: z
+			.set(z.string())
+			.min(1, t("person.listForm.validation.peopleRequired")),
+	})
+}
 
 export { ListForm }
 
@@ -46,6 +45,7 @@ function ListForm(props: {
 	mode: "create" | "edit"
 }) {
 	let t = useIntl()
+	let formSchema = getFormSchema(t)
 	let form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {

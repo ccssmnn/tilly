@@ -10,6 +10,7 @@ import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import { ListForm } from "#app/features/list-form"
+import { T } from "#shared/intl/setup"
 
 export { NewListDialog }
 
@@ -61,9 +62,11 @@ function NewListDialog({
 				className="sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
-						<DialogTitle>Create new list</DialogTitle>
+						<DialogTitle>
+							<T k="person.newList.title" />
+						</DialogTitle>
 						<DialogDescription>
-							Create a hashtag-based list and add people to it
+							<T k="person.newList.description" />
 						</DialogDescription>
 					</DialogHeader>
 				}

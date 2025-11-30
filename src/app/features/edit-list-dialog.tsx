@@ -20,9 +20,10 @@ import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, extractHashtags } from "#shared/schema/user"
 import { ListForm } from "#app/features/list-form"
+import { T, useIntl } from "#shared/intl/setup"
 
-export {
-	EditListDialog,
+export { EditListDialog }
+export const _test = {
 	removeHashtagFromSummary,
 	addHashtagToSummary,
 	replaceHashtagInSummary,
@@ -36,26 +37,25 @@ function EditListDialog({
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	hashtag: string | null
+	hashtag: string
 	people: Array<{
 		$jazz: { id: string }
 		name: string
 		summary?: string
 	}>
 }) {
+	let t = useIntl()
 	let [isLoading, setIsLoading] = useState(false)
 	let [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 	let me = useAccount(UserAccount)
 
-	let peopleInList = hashtag
-		? people.filter(p => {
-				let tags = extractHashtags(p.summary)
-				return tags.includes(hashtag.toLowerCase())
-			})
-		: []
+	let peopleInList = people.filter(p => {
+		let tags = extractHashtags(p.summary)
+		return tags.includes(hashtag.toLowerCase())
+	})
 
 	let initialSelectedPeople = new Set(peopleInList.map(p => p.$jazz.id))
-	let initialListName = hashtag ? hashtag.substring(1) : ""
+	let initialListName = hashtag.substring(1)
 
 	let handleSave = async (values: {
 		listName: string
@@ -134,9 +134,11 @@ function EditListDialog({
 				className="max-h-[80vh] overflow-y-auto sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
-						<DialogTitle>Edit list {hashtag}</DialogTitle>
+						<DialogTitle>
+							<T k="person.editList.title" params={{ hashtag }} />
+						</DialogTitle>
 						<DialogDescription>
-							Manage people in this list and rename it
+							<T k="person.editList.description" />
 						</DialogDescription>
 					</DialogHeader>
 				}
@@ -156,20 +158,31 @@ function EditListDialog({
 				>
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>Delete list {hashtag}</AlertDialogTitle>
+							<AlertDialogTitle>
+								<T
+									k="person.editList.deleteConfirm.title"
+									params={{ hashtag }}
+								/>
+							</AlertDialogTitle>
 							<AlertDialogDescription>
-								This will remove {hashtag} from {peopleInList.length} person
-								{peopleInList.length !== 1 ? "s" : ""}. This action cannot be
-								undone.
+								<T
+									k="person.editList.deleteConfirm.description"
+									params={{
+										hashtag,
+										count: peopleInList.length,
+									}}
+								/>
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
-							<AlertDialogCancel>Cancel</AlertDialogCancel>
+							<AlertDialogCancel>
+								<T k="person.listForm.cancel" />
+							</AlertDialogCancel>
 							<AlertDialogAction
 								onClick={handleDeleteConfirm}
 								disabled={isLoading}
 							>
-								Delete
+								<T k="person.editList.deleteConfirm.delete" />
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
