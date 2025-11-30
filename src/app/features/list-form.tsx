@@ -4,7 +4,7 @@ import { T, useIntl } from "#shared/intl/setup"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage } from "jazz-tools/react"
 import { useMemo } from "react"
-import { Check } from "react-bootstrap-icons"
+import { Check, Hash } from "react-bootstrap-icons"
 import { useState } from "react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -83,14 +83,14 @@ function ListForm(props: {
 								<T k="person.listForm.name.label" />
 							</FormLabel>
 							<FormControl>
-								<div className="flex items-center gap-2">
-									<span className="text-muted-foreground">#</span>
+								<div className="relative">
+									<Hash className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
 									<Input
 										{...field}
 										placeholder={t("person.listForm.name.placeholder")}
 										onChange={e => field.onChange(e.target.value.toLowerCase())}
 										disabled={props.isLoading}
-										className="flex-1"
+										className="pl-10"
 									/>
 								</div>
 							</FormControl>
