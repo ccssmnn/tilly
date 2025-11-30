@@ -434,7 +434,15 @@ function PersonDetails({
 
 					{person.summary && (
 						<p className="text-muted-foreground my-3 select-text">
-							{person.summary}
+							{person.summary.split(/(#[a-zA-Z0-9_]+)/).map((part, i) =>
+								part.startsWith("#") ? (
+									<span key={i} className="text-primary font-bold">
+										{part}
+									</span>
+								) : (
+									part
+								),
+							)}
 						</p>
 					)}
 
