@@ -36,7 +36,6 @@ function PersonSelector(props: {
 				placeholder={props.searchPlaceholder}
 				value={searchQuery}
 				onChange={e => setSearchQuery(e.target.value)}
-				autoFocus
 			/>
 			<div className="h-[300px] space-y-1 overflow-y-auto">
 				{filteredPeople.length === 0 ? (
