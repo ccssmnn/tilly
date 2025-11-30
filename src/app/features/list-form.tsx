@@ -1,5 +1,6 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
+import { T, useIntl } from "#shared/intl/setup"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage } from "jazz-tools/react"
 import { useMemo } from "react"
@@ -44,6 +45,7 @@ function ListForm(props: {
 	isLoading?: boolean
 	mode: "create" | "edit"
 }) {
+	let t = useIntl()
 	let form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -77,13 +79,15 @@ function ListForm(props: {
 					name="listName"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>List name</FormLabel>
+							<FormLabel>
+								<T k="person.listForm.name.label" />
+							</FormLabel>
 							<FormControl>
 								<div className="flex items-center gap-2">
 									<span className="text-muted-foreground">#</span>
 									<Input
 										{...field}
-										placeholder="family"
+										placeholder={t("person.listForm.name.placeholder")}
 										onChange={e => field.onChange(e.target.value.toLowerCase())}
 										disabled={props.isLoading}
 										className="flex-1"
@@ -91,7 +95,7 @@ function ListForm(props: {
 								</div>
 							</FormControl>
 							<FormDescription>
-								Lowercase alphanumeric and underscores only
+								<T k="person.listForm.name.description" />
 							</FormDescription>
 							<FormMessage />
 						</FormItem>
@@ -99,14 +103,16 @@ function ListForm(props: {
 				/>
 
 				<div className="space-y-2">
-					<label className="text-sm font-medium">Select people</label>
+					<label className="text-sm font-medium">
+						<T k="person.listForm.selectPeople.label" />
+					</label>
 					<PeopleListSelector
 						selectedPeople={selectedPeople}
 						onSelectionChange={newSelection =>
 							form.setValue("selectedPeople", newSelection)
 						}
-						searchPlaceholder="Search people..."
-						emptyMessage="No people found"
+						searchPlaceholder={t("person.listForm.search.placeholder")}
+						emptyMessage={t("person.listForm.search.empty")}
 						disabled={props.isLoading}
 					/>
 				</div>
@@ -120,7 +126,7 @@ function ListForm(props: {
 							disabled={props.isLoading}
 							type="button"
 						>
-							Delete list
+							<T k="person.listForm.delete" />
 						</Button>
 					)}
 					<div className="ml-auto flex gap-2">
@@ -130,10 +136,14 @@ function ListForm(props: {
 							disabled={props.isLoading}
 							type="button"
 						>
-							Cancel
+							<T k="person.listForm.cancel" />
 						</Button>
 						<Button type="submit" disabled={!hasChanges || props.isLoading}>
-							{props.isLoading ? "Saving..." : "Save"}
+							{props.isLoading ? (
+								<T k="person.listForm.saving" />
+							) : (
+								<T k="person.listForm.save" />
+							)}
 						</Button>
 					</div>
 				</div>
@@ -183,7 +193,6 @@ function PeopleListSelector(props: {
 				value={searchQuery}
 				onChange={e => setSearchQuery(e.target.value)}
 				disabled={props.disabled}
-				autoFocus
 			/>
 			<div className="h-64 space-y-1 overflow-y-auto rounded-md">
 				{filteredPeople.length === 0 ? (

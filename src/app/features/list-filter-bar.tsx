@@ -1,6 +1,6 @@
 import { Button } from "#shared/ui/button"
 import { Plus } from "react-bootstrap-icons"
-import { Badge } from "#shared/ui/badge"
+
 import { useAvailableLists, setListFilterInQuery } from "./list-hooks"
 import { EditListDialog } from "./edit-list-dialog"
 import { useRef, useEffect, useState } from "react"
@@ -26,14 +26,11 @@ function ListFilterBar({
 
 	let currentFilter = getListFilterFromQuery(searchQuery)
 
-	let filterButtons = [
-		{ tag: "All", count: availableLists.all.count, isAll: true },
-	]
+	let filterButtons = [{ tag: "All", isAll: true }]
 
 	if (availableLists.due.count > 0) {
 		filterButtons.push({
 			tag: availableLists.due.tag,
-			count: availableLists.due.count,
 			isAll: false,
 		})
 	}
@@ -41,7 +38,6 @@ function ListFilterBar({
 	for (let hashtag of availableLists.hashtags) {
 		filterButtons.push({
 			tag: hashtag.tag,
-			count: hashtag.count,
 			isAll: false,
 		})
 	}
@@ -121,11 +117,6 @@ function ListFilterBar({
 							}
 						>
 							<span>{btn.tag}</span>
-							{btn.count > 0 && (
-								<Badge variant="secondary" className="ml-2">
-									{btn.count}
-								</Badge>
-							)}
 						</Button>
 					))}
 					<Button

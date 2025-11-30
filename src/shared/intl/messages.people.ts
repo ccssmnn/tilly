@@ -69,6 +69,32 @@ const basePeopleMessages = messages({
 	"person.permanentDelete.button": "Permanently Delete",
 	"person.toast.restored": "{$name} has been restored",
 	"person.toast.permanentlyDeleted": "{$name} has been permanently deleted",
+
+	// Manage lists dialog
+	"person.manageLists.title": "Manage Lists",
+	"person.manageLists.description":
+		"Add {$name} to lists or remove them from existing lists",
+	"person.manageLists.existingLists": "Existing lists",
+	"person.manageLists.addToList": "Add to #{$listName}",
+	"person.manageLists.removeFromList": "Remove from #{$listName}",
+	"person.manageLists.createList": "Create new list",
+	"person.manageLists.or": "or",
+	"person.manageLists.toast.added": "Added {$name} to #{$listName}",
+	"person.manageLists.toast.removed": "Removed {$name} from #{$listName}",
+	"person.manageLists.toast.created": "Created list #{$listName}",
+
+	// List form
+	"person.listForm.name.label": "List name",
+	"person.listForm.name.placeholder": "family",
+	"person.listForm.name.description":
+		"Lowercase alphanumeric and underscores only",
+	"person.listForm.selectPeople.label": "Select people",
+	"person.listForm.search.placeholder": "Search people...",
+	"person.listForm.search.empty": "No people found",
+	"person.listForm.cancel": "Cancel",
+	"person.listForm.save": "Save",
+	"person.listForm.saving": "Saving...",
+	"person.listForm.delete": "Delete list",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -142,4 +168,30 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.permanentDelete.button": "Endgültig löschen",
 	"person.toast.restored": "{$name} wurde wiederhergestellt",
 	"person.toast.permanentlyDeleted": "{$name} wurde endgültig gelöscht",
+
+	// Manage lists dialog
+	"person.manageLists.title": "Listen verwalten",
+	"person.manageLists.description":
+		"Füge {$name} zu Listen hinzu oder entferne sie aus bestehenden Listen",
+	"person.manageLists.existingLists": "Bestehende Listen",
+	"person.manageLists.addToList": "Zu #{$listName} hinzufügen",
+	"person.manageLists.removeFromList": "Aus #{$listName} entfernen",
+	"person.manageLists.createList": "Neue Liste erstellen",
+	"person.manageLists.or": "oder",
+	"person.manageLists.toast.added": "{$name} zu #{$listName} hinzugefügt",
+	"person.manageLists.toast.removed": "{$name} aus #{$listName} entfernt",
+	"person.manageLists.toast.created": "Liste #{$listName} erstellt",
+
+	// List form
+	"person.listForm.name.label": "Listenname",
+	"person.listForm.name.placeholder": "familie",
+	"person.listForm.name.description":
+		"Nur Kleinbuchstaben, Zahlen und Unterstriche",
+	"person.listForm.selectPeople.label": "Personen auswählen",
+	"person.listForm.search.placeholder": "Personen suchen...",
+	"person.listForm.search.empty": "Keine Personen gefunden",
+	"person.listForm.cancel": "Abbrechen",
+	"person.listForm.save": "Speichern",
+	"person.listForm.saving": "Speichern...",
+	"person.listForm.delete": "Liste löschen",
 })
