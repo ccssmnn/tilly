@@ -7,6 +7,31 @@ import { Check } from "react-bootstrap-icons"
 import { useState } from "react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "#shared/ui/form"
+
+let formSchema = z.object({
+	listName: z
+		.string()
+		.min(1, "List name is required")
+		.regex(
+			/^[a-z0-9_]+$/,
+			"Only lowercase letters, numbers, and underscores allowed",
+		),
+	selectedPeople: z
+		.set(z.string())
+		.min(1, "At least one person must be selected"),
+})
 
 export { ListForm }
 
@@ -19,84 +44,101 @@ function ListForm(props: {
 	isLoading?: boolean
 	mode: "create" | "edit"
 }) {
-	let [listName, setListName] = useState(props.defaultListName)
-	let [selectedPeople, setSelectedPeople] = useState(
-		props.defaultSelectedPeople,
-	)
+	let form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			listName: props.defaultListName,
+			selectedPeople: props.defaultSelectedPeople,
+		},
+	})
+
+	let formValues = form.watch()
+	let selectedPeople = formValues.selectedPeople
+	let listName = formValues.listName
 
 	let hasChanges =
 		listName !== props.defaultListName ||
 		selectedPeople.size !== props.defaultSelectedPeople.size ||
 		[...selectedPeople].some(id => !props.defaultSelectedPeople.has(id))
 
-	let isValid = listName.trim().length > 0 && selectedPeople.size > 0
-
-	let handleSubmit = () => {
-		if (!isValid || !hasChanges) return
-		props.onSubmit({ listName, selectedPeople })
+	let handleSubmit = (values: z.infer<typeof formSchema>) => {
+		if (!hasChanges) return
+		props.onSubmit({
+			listName: values.listName,
+			selectedPeople: values.selectedPeople,
+		})
 	}
 
 	return (
-		<div className="space-y-4">
-			<div className="space-y-2">
-				<label htmlFor="list-name" className="text-sm font-medium">
-					List name
-				</label>
-				<div className="flex items-center gap-2">
-					<span className="text-muted-foreground">#</span>
-					<Input
-						id="list-name"
-						placeholder="family"
-						value={listName}
-						onChange={e => setListName(e.target.value)}
+		<Form {...form}>
+			<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+				<FormField
+					control={form.control}
+					name="listName"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>List name</FormLabel>
+							<FormControl>
+								<div className="flex items-center gap-2">
+									<span className="text-muted-foreground">#</span>
+									<Input
+										{...field}
+										placeholder="family"
+										onChange={e => field.onChange(e.target.value.toLowerCase())}
+										disabled={props.isLoading}
+										className="flex-1"
+									/>
+								</div>
+							</FormControl>
+							<FormDescription>
+								Lowercase alphanumeric and underscores only
+							</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<div className="space-y-2">
+					<label className="text-sm font-medium">Select people</label>
+					<PeopleListSelector
+						selectedPeople={selectedPeople}
+						onSelectionChange={newSelection =>
+							form.setValue("selectedPeople", newSelection)
+						}
+						searchPlaceholder="Search people..."
+						emptyMessage="No people found"
 						disabled={props.isLoading}
-						className="flex-1"
 					/>
 				</div>
-				<p className="text-muted-foreground text-xs">
-					Lowercase alphanumeric and underscores only
-				</p>
-			</div>
 
-			<div className="space-y-2">
-				<label className="text-sm font-medium">Select people</label>
-				<PeopleListSelector
-					selectedPeople={selectedPeople}
-					onSelectionChange={setSelectedPeople}
-					searchPlaceholder="Search people..."
-					emptyMessage="No people found"
-					disabled={props.isLoading}
-				/>
-			</div>
-
-			<div className="flex justify-between gap-2 pt-2">
-				{props.mode === "edit" && props.onDelete && (
-					<Button
-						variant="destructive"
-						size="sm"
-						onClick={props.onDelete}
-						disabled={props.isLoading}
-					>
-						Delete list
-					</Button>
-				)}
-				<div className="ml-auto flex gap-2">
-					<Button
-						variant="outline"
-						onClick={props.onCancel}
-						disabled={props.isLoading}
-					>
-						Cancel
-					</Button>
-					<Button
-						onClick={handleSubmit}
-						disabled={!hasChanges || !isValid || props.isLoading}
-					>
-						{props.isLoading ? "Saving..." : "Save"}
-					</Button>
+				<div className="flex justify-between gap-2 pt-2">
+					{props.mode === "edit" && props.onDelete && (
+						<Button
+							variant="destructive"
+							size="sm"
+							onClick={props.onDelete}
+							disabled={props.isLoading}
+							type="button"
+						>
+							Delete list
+						</Button>
+					)}
+					<div className="ml-auto flex gap-2">
+						<Button
+							variant="outline"
+							onClick={props.onCancel}
+							disabled={props.isLoading}
+							type="button"
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={!hasChanges || props.isLoading}>
+							{props.isLoading ? "Saving..." : "Save"}
+						</Button>
+					</div>
 				</div>
-			</div>
-		</div>
+			</form>
+		</Form>
 	)
 }
 
@@ -151,6 +193,7 @@ function PeopleListSelector(props: {
 				) : (
 					filteredPeople.map(person => (
 						<button
+							type="button"
 							key={person.$jazz.id}
 							onClick={() => handleTogglePerson(person.$jazz.id)}
 							disabled={props.disabled}
@@ -158,7 +201,7 @@ function PeopleListSelector(props: {
 								props.selectedPeople.has(person.$jazz.id) ? "bg-muted" : ""
 							}`}
 						>
-							<div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+							<div className="flex h-5 w-5 shrink-0 items-center justify-center">
 								{props.selectedPeople.has(person.$jazz.id) && (
 									<Check className="h-5 w-5" />
 								)}

@@ -26,7 +26,7 @@ import {
 } from "#shared/ui/alert-dialog"
 import { Person, UserAccount, isDeleted } from "#shared/schema/user"
 import { co } from "jazz-tools"
-import { PencilSquare, Trash } from "react-bootstrap-icons"
+import { Collection, PencilSquare, Trash } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
 import { AddToListDialog } from "./add-to-list-dialog"
 import { useState } from "react"
@@ -72,6 +72,7 @@ function ActionsDropdown({
 					}}
 				>
 					Add to list
+					<Collection />
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => {
