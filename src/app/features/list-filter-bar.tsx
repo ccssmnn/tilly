@@ -1,6 +1,5 @@
 import { Button } from "#shared/ui/button"
 import { Plus } from "react-bootstrap-icons"
-
 import { useAvailableLists, setListFilterInQuery } from "./list-hooks"
 import { EditListDialog } from "./edit-list-dialog"
 import { useRef, useEffect, useState } from "react"
@@ -97,7 +96,7 @@ function ListFilterBar({
 					{filterButtons.map(btn => (
 						<Button
 							key={btn.tag}
-							variant={currentFilter === btn.tag ? "default" : "outline"}
+							variant={currentFilter === btn.tag ? "default" : "secondary"}
 							size="sm"
 							onClick={() => handleFilterClick(btn.tag)}
 							onContextMenu={e => {
@@ -109,7 +108,6 @@ function ListFilterBar({
 							onTouchStart={() => handleTouchStart(btn.tag)}
 							onTouchEnd={handleTouchEnd}
 							data-active={currentFilter === btn.tag}
-							className="flex-shrink-0 whitespace-nowrap"
 							title={
 								btn.tag !== "All" && btn.tag !== "#due"
 									? "Right-click or long-press to edit"
@@ -120,10 +118,10 @@ function ListFilterBar({
 						</Button>
 					))}
 					<Button
-						variant="outline"
+						variant="secondary"
 						size="sm"
 						onClick={onNewList}
-						className="flex-shrink-0 whitespace-nowrap"
+						className="shrink-0 whitespace-nowrap"
 						title="Create new list"
 					>
 						<Plus className="size-4" />
