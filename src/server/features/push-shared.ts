@@ -57,8 +57,6 @@ let peopleQuery = {
 	root: {
 		people: {
 			$each: {
-				avatar: true,
-				notes: { $each: true },
 				reminders: { $each: true },
 			},
 		},
