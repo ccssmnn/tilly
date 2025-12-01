@@ -28,8 +28,6 @@ import { UserAccount } from "#shared/schema/user"
 import { personListQuery } from "#app/features/person-query"
 import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
 import { ListFilterButton } from "#app/features/list-filter-button"
-import { NewListDialog } from "#app/features/new-list-dialog"
-import { useState } from "react"
 
 export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
@@ -50,7 +48,6 @@ type LoadedPerson = PersonListLoadedPerson
 function PeopleScreen() {
 	let { me: data, eagerCount } = Route.useLoaderData()
 	let navigate = Route.useNavigate()
-	let [newListOpen, setNewListOpen] = useState(false)
 
 	let subscribedMe = useAccount(UserAccount, {
 		resolve: personListQuery,
@@ -171,17 +168,11 @@ function PeopleScreen() {
 								navigate,
 								setPeopleSearchQuery,
 								allPeople,
-								onNewList: () => setNewListOpen(true),
 							})}
 						</div>
 					)
 				})}
 			</div>
-			<NewListDialog
-				open={newListOpen}
-				onOpenChange={setNewListOpen}
-				people={allPeople}
-			/>
 		</>
 	)
 }
@@ -203,7 +194,6 @@ function renderVirtualItem(
 		navigate: ReturnType<typeof Route.useNavigate>
 		setPeopleSearchQuery: (query: string) => void
 		allPeople: LoadedPerson[]
-		onNewList: () => void
 	},
 ): ReactNode {
 	switch (item.type) {
@@ -217,7 +207,6 @@ function renderVirtualItem(
 					navigate={options.navigate}
 					allPeople={options.allPeople}
 					searchQuery={options.searchQuery}
-					onNewList={options.onNewList}
 				/>
 			)
 
@@ -278,13 +267,11 @@ function PeopleControls({
 	navigate,
 	allPeople,
 	searchQuery,
-	onNewList,
 }: {
 	setPeopleSearchQuery: (query: string) => void
 	navigate: ReturnType<typeof Route.useNavigate>
 	allPeople: LoadedPerson[]
 	searchQuery: string
-	onNewList: () => void
 }) {
 	let { peopleSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
@@ -324,7 +311,6 @@ function PeopleControls({
 				people={allPeople}
 				searchQuery={searchQuery}
 				setSearchQuery={setPeopleSearchQuery}
-				onNewList={onNewList}
 			/>
 			<NewPerson
 				onSuccess={personId => {

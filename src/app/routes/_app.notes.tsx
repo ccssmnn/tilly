@@ -3,7 +3,7 @@ import { useNotes, type NotesLoadedAccount } from "#app/features/note-hooks"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
-import { useDeferredValue, useId, useState, type ReactNode } from "react"
+import { useDeferredValue, useId, type ReactNode } from "react"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -23,7 +23,6 @@ import { NewNote } from "#app/features/new-note"
 import { NoteTour } from "#app/features/note-tour"
 import { cn } from "#app/lib/utils"
 import { ListFilterButton } from "#app/features/list-filter-button"
-import { NewListDialog } from "#app/features/new-list-dialog"
 import type { PersonWithSummary } from "#app/features/list-hooks"
 
 export let Route = createFileRoute("/_app/notes")({
@@ -51,7 +50,6 @@ let resolve = {
 
 function NotesScreen() {
 	let { me: data } = Route.useLoaderData()
-	let [newListOpen, setNewListOpen] = useState(false)
 
 	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(notesSearchQuery)
@@ -154,18 +152,12 @@ function NotesScreen() {
 								item,
 								searchQuery,
 								allPeople,
-								() => setNewListOpen(true),
 								setNotesSearchQuery,
 							)}
 						</div>
 					)
 				})}
 			</div>
-			<NewListDialog
-				open={newListOpen}
-				onOpenChange={setNewListOpen}
-				people={allPeople}
-			/>
 		</>
 	)
 }
@@ -187,7 +179,6 @@ function renderVirtualItem(
 	item: VirtualItem,
 	searchQuery: string,
 	allPeople: PersonWithSummary[],
-	onNewList: () => void,
 	setSearchQuery: (query: string) => void,
 ): ReactNode {
 	switch (item.type) {
@@ -200,7 +191,6 @@ function renderVirtualItem(
 					allPeople={allPeople}
 					searchQuery={searchQuery}
 					setSearchQuery={setSearchQuery}
-					onNewList={onNewList}
 				/>
 			)
 
@@ -247,12 +237,10 @@ function SearchSection({
 	allPeople,
 	searchQuery,
 	setSearchQuery,
-	onNewList,
 }: {
 	allPeople: PersonWithSummary[]
 	searchQuery: string
 	setSearchQuery: (query: string) => void
-	onNewList: () => void
 }) {
 	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
 	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
@@ -290,7 +278,6 @@ function SearchSection({
 				people={allPeople}
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
-				onNewList={onNewList}
 			/>
 			<NewNote>
 				<Button>

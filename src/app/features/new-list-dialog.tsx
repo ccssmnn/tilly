@@ -18,6 +18,7 @@ function NewListDialog({
 	open,
 	onOpenChange,
 	people,
+	onListCreated,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -26,6 +27,7 @@ function NewListDialog({
 		name: string
 		summary?: string
 	}>
+	onListCreated?: (hashtag: string) => void
 }) {
 	let [isLoading, setIsLoading] = useState(false)
 	let me = useAccount(UserAccount)
@@ -50,6 +52,7 @@ function NewListDialog({
 				await updatePerson(personId, { summary: newSummary }, me)
 			}
 
+			onListCreated?.(hashtag)
 			onOpenChange(false)
 		} finally {
 			setIsLoading(false)

@@ -19,13 +19,7 @@ import {
 } from "#shared/ui/empty"
 import { Plus, X, Search, Bell } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
-import {
-	useDeferredValue,
-	useId,
-	useState,
-	type ReactNode,
-	type RefObject,
-} from "react"
+import { useDeferredValue, useId, type ReactNode, type RefObject } from "react"
 import { NewReminder } from "#app/features/new-reminder"
 import { ReminderTour } from "#app/features/reminder-tour"
 import { useAppStore } from "#app/lib/store"
@@ -35,7 +29,6 @@ import { co } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
 import { ListFilterButton } from "#app/features/list-filter-button"
-import { NewListDialog } from "#app/features/new-list-dialog"
 import type { PersonWithSummary } from "#app/features/list-hooks"
 
 export let Route = createFileRoute("/_app/reminders")({
@@ -63,7 +56,6 @@ let resolve = {
 
 function Reminders() {
 	let { me: data } = Route.useLoaderData()
-	let [newListOpen, setNewListOpen] = useState(false)
 
 	let subscribedMe = useAccount(UserAccount, { resolve })
 
@@ -201,18 +193,12 @@ function Reminders() {
 								searchQuery,
 								me: currentMe,
 								allPeople,
-								onNewList: () => setNewListOpen(true),
 								setSearchQuery: setRemindersSearchQuery,
 							})}
 						</div>
 					)
 				})}
 			</div>
-			<NewListDialog
-				open={newListOpen}
-				onOpenChange={setNewListOpen}
-				people={allPeople}
-			/>
 		</>
 	)
 }
@@ -241,7 +227,6 @@ function renderVirtualItem(
 		searchQuery: string
 		me: co.loaded<typeof UserAccount>
 		allPeople: PersonWithSummary[]
-		onNewList: () => void
 		setSearchQuery: (query: string) => void
 	},
 ): ReactNode {
@@ -255,7 +240,6 @@ function renderVirtualItem(
 					allPeople={options.allPeople}
 					searchQuery={options.searchQuery}
 					setSearchQuery={options.setSearchQuery}
-					onNewList={options.onNewList}
 				/>
 			)
 
@@ -306,12 +290,10 @@ function SearchSection({
 	allPeople,
 	searchQuery,
 	setSearchQuery,
-	onNewList,
 }: {
 	allPeople: PersonWithSummary[]
 	searchQuery: string
 	setSearchQuery: (query: string) => void
-	onNewList: () => void
 }) {
 	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput() as RefObject<HTMLInputElement>
@@ -349,7 +331,6 @@ function SearchSection({
 				people={allPeople}
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
-				onNewList={onNewList}
 			/>
 			<NewReminder>
 				<Button>

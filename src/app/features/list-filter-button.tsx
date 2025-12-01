@@ -16,6 +16,7 @@ import {
 	type PersonWithSummary,
 } from "./list-hooks"
 import { EditListDialog } from "./edit-list-dialog"
+import { NewListDialog } from "./new-list-dialog"
 import { useIntl, T } from "#shared/intl"
 import { useState } from "react"
 
@@ -25,18 +26,17 @@ function ListFilterButton({
 	people,
 	searchQuery,
 	setSearchQuery,
-	onNewList,
 }: {
 	people: PersonWithSummary[]
 	searchQuery: string
 	setSearchQuery: (query: string) => void
-	onNewList: () => void
 }) {
 	let t = useIntl()
 	let availableLists = useAvailableLists(people)
 	let [editListOpen, setEditListOpen] = useState(false)
 	let [editingHashtag, setEditingHashtag] = useState("")
 	let [dropdownOpen, setDropdownOpen] = useState(false)
+	let [newListOpen, setNewListOpen] = useState(false)
 
 	let currentFilter = extractListFilterFromQuery(searchQuery)
 
@@ -49,6 +49,11 @@ function ListFilterButton({
 	let handleListEdit = (tag: string) => {
 		setEditingHashtag(tag)
 		setEditListOpen(true)
+		setDropdownOpen(false)
+	}
+
+	let handleNewList = () => {
+		setNewListOpen(true)
 		setDropdownOpen(false)
 	}
 
@@ -87,7 +92,7 @@ function ListFilterButton({
 						</DropdownMenuCheckboxItem>
 					))}
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={onNewList}>
+					<DropdownMenuItem onClick={handleNewList}>
 						<T k="person.listFilter.createNewList" />
 						<Plus />
 					</DropdownMenuItem>
@@ -98,6 +103,15 @@ function ListFilterButton({
 				onOpenChange={setEditListOpen}
 				hashtag={editingHashtag}
 				people={people}
+			/>
+			<NewListDialog
+				open={newListOpen}
+				onOpenChange={setNewListOpen}
+				people={people}
+				onListCreated={hashtag => {
+					let newQuery = setListFilterInQuery(searchQuery, hashtag)
+					setSearchQuery(newQuery)
+				}}
 			/>
 		</>
 	)
