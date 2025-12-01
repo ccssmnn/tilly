@@ -44,7 +44,6 @@ function ListFilterButton({
 		let isActive = tag === currentFilter
 		let newQuery = setListFilterInQuery(searchQuery, isActive ? null : tag)
 		setSearchQuery(newQuery)
-		setDropdownOpen(false)
 	}
 
 	let handleListEdit = (tag: string) => {
