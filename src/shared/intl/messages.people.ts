@@ -111,8 +111,7 @@ const basePeopleMessages = messages({
 
 	// New list dialog
 	"person.newList.title": "Create New List",
-	"person.newList.description":
-		"Create a hashtag-based list to organize people. Hashtags are added to each person's profile for easy filtering.",
+	"person.newList.description": "Create a list to organize people.",
 
 	// List filter bar
 	"person.listFilter.lists": "Lists",
@@ -238,7 +237,7 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	// New list dialog
 	"person.newList.title": "Neue Liste erstellen",
 	"person.newList.description":
-		"Erstelle eine hashtag-basierte Liste, um Personen zu organisieren. Hashtags werden zu jedem Profil hinzugefügt für einfache Filterung.",
+		"Erstelle eine Liste, um Personen zu organisieren.",
 
 	// List filter bar
 	"person.listFilter.lists": "Listen",
