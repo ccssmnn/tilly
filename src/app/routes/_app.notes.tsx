@@ -22,6 +22,8 @@ import { NoteListItem } from "#app/features/note-list-item"
 import { NewNote } from "#app/features/new-note"
 import { NoteTour } from "#app/features/note-tour"
 import { cn } from "#app/lib/utils"
+import { ListFilterButton } from "#app/features/list-filter-button"
+import type { PersonWithSummary } from "#app/features/list-utilities"
 
 export let Route = createFileRoute("/_app/notes")({
 	loader: async ({ context }) => {
@@ -40,6 +42,7 @@ let resolve = {
 		people: {
 			$each: {
 				notes: { $each: true },
+				reminders: { $each: true },
 			},
 		},
 	},
@@ -48,13 +51,15 @@ let resolve = {
 function NotesScreen() {
 	let { me: data } = Route.useLoaderData()
 
-	let { notesSearchQuery } = useAppStore()
+	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(notesSearchQuery)
 
 	let notes = useNotes(searchQuery, data as NotesLoadedAccount)
 
 	let didSearch = !!searchQuery
 	let hasMatches = notes.active.length > 0 || notes.deleted.length > 0
+
+	let allPeople = Array.from((data as NotesLoadedAccount).root.people.values())
 
 	let virtualItems: VirtualItem[] = []
 
@@ -115,38 +120,45 @@ function NotesScreen() {
 	let virtualRows = virtualizer.getVirtualItems()
 
 	return (
-		<div
-			className="md:mt-12"
-			style={{
-				height: virtualizer.getTotalSize(),
-				width: "100%",
-				position: "relative",
-			}}
-		>
-			{virtualRows.map(virtualRow => {
-				let item = virtualItems.at(virtualRow.index)
-				if (!item) return null
+		<>
+			<div
+				className="md:mt-12"
+				style={{
+					height: virtualizer.getTotalSize(),
+					width: "100%",
+					position: "relative",
+				}}
+			>
+				{virtualRows.map(virtualRow => {
+					let item = virtualItems.at(virtualRow.index)
+					if (!item) return null
 
-				let itemIsNote = item.type === "note"
-				let nextItemIsNote =
-					virtualItems.at(virtualRow.index + 1)?.type === "note"
+					let itemIsNote = item.type === "note"
+					let nextItemIsNote =
+						virtualItems.at(virtualRow.index + 1)?.type === "note"
 
-				return (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						ref={virtualizer.measureElement}
-						className={cn(
-							"absolute top-0 left-0 w-full",
-							itemIsNote && nextItemIsNote && "border-border border-b",
-						)}
-						style={{ transform: `translateY(${virtualRow.start}px)` }}
-					>
-						{renderVirtualItem(item, searchQuery)}
-					</div>
-				)
-			})}
-		</div>
+					return (
+						<div
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							ref={virtualizer.measureElement}
+							className={cn(
+								"absolute top-0 left-0 w-full overflow-hidden",
+								itemIsNote && nextItemIsNote && "border-border border-b",
+							)}
+							style={{ transform: `translateY(${virtualRow.start}px)` }}
+						>
+							{renderVirtualItem(
+								item,
+								searchQuery,
+								allPeople,
+								setNotesSearchQuery,
+							)}
+						</div>
+					)
+				})}
+			</div>
+		</>
 	)
 }
 
@@ -163,13 +175,24 @@ type VirtualItem =
 	| { type: "deleted-notes-heading"; count: number }
 	| { type: "spacer" }
 
-function renderVirtualItem(item: VirtualItem, searchQuery: string): ReactNode {
+function renderVirtualItem(
+	item: VirtualItem,
+	searchQuery: string,
+	allPeople: PersonWithSummary[],
+	setSearchQuery: (query: string) => void,
+): ReactNode {
 	switch (item.type) {
 		case "heading":
 			return <HeadingSection />
 
 		case "search":
-			return <SearchSection />
+			return (
+				<SearchSection
+					allPeople={allPeople}
+					searchQuery={searchQuery}
+					setSearchQuery={setSearchQuery}
+				/>
+			)
 
 		case "note":
 			return (
@@ -210,7 +233,15 @@ function HeadingSection() {
 	)
 }
 
-function SearchSection() {
+function SearchSection({
+	allPeople,
+	searchQuery,
+	setSearchQuery,
+}: {
+	allPeople: PersonWithSummary[]
+	searchQuery: string
+	setSearchQuery: (query: string) => void
+}) {
 	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
 	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
 	let t = useIntl()
@@ -243,6 +274,11 @@ function SearchSection() {
 					</span>
 				</Button>
 			) : null}
+			<ListFilterButton
+				people={allPeople}
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+			/>
 			<NewNote>
 				<Button>
 					<Plus className="size-4" />

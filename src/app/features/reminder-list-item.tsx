@@ -810,7 +810,6 @@ function useReminderItemOperations({
 		}
 
 		toast.success(t("reminder.toast.deleted"), {
-			duration: 5000,
 			action: {
 				label: t("common.undo"),
 				onClick: async () => {

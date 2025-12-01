@@ -69,6 +69,56 @@ const basePeopleMessages = messages({
 	"person.permanentDelete.button": "Permanently Delete",
 	"person.toast.restored": "{$name} has been restored",
 	"person.toast.permanentlyDeleted": "{$name} has been permanently deleted",
+
+	// Manage lists dialog
+	"person.manageLists.title": "Manage Lists",
+	"person.manageLists.description":
+		"Add {$name} to lists or remove them from existing lists",
+	"person.manageLists.addToList": "Add to #{$listName}",
+	"person.manageLists.removeFromList": "Remove from #{$listName}",
+	"person.manageLists.createList": "Create new list",
+	"person.manageLists.or": "or",
+	"person.manageLists.toast.added": "Added {$name} to #{$listName}",
+	"person.manageLists.toast.removed": "Removed {$name} from #{$listName}",
+	"person.manageLists.toast.created": "Created list #{$listName}",
+
+	// List form
+	"person.listForm.name.label": "List name",
+	"person.listForm.name.placeholder": "family",
+	"person.listForm.name.description":
+		"Lowercase alphanumeric and underscores only",
+	"person.listForm.selectPeople.label": "Select people",
+	"person.listForm.search.placeholder": "Search people...",
+	"person.listForm.search.empty": "No people found",
+	"person.listForm.cancel": "Cancel",
+	"person.listForm.save": "Save",
+	"person.listForm.saving": "Saving...",
+	"person.listForm.delete": "Delete list",
+	"person.listForm.validation.nameRequired": "List name is required",
+	"person.listForm.validation.nameFormat":
+		"Only lowercase letters, numbers, and underscores allowed",
+	"person.listForm.validation.peopleRequired":
+		"At least one person must be selected",
+
+	// Edit list dialog
+	"person.editList.title": "Edit {$hashtag} List",
+	"person.editList.description": "Manage people in this list and rename it",
+	"person.editList.deleteConfirm.title": "Delete {$hashtag} List",
+	"person.editList.deleteConfirm.description":
+		"This will remove {$hashtag} from {$count :number} people. This action cannot be undone.",
+	"person.editList.deleteConfirm.delete": "Delete",
+
+	// New list dialog
+	"person.newList.title": "Create New List",
+	"person.newList.description": "Create a list to organize people.",
+
+	// List filter bar
+	"person.listFilter.lists": "Lists",
+	"person.listFilter.createNewList": "New List",
+	"person.listFilter.editList": "Edit {$listName}",
+	"person.listFilter.clearFilter": "Clear Filter",
+	"person.listFilter.editTooltip": "Right-click or long press to edit",
+	"person.listFilter.createTooltip": "Create new list",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -142,4 +192,57 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.permanentDelete.button": "Endgültig löschen",
 	"person.toast.restored": "{$name} wurde wiederhergestellt",
 	"person.toast.permanentlyDeleted": "{$name} wurde endgültig gelöscht",
+
+	// Manage lists dialog
+	"person.manageLists.title": "Listen verwalten",
+	"person.manageLists.description":
+		"Füge {$name} zu Listen hinzu oder entferne sie aus bestehenden Listen",
+	"person.manageLists.addToList": "Zu #{$listName} hinzufügen",
+	"person.manageLists.removeFromList": "Aus #{$listName} entfernen",
+	"person.manageLists.createList": "Neue Liste erstellen",
+	"person.manageLists.or": "oder",
+	"person.manageLists.toast.added": "{$name} zu #{$listName} hinzugefügt",
+	"person.manageLists.toast.removed": "{$name} aus #{$listName} entfernt",
+	"person.manageLists.toast.created": "Liste #{$listName} erstellt",
+
+	// List form
+	"person.listForm.name.label": "Listenname",
+	"person.listForm.name.placeholder": "familie",
+	"person.listForm.name.description":
+		"Nur Kleinbuchstaben, Zahlen und Unterstriche",
+	"person.listForm.selectPeople.label": "Personen auswählen",
+	"person.listForm.search.placeholder": "Personen suchen...",
+	"person.listForm.search.empty": "Keine Personen gefunden",
+	"person.listForm.cancel": "Abbrechen",
+	"person.listForm.save": "Speichern",
+	"person.listForm.saving": "Speichern...",
+	"person.listForm.delete": "Liste löschen",
+	"person.listForm.validation.nameRequired": "Listenname erforderlich",
+	"person.listForm.validation.nameFormat":
+		"Nur Kleinbuchstaben, Zahlen und Unterstriche erlaubt",
+	"person.listForm.validation.peopleRequired":
+		"Mindestens eine Person muss ausgewählt werden",
+
+	// Edit list dialog
+	"person.editList.title": "Liste {$hashtag} bearbeiten",
+	"person.editList.description":
+		"Verwalte Personen in dieser Liste und benenne sie um",
+	"person.editList.deleteConfirm.title": "Liste {$hashtag} löschen",
+	"person.editList.deleteConfirm.description":
+		"Dies entfernt {$hashtag} von {$count :number} Personen. Diese Aktion kann nicht rückgängig gemacht werden.",
+	"person.editList.deleteConfirm.delete": "Löschen",
+
+	// New list dialog
+	"person.newList.title": "Neue Liste erstellen",
+	"person.newList.description":
+		"Erstelle eine Liste, um Personen zu organisieren.",
+
+	// List filter bar
+	"person.listFilter.lists": "Listen",
+	"person.listFilter.createNewList": "Neue Liste",
+	"person.listFilter.editList": "{$listName} bearbeiten",
+	"person.listFilter.clearFilter": "Filter löschen",
+	"person.listFilter.editTooltip":
+		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
+	"person.listFilter.createTooltip": "Neue Liste erstellen",
 })

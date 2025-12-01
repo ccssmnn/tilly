@@ -9,6 +9,7 @@ export {
 	sortByCreatedAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
+	hasDueReminders,
 }
 
 export let PushDevice = z.object({
@@ -295,4 +296,19 @@ function sortByDeletedAt<
 			).getTime()
 		return bTime - aTime
 	})
+}
+
+function hasDueReminders(person: {
+	reminders?: {
+		$isLoaded?: boolean
+		values?: () => Array<{ done?: boolean; dueAtDate?: string }>
+	}
+}): boolean {
+	if (!person.reminders || !person.reminders.$isLoaded) return false
+	for (let reminder of person.reminders.values?.() || []) {
+		if (!reminder.done && isDueToday(reminder as { dueAtDate: string })) {
+			return true
+		}
+	}
+	return false
 }

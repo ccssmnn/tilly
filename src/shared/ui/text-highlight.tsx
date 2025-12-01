@@ -10,12 +10,20 @@ function TextHighlight({ text, query }: { text: string; query?: string }) {
 		return text
 	}
 
-	let parts = text.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
+	let terms = extractSearchTerms(trimmedQuery)
+	if (terms.length === 0) {
+		return text
+	}
+
+	let pattern = terms.map(escapeRegExp).join("|")
+	let parts = text.split(new RegExp(`(${pattern})`, "gi"))
 
 	return (
 		<>
 			{parts.map((part, index) => {
-				let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
+				let isMatch = terms.some(
+					term => part.toLowerCase() === term.toLowerCase(),
+				)
 				return isMatch ? (
 					<mark key={index} className="bg-yellow-200 text-yellow-900">
 						{part}
@@ -26,6 +34,20 @@ function TextHighlight({ text, query }: { text: string; query?: string }) {
 			})}
 		</>
 	)
+}
+
+function extractSearchTerms(query: string): string[] {
+	let trimmed = query.trim()
+	let terms: string[] = []
+	let hashtagMatch = trimmed.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	if (hashtagMatch) {
+		terms.push(hashtagMatch[1])
+	}
+	let searchWithoutFilter = trimmed.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
+	if (searchWithoutFilter) {
+		terms.push(searchWithoutFilter)
+	}
+	return terms
 }
 
 function escapeRegExp(string: string) {

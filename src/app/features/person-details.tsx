@@ -1,4 +1,4 @@
-import { Image as JazzImage } from "jazz-tools/react"
+import { Image as JazzImage, useAccount } from "jazz-tools/react"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Button } from "#shared/ui/button"
 import {
@@ -24,10 +24,12 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
-import { Person, UserAccount } from "#shared/schema/user"
+import { Person, UserAccount, isDeleted } from "#shared/schema/user"
+import { extractHashtags } from "#app/features/list-utilities"
 import { co } from "jazz-tools"
-import { PencilSquare, Trash } from "react-bootstrap-icons"
+import { Collection, PencilSquare, Trash, Plus, X } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
+import { NewListDialog } from "./new-list-dialog"
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -39,52 +41,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
 import type { ReactNode } from "react"
 
-type Query = {
-	avatar: true
-	notes: { $each: true }
-	reminders: { $each: true }
-}
-
 export { PersonDetails }
-
-function ActionsDropdown({
-	children,
-	onEdit,
-	onDelete,
-}: {
-	children: ReactNode
-	onEdit: () => void
-	onDelete: () => void
-}) {
-	let [open, setOpen] = useState(false)
-
-	return (
-		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-			<DropdownMenuContent>
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onEdit()
-					}}
-				>
-					<T k="person.edit.title" />
-					<PencilSquare />
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => {
-						setOpen(false)
-						onDelete()
-					}}
-				>
-					<T k="person.delete.title" />
-					<Trash />
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	)
-}
 
 function PersonDetails({
 	person,
@@ -98,6 +55,15 @@ function PersonDetails({
 	let t = useIntl()
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
+
+	let allPeople = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: true } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => p && !isDeleted(p))
+		},
+	})
 
 	async function handleFormSave(values: {
 		name: string
@@ -158,7 +124,6 @@ function PersonDetails({
 		setIsDeleteDialogOpen(false)
 		navigate({ to: "/people" })
 		toast.success(t("toast.personDeletedScheduled"), {
-			duration: 10000,
 			action: {
 				label: t("common.undo"),
 				onClick: async () => {
@@ -185,6 +150,7 @@ function PersonDetails({
 				<ActionsDropdown
 					onEdit={() => setIsEditDialogOpen(true)}
 					onDelete={() => setIsDeleteDialogOpen(true)}
+					onManageLists={() => setIsManageListsDialogOpen(true)}
 				>
 					<Avatar
 						className="size-48 cursor-pointer"
@@ -214,6 +180,7 @@ function PersonDetails({
 						<ActionsDropdown
 							onEdit={() => setIsEditDialogOpen(true)}
 							onDelete={() => setIsDeleteDialogOpen(true)}
+							onManageLists={() => setIsManageListsDialogOpen(true)}
 						>
 							<Button variant="secondary" size="sm">
 								<T k="person.actions.title" />
@@ -223,7 +190,15 @@ function PersonDetails({
 
 					{person.summary && (
 						<p className="text-muted-foreground my-3 select-text">
-							{person.summary}
+							{person.summary.split(/(#[a-zA-Z0-9_]+)/).map((part, i) =>
+								part.startsWith("#") ? (
+									<span key={i} className="text-primary font-bold">
+										{part}
+									</span>
+								) : (
+									part
+								),
+							)}
 						</p>
 					)}
 
@@ -298,6 +273,220 @@ function PersonDetails({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+			<ManageListsDialog
+				open={isManageListsDialogOpen}
+				onOpenChange={setIsManageListsDialogOpen}
+				personId={person.$jazz.id}
+				personName={person.name}
+				personSummary={person.summary}
+				allPeople={allPeople}
+			/>
 		</>
+	)
+}
+
+type Query = {
+	avatar: true
+	notes: { $each: true }
+	reminders: { $each: true }
+}
+
+function ManageListsDialog({
+	open,
+	onOpenChange,
+	personId,
+	personName,
+	personSummary,
+	allPeople,
+}: {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	personId: string
+	personName: string
+	personSummary?: string
+	allPeople: Array<{
+		$jazz: { id: string }
+		name: string
+		summary?: string
+	}>
+}) {
+	let [isLoading, setIsLoading] = useState(false)
+	let [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false)
+	let me = useAccount(UserAccount)
+	let t = useIntl()
+
+	let existingLists = Array.from(
+		new Set(
+			allPeople
+				.flatMap(p => extractHashtags(p.summary))
+				.map(tag => tag.substring(1)),
+		),
+	).sort()
+
+	let personLists = extractHashtags(personSummary).map(tag => tag.substring(1))
+
+	async function handleAddToList(listName: string) {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${listName.toLowerCase()}`
+			let currentSummary = personSummary || ""
+			let newSummary = `${currentSummary} ${hashtag}`.trim()
+
+			await updatePerson(personId, { summary: newSummary }, me)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	async function handleRemoveFromList(listName: string) {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${listName.toLowerCase()}`
+			let currentSummary = personSummary || ""
+			let newSummary = currentSummary
+				.split(/\s+/)
+				.filter((word: string) => word !== hashtag)
+				.join(" ")
+				.trim()
+
+			await updatePerson(personId, { summary: newSummary }, me)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	function handleListCreated(hashtag: string) {
+		setIsNewListDialogOpen(false)
+		toast.success(t("person.manageLists.toast.created", { listName: hashtag }))
+	}
+
+	return (
+		<>
+			<Dialog open={open} onOpenChange={onOpenChange}>
+				<DialogContent
+					className="sm:max-w-md"
+					titleSlot={
+						<DialogHeader>
+							<DialogTitle>
+								<T k="person.manageLists.title" />
+							</DialogTitle>
+							<DialogDescription>
+								{t("person.manageLists.description", { name: personName })}
+							</DialogDescription>
+						</DialogHeader>
+					}
+				>
+					<div className="space-y-4">
+						{existingLists.length > 0 && (
+							<ul className="space-y-2">
+								{existingLists.map(listName => {
+									let isInList = personLists.includes(listName)
+									return (
+										<li
+											key={listName}
+											className="flex items-center justify-between gap-2"
+										>
+											<span className="text-sm">#{listName}</span>
+											<Button
+												size="sm"
+												variant={isInList ? "destructive" : "default"}
+												onClick={() => {
+													if (isInList) {
+														handleRemoveFromList(listName)
+													} else {
+														handleAddToList(listName)
+													}
+												}}
+												disabled={isLoading}
+											>
+												{isInList ? (
+													<>
+														<X className="mr-1 h-3 w-3" />
+														Remove
+													</>
+												) : (
+													<>
+														<Plus className="mr-1 h-3 w-3" />
+														<T k="common.add" />
+													</>
+												)}
+											</Button>
+										</li>
+									)
+								})}
+							</ul>
+						)}
+						<Button
+							onClick={() => setIsNewListDialogOpen(true)}
+							disabled={isLoading}
+							className="w-full"
+						>
+							<T k="person.manageLists.createList" />
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+			<NewListDialog
+				open={isNewListDialogOpen}
+				onOpenChange={setIsNewListDialogOpen}
+				people={allPeople}
+				onListCreated={handleListCreated}
+				defaultSelectedPeople={new Set([personId])}
+			/>
+		</>
+	)
+}
+
+function ActionsDropdown({
+	children,
+	onEdit,
+	onDelete,
+	onManageLists,
+}: {
+	children: ReactNode
+	onEdit: () => void
+	onDelete: () => void
+	onManageLists: () => void
+}) {
+	let [open, setOpen] = useState(false)
+
+	return (
+		<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenuContent>
+				<DropdownMenuItem
+					onClick={() => {
+						setOpen(false)
+						onManageLists()
+					}}
+				>
+					<T k="person.manageLists.title" />
+					<Collection />
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={() => {
+						setOpen(false)
+						onEdit()
+					}}
+				>
+					<T k="person.edit.title" />
+					<PencilSquare />
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					variant="destructive"
+					onClick={() => {
+						setOpen(false)
+						onDelete()
+					}}
+				>
+					<T k="person.delete.title" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }

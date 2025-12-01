@@ -27,6 +27,7 @@ import { cn } from "#app/lib/utils"
 import { UserAccount } from "#shared/schema/user"
 import { personListQuery } from "#app/features/person-query"
 import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
+import { ListFilterButton } from "#app/features/list-filter-button"
 
 export let Route = createFileRoute("/_app/people/")({
 	loader: async ({ context }) => {
@@ -134,42 +135,45 @@ function PeopleScreen() {
 	let virtualRows = virtualizer.getVirtualItems()
 
 	return (
-		<div
-			className="md:mt-12"
-			style={{
-				height: virtualizer.getTotalSize(),
-				width: "100%",
-				position: "relative",
-			}}
-		>
-			{virtualRows.map(virtualRow => {
-				let item = virtualItems.at(virtualRow.index)
-				if (!item) return null
+		<>
+			<div
+				className="md:mt-12"
+				style={{
+					height: virtualizer.getTotalSize(),
+					width: "100%",
+					position: "relative",
+				}}
+			>
+				{virtualRows.map(virtualRow => {
+					let item = virtualItems.at(virtualRow.index)
+					if (!item) return null
 
-				let itemIsPerson = item.type === "person"
-				let nextItemIsPerson =
-					virtualItems.at(virtualRow.index + 1)?.type === "person"
+					let itemIsPerson = item.type === "person"
+					let nextItemIsPerson =
+						virtualItems.at(virtualRow.index + 1)?.type === "person"
 
-				return (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						ref={virtualizer.measureElement}
-						className={cn(
-							"absolute top-0 left-0 w-full",
-							itemIsPerson && nextItemIsPerson && "border-border border-b",
-						)}
-						style={{ transform: `translateY(${virtualRow.start}px)` }}
-					>
-						{renderVirtualItem(item, {
-							searchQuery: deferredSearchQuery,
-							navigate,
-							setPeopleSearchQuery,
-						})}
-					</div>
-				)
-			})}
-		</div>
+					return (
+						<div
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							ref={virtualizer.measureElement}
+							className={cn(
+								"absolute top-0 left-0 w-full",
+								itemIsPerson && nextItemIsPerson && "border-border border-b",
+							)}
+							style={{ transform: `translateY(${virtualRow.start}px)` }}
+						>
+							{renderVirtualItem(item, {
+								searchQuery: deferredSearchQuery,
+								navigate,
+								setPeopleSearchQuery,
+								allPeople,
+							})}
+						</div>
+					)
+				})}
+			</div>
+		</>
 	)
 }
 
@@ -189,6 +193,7 @@ function renderVirtualItem(
 		searchQuery: string
 		navigate: ReturnType<typeof Route.useNavigate>
 		setPeopleSearchQuery: (query: string) => void
+		allPeople: LoadedPerson[]
 	},
 ): ReactNode {
 	switch (item.type) {
@@ -200,6 +205,8 @@ function renderVirtualItem(
 				<PeopleControls
 					setPeopleSearchQuery={options.setPeopleSearchQuery}
 					navigate={options.navigate}
+					allPeople={options.allPeople}
+					searchQuery={options.searchQuery}
 				/>
 			)
 
@@ -258,9 +265,13 @@ function HeadingSection() {
 function PeopleControls({
 	setPeopleSearchQuery,
 	navigate,
+	allPeople,
+	searchQuery,
 }: {
 	setPeopleSearchQuery: (query: string) => void
 	navigate: ReturnType<typeof Route.useNavigate>
+	allPeople: LoadedPerson[]
+	searchQuery: string
 }) {
 	let { peopleSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
@@ -296,6 +307,11 @@ function PeopleControls({
 					</span>
 				</Button>
 			) : null}
+			<ListFilterButton
+				people={allPeople}
+				searchQuery={searchQuery}
+				setSearchQuery={setPeopleSearchQuery}
+			/>
 			<NewPerson
 				onSuccess={personId => {
 					setPeopleSearchQuery("")

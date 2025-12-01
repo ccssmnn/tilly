@@ -28,6 +28,8 @@ import { Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
+import { ListFilterButton } from "#app/features/list-filter-button"
+import type { PersonWithSummary } from "#app/features/list-utilities"
 
 export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {
@@ -59,10 +61,14 @@ function Reminders() {
 
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 
-	let { remindersSearchQuery } = useAppStore()
+	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let searchQuery = useDeferredValue(remindersSearchQuery)
 
 	let reminders = useReminders(searchQuery, data as RemindersLoadedAccount)
+
+	let allPeople = Array.from(
+		(data as RemindersLoadedAccount).root.people.values(),
+	)
 
 	let didSearch = !!searchQuery
 	let hasMatches =
@@ -153,41 +159,47 @@ function Reminders() {
 	let virtualRows = virtualizer.getVirtualItems()
 
 	return (
-		<div
-			className="md:mt-12"
-			style={{
-				height: virtualizer.getTotalSize(),
-				width: "100%",
-				position: "relative",
-			}}
-		>
-			{virtualRows.map(virtualRow => {
-				let item = virtualItems.at(virtualRow.index)
-				if (!item) return null
+		<>
+			<div
+				className="md:mt-12"
+				style={{
+					height: virtualizer.getTotalSize(),
+					width: "100%",
+					position: "relative",
+				}}
+			>
+				{virtualRows.map(virtualRow => {
+					let item = virtualItems.at(virtualRow.index)
+					if (!item) return null
 
-				let itemIsReminder = item.type === "reminder"
-				let nextItemIsReminder =
-					virtualItems.at(virtualRow.index + 1)?.type === "reminder"
+					let itemIsReminder = item.type === "reminder"
+					let nextItemIsReminder =
+						virtualItems.at(virtualRow.index + 1)?.type === "reminder"
 
-				return (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						ref={virtualizer.measureElement}
-						className={cn(
-							"absolute top-0 left-0 w-full",
-							itemIsReminder && nextItemIsReminder && "border-border border-b",
-						)}
-						style={{ transform: `translateY(${virtualRow.start}px)` }}
-					>
-						{renderVirtualItem(item, {
-							searchQuery,
-							me: currentMe,
-						})}
-					</div>
-				)
-			})}
-		</div>
+					return (
+						<div
+							key={virtualRow.key}
+							data-index={virtualRow.index}
+							ref={virtualizer.measureElement}
+							className={cn(
+								"absolute top-0 left-0 w-full",
+								itemIsReminder &&
+									nextItemIsReminder &&
+									"border-border border-b",
+							)}
+							style={{ transform: `translateY(${virtualRow.start}px)` }}
+						>
+							{renderVirtualItem(item, {
+								searchQuery,
+								me: currentMe,
+								allPeople,
+								setSearchQuery: setRemindersSearchQuery,
+							})}
+						</div>
+					)
+				})}
+			</div>
+		</>
 	)
 }
 
@@ -211,14 +223,25 @@ type VirtualItem =
 
 function renderVirtualItem(
 	item: VirtualItem,
-	options: { searchQuery: string; me: co.loaded<typeof UserAccount> },
+	options: {
+		searchQuery: string
+		me: co.loaded<typeof UserAccount>
+		allPeople: PersonWithSummary[]
+		setSearchQuery: (query: string) => void
+	},
 ): ReactNode {
 	switch (item.type) {
 		case "heading":
 			return <HeadingSection />
 
 		case "search":
-			return <SearchSection />
+			return (
+				<SearchSection
+					allPeople={options.allPeople}
+					searchQuery={options.searchQuery}
+					setSearchQuery={options.setSearchQuery}
+				/>
+			)
 
 		case "reminder":
 			return (
@@ -263,14 +286,22 @@ function HeadingSection() {
 	)
 }
 
-function SearchSection() {
+function SearchSection({
+	allPeople,
+	searchQuery,
+	setSearchQuery,
+}: {
+	allPeople: PersonWithSummary[]
+	searchQuery: string
+	setSearchQuery: (query: string) => void
+}) {
 	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
 	let autoFocusRef = useAutoFocusInput() as RefObject<HTMLInputElement>
 	let t = useIntl()
 	let searchInputId = useId()
 
 	return (
-		<div className="my-6 flex items-center justify-end gap-3">
+		<div className="mt-6 mb-3 flex items-center justify-end gap-3">
 			<div className="relative w-full">
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("reminders.search.placeholder")}
@@ -296,6 +327,11 @@ function SearchSection() {
 					</span>
 				</Button>
 			) : null}
+			<ListFilterButton
+				people={allPeople}
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+			/>
 			<NewReminder>
 				<Button>
 					<Plus className="size-4" />

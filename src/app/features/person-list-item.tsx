@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
 import { Button } from "#shared/ui/button"
 import { TextHighlight } from "#shared/ui/text-highlight"
+
 import { isTextSelectionOngoing } from "#app/lib/utils"
 import {
 	Dialog,
@@ -144,23 +145,23 @@ function PersonItemHeader({
 			className="flex items-center justify-between leading-none select-text"
 			onMouseDown={e => e.stopPropagation()}
 		>
-			<p className={nameColor}>
-				<TextHighlight text={person.name} query={searchQuery} />
-			</p>
 			<div className="flex items-center gap-1.5">
-				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
-				<p className="text-muted-foreground text-xs text-nowrap">
-					{formatDistanceToNow(
-						person.updatedAt ||
-							person.createdAt ||
-							new Date(person.$jazz.lastUpdatedAt || person.$jazz.createdAt),
-						{
-							addSuffix: true,
-							locale: dfnsLocale,
-						},
-					)}
+				<p className={nameColor}>
+					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
+				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
+			<p className="text-muted-foreground text-xs text-nowrap">
+				{formatDistanceToNow(
+					person.updatedAt ||
+						person.createdAt ||
+						new Date(person.$jazz.lastUpdatedAt || person.$jazz.createdAt),
+					{
+						addSuffix: true,
+						locale: dfnsLocale,
+					},
+				)}
+			</p>
 		</div>
 	)
 }
@@ -174,13 +175,22 @@ function PersonItemSummary({
 }) {
 	if (!person.summary) return null
 
+	let parts = person.summary.split(/(#[a-zA-Z0-9_]+)/)
+
 	return (
-		<p
-			className="text-muted-foreground mt-2 line-clamp-2 text-sm select-text"
-			onMouseDown={e => e.stopPropagation()}
-		>
-			<TextHighlight text={person.summary} query={searchQuery} />
-		</p>
+		<div className="mt-2 select-text" onMouseDown={e => e.stopPropagation()}>
+			<p className="text-muted-foreground line-clamp-2 text-sm">
+				{parts.map((part, i) =>
+					part.startsWith("#") ? (
+						<span key={i} className="text-primary font-bold">
+							<TextHighlight text={part} query={searchQuery} />
+						</span>
+					) : (
+						<TextHighlight key={i} text={part} query={searchQuery} />
+					),
+				)}
+			</p>
+		</div>
 	)
 }
 

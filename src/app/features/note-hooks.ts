@@ -6,12 +6,26 @@ import {
 	sortByDeletedAt,
 	sortByCreatedAt,
 } from "#shared/schema/user"
+import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
+
+function extractListFilterFromQuery(query: string): string | null {
+	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	return match ? match[1].toLowerCase() : null
+}
+
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
+}
 
 export {
 	usePersonNotes,
 	useNotes,
+	extractSearchWithoutFilter,
 	type NotesLoadedAccount,
 	type PersonNotesLoadedPerson,
 }
@@ -99,15 +113,20 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 		}
 	}
 
-	let filteredPairs = searchQuery
-		? allNotePairs.filter(({ note, person }) => {
-				let searchLower = searchQuery.toLowerCase()
-				return (
-					note.content.toLowerCase().includes(searchLower) ||
-					person.name.toLowerCase().includes(searchLower)
-				)
-			})
-		: allNotePairs
+	let searchLower = searchQuery.toLowerCase()
+	let listFilter = extractListFilterFromQuery(searchLower)
+	let searchWithoutFilter = searchLower.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
+
+	let filteredPairs = allNotePairs.filter(({ note, person }) => {
+		let matchesSearch =
+			!searchWithoutFilter ||
+			note.content.toLowerCase().includes(searchWithoutFilter) ||
+			person.name.toLowerCase().includes(searchWithoutFilter)
+
+		let matchesFilter = !listFilter || hasHashtag(person, listFilter)
+
+		return matchesSearch && matchesFilter
+	})
 
 	let active = []
 	let deleted = []
