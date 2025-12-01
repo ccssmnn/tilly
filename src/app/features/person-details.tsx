@@ -29,7 +29,7 @@ import { extractHashtags } from "#app/features/list-utilities"
 import { co } from "jazz-tools"
 import { Collection, PencilSquare, Trash, Plus, X } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
-import { ListForm } from "./list-form"
+import { NewListDialog } from "./new-list-dialog"
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -55,7 +55,7 @@ function PersonDetails({
 	let t = useIntl()
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-	let [isAddToListDialogOpen, setIsAddToListDialogOpen] = useState(false)
+	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
 
 	let allPeople = useAccount(UserAccount, {
 		resolve: { root: { people: { $each: true } } },
@@ -124,7 +124,6 @@ function PersonDetails({
 		setIsDeleteDialogOpen(false)
 		navigate({ to: "/people" })
 		toast.success(t("toast.personDeletedScheduled"), {
-			duration: 10000,
 			action: {
 				label: t("common.undo"),
 				onClick: async () => {
@@ -151,7 +150,7 @@ function PersonDetails({
 				<ActionsDropdown
 					onEdit={() => setIsEditDialogOpen(true)}
 					onDelete={() => setIsDeleteDialogOpen(true)}
-					onManageLists={() => setIsAddToListDialogOpen(true)}
+					onManageLists={() => setIsManageListsDialogOpen(true)}
 				>
 					<Avatar
 						className="size-48 cursor-pointer"
@@ -181,7 +180,7 @@ function PersonDetails({
 						<ActionsDropdown
 							onEdit={() => setIsEditDialogOpen(true)}
 							onDelete={() => setIsDeleteDialogOpen(true)}
-							onManageLists={() => setIsAddToListDialogOpen(true)}
+							onManageLists={() => setIsManageListsDialogOpen(true)}
 						>
 							<Button variant="secondary" size="sm">
 								<T k="person.actions.title" />
@@ -275,8 +274,8 @@ function PersonDetails({
 				</AlertDialogContent>
 			</AlertDialog>
 			<ManageListsDialog
-				open={isAddToListDialogOpen}
-				onOpenChange={setIsAddToListDialogOpen}
+				open={isManageListsDialogOpen}
+				onOpenChange={setIsManageListsDialogOpen}
 				personId={person.$jazz.id}
 				personName={person.name}
 				personSummary={person.summary}
@@ -312,7 +311,7 @@ function ManageListsDialog({
 	}>
 }) {
 	let [isLoading, setIsLoading] = useState(false)
-	let [showCreateForm, setShowCreateForm] = useState(false)
+	let [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false)
 	let me = useAccount(UserAccount)
 	let t = useIntl()
 
@@ -326,7 +325,7 @@ function ManageListsDialog({
 
 	let personLists = extractHashtags(personSummary).map(tag => tag.substring(1))
 
-	let handleAddToList = async (listName: string) => {
+	async function handleAddToList(listName: string) {
 		if (!me.$isLoaded) return
 
 		setIsLoading(true)
@@ -341,7 +340,7 @@ function ManageListsDialog({
 		}
 	}
 
-	let handleRemoveFromList = async (listName: string) => {
+	async function handleRemoveFromList(listName: string) {
 		if (!me.$isLoaded) return
 
 		setIsLoading(true)
@@ -360,116 +359,85 @@ function ManageListsDialog({
 		}
 	}
 
-	let handleCreateNewList = async (values: {
-		listName: string
-		selectedPeople: Set<string>
-	}) => {
-		if (!me.$isLoaded) return
-
-		setIsLoading(true)
-		try {
-			let hashtag = `#${values.listName.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
-
-			for (let personIdToAdd of values.selectedPeople) {
-				let person = allPeople.find(p => p.$jazz.id === personIdToAdd)
-				if (!person) continue
-
-				let currentSummary = person.summary || ""
-				let newSummary = `${currentSummary} ${hashtag}`.trim()
-
-				await updatePerson(personIdToAdd, { summary: newSummary }, me)
-			}
-
-			toast.success(
-				t("person.manageLists.toast.created", { listName: values.listName }),
-			)
-			onOpenChange(false)
-		} finally {
-			setIsLoading(false)
-		}
+	function handleListCreated(hashtag: string) {
+		setIsNewListDialogOpen(false)
+		toast.success(t("person.manageLists.toast.created", { listName: hashtag }))
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				className="sm:max-w-md"
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.manageLists.title" />
-						</DialogTitle>
-						<DialogDescription>
-							{t("person.manageLists.description", { name: personName })}
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				{!showCreateForm ? (
+		<>
+			<Dialog open={open} onOpenChange={onOpenChange}>
+				<DialogContent
+					className="sm:max-w-md"
+					titleSlot={
+						<DialogHeader>
+							<DialogTitle>
+								<T k="person.manageLists.title" />
+							</DialogTitle>
+							<DialogDescription>
+								{t("person.manageLists.description", { name: personName })}
+							</DialogDescription>
+						</DialogHeader>
+					}
+				>
 					<div className="space-y-4">
 						{existingLists.length > 0 && (
-							<div className="space-y-3">
-								<p className="text-sm font-medium">
-									<T k="person.manageLists.existingLists" />
-								</p>
-								<div className="space-y-2">
-									{existingLists.map(listName => {
-										let isInList = personLists.includes(listName)
-										return (
-											<div key={listName} className="flex items-center gap-2">
-												<Button
-													variant={isInList ? "default" : "outline"}
-													onClick={() => {
-														if (isInList) {
-															handleRemoveFromList(listName)
-														} else {
-															handleAddToList(listName)
-														}
-													}}
-													disabled={isLoading}
-													className="flex-1 justify-start"
-												>
-													{isInList ? (
-														<>
-															<X className="mr-2 h-4 w-4" />
-															{t("person.manageLists.removeFromList", {
-																listName,
-															})}
-														</>
-													) : (
-														<>
-															<Plus className="mr-2 h-4 w-4" />
-															{t("person.manageLists.addToList", { listName })}
-														</>
-													)}
-												</Button>
-											</div>
-										)
-									})}
-								</div>
-							</div>
+							<ul className="space-y-2">
+								{existingLists.map(listName => {
+									let isInList = personLists.includes(listName)
+									return (
+										<li
+											key={listName}
+											className="flex items-center justify-between gap-2"
+										>
+											<span className="text-sm">#{listName}</span>
+											<Button
+												size="sm"
+												variant={isInList ? "destructive" : "default"}
+												onClick={() => {
+													if (isInList) {
+														handleRemoveFromList(listName)
+													} else {
+														handleAddToList(listName)
+													}
+												}}
+												disabled={isLoading}
+											>
+												{isInList ? (
+													<>
+														<X className="mr-1 h-3 w-3" />
+														Remove
+													</>
+												) : (
+													<>
+														<Plus className="mr-1 h-3 w-3" />
+														<T k="common.add" />
+													</>
+												)}
+											</Button>
+										</li>
+									)
+								})}
+							</ul>
 						)}
-						<div className="border-t pt-4">
-							<Button
-								onClick={() => setShowCreateForm(true)}
-								disabled={isLoading}
-								className="w-full"
-								variant="secondary"
-							>
-								<T k="person.manageLists.createList" />
-							</Button>
-						</div>
+						<Button
+							onClick={() => setIsNewListDialogOpen(true)}
+							disabled={isLoading}
+							className="w-full"
+						>
+							<T k="person.manageLists.createList" />
+						</Button>
 					</div>
-				) : (
-					<ListForm
-						defaultListName=""
-						defaultSelectedPeople={new Set([personId])}
-						onSubmit={handleCreateNewList}
-						isLoading={isLoading}
-						mode="create"
-					/>
-				)}
-			</DialogContent>
-		</Dialog>
+				</DialogContent>
+			</Dialog>
+			<NewListDialog
+				open={isNewListDialogOpen}
+				onOpenChange={setIsNewListDialogOpen}
+				people={allPeople}
+				onListCreated={handleListCreated}
+				defaultSelectedPeople={new Set([personId])}
+			/>
+		</>
 	)
 }
 

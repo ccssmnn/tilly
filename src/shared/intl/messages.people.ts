@@ -74,7 +74,6 @@ const basePeopleMessages = messages({
 	"person.manageLists.title": "Manage Lists",
 	"person.manageLists.description":
 		"Add {$name} to lists or remove them from existing lists",
-	"person.manageLists.existingLists": "Existing lists",
 	"person.manageLists.addToList": "Add to #{$listName}",
 	"person.manageLists.removeFromList": "Remove from #{$listName}",
 	"person.manageLists.createList": "Create new list",
@@ -198,7 +197,6 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.manageLists.title": "Listen verwalten",
 	"person.manageLists.description":
 		"Füge {$name} zu Listen hinzu oder entferne sie aus bestehenden Listen",
-	"person.manageLists.existingLists": "Bestehende Listen",
 	"person.manageLists.addToList": "Zu #{$listName} hinzufügen",
 	"person.manageLists.removeFromList": "Aus #{$listName} entfernen",
 	"person.manageLists.createList": "Neue Liste erstellen",

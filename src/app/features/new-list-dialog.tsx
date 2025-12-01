@@ -20,6 +20,7 @@ function NewListDialog({
 	onOpenChange,
 	people,
 	onListCreated,
+	defaultSelectedPeople,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -29,6 +30,7 @@ function NewListDialog({
 		summary?: string
 	}>
 	onListCreated?: (hashtag: string) => void
+	defaultSelectedPeople?: Set<string>
 }) {
 	let [isLoading, setIsLoading] = useState(false)
 	let me = useAccount(UserAccount)
@@ -76,7 +78,7 @@ function NewListDialog({
 			>
 				<ListForm
 					defaultListName=""
-					defaultSelectedPeople={new Set()}
+					defaultSelectedPeople={defaultSelectedPeople || new Set()}
 					onSubmit={handleCreate}
 					isLoading={isLoading}
 					mode="create"
