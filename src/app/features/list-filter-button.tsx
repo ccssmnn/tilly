@@ -14,7 +14,7 @@ import {
 	setListFilterInQuery,
 	extractListFilterFromQuery,
 	type PersonWithSummary,
-} from "./list-hooks"
+} from "./list-utilities"
 import { EditListDialog } from "./edit-list-dialog"
 import { NewListDialog } from "./new-list-dialog"
 import { useIntl, T } from "#shared/intl"
@@ -35,31 +35,24 @@ function ListFilterButton({
 	let availableLists = useAvailableLists(people)
 	let [editListOpen, setEditListOpen] = useState(false)
 	let [editingHashtag, setEditingHashtag] = useState("")
-	let [dropdownOpen, setDropdownOpen] = useState(false)
 	let [newListOpen, setNewListOpen] = useState(false)
 
 	let currentFilter = extractListFilterFromQuery(searchQuery)
 
-	let handleListSelect = (tag: string) => {
+	function selectList(tag: string) {
 		let isActive = tag === currentFilter
 		let newQuery = setListFilterInQuery(searchQuery, isActive ? null : tag)
 		setSearchQuery(newQuery)
 	}
 
-	let handleListEdit = (tag: string) => {
+	function editList(tag: string) {
 		setEditingHashtag(tag)
 		setEditListOpen(true)
-		setDropdownOpen(false)
-	}
-
-	let handleNewList = () => {
-		setNewListOpen(true)
-		setDropdownOpen(false)
 	}
 
 	return (
 		<>
-			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="secondary">
 						{currentFilter ? <CollectionFill /> : <Collection />}
@@ -73,26 +66,24 @@ function ListFilterButton({
 						<T k="person.listFilter.lists" />
 					</DropdownMenuLabel>
 					{currentFilter && (
-						<>
-							<DropdownMenuItem onClick={() => handleListEdit(currentFilter)}>
-								{t("person.listFilter.editList", {
-									listName: currentFilter,
-								})}
-							</DropdownMenuItem>
-						</>
+						<DropdownMenuItem onClick={() => editList(currentFilter)}>
+							{t("person.listFilter.editList", {
+								listName: currentFilter,
+							})}
+						</DropdownMenuItem>
 					)}
 					<DropdownMenuSeparator />
 					{availableLists.map(list => (
 						<DropdownMenuCheckboxItem
 							key={list.tag}
 							checked={list.tag === currentFilter}
-							onClick={() => handleListSelect(list.tag)}
+							onClick={() => selectList(list.tag)}
 						>
 							{list.tag}
 						</DropdownMenuCheckboxItem>
 					))}
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={handleNewList}>
+					<DropdownMenuItem onClick={() => setNewListOpen(true)}>
 						<T k="person.listFilter.createNewList" />
 						<Plus />
 					</DropdownMenuItem>

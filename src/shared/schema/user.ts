@@ -9,8 +9,6 @@ export {
 	sortByCreatedAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
-	extractHashtags,
-	hasHashtag,
 	hasDueReminders,
 }
 
@@ -298,22 +296,6 @@ function sortByDeletedAt<
 			).getTime()
 		return bTime - aTime
 	})
-}
-
-function extractHashtags(summary?: string): string[] {
-	if (!summary) return []
-	let matches = summary.match(/(?:^|\s)(#[a-zA-Z0-9_]+)/g)
-	return (matches || []).map(tag => tag.trim().toLowerCase())
-}
-
-function hasHashtag(
-	person: {
-		summary?: string
-	},
-	tag: string,
-): boolean {
-	let hashtags = extractHashtags(person.summary)
-	return hashtags.includes(tag.toLowerCase())
 }
 
 function hasDueReminders(person: {

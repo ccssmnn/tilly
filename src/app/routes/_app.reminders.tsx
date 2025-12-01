@@ -29,7 +29,7 @@ import { co } from "jazz-tools"
 import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
 import { ListFilterButton } from "#app/features/list-filter-button"
-import type { PersonWithSummary } from "#app/features/list-hooks"
+import type { PersonWithSummary } from "#app/features/list-utilities"
 
 export let Route = createFileRoute("/_app/reminders")({
 	loader: async ({ context }) => {

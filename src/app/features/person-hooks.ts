@@ -4,8 +4,8 @@ import {
 	isPermanentlyDeleted,
 	sortByUpdatedAt,
 	sortByDeletedAt,
-	hasHashtag,
 } from "#shared/schema/user"
+import { hasHashtag } from "#app/features/list-utilities"
 import { co } from "jazz-tools"
 
 export {

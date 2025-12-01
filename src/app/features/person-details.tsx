@@ -24,12 +24,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
-import {
-	Person,
-	UserAccount,
-	isDeleted,
-	extractHashtags,
-} from "#shared/schema/user"
+import { Person, UserAccount, isDeleted } from "#shared/schema/user"
+import { extractHashtags } from "#app/features/list-utilities"
 import { co } from "jazz-tools"
 import { Collection, PencilSquare, Trash, Plus, X } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"

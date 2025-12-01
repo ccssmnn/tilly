@@ -11,6 +11,7 @@ import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import { ListForm } from "#app/features/list-form"
 import { T } from "#shared/intl/setup"
+import { addHashtagToSummary } from "#app/features/list-utilities"
 
 export { NewListDialog }
 
@@ -46,8 +47,7 @@ function NewListDialog({
 				let person = people.find(p => p.$jazz.id === personId)
 				if (!person) continue
 
-				let currentSummary = person.summary || ""
-				let newSummary = `${currentSummary} ${hashtag}`.trim()
+				let newSummary = addHashtagToSummary(person.summary, hashtag)
 
 				await updatePerson(personId, { summary: newSummary }, me)
 			}

@@ -23,7 +23,7 @@ import { NewNote } from "#app/features/new-note"
 import { NoteTour } from "#app/features/note-tour"
 import { cn } from "#app/lib/utils"
 import { ListFilterButton } from "#app/features/list-filter-button"
-import type { PersonWithSummary } from "#app/features/list-hooks"
+import type { PersonWithSummary } from "#app/features/list-utilities"
 
 export let Route = createFileRoute("/_app/notes")({
 	loader: async ({ context }) => {

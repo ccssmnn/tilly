@@ -18,16 +18,17 @@ import {
 } from "#shared/ui/alert-dialog"
 import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
-import { UserAccount, extractHashtags } from "#shared/schema/user"
+import { UserAccount } from "#shared/schema/user"
+import { extractHashtags } from "#app/features/list-utilities"
 import { ListForm } from "#app/features/list-form"
 import { T } from "#shared/intl/setup"
-
-export { EditListDialog }
-export const _test = {
+import {
 	removeHashtagFromSummary,
 	addHashtagToSummary,
 	replaceHashtagInSummary,
-}
+} from "#app/features/list-utilities"
+
+export { EditListDialog }
 
 function EditListDialog({
 	open,
@@ -185,34 +186,4 @@ function EditListDialog({
 			</DialogContent>
 		</Dialog>
 	)
-}
-
-function removeHashtagFromSummary(
-	summary: string | undefined,
-	hashtag: string,
-): string {
-	if (!summary) return ""
-	let escaped = hashtag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-	return summary
-		.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), "")
-		.replace(/\s+/g, " ")
-		.trim()
-}
-
-function addHashtagToSummary(
-	summary: string | undefined,
-	hashtag: string,
-): string {
-	let current = summary?.trim() || ""
-	return current ? `${current} ${hashtag}` : hashtag
-}
-
-function replaceHashtagInSummary(
-	summary: string | undefined,
-	oldTag: string,
-	newTag: string,
-): string {
-	if (!summary) return ""
-	let escaped = oldTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-	return summary.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), newTag).trim()
 }

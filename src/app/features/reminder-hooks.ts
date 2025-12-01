@@ -6,8 +6,8 @@ import {
 	sortByUpdatedAt,
 	sortByDeletedAt,
 	UserAccount,
-	hasHashtag,
 } from "#shared/schema/user"
+import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
 
