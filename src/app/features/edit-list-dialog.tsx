@@ -19,6 +19,7 @@ import {
 import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
+import type { Loaded } from "jazz-tools"
 import { extractHashtags } from "#app/features/list-utilities"
 import { ListForm } from "#app/features/list-form"
 import { T } from "#shared/intl/setup"
@@ -66,41 +67,31 @@ function EditListDialog({
 		setIsLoading(true)
 		try {
 			let oldTag = hashtag.toLowerCase()
-			let newTag = `#${values.listName.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
+			let newTag = normalizeHashtag(values.listName)
 
-			let peopleToRemoveFrom = peopleInList.filter(
-				p => !values.selectedPeople.has(p.$jazz.id),
-			)
-			let peopleToAddTo = [...values.selectedPeople].filter(
-				id => !initialSelectedPeople.has(id),
-			)
+			await removeTagFromDeselectedPeople({
+				oldTag,
+				selectedPeople: values.selectedPeople,
+				peopleInList,
+				me,
+			})
+			await addTagToNewlySelectedPeople({
+				oldTag,
+				newTag,
+				selectedPeople: values.selectedPeople,
+				initialSelectedPeople,
+				allPeople: people,
+				me,
+			})
 
-			for (let person of peopleToRemoveFrom) {
-				let newSummary = removeHashtagFromSummary(person.summary, oldTag)
-				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
-			}
-
-			for (let personId of peopleToAddTo) {
-				let person = people.find(p => p.$jazz.id === personId)
-				if (!person) continue
-
-				let withoutOldTag = removeHashtagFromSummary(person.summary, oldTag)
-				let newSummary = addHashtagToSummary(withoutOldTag, newTag)
-
-				await updatePerson(personId, { summary: newSummary }, me)
-			}
-
-			for (let person of peopleInList.filter(p =>
-				values.selectedPeople.has(p.$jazz.id),
-			)) {
-				if (oldTag !== newTag) {
-					let newSummary = replaceHashtagInSummary(
-						person.summary,
-						oldTag,
-						newTag,
-					)
-					await updatePerson(person.$jazz.id, { summary: newSummary }, me)
-				}
+			if (oldTag !== newTag) {
+				await renameTagForRemainingPeople({
+					oldTag,
+					newTag,
+					selectedPeople: values.selectedPeople,
+					peopleInList,
+					me,
+				})
 			}
 
 			onOpenChange(false)
@@ -186,4 +177,78 @@ function EditListDialog({
 			</DialogContent>
 		</Dialog>
 	)
+}
+
+async function removeTagFromDeselectedPeople({
+	oldTag,
+	selectedPeople,
+	peopleInList,
+	me,
+}: {
+	oldTag: string
+	selectedPeople: Set<string>
+	peopleInList: Array<{ $jazz: { id: string }; name: string; summary?: string }>
+	me: Loaded<typeof UserAccount>
+}) {
+	let deselected = peopleInList.filter(p => !selectedPeople.has(p.$jazz.id))
+
+	for (let person of deselected) {
+		let newSummary = removeHashtagFromSummary(person.summary, oldTag)
+		await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+	}
+}
+
+async function addTagToNewlySelectedPeople({
+	oldTag,
+	newTag,
+	selectedPeople,
+	initialSelectedPeople,
+	allPeople,
+	me,
+}: {
+	oldTag: string
+	newTag: string
+	selectedPeople: Set<string>
+	initialSelectedPeople: Set<string>
+	allPeople: Array<{ $jazz: { id: string }; name: string; summary?: string }>
+	me: Loaded<typeof UserAccount>
+}) {
+	let newlySelected = [...selectedPeople].filter(
+		id => !initialSelectedPeople.has(id),
+	)
+
+	for (let personId of newlySelected) {
+		let person = allPeople.find(p => p.$jazz.id === personId)
+		if (!person) continue
+
+		let withoutOldTag = removeHashtagFromSummary(person.summary, oldTag)
+		let newSummary = addHashtagToSummary(withoutOldTag, newTag)
+
+		await updatePerson(personId, { summary: newSummary }, me)
+	}
+}
+
+async function renameTagForRemainingPeople({
+	oldTag,
+	newTag,
+	selectedPeople,
+	peopleInList,
+	me,
+}: {
+	oldTag: string
+	newTag: string
+	selectedPeople: Set<string>
+	peopleInList: Array<{ $jazz: { id: string }; name: string; summary?: string }>
+	me: Loaded<typeof UserAccount>
+}) {
+	let remaining = peopleInList.filter(p => selectedPeople.has(p.$jazz.id))
+
+	for (let person of remaining) {
+		let newSummary = replaceHashtagInSummary(person.summary, oldTag, newTag)
+		await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+	}
+}
+
+function normalizeHashtag(name: string) {
+	return `#${name.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
 }
