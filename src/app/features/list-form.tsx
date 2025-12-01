@@ -9,7 +9,7 @@ import { useState } from "react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { z } from "zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
 	Form,
@@ -39,7 +39,6 @@ function ListForm(props: {
 	defaultListName: string
 	defaultSelectedPeople: Set<string>
 	onSubmit: (values: { listName: string; selectedPeople: Set<string> }) => void
-	onCancel: () => void
 	onDelete?: () => void
 	isLoading?: boolean
 	mode: "create" | "edit"
@@ -54,9 +53,11 @@ function ListForm(props: {
 		},
 	})
 
-	let formValues = form.watch()
-	let selectedPeople = formValues.selectedPeople
-	let listName = formValues.listName
+	let selectedPeople = useWatch({
+		control: form.control,
+		name: "selectedPeople",
+	})
+	let listName = useWatch({ control: form.control, name: "listName" })
 
 	let hasChanges =
 		listName !== props.defaultListName ||
@@ -129,15 +130,7 @@ function ListForm(props: {
 							<T k="person.listForm.delete" />
 						</Button>
 					)}
-					<div className="ml-auto flex gap-2">
-						<Button
-							variant="outline"
-							onClick={props.onCancel}
-							disabled={props.isLoading}
-							type="button"
-						>
-							<T k="person.listForm.cancel" />
-						</Button>
+					<div className="ml-auto">
 						<Button type="submit" disabled={props.isLoading}>
 							{props.isLoading ? (
 								<T k="person.listForm.saving" />

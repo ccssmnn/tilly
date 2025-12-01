@@ -146,7 +146,6 @@ function EditListDialog({
 					defaultListName={initialListName}
 					defaultSelectedPeople={initialSelectedPeople}
 					onSubmit={handleSave}
-					onCancel={() => onOpenChange(false)}
 					onDelete={() => setIsDeleteConfirmOpen(true)}
 					isLoading={isLoading}
 					mode="edit"

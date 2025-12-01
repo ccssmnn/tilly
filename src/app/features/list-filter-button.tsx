@@ -8,7 +8,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
-import { Collection, Plus } from "react-bootstrap-icons"
+import { Collection, CollectionFill, Plus } from "react-bootstrap-icons"
 import {
 	useAvailableLists,
 	setListFilterInQuery,
@@ -57,8 +57,8 @@ function ListFilterButton({
 		<>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline">
-						<Collection />
+					<Button variant="secondary">
+						{currentFilter ? <Collection /> : <CollectionFill />}
 						<span className="sr-only md:not-sr-only">
 							<T k="person.listFilter.lists" />
 						</span>

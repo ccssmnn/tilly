@@ -224,7 +224,6 @@ function ManageListsDialog({
 						defaultListName=""
 						defaultSelectedPeople={new Set([personId])}
 						onSubmit={handleCreateNewList}
-						onCancel={() => setShowCreateForm(false)}
 						isLoading={isLoading}
 						mode="create"
 					/>

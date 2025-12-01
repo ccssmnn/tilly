@@ -75,7 +75,6 @@ function NewListDialog({
 					defaultListName=""
 					defaultSelectedPeople={new Set()}
 					onSubmit={handleCreate}
-					onCancel={() => onOpenChange(false)}
 					isLoading={isLoading}
 					mode="create"
 				/>
