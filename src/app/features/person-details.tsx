@@ -34,7 +34,6 @@ import { co } from "jazz-tools"
 import { Collection, PencilSquare, Trash, Plus, X } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
 import { ListForm } from "./list-form"
-
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -46,244 +45,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
 import type { ReactNode } from "react"
 
-type Query = {
-	avatar: true
-	notes: { $each: true }
-	reminders: { $each: true }
-}
-
-function ManageListsDialog({
-	open,
-	onOpenChange,
-	personId,
-	personName,
-	personSummary,
-	allPeople,
-}: {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	personId: string
-	personName: string
-	personSummary?: string
-	allPeople: Array<{
-		$jazz: { id: string }
-		name: string
-		summary?: string
-	}>
-}) {
-	let [isLoading, setIsLoading] = useState(false)
-	let [showCreateForm, setShowCreateForm] = useState(false)
-	let me = useAccount(UserAccount)
-	let t = useIntl()
-
-	let existingLists = Array.from(
-		new Set(
-			allPeople
-				.flatMap(p => extractHashtags(p.summary))
-				.map(tag => tag.substring(1)),
-		),
-	).sort()
-
-	let personLists = extractHashtags(personSummary).map(tag => tag.substring(1))
-
-	let handleAddToList = async (listName: string) => {
-		if (!me.$isLoaded) return
-
-		setIsLoading(true)
-		try {
-			let hashtag = `#${listName.toLowerCase()}`
-			let currentSummary = personSummary || ""
-			let newSummary = `${currentSummary} ${hashtag}`.trim()
-
-			await updatePerson(personId, { summary: newSummary }, me)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	let handleRemoveFromList = async (listName: string) => {
-		if (!me.$isLoaded) return
-
-		setIsLoading(true)
-		try {
-			let hashtag = `#${listName.toLowerCase()}`
-			let currentSummary = personSummary || ""
-			let newSummary = currentSummary
-				.split(/\s+/)
-				.filter((word: string) => word !== hashtag)
-				.join(" ")
-				.trim()
-
-			await updatePerson(personId, { summary: newSummary }, me)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	let handleCreateNewList = async (values: {
-		listName: string
-		selectedPeople: Set<string>
-	}) => {
-		if (!me.$isLoaded) return
-
-		setIsLoading(true)
-		try {
-			let hashtag = `#${values.listName.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
-
-			for (let personIdToAdd of values.selectedPeople) {
-				let person = allPeople.find(p => p.$jazz.id === personIdToAdd)
-				if (!person) continue
-
-				let currentSummary = person.summary || ""
-				let newSummary = `${currentSummary} ${hashtag}`.trim()
-
-				await updatePerson(personIdToAdd, { summary: newSummary }, me)
-			}
-
-			toast.success(
-				t("person.manageLists.toast.created", { listName: values.listName }),
-			)
-			onOpenChange(false)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				className="sm:max-w-md"
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.manageLists.title" />
-						</DialogTitle>
-						<DialogDescription>
-							{t("person.manageLists.description", { name: personName })}
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				{!showCreateForm ? (
-					<div className="space-y-4">
-						{existingLists.length > 0 && (
-							<div className="space-y-3">
-								<p className="text-sm font-medium">
-									<T k="person.manageLists.existingLists" />
-								</p>
-								<div className="space-y-2">
-									{existingLists.map(listName => {
-										let isInList = personLists.includes(listName)
-										return (
-											<div key={listName} className="flex items-center gap-2">
-												<Button
-													variant={isInList ? "default" : "outline"}
-													onClick={() => {
-														if (isInList) {
-															handleRemoveFromList(listName)
-														} else {
-															handleAddToList(listName)
-														}
-													}}
-													disabled={isLoading}
-													className="flex-1 justify-start"
-												>
-													{isInList ? (
-														<>
-															<X className="mr-2 h-4 w-4" />
-															{t("person.manageLists.removeFromList", {
-																listName,
-															})}
-														</>
-													) : (
-														<>
-															<Plus className="mr-2 h-4 w-4" />
-															{t("person.manageLists.addToList", { listName })}
-														</>
-													)}
-												</Button>
-											</div>
-										)
-									})}
-								</div>
-							</div>
-						)}
-						<div className="border-t pt-4">
-							<Button
-								onClick={() => setShowCreateForm(true)}
-								disabled={isLoading}
-								className="w-full"
-								variant="secondary"
-							>
-								<T k="person.manageLists.createList" />
-							</Button>
-						</div>
-					</div>
-				) : (
-					<ListForm
-						defaultListName=""
-						defaultSelectedPeople={new Set([personId])}
-						onSubmit={handleCreateNewList}
-						isLoading={isLoading}
-						mode="create"
-					/>
-				)}
-			</DialogContent>
-		</Dialog>
-	)
-}
-
 export { PersonDetails }
-
-function ActionsDropdown({
-	children,
-	onEdit,
-	onDelete,
-	onManageLists,
-}: {
-	children: ReactNode
-	onEdit: () => void
-	onDelete: () => void
-	onManageLists: () => void
-}) {
-	let [open, setOpen] = useState(false)
-
-	return (
-		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-			<DropdownMenuContent>
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onManageLists()
-					}}
-				>
-					<T k="person.manageLists.title" />
-					<Collection />
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onEdit()
-					}}
-				>
-					<T k="person.edit.title" />
-					<PencilSquare />
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => {
-						setOpen(false)
-						onDelete()
-					}}
-				>
-					<T k="person.delete.title" />
-					<Trash />
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	)
-}
 
 function PersonDetails({
 	person,
@@ -525,5 +287,242 @@ function PersonDetails({
 				allPeople={allPeople}
 			/>
 		</>
+	)
+}
+
+type Query = {
+	avatar: true
+	notes: { $each: true }
+	reminders: { $each: true }
+}
+
+function ManageListsDialog({
+	open,
+	onOpenChange,
+	personId,
+	personName,
+	personSummary,
+	allPeople,
+}: {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	personId: string
+	personName: string
+	personSummary?: string
+	allPeople: Array<{
+		$jazz: { id: string }
+		name: string
+		summary?: string
+	}>
+}) {
+	let [isLoading, setIsLoading] = useState(false)
+	let [showCreateForm, setShowCreateForm] = useState(false)
+	let me = useAccount(UserAccount)
+	let t = useIntl()
+
+	let existingLists = Array.from(
+		new Set(
+			allPeople
+				.flatMap(p => extractHashtags(p.summary))
+				.map(tag => tag.substring(1)),
+		),
+	).sort()
+
+	let personLists = extractHashtags(personSummary).map(tag => tag.substring(1))
+
+	let handleAddToList = async (listName: string) => {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${listName.toLowerCase()}`
+			let currentSummary = personSummary || ""
+			let newSummary = `${currentSummary} ${hashtag}`.trim()
+
+			await updatePerson(personId, { summary: newSummary }, me)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	let handleRemoveFromList = async (listName: string) => {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${listName.toLowerCase()}`
+			let currentSummary = personSummary || ""
+			let newSummary = currentSummary
+				.split(/\s+/)
+				.filter((word: string) => word !== hashtag)
+				.join(" ")
+				.trim()
+
+			await updatePerson(personId, { summary: newSummary }, me)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	let handleCreateNewList = async (values: {
+		listName: string
+		selectedPeople: Set<string>
+	}) => {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${values.listName.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
+
+			for (let personIdToAdd of values.selectedPeople) {
+				let person = allPeople.find(p => p.$jazz.id === personIdToAdd)
+				if (!person) continue
+
+				let currentSummary = person.summary || ""
+				let newSummary = `${currentSummary} ${hashtag}`.trim()
+
+				await updatePerson(personIdToAdd, { summary: newSummary }, me)
+			}
+
+			toast.success(
+				t("person.manageLists.toast.created", { listName: values.listName }),
+			)
+			onOpenChange(false)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent
+				className="sm:max-w-md"
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.manageLists.title" />
+						</DialogTitle>
+						<DialogDescription>
+							{t("person.manageLists.description", { name: personName })}
+						</DialogDescription>
+					</DialogHeader>
+				}
+			>
+				{!showCreateForm ? (
+					<div className="space-y-4">
+						{existingLists.length > 0 && (
+							<div className="space-y-3">
+								<p className="text-sm font-medium">
+									<T k="person.manageLists.existingLists" />
+								</p>
+								<div className="space-y-2">
+									{existingLists.map(listName => {
+										let isInList = personLists.includes(listName)
+										return (
+											<div key={listName} className="flex items-center gap-2">
+												<Button
+													variant={isInList ? "default" : "outline"}
+													onClick={() => {
+														if (isInList) {
+															handleRemoveFromList(listName)
+														} else {
+															handleAddToList(listName)
+														}
+													}}
+													disabled={isLoading}
+													className="flex-1 justify-start"
+												>
+													{isInList ? (
+														<>
+															<X className="mr-2 h-4 w-4" />
+															{t("person.manageLists.removeFromList", {
+																listName,
+															})}
+														</>
+													) : (
+														<>
+															<Plus className="mr-2 h-4 w-4" />
+															{t("person.manageLists.addToList", { listName })}
+														</>
+													)}
+												</Button>
+											</div>
+										)
+									})}
+								</div>
+							</div>
+						)}
+						<div className="border-t pt-4">
+							<Button
+								onClick={() => setShowCreateForm(true)}
+								disabled={isLoading}
+								className="w-full"
+								variant="secondary"
+							>
+								<T k="person.manageLists.createList" />
+							</Button>
+						</div>
+					</div>
+				) : (
+					<ListForm
+						defaultListName=""
+						defaultSelectedPeople={new Set([personId])}
+						onSubmit={handleCreateNewList}
+						isLoading={isLoading}
+						mode="create"
+					/>
+				)}
+			</DialogContent>
+		</Dialog>
+	)
+}
+
+function ActionsDropdown({
+	children,
+	onEdit,
+	onDelete,
+	onManageLists,
+}: {
+	children: ReactNode
+	onEdit: () => void
+	onDelete: () => void
+	onManageLists: () => void
+}) {
+	let [open, setOpen] = useState(false)
+
+	return (
+		<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenuContent>
+				<DropdownMenuItem
+					onClick={() => {
+						setOpen(false)
+						onManageLists()
+					}}
+				>
+					<T k="person.manageLists.title" />
+					<Collection />
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={() => {
+						setOpen(false)
+						onEdit()
+					}}
+				>
+					<T k="person.edit.title" />
+					<PencilSquare />
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					variant="destructive"
+					onClick={() => {
+						setOpen(false)
+						onDelete()
+					}}
+				>
+					<T k="person.delete.title" />
+					<Trash />
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }

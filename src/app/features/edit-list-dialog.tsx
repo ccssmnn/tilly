@@ -56,10 +56,10 @@ function EditListDialog({
 	let initialSelectedPeople = new Set(peopleInList.map(p => p.$jazz.id))
 	let initialListName = hashtag.substring(1)
 
-	let handleSave = async (values: {
+	async function saveChanges(values: {
 		listName: string
 		selectedPeople: Set<string>
-	}) => {
+	}) {
 		if (!me.$isLoaded || !hashtag) return
 
 		setIsLoading(true)
@@ -108,7 +108,7 @@ function EditListDialog({
 		}
 	}
 
-	let handleDeleteConfirm = async () => {
+	async function deleteList() {
 		if (!me.$isLoaded || !hashtag) return
 
 		setIsLoading(true)
@@ -145,7 +145,7 @@ function EditListDialog({
 				<ListForm
 					defaultListName={initialListName}
 					defaultSelectedPeople={initialSelectedPeople}
-					onSubmit={handleSave}
+					onSubmit={saveChanges}
 					onDelete={() => setIsDeleteConfirmOpen(true)}
 					isLoading={isLoading}
 					mode="edit"
@@ -176,10 +176,7 @@ function EditListDialog({
 							<AlertDialogCancel>
 								<T k="person.listForm.cancel" />
 							</AlertDialogCancel>
-							<AlertDialogAction
-								onClick={handleDeleteConfirm}
-								disabled={isLoading}
-							>
+							<AlertDialogAction onClick={deleteList} disabled={isLoading}>
 								<T k="person.editList.deleteConfirm.delete" />
 							</AlertDialogAction>
 						</AlertDialogFooter>
