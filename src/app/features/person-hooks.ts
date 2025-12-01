@@ -8,7 +8,12 @@ import {
 } from "#shared/schema/user"
 import { co } from "jazz-tools"
 
-export { usePeople, extractListFilterFromQuery, setListFilterInQuery }
+export {
+	usePeople,
+	extractListFilterFromQuery,
+	setListFilterInQuery,
+	extractSearchWithoutFilter,
+}
 
 function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	allPeople: A,
@@ -52,4 +57,11 @@ function setListFilterInQuery(query: string, filter: string | null): string {
 	if (!filter) return withoutFilter
 	if (filter === "All") return withoutFilter
 	return filter ? `${filter} ${withoutFilter}`.trim() : withoutFilter
+}
+
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
 }

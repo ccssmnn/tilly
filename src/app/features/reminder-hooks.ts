@@ -16,9 +16,17 @@ function extractListFilterFromQuery(query: string): string | null {
 	return match ? match[1].toLowerCase() : null
 }
 
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
+}
+
 export {
 	useReminders,
 	usePersonReminders,
+	extractSearchWithoutFilter,
 	type RemindersLoadedAccount,
 	type PersonRemindersLoadedPerson,
 }

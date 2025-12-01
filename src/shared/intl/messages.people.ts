@@ -102,26 +102,24 @@ const basePeopleMessages = messages({
 		"At least one person must be selected",
 
 	// Edit list dialog
-	"person.editList.title": "Liste {$hashtag} bearbeiten",
-	"person.editList.description":
-		"Verwalte Personen in dieser Liste und benenne sie um",
-	"person.editList.deleteConfirm.title": "Liste {$hashtag} löschen",
+	"person.editList.title": "Edit {$hashtag} List",
+	"person.editList.description": "Manage people in this list and rename it",
+	"person.editList.deleteConfirm.title": "Delete {$hashtag} List",
 	"person.editList.deleteConfirm.description":
-		"Dies entfernt {$hashtag} von {$count :number} Personen. Diese Aktion kann nicht rückgängig gemacht werden.",
-	"person.editList.deleteConfirm.delete": "Löschen",
+		"This will remove {$hashtag} from {$count :number} people. This action cannot be undone.",
+	"person.editList.deleteConfirm.delete": "Delete",
 
 	// New list dialog
-	"person.newList.title": "Neue Liste erstellen",
+	"person.newList.title": "Create New List",
 	"person.newList.description":
-		"Erstelle eine hashtag-basierte Liste und füge Personen hinzu",
+		"Create a hashtag-based list to organize people. Hashtags are added to each person's profile for easy filtering.",
 
 	// List filter bar
 	"person.listFilter.lists": "Lists",
 	"person.listFilter.createNewList": "New List",
 	"person.listFilter.editList": "Edit {$listName}",
 	"person.listFilter.clearFilter": "Clear Filter",
-	"person.listFilter.editTooltip":
-		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
+	"person.listFilter.editTooltip": "Right-click or long press to edit",
 	"person.listFilter.createTooltip": "Create new list",
 })
 
@@ -240,7 +238,7 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	// New list dialog
 	"person.newList.title": "Neue Liste erstellen",
 	"person.newList.description":
-		"Erstelle eine hashtag-basierte Liste und füge Personen hinzu",
+		"Erstelle eine hashtag-basierte Liste, um Personen zu organisieren. Hashtags werden zu jedem Profil hinzugefügt für einfache Filterung.",
 
 	// List filter bar
 	"person.listFilter.lists": "Listen",

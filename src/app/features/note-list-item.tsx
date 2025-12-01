@@ -308,11 +308,19 @@ function MarkdownWithHighlight({
 	}
 
 	let trimmedQuery = searchQuery.trim()
-	let parts = content.split(new RegExp(`(${escapeRegExp(trimmedQuery)})`, "gi"))
+	let terms = extractSearchTerms(trimmedQuery)
+	if (terms.length === 0) {
+		return <Markdown>{content}</Markdown>
+	}
+
+	let pattern = terms.map(escapeRegExp).join("|")
+	let parts = content.split(new RegExp(`(${pattern})`, "gi"))
 
 	let highlightedContent = parts
 		.map((part: string) => {
-			let isMatch = part.toLowerCase() === trimmedQuery.toLowerCase()
+			let isMatch = terms.some(
+				term => part.toLowerCase() === term.toLowerCase(),
+			)
 			return isMatch
 				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
 				: part
@@ -320,6 +328,20 @@ function MarkdownWithHighlight({
 		.join("")
 
 	return <Markdown>{highlightedContent}</Markdown>
+}
+
+function extractSearchTerms(query: string): string[] {
+	let trimmed = query.trim()
+	let terms: string[] = []
+	let hashtagMatch = trimmed.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	if (hashtagMatch) {
+		terms.push(hashtagMatch[1])
+	}
+	let searchWithoutFilter = trimmed.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
+	if (searchWithoutFilter) {
+		terms.push(searchWithoutFilter)
+	}
+	return terms
 }
 
 function escapeRegExp(s: string) {

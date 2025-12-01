@@ -58,7 +58,7 @@ function ListFilterButton({
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger asChild>
 					<Button variant="secondary">
-						{currentFilter ? <Collection /> : <CollectionFill />}
+						{currentFilter ? <CollectionFill /> : <Collection />}
 						<span className="sr-only md:not-sr-only">
 							<T k="person.listFilter.lists" />
 						</span>

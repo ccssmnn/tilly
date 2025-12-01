@@ -122,7 +122,6 @@ function ListForm(props: {
 					{props.mode === "edit" && props.onDelete && (
 						<Button
 							variant="destructive"
-							size="sm"
 							onClick={props.onDelete}
 							disabled={props.isLoading}
 							type="button"
