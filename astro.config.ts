@@ -39,7 +39,6 @@ export default defineConfig({
 			registerType: "prompt",
 			scope: "/app/",
 			strategies: "injectManifest",
-			injectRegister: false,
 			srcDir: "src/app",
 			filename: "sw.ts",
 			manifest: false,

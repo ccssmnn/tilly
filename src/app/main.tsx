@@ -28,7 +28,7 @@ export function PWA() {
 }
 
 function JazzWithClerk() {
-	useServiceWorker({ updateCheckIntervalMs: 2 * 60 * 60 * 1000 })
+	useServiceWorker()
 	let clerk = useClerk()
 	let syncConfig = buildSyncConfig()
 

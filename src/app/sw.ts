@@ -1,7 +1,8 @@
 /// <reference lib="webworker" />
 
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching"
-import { registerRoute } from "workbox-routing"
+import { registerRoute, NavigationRoute } from "workbox-routing"
+import { NetworkFirst } from "workbox-strategies"
 
 declare let self: ServiceWorkerGlobalScope & {
 	__WB_MANIFEST: Array<{ url: string; revision?: string }>
@@ -25,58 +26,17 @@ type NotificationPayload = {
 
 let sw = self
 let USER_CACHE = "tilly-user-v1"
-let APP_SHELL_CACHE = "tilly-pages-v1"
 
 cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
 
+// Cache the app shell for offline navigation
+// NetworkFirst: try network, fall back to cache (enables offline launch)
 registerRoute(
-	({ request, url }) =>
-		request.mode === "navigate" &&
-		(url.pathname === "/app" || url.pathname.startsWith("/app/")),
-	async ({ request, event }) => {
-		let cache = await caches.open(APP_SHELL_CACHE)
-		let appShellRequest = new Request("/app", { credentials: "same-origin" })
-
-		// Cache-first strategy: serve cached version if available
-		let cachedResponse = await cache.match(appShellRequest)
-		if (cachedResponse) {
-			console.log("[SW] Serving navigation from cache")
-			return cachedResponse
-		}
-
-		// No cache available, fetch from network
-		try {
-			console.log("[SW] No cache, fetching navigation from network")
-			let preloadPromise = Reflect.get(event, "preloadResponse")
-			let preload =
-				preloadPromise &&
-				typeof (preloadPromise as Promise<unknown>).then === "function"
-					? await (preloadPromise as Promise<Response | null>)
-					: null
-			let networkResponse = preload ?? (await fetch(request))
-			cache.put(appShellRequest, networkResponse.clone())
-			return networkResponse
-		} catch (error) {
-			console.log("[SW] Navigation request failed, no cache available:", error)
-			return new Response("Offline", { status: 503 })
-		}
-	},
+	new NavigationRoute(new NetworkFirst({ cacheName: "tilly-app-shell-v1" }), {
+		allowlist: [/^\/app(\/|$)/],
+	}),
 )
-
-sw.addEventListener("install", () => {
-	console.log("[SW] Installing...")
-})
-
-sw.addEventListener("activate", event => {
-	console.log("[SW] Activated")
-	// Clear the app shell cache so the new SW fetches the new version
-	event.waitUntil(
-		caches.delete(APP_SHELL_CACHE).then(() => {
-			console.log("[SW] Cleared app shell cache")
-		}),
-	)
-})
 
 sw.addEventListener("message", event => {
 	let data = parseMessageEventData(event.data)
