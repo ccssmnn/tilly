@@ -6,7 +6,6 @@ import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
 import { Button } from "#shared/ui/button"
 import { TextHighlight } from "#shared/ui/text-highlight"
-
 import { isTextSelectionOngoing } from "#app/lib/utils"
 import {
 	Dialog,

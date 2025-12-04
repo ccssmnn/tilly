@@ -607,7 +607,14 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 			)}
 		>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal>
-				<DropdownMenuTrigger asChild>
+				<DropdownMenuTrigger
+					onPointerDown={e => {
+						if (e.pointerType === "touch") {
+							e.preventDefault()
+						}
+					}}
+					asChild
+				>
 					<div className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
 						<div className="min-w-0 flex-1 space-y-1">
 							<div className="flex items-center gap-2">
