@@ -95,7 +95,7 @@ Report suspected vulnerabilities privately by emailing [assmann@hey.com](mailto:
 
 ## License
 
-AGPL-3.0 - Personal use permitted. Any modifications (including server-side) must remain open source.
+O'Saasy License - Free for personal use and self-hosting. Cannot be offered as a competing SaaS.
 
 ## Status
 
