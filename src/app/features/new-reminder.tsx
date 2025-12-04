@@ -88,6 +88,7 @@ function NewReminder(props: {
 		props.onSuccess?.(result.data.reminderID)
 		toast.success(t("reminders.created.success"))
 		setDialogOpen(false)
+		setSelectedPersonId(props.personId ?? "")
 	}
 
 	return (

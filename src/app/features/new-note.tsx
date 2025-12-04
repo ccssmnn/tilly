@@ -91,6 +91,7 @@ function NewNote(props: {
 		props.onSuccess?.(result.data.noteID)
 		toast.success(t("notes.created.success"))
 		setDialogOpen(false)
+		setSelectedPersonId(props.personId ?? "")
 	}
 
 	return (
