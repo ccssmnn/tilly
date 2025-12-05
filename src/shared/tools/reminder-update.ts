@@ -31,12 +31,33 @@ async function updateReminder(
 	let person = await Person.load(options.personId, { loadAs: options.worker })
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
+	// Ensure person has inactive arrays
+	if (!person.inactiveReminders) {
+		person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
+	}
+
 	let reminder = await Reminder.load(options.reminderId, {
 		loadAs: options.worker,
 	})
 	if (!reminder.$isLoaded) throw errors.REMINDER_NOT_FOUND
 
 	let previous = { ...reminder }
+
+	// Find reminder in active or inactive array
+	let reminderInActive = -1
+	let reminderInInactive = -1
+
+	if (person.reminders.$isLoaded) {
+		reminderInActive = Array.from(person.reminders.values()).findIndex(
+			r => r?.$jazz.id === options.reminderId,
+		)
+	}
+
+	if (person.inactiveReminders?.$isLoaded) {
+		reminderInInactive = Array.from(person.inactiveReminders.values()).findIndex(
+			r => r?.$jazz.id === options.reminderId,
+		)
+	}
 
 	if (updates.text !== undefined) {
 		reminder.$jazz.set("text", updates.text)
@@ -50,8 +71,18 @@ async function updateReminder(
 	if ("repeat" in updates && updates.repeat === undefined) {
 		reminder.$jazz.delete("repeat")
 	}
+	// Handle done status changes
 	if (updates.done === true && !reminder.done && !reminder.repeat) {
 		reminder.$jazz.set("done", updates.done)
+		// Move to inactive if in active array
+		if (
+			reminderInActive !== -1 &&
+			person.inactiveReminders?.$isLoaded &&
+			person.reminders.$isLoaded
+		) {
+			person.inactiveReminders.$jazz.push(reminder)
+			person.reminders.$jazz.splice(reminderInActive, 1)
+		}
 	}
 	if (updates.done === true && !reminder.done && reminder.repeat) {
 		let { nextDueAtDate } = calculateNextDueDate(reminder)
@@ -60,18 +91,53 @@ async function updateReminder(
 	}
 	if (updates.done === false && reminder.done) {
 		reminder.$jazz.set("done", updates.done)
+		// Move back to active if in inactive array
+		if (
+			reminderInInactive !== -1 &&
+			!reminder.deletedAt &&
+			person.reminders.$isLoaded &&
+			person.inactiveReminders?.$isLoaded
+		) {
+			person.reminders.$jazz.push(reminder)
+			person.inactiveReminders.$jazz.splice(reminderInInactive, 1)
+		}
 	}
 
+	// Handle deletedAt changes
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		reminder.$jazz.delete("deletedAt")
+		// Restore: move from inactive to active if not done
+		if (
+			reminderInInactive !== -1 &&
+			!reminder.done &&
+			person.reminders.$isLoaded &&
+			person.inactiveReminders?.$isLoaded
+		) {
+			person.reminders.$jazz.push(reminder)
+			person.inactiveReminders.$jazz.splice(reminderInInactive, 1)
+		}
 	}
 
 	if (updates.deletedAt !== undefined) {
 		reminder.$jazz.set("deletedAt", updates.deletedAt)
+		// Move to inactive if in active array
+		if (
+			reminderInActive !== -1 &&
+			person.inactiveReminders?.$isLoaded &&
+			person.reminders.$isLoaded
+		) {
+			person.inactiveReminders.$jazz.push(reminder)
+			person.reminders.$jazz.splice(reminderInActive, 1)
+		}
 	}
 
+	// Handle permanent deletion
 	if (updates.permanentlyDeletedAt !== undefined) {
 		reminder.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
+		// Remove from inactive array
+		if (reminderInInactive !== -1 && person.inactiveReminders?.$isLoaded) {
+			person.inactiveReminders.$jazz.splice(reminderInInactive, 1)
+		}
 	}
 
 	reminder.$jazz.set("updatedAt", new Date())

@@ -24,7 +24,18 @@ let exportQuery = {
 			$each: {
 				avatar: true,
 				notes: { $each: { images: { $each: true } } },
+				inactiveNotes: { $each: { images: { $each: true } } },
 				reminders: { $each: true },
+				inactiveReminders: { $each: true },
+			},
+		},
+		inactivePeople: {
+			$each: {
+				avatar: true,
+				notes: { $each: { images: { $each: true } } },
+				inactiveNotes: { $each: { images: { $each: true } } },
+				reminders: { $each: true },
+				inactiveReminders: { $each: true },
 			},
 		},
 	},
@@ -44,13 +55,20 @@ export function ExportButton(props: {
 				resolve: exportQuery,
 			})
 
-			if (!accountData?.root?.people || accountData.root.people.length === 0) {
+			// Combine active and inactive people for export
+			let allPeople = [
+				...(accountData.root.people || []),
+				...(accountData.root.inactivePeople || []),
+			]
+
+			if (allPeople.length === 0) {
 				toast.warning(t("data.export.noData"))
 				return
 			}
 
-			let peopleWithDataURLs: FilePerson[] = await Promise.all(
-				accountData.root.people.map(async (person): Promise<FilePerson> => {
+			let processPerson = async (
+				person: (typeof allPeople)[number],
+			): Promise<FilePerson> => {
 					let avatar = null
 					if (person.avatar) {
 						let bestImage = highestResAvailable(person.avatar, 2048, 2048)
@@ -77,15 +95,19 @@ export function ExportButton(props: {
 						createdAt: person.createdAt,
 						updatedAt: person.updatedAt,
 						notes: await Promise.all(
-							person.notes
+							[
+								...(person.notes || []),
+								...(person.inactiveNotes || []),
+							]
 								.filter(note => note !== null)
 								?.map(async note => {
 									let images = null
 									if (note.images?.$isLoaded) {
 										images = await Promise.all(
 											Array.from(note.images.values())
-												.filter(img => img !== null)
+												.filter(img => img !== null && img !== undefined)
 												.map(async img => {
+													if (!img) return null
 													let bestImage = highestResAvailable(img, 2048, 2048)
 													let blob = bestImage?.image.toBlob()
 													let dataURL = blob
@@ -113,7 +135,10 @@ export function ExportButton(props: {
 									}
 								}),
 						),
-						reminders: person.reminders
+						reminders: [
+							...(person.reminders || []),
+							...(person.inactiveReminders || []),
+						]
 							.filter(reminder => reminder !== null)
 							?.map(reminder => ({
 								id: reminder.$jazz.id,
@@ -127,7 +152,10 @@ export function ExportButton(props: {
 								updatedAt: reminder.updatedAt,
 							})),
 					}
-				}),
+			}
+
+			let peopleWithDataURLs: FilePerson[] = await Promise.all(
+				allPeople.map(processPerson),
 			)
 
 			let exportData: FileData = {

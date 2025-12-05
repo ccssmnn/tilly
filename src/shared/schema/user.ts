@@ -85,7 +85,9 @@ export let Person = co.map({
 	summary: z.string().optional(),
 	avatar: co.image().optional(),
 	notes: co.list(Note),
+	inactiveNotes: co.list(Note).optional(),
 	reminders: co.list(Reminder),
+	inactiveReminders: co.list(Reminder).optional(),
 	deletedAt: z.date().optional(),
 	permanentlyDeletedAt: z.date().optional(),
 	createdAt: z.date(),
@@ -102,10 +104,12 @@ export let Settings = co.map({
 
 export let UserAccountRoot = co.map({
 	people: co.list(Person),
+	inactivePeople: co.list(Person).optional(),
 	notificationSettings: NotificationSettings.optional(),
 	usageTracking: UsageTracking.optional(),
 	language: z.enum(["de", "en"]).optional(),
 	assistant: Assistant.optional(),
+	migrationVersion: z.number().optional(),
 })
 
 export let UserAccount = co
@@ -114,9 +118,18 @@ export let UserAccount = co
 		root: UserAccountRoot,
 	})
 	.withMigration(async account => {
+		console.log("[Jazz]: Running migration...")
 		initializeRootIfUndefined(account)
 		initializeProfileIfUndefined(account)
-		await markOldDeletedItemsAsPermanent(account)
+
+		// Only run v1 migration if not already done
+		if (
+			account.root?.$isLoaded &&
+			(!account.root.migrationVersion || account.root.migrationVersion < 1)
+		) {
+			await runMigrationV1(account)
+			account.root.$jazz.set("migrationVersion", 1)
+		}
 	})
 
 let migrationResolveQuery = {
@@ -133,6 +146,7 @@ function initializeRootIfUndefined(
 			"root",
 			UserAccountRoot.create({
 				people: co.list(Person).create([]),
+				inactivePeople: co.list(Person).create([]),
 				notificationSettings: NotificationSettings.create({
 					version: 1,
 					timezone: deviceTimezone,
@@ -145,6 +159,7 @@ function initializeRootIfUndefined(
 					stringifiedMessages: co.list(z.string()).create([]),
 					notifyOnComplete: true,
 				}),
+				migrationVersion: 1,
 			}),
 		)
 	}
@@ -163,19 +178,40 @@ function initializeProfileIfUndefined(
 	}
 }
 
-async function markOldDeletedItemsAsPermanent(
+async function runMigrationV1(
 	account: Parameters<Parameters<typeof UserAccount.withMigration>[0]>[0],
 ) {
+	console.log("[Jazz]: Running migration v1...")
+
 	let { root } = await account.$jazz.ensureLoaded({
 		resolve: {
 			root: migrationResolveQuery,
 		},
 	})
 
+	// Initialize inactive arrays if they don't exist
+	if (root.$isLoaded && !root.inactivePeople) {
+		root.$jazz.set("inactivePeople", co.list(Person).create([]))
+	}
+
 	let thirtyDaysAgo = new Date()
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-	for (let person of root.people.values()) {
+	// Process people and move to inactive if deleted
+	let peopleToRemove: number[] = []
+	for (let i = 0; i < root.people.length; i++) {
+		let person = root.people[i]
+		if (!person) continue
+
+		// Initialize inactive arrays for this person if needed
+		if (!person.inactiveReminders) {
+			person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
+		}
+		if (!person.inactiveNotes) {
+			person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+		}
+
+		// Handle permanently deleted person (>30 days)
 		if (
 			person.deletedAt &&
 			!person.permanentlyDeletedAt &&
@@ -184,7 +220,26 @@ async function markOldDeletedItemsAsPermanent(
 			person.$jazz.set("permanentlyDeletedAt", person.deletedAt)
 		}
 
-		for (let reminder of person.reminders.values()) {
+		// Remove permanently deleted people from array
+		if (person.permanentlyDeletedAt) {
+			peopleToRemove.push(i)
+			continue
+		}
+
+		// Move deleted person to inactivePeople
+		if (person.deletedAt && root.inactivePeople?.$isLoaded) {
+			root.inactivePeople.$jazz.push(person)
+			peopleToRemove.push(i)
+			continue
+		}
+
+		// Process reminders for this person
+		let remindersToRemove: number[] = []
+		for (let j = 0; j < person.reminders.length; j++) {
+			let reminder = person.reminders[j]
+			if (!reminder) continue
+
+			// Mark old deleted items as permanent
 			if (
 				reminder.deletedAt &&
 				!reminder.permanentlyDeletedAt &&
@@ -192,9 +247,37 @@ async function markOldDeletedItemsAsPermanent(
 			) {
 				reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
 			}
+
+			// Remove permanently deleted reminders
+			if (reminder.permanentlyDeletedAt) {
+				remindersToRemove.push(j)
+				continue
+			}
+
+			// Move done or deleted reminders to inactive
+			if (
+				(reminder.done || reminder.deletedAt) &&
+				person.inactiveReminders?.$isLoaded
+			) {
+				person.inactiveReminders.$jazz.push(reminder)
+				remindersToRemove.push(j)
+			}
 		}
 
-		for (let note of person.notes.values()) {
+		// Remove in reverse order to maintain indices
+		if (person.reminders.$isLoaded) {
+			for (let j = remindersToRemove.length - 1; j >= 0; j--) {
+				person.reminders.$jazz.splice(remindersToRemove[j], 1)
+			}
+		}
+
+		// Process notes for this person
+		let notesToRemove: number[] = []
+		for (let j = 0; j < person.notes.length; j++) {
+			let note = person.notes[j]
+			if (!note) continue
+
+			// Mark old deleted items as permanent
 			if (
 				note.deletedAt &&
 				!note.permanentlyDeletedAt &&
@@ -202,8 +285,36 @@ async function markOldDeletedItemsAsPermanent(
 			) {
 				note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
 			}
+
+			// Remove permanently deleted notes
+			if (note.permanentlyDeletedAt) {
+				notesToRemove.push(j)
+				continue
+			}
+
+			// Move deleted notes to inactive
+			if (note.deletedAt && person.inactiveNotes?.$isLoaded) {
+				person.inactiveNotes.$jazz.push(note)
+				notesToRemove.push(j)
+			}
+		}
+
+		// Remove in reverse order to maintain indices
+		if (person.notes.$isLoaded) {
+			for (let j = notesToRemove.length - 1; j >= 0; j--) {
+				person.notes.$jazz.splice(notesToRemove[j], 1)
+			}
 		}
 	}
+
+	// Remove people in reverse order to maintain indices
+	if (root.people.$isLoaded) {
+		for (let i = peopleToRemove.length - 1; i >= 0; i--) {
+			root.people.$jazz.splice(peopleToRemove[i], 1)
+		}
+	}
+
+	console.log("[Jazz]: Migration v1 complete")
 }
 
 function isDeleted(item: {

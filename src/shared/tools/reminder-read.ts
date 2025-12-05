@@ -18,6 +18,7 @@ let query = {
 			$each: {
 				avatar: true,
 				reminders: { $each: true },
+				inactiveReminders: { $each: true },
 			},
 		},
 	},
@@ -40,14 +41,30 @@ async function listReminders(options: {
 
 	for (let person of worker.root.people.values()) {
 		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
-		if (!person.reminders) continue
 
-		for (let reminder of person.reminders.values()) {
-			if (isPermanentlyDeleted(reminder)) continue
-			if (!options.includeDone && reminder.done) continue
-			if (!options.includeDeleted && isDeleted(reminder)) continue
+		// Check active reminders
+		if (person.reminders) {
+			for (let reminder of person.reminders.values()) {
+				if (isPermanentlyDeleted(reminder)) continue
+				if (!options.includeDone && reminder.done) continue
+				if (!options.includeDeleted && isDeleted(reminder)) continue
 
-			allReminders.push({ reminder, person })
+				allReminders.push({ reminder, person })
+			}
+		}
+
+		// Check inactive reminders if includeDone or includeDeleted is true
+		if (
+			person.inactiveReminders &&
+			(options.includeDone || options.includeDeleted)
+		) {
+			for (let reminder of person.inactiveReminders.values()) {
+				if (isPermanentlyDeleted(reminder)) continue
+				if (!options.includeDone && reminder.done) continue
+				if (!options.includeDeleted && isDeleted(reminder)) continue
+
+				allReminders.push({ reminder, person })
+			}
 		}
 	}
 

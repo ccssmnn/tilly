@@ -32,12 +32,13 @@ export {
 
 let notesResolve = {
 	root: {
-		people: { $each: { notes: { $each: true } } },
+		people: { $each: { notes: { $each: true }, inactiveNotes: { $each: true } } },
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personNotesResolve = {
 	notes: { $each: true },
+	inactiveNotes: { $each: true },
 } as const satisfies ResolveQuery<typeof Person>
 
 type NotesLoadedAccount = co.loaded<typeof UserAccount, typeof notesResolve>
@@ -56,11 +57,36 @@ function usePersonNotes(
 		select: person => {
 			if (!person.$isLoaded) {
 				if (defaultPerson && defaultPerson.$jazz.id === personId) {
-					return defaultPerson.notes.filter(n => !isPermanentlyDeleted(n))
+					let active = defaultPerson.notes.filter(n => !isPermanentlyDeleted(n))
+					let inactive = defaultPerson.inactiveNotes
+						? defaultPerson.inactiveNotes.filter(n => !isPermanentlyDeleted(n))
+						: []
+					return [...active, ...inactive]
 				}
 				return []
 			}
-			return person.notes.filter(n => !isPermanentlyDeleted(n))
+
+			// Perform 30-day cleanup on inactive notes
+			if (person.inactiveNotes) {
+				let thirtyDaysAgo = new Date()
+				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+				for (let note of person.inactiveNotes.values()) {
+					if (
+						note.deletedAt &&
+						!note.permanentlyDeletedAt &&
+						note.deletedAt < thirtyDaysAgo
+					) {
+						note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
+					}
+				}
+			}
+
+			let active = person.notes.filter(n => !isPermanentlyDeleted(n))
+			let inactive = person.inactiveNotes
+				? person.inactiveNotes.filter(n => !isPermanentlyDeleted(n))
+				: []
+			return [...active, ...inactive]
 		},
 	})
 
@@ -107,9 +133,32 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	let allNotePairs = []
 
 	for (let person of people) {
+		// Process active notes
 		for (let note of person.notes.values()) {
 			if (isPermanentlyDeleted(note)) continue
 			allNotePairs.push({ note, person })
+		}
+
+		// Process inactive notes with 30-day cleanup
+		if (person.inactiveNotes) {
+			let thirtyDaysAgo = new Date()
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+			for (let note of person.inactiveNotes.values()) {
+				if (isPermanentlyDeleted(note)) continue
+
+				// Perform 30-day cleanup
+				if (
+					note.deletedAt &&
+					!note.permanentlyDeletedAt &&
+					note.deletedAt < thirtyDaysAgo
+				) {
+					note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
+					continue
+				}
+
+				allNotePairs.push({ note, person })
+			}
 		}
 	}
 

@@ -32,11 +32,14 @@ export {
 }
 
 let remindersResolve = {
-	root: { people: { $each: { reminders: { $each: true } } } },
+	root: {
+		people: { $each: { reminders: { $each: true }, inactiveReminders: { $each: true } } },
+	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personRemindersResolve = {
 	reminders: { $each: true },
+	inactiveReminders: { $each: true },
 } as const satisfies ResolveQuery<typeof Person>
 
 type RemindersLoadedAccount = co.loaded<
@@ -67,9 +70,32 @@ function useReminders(
 
 	let allReminderPairs = []
 	for (let person of people) {
+		// Process active reminders
 		for (let reminder of person.reminders.values()) {
 			if (isPermanentlyDeleted(reminder)) continue
 			allReminderPairs.push({ reminder, person })
+		}
+
+		// Process inactive reminders with 30-day cleanup
+		if (person.inactiveReminders) {
+			let thirtyDaysAgo = new Date()
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+			for (let reminder of person.inactiveReminders.values()) {
+				if (isPermanentlyDeleted(reminder)) continue
+
+				// Perform 30-day cleanup
+				if (
+					reminder.deletedAt &&
+					!reminder.permanentlyDeletedAt &&
+					reminder.deletedAt < thirtyDaysAgo
+				) {
+					reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
+					continue
+				}
+
+				allReminderPairs.push({ reminder, person })
+			}
 		}
 	}
 
@@ -145,11 +171,36 @@ function usePersonReminders(
 		select: person => {
 			if (!person.$isLoaded) {
 				if (defaultPerson && defaultPerson.$jazz.id === personId) {
-					return defaultPerson.reminders.filter(r => !isPermanentlyDeleted(r))
+					let active = defaultPerson.reminders.filter(r => !isPermanentlyDeleted(r))
+					let inactive = defaultPerson.inactiveReminders
+						? defaultPerson.inactiveReminders.filter(r => !isPermanentlyDeleted(r))
+						: []
+					return [...active, ...inactive]
 				}
 				return []
 			}
-			return person.reminders.filter(r => !isPermanentlyDeleted(r))
+
+			// Perform 30-day cleanup on inactive reminders
+			if (person.inactiveReminders) {
+				let thirtyDaysAgo = new Date()
+				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+				for (let reminder of person.inactiveReminders.values()) {
+					if (
+						reminder.deletedAt &&
+						!reminder.permanentlyDeletedAt &&
+						reminder.deletedAt < thirtyDaysAgo
+					) {
+						reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
+					}
+				}
+			}
+
+			let active = person.reminders.filter(r => !isPermanentlyDeleted(r))
+			let inactive = person.inactiveReminders
+				? person.inactiveReminders.filter(r => !isPermanentlyDeleted(r))
+				: []
+			return [...active, ...inactive]
 		},
 	})
 

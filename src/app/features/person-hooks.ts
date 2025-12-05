@@ -18,9 +18,35 @@ export {
 function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	allPeople: A,
 	searchQuery: string,
+	inactivePeople?: A,
 ): { active: P[]; deleted: P[] } {
+	// Perform 30-day cleanup on inactive people if provided
+	if (inactivePeople) {
+		let thirtyDaysAgo = new Date()
+		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+		for (let person of inactivePeople) {
+			if (
+				person.$isLoaded &&
+				person.deletedAt &&
+				!person.permanentlyDeletedAt &&
+				person.deletedAt < thirtyDaysAgo
+			) {
+				;(person as co.loaded<typeof Person>).$jazz.set(
+					"permanentlyDeletedAt",
+					person.deletedAt,
+				)
+			}
+		}
+	}
+
+	// Merge active and inactive people for display
+	let allCombinedPeople = [...allPeople, ...(inactivePeople || [])]
+
 	let searchLower = searchQuery.toLowerCase().trim()
-	let visiblePeople = allPeople.filter(person => !isPermanentlyDeleted(person))
+	let visiblePeople = allCombinedPeople.filter(
+		person => !isPermanentlyDeleted(person),
+	)
 
 	let listFilter = extractListFilterFromQuery(searchLower)
 	let searchWithoutFilter = searchLower.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()

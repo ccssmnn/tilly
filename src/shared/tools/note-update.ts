@@ -30,11 +30,32 @@ async function updateNote(
 	})
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
+	// Ensure person has inactive arrays
+	if (!person.inactiveNotes) {
+		person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+	}
+
 	let note = await Note.load(options.noteId, {
 		resolve: { images: { $each: true } },
 		loadAs: options.worker,
 	})
 	if (!note.$isLoaded) throw errors.NOTE_NOT_FOUND
+
+	// Find note in active or inactive array
+	let noteInActive = -1
+	let noteInInactive = -1
+
+	if (person.notes.$isLoaded) {
+		noteInActive = Array.from(person.notes.values()).findIndex(
+			n => n?.$jazz.id === options.noteId,
+		)
+	}
+
+	if (person.inactiveNotes?.$isLoaded) {
+		noteInInactive = Array.from(person.inactiveNotes.values()).findIndex(
+			n => n?.$jazz.id === options.noteId,
+		)
+	}
 
 	let previous = {
 		version: note.version,
@@ -111,19 +132,43 @@ async function updateNote(
 		}
 	}
 
+	// Handle deletedAt changes
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		note.$jazz.delete("deletedAt")
+		// Restore: move from inactive to active
+		if (
+			noteInInactive !== -1 &&
+			person.notes.$isLoaded &&
+			person.inactiveNotes?.$isLoaded
+		) {
+			person.notes.$jazz.push(note)
+			person.inactiveNotes.$jazz.splice(noteInInactive, 1)
+		}
 	}
 
 	if (updates.deletedAt !== undefined) {
 		note.$jazz.set("deletedAt", new Date(updates.deletedAt))
+		// Move to inactive if in active array
+		if (
+			noteInActive !== -1 &&
+			person.inactiveNotes?.$isLoaded &&
+			person.notes.$isLoaded
+		) {
+			person.inactiveNotes.$jazz.push(note)
+			person.notes.$jazz.splice(noteInActive, 1)
+		}
 	}
 
+	// Handle permanent deletion
 	if (updates.permanentlyDeletedAt !== undefined) {
 		note.$jazz.set(
 			"permanentlyDeletedAt",
 			new Date(updates.permanentlyDeletedAt),
 		)
+		// Remove from inactive array
+		if (noteInInactive !== -1 && person.inactiveNotes?.$isLoaded) {
+			person.inactiveNotes.$jazz.splice(noteInInactive, 1)
+		}
 	}
 
 	note.$jazz.set("updatedAt", new Date())
