@@ -28,7 +28,9 @@ let sw = self
 let USER_CACHE = "tilly-user-v1"
 
 cleanupOutdatedCaches()
-precacheAndRoute(self.__WB_MANIFEST)
+precacheAndRoute(self.__WB_MANIFEST, {
+	ignoreURLParametersMatching: [/.*/], // Ignore all URL parameters when matching
+})
 
 // Cache the app shell for offline navigation
 // NetworkFirst: try network, fall back to cache (enables offline launch)
