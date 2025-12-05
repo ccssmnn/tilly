@@ -20,9 +20,20 @@ function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	searchQuery: string,
 	inactivePeople?: A,
 ): { active: P[]; deleted: P[] } {
-	// Merge active and inactive people for display
-	// Note: inactive people are already filtered for permanently deleted in the route
-	let allCombinedPeople = [...allPeople, ...(inactivePeople || [])]
+	let debugCounts = { activeDeleted: 0, inactiveNotDeleted: 0 }
+
+	for (let person of allPeople) {
+		if (isDeleted(person)) debugCounts.activeDeleted++
+	}
+	for (let person of inactivePeople ?? []) {
+		if (!isDeleted(person)) debugCounts.inactiveNotDeleted++
+	}
+
+	if (debugCounts.activeDeleted > 0 || debugCounts.inactiveNotDeleted > 0) {
+		console.log("[usePeople] unexpected state:", debugCounts)
+	}
+
+	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])]
 
 	let searchLower = searchQuery.toLowerCase().trim()
 

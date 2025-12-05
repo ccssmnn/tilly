@@ -40,7 +40,11 @@ function AppComponent() {
 }
 
 let query = {
+	profile: true,
 	root: {
+		assistant: true,
+		notificationSettings: true,
+		usageTracking: true,
 		people: {
 			$each: {
 				avatar: true,

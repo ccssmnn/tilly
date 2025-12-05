@@ -10,18 +10,7 @@ import {
 import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
-
-function extractListFilterFromQuery(query: string): string | null {
-	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	return match ? match[1].toLowerCase() : null
-}
-
-function extractSearchWithoutFilter(query: string): string {
-	return query
-		.toLowerCase()
-		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
-		.trim()
-}
+import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
 
 export {
 	useReminders,
@@ -33,7 +22,9 @@ export {
 
 let remindersResolve = {
 	root: {
-		people: { $each: { reminders: { $each: true }, inactiveReminders: { $each: true } } },
+		people: {
+			$each: { reminders: { $each: true }, inactiveReminders: { $each: true } },
+		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
@@ -55,62 +46,41 @@ function useReminders(
 	searchQuery: string,
 	defaultAccount?: RemindersLoadedAccount,
 ) {
-	let people = useAccount(UserAccount, {
+	let account = useAccount(UserAccount, {
 		resolve: remindersResolve,
-		select: account => {
-			if (!account.$isLoaded) {
-				if (defaultAccount) {
-					return defaultAccount.root.people.filter(p => !isDeleted(p))
-				}
-				return []
-			}
-			return account.root.people.filter(p => !isDeleted(p))
-		},
 	})
 
+	let loadedAccount = account.$isLoaded ? account : defaultAccount
+	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
+
+	useInactiveCleanup(undefined, people)
+
 	let allReminderPairs = []
+	let debugCounts = { activeDeletedOrDone: 0, inactiveOpenAndNotDeleted: 0 }
+
 	for (let person of people) {
-		// Process active reminders
 		for (let reminder of person.reminders.values()) {
 			if (isPermanentlyDeleted(reminder)) continue
+			if (isDeleted(reminder) || reminder.done)
+				debugCounts.activeDeletedOrDone++
 			allReminderPairs.push({ reminder, person })
 		}
 
-		// Process inactive reminders with 30-day cleanup
-		if (person.inactiveReminders && person.inactiveReminders.$isLoaded) {
-			let thirtyDaysAgo = new Date()
-			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-			let toRemove: number[] = []
-
-			let inactiveArray = Array.from(person.inactiveReminders.values())
-			for (let i = 0; i < inactiveArray.length; i++) {
-				let reminder = inactiveArray[i]
-				if (!reminder) continue
-
-				// Remove permanently deleted items
-				if (isPermanentlyDeleted(reminder)) {
-					toRemove.push(i)
-					continue
-				}
-
-				// Perform 30-day cleanup - mark and remove immediately
-				if (
-					reminder.deletedAt &&
-					!reminder.permanentlyDeletedAt &&
-					reminder.deletedAt < thirtyDaysAgo
-				) {
-					toRemove.push(i)
-					continue
-				}
-
+		if (person.inactiveReminders?.$isLoaded) {
+			for (let reminder of person.inactiveReminders.values()) {
+				if (!reminder || isPermanentlyDeleted(reminder)) continue
+				if (!isDeleted(reminder) && !reminder.done)
+					debugCounts.inactiveOpenAndNotDeleted++
 				allReminderPairs.push({ reminder, person })
 			}
-
-			// Remove items in reverse order
-			for (let i = toRemove.length - 1; i >= 0; i--) {
-				person.inactiveReminders.$jazz.splice(toRemove[i], 1)
-			}
 		}
+	}
+
+	if (
+		debugCounts.activeDeletedOrDone > 0 ||
+		debugCounts.inactiveOpenAndNotDeleted > 0
+	) {
+		console.log("[useReminders] unexpected state:", debugCounts)
 	}
 
 	let searchLower = searchQuery.toLowerCase()
@@ -180,67 +150,26 @@ function usePersonReminders(
 	searchQuery: string,
 	defaultPerson?: PersonRemindersLoadedPerson,
 ) {
-	let reminders = useCoState(Person, personId, {
+	let person = useCoState(Person, personId, {
 		resolve: personRemindersResolve,
-		select: person => {
-			if (!person.$isLoaded) {
-				if (defaultPerson && defaultPerson.$jazz.id === personId) {
-					let active = defaultPerson.reminders.filter(r => !isPermanentlyDeleted(r))
-					let inactive = defaultPerson.inactiveReminders
-						? defaultPerson.inactiveReminders.filter(r => !isPermanentlyDeleted(r))
-						: []
-					return [...active, ...inactive]
-				}
-				return []
-			}
-
-			// Perform 30-day cleanup on inactive reminders
-			if (person.inactiveReminders && person.inactiveReminders.$isLoaded) {
-				let thirtyDaysAgo = new Date()
-				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-				let toRemove: number[] = []
-
-				let inactiveArray = Array.from(person.inactiveReminders.values())
-				for (let i = 0; i < inactiveArray.length; i++) {
-					let reminder = inactiveArray[i]
-					if (!reminder) continue
-
-					// Remove permanently deleted items
-					if (isPermanentlyDeleted(reminder)) {
-						toRemove.push(i)
-						continue
-					}
-
-					// Perform 30-day cleanup - remove immediately
-					if (
-						reminder.deletedAt &&
-						!reminder.permanentlyDeletedAt &&
-						reminder.deletedAt < thirtyDaysAgo
-					) {
-						toRemove.push(i)
-					}
-				}
-
-				// Remove items in reverse order
-				for (let i = toRemove.length - 1; i >= 0; i--) {
-					person.inactiveReminders.$jazz.splice(toRemove[i], 1)
-				}
-			}
-
-			let active = person.reminders.filter(r => !isPermanentlyDeleted(r))
-			let inactive = person.inactiveReminders
-				? person.inactiveReminders.filter(r => !isPermanentlyDeleted(r))
-				: []
-			return [...active, ...inactive]
-		},
 	})
 
+	let loadedPerson = person.$isLoaded ? person : defaultPerson
+
+	useInactiveCleanup(undefined, loadedPerson ? [loadedPerson] : undefined)
+
+	let allReminders = [
+		...(loadedPerson?.reminders?.filter(r => !isPermanentlyDeleted(r)) ?? []),
+		...(loadedPerson?.inactiveReminders?.filter(
+			r => !isPermanentlyDeleted(r),
+		) ?? []),
+	]
+
 	let filteredReminders = searchQuery
-		? reminders.filter(reminder => {
-				let searchLower = searchQuery.toLowerCase()
-				return reminder.text.toLowerCase().includes(searchLower)
-			})
-		: reminders
+		? allReminders.filter(reminder =>
+				reminder.text.toLowerCase().includes(searchQuery.toLowerCase()),
+			)
+		: allReminders
 
 	let open = filteredReminders.filter(r => !r.done && !isDeleted(r))
 	let done = filteredReminders.filter(r => r.done && !isDeleted(r))
@@ -251,4 +180,16 @@ function usePersonReminders(
 	sortByDeletedAt(deleted)
 
 	return { open, done, deleted }
+}
+
+function extractListFilterFromQuery(query: string): string | null {
+	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	return match ? match[1].toLowerCase() : null
+}
+
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
 }

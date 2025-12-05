@@ -9,18 +9,7 @@ import {
 import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
-
-function extractListFilterFromQuery(query: string): string | null {
-	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	return match ? match[1].toLowerCase() : null
-}
-
-function extractSearchWithoutFilter(query: string): string {
-	return query
-		.toLowerCase()
-		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
-		.trim()
-}
+import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
 
 export {
 	usePersonNotes,
@@ -32,7 +21,9 @@ export {
 
 let notesResolve = {
 	root: {
-		people: { $each: { notes: { $each: true }, inactiveNotes: { $each: true } } },
+		people: {
+			$each: { notes: { $each: true }, inactiveNotes: { $each: true } },
+		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
@@ -52,67 +43,25 @@ function usePersonNotes(
 	searchQuery: string,
 	defaultPerson?: PersonNotesLoadedPerson,
 ) {
-	let notes = useCoState(Person, personId, {
+	let person = useCoState(Person, personId, {
 		resolve: personNotesResolve,
-		select: person => {
-			if (!person.$isLoaded) {
-				if (defaultPerson && defaultPerson.$jazz.id === personId) {
-					let active = defaultPerson.notes.filter(n => !isPermanentlyDeleted(n))
-					let inactive = defaultPerson.inactiveNotes
-						? defaultPerson.inactiveNotes.filter(n => !isPermanentlyDeleted(n))
-						: []
-					return [...active, ...inactive]
-				}
-				return []
-			}
-
-			// Perform 30-day cleanup on inactive notes
-			if (person.inactiveNotes && person.inactiveNotes.$isLoaded) {
-				let thirtyDaysAgo = new Date()
-				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-				let toRemove: number[] = []
-
-				let inactiveArray = Array.from(person.inactiveNotes.values())
-				for (let i = 0; i < inactiveArray.length; i++) {
-					let note = inactiveArray[i]
-					if (!note) continue
-
-					// Remove permanently deleted items
-					if (isPermanentlyDeleted(note)) {
-						toRemove.push(i)
-						continue
-					}
-
-					// Perform 30-day cleanup - remove immediately
-					if (
-						note.deletedAt &&
-						!note.permanentlyDeletedAt &&
-						note.deletedAt < thirtyDaysAgo
-					) {
-						toRemove.push(i)
-					}
-				}
-
-				// Remove items in reverse order
-				for (let i = toRemove.length - 1; i >= 0; i--) {
-					person.inactiveNotes.$jazz.splice(toRemove[i], 1)
-				}
-			}
-
-			let active = person.notes.filter(n => !isPermanentlyDeleted(n))
-			let inactive = person.inactiveNotes
-				? person.inactiveNotes.filter(n => !isPermanentlyDeleted(n))
-				: []
-			return [...active, ...inactive]
-		},
 	})
 
+	let loadedPerson = person.$isLoaded ? person : defaultPerson
+
+	useInactiveCleanup(undefined, loadedPerson ? [loadedPerson] : undefined)
+
+	let allNotes = [
+		...(loadedPerson?.notes?.filter(n => !isPermanentlyDeleted(n)) ?? []),
+		...(loadedPerson?.inactiveNotes?.filter(n => !isPermanentlyDeleted(n)) ??
+			[]),
+	]
+
 	let filteredNotes = searchQuery
-		? notes.filter(note => {
-				let searchLower = searchQuery.toLowerCase()
-				return note.content.toLowerCase().includes(searchLower)
-			})
-		: notes
+		? allNotes.filter(note =>
+				note.content.toLowerCase().includes(searchQuery.toLowerCase()),
+			)
+		: allNotes
 
 	let active = []
 	let deleted = []
@@ -134,63 +83,36 @@ function usePersonNotes(
 }
 
 function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
-	let people = useAccount(UserAccount, {
+	let account = useAccount(UserAccount, {
 		resolve: notesResolve,
-		select: account => {
-			if (!account.$isLoaded) {
-				if (defaultAccount) {
-					return defaultAccount.root.people.filter(p => !isDeleted(p))
-				}
-				return []
-			}
-			return account.root.people.filter(p => !isDeleted(p))
-		},
 	})
 
+	let loadedAccount = account.$isLoaded ? account : defaultAccount
+	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
+
+	useInactiveCleanup(undefined, people)
+
 	let allNotePairs = []
+	let debugCounts = { activeDeleted: 0, inactiveNotDeleted: 0 }
 
 	for (let person of people) {
-		// Process active notes
 		for (let note of person.notes.values()) {
 			if (isPermanentlyDeleted(note)) continue
+			if (isDeleted(note)) debugCounts.activeDeleted++
 			allNotePairs.push({ note, person })
 		}
 
-		// Process inactive notes with 30-day cleanup
-		if (person.inactiveNotes && person.inactiveNotes.$isLoaded) {
-			let thirtyDaysAgo = new Date()
-			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-			let toRemove: number[] = []
-
-			let inactiveArray = Array.from(person.inactiveNotes.values())
-			for (let i = 0; i < inactiveArray.length; i++) {
-				let note = inactiveArray[i]
-				if (!note) continue
-
-				// Remove permanently deleted items
-				if (isPermanentlyDeleted(note)) {
-					toRemove.push(i)
-					continue
-				}
-
-				// Perform 30-day cleanup - remove immediately
-				if (
-					note.deletedAt &&
-					!note.permanentlyDeletedAt &&
-					note.deletedAt < thirtyDaysAgo
-				) {
-					toRemove.push(i)
-					continue
-				}
-
+		if (person.inactiveNotes?.$isLoaded) {
+			for (let note of person.inactiveNotes.values()) {
+				if (!note || isPermanentlyDeleted(note)) continue
+				if (!isDeleted(note)) debugCounts.inactiveNotDeleted++
 				allNotePairs.push({ note, person })
 			}
-
-			// Remove items in reverse order
-			for (let i = toRemove.length - 1; i >= 0; i--) {
-				person.inactiveNotes.$jazz.splice(toRemove[i], 1)
-			}
 		}
+	}
+
+	if (debugCounts.activeDeleted > 0 || debugCounts.inactiveNotDeleted > 0) {
+		console.log("[useNotes] unexpected state:", debugCounts)
 	}
 
 	let searchLower = searchQuery.toLowerCase()
@@ -236,4 +158,16 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	})
 
 	return { active, deleted, total: allNotePairs.length }
+}
+
+function extractListFilterFromQuery(query: string): string | null {
+	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	return match ? match[1].toLowerCase() : null
+}
+
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
 }

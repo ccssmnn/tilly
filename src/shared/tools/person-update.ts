@@ -3,6 +3,11 @@ import { z } from "zod"
 import { Person, UserAccount } from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
+import {
+	moveToActive,
+	moveToInactive,
+	removeFromInactive,
+} from "#shared/lib/jazz-list-utils"
 
 export { createUpdatePersonTool, createDeletePersonTool, updatePerson }
 
@@ -23,25 +28,8 @@ async function updatePerson(
 	let person = await Person.load(personId, { loadAs: worker })
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
-	// Ensure worker has inactive people array
 	if (worker.root.$isLoaded && !worker.root.inactivePeople) {
 		worker.root.$jazz.set("inactivePeople", co.list(Person).create([]))
-	}
-
-	// Find person in active or inactive array
-	let personInActive = -1
-	let personInInactive = -1
-
-	if (worker.root.$isLoaded && worker.root.people.$isLoaded) {
-		personInActive = Array.from(worker.root.people.values()).findIndex(
-			p => p?.$jazz.id === personId,
-		)
-	}
-
-	if (worker.root.$isLoaded && worker.root.inactivePeople?.$isLoaded) {
-		personInInactive = Array.from(worker.root.inactivePeople.values()).findIndex(
-			p => p?.$jazz.id === personId,
-		)
 	}
 
 	let previous = {
@@ -57,46 +45,22 @@ async function updatePerson(
 		person.$jazz.set("summary", updates.summary)
 	}
 
-	// Handle deletedAt changes
+	type Root = { people?: unknown; inactivePeople?: unknown }
+	let root = worker.root as Root
+
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		person.$jazz.delete("deletedAt")
-		// Restore: move from inactive to active
-		if (
-			personInInactive !== -1 &&
-			worker.root.$isLoaded &&
-			worker.root.people.$isLoaded &&
-			worker.root.inactivePeople?.$isLoaded
-		) {
-			worker.root.people.$jazz.push(person)
-			worker.root.inactivePeople.$jazz.splice(personInInactive, 1)
-		}
+		moveToActive(root.people, root.inactivePeople, personId)
 	}
 
 	if (updates.deletedAt !== undefined) {
 		person.$jazz.set("deletedAt", updates.deletedAt)
-		// Move to inactive if in active array
-		if (
-			personInActive !== -1 &&
-			worker.root.$isLoaded &&
-			worker.root.inactivePeople?.$isLoaded &&
-			worker.root.people.$isLoaded
-		) {
-			worker.root.inactivePeople.$jazz.push(person)
-			worker.root.people.$jazz.splice(personInActive, 1)
-		}
+		moveToInactive(root.people, root.inactivePeople, personId)
 	}
 
-	// Handle permanent deletion
 	if (updates.permanentlyDeletedAt !== undefined) {
 		person.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
-		// Remove from inactive array
-		if (
-			personInInactive !== -1 &&
-			worker.root.$isLoaded &&
-			worker.root.inactivePeople?.$isLoaded
-		) {
-			worker.root.inactivePeople.$jazz.splice(personInInactive, 1)
-		}
+		removeFromInactive(root.inactivePeople, personId)
 	}
 
 	if (updates.avatarFile !== undefined) {

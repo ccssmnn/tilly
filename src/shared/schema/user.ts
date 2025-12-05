@@ -1,5 +1,9 @@
 import { Group, co, z, type ResolveQuery } from "jazz-tools"
 import { isBefore, isToday } from "date-fns"
+import {
+	markStaleAsPermanentlyDeleted,
+	removeAtIndices,
+} from "#shared/lib/jazz-list-utils"
 
 export {
 	isDeleted,
@@ -118,23 +122,30 @@ export let UserAccount = co
 		root: UserAccountRoot,
 	})
 	.withMigration(async account => {
-		console.log("[Jazz]: Running migration...")
 		initializeRootIfUndefined(account)
 		initializeProfileIfUndefined(account)
 
-		// Only run v1 migration if not already done
-		if (
-			account.root?.$isLoaded &&
-			(!account.root.migrationVersion || account.root.migrationVersion < 1)
-		) {
+		let { root } = await account.$jazz.ensureLoaded({
+			resolve: { root: true },
+		})
+
+		if (!root.migrationVersion || root.migrationVersion < 1) {
 			await runMigrationV1(account)
-			account.root.$jazz.set("migrationVersion", 1)
+			root.$jazz.set("migrationVersion", 1)
 		}
 	})
 
 let migrationResolveQuery = {
 	notificationSettings: true,
-	people: { $each: { reminders: { $each: true }, notes: { $each: true } } },
+	inactivePeople: true,
+	people: {
+		$each: {
+			reminders: { $each: true },
+			inactiveReminders: true,
+			notes: { $each: true },
+			inactiveNotes: true,
+		},
+	},
 } satisfies ResolveQuery<typeof UserAccountRoot>
 
 function initializeRootIfUndefined(
@@ -181,140 +192,88 @@ function initializeProfileIfUndefined(
 async function runMigrationV1(
 	account: Parameters<Parameters<typeof UserAccount.withMigration>[0]>[0],
 ) {
-	console.log("[Jazz]: Running migration v1...")
-
 	let { root } = await account.$jazz.ensureLoaded({
 		resolve: {
 			root: migrationResolveQuery,
 		},
 	})
 
-	// Initialize inactive arrays if they don't exist
-	if (root.$isLoaded && !root.inactivePeople) {
-		root.$jazz.set("inactivePeople", co.list(Person).create([]))
+	let inactivePeople = root.inactivePeople
+	if (!inactivePeople) {
+		inactivePeople = co.list(Person).create([])
+		root.$jazz.set("inactivePeople", inactivePeople)
 	}
 
-	let thirtyDaysAgo = new Date()
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-	// Process people and move to inactive if deleted
 	let peopleToRemove: number[] = []
 	for (let i = 0; i < root.people.length; i++) {
 		let person = root.people[i]
 		if (!person) continue
 
-		// Initialize inactive arrays for this person if needed
-		if (!person.inactiveReminders) {
-			person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
-		}
-		if (!person.inactiveNotes) {
-			person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+		let inactiveReminders = person.inactiveReminders
+		if (!inactiveReminders) {
+			inactiveReminders = co.list(Reminder).create([])
+			person.$jazz.set("inactiveReminders", inactiveReminders)
 		}
 
-		// Handle permanently deleted person (>30 days)
-		if (
-			person.deletedAt &&
-			!person.permanentlyDeletedAt &&
-			person.deletedAt < thirtyDaysAgo
-		) {
-			person.$jazz.set("permanentlyDeletedAt", person.deletedAt)
+		let inactiveNotes = person.inactiveNotes
+		if (!inactiveNotes) {
+			inactiveNotes = co.list(Note).create([])
+			person.$jazz.set("inactiveNotes", inactiveNotes)
 		}
 
-		// Remove permanently deleted people from array
+		markStaleAsPermanentlyDeleted(person)
+
 		if (person.permanentlyDeletedAt) {
 			peopleToRemove.push(i)
 			continue
 		}
 
-		// Move deleted person to inactivePeople
-		if (person.deletedAt && root.inactivePeople?.$isLoaded) {
-			root.inactivePeople.$jazz.push(person)
+		if (person.deletedAt) {
+			inactivePeople.$jazz.push(person)
 			peopleToRemove.push(i)
 			continue
 		}
 
-		// Process reminders for this person
 		let remindersToRemove: number[] = []
 		for (let j = 0; j < person.reminders.length; j++) {
 			let reminder = person.reminders[j]
 			if (!reminder) continue
 
-			// Mark old deleted items as permanent
-			if (
-				reminder.deletedAt &&
-				!reminder.permanentlyDeletedAt &&
-				reminder.deletedAt < thirtyDaysAgo
-			) {
-				reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
-			}
+			markStaleAsPermanentlyDeleted(reminder)
 
-			// Remove permanently deleted reminders
 			if (reminder.permanentlyDeletedAt) {
 				remindersToRemove.push(j)
 				continue
 			}
 
-			// Move done or deleted reminders to inactive
-			if (
-				(reminder.done || reminder.deletedAt) &&
-				person.inactiveReminders?.$isLoaded
-			) {
-				person.inactiveReminders.$jazz.push(reminder)
+			if (reminder.done || reminder.deletedAt) {
+				inactiveReminders.$jazz.push(reminder)
 				remindersToRemove.push(j)
 			}
 		}
+		removeAtIndices(person.reminders, remindersToRemove)
 
-		// Remove in reverse order to maintain indices
-		if (person.reminders.$isLoaded) {
-			for (let j = remindersToRemove.length - 1; j >= 0; j--) {
-				person.reminders.$jazz.splice(remindersToRemove[j], 1)
-			}
-		}
-
-		// Process notes for this person
 		let notesToRemove: number[] = []
 		for (let j = 0; j < person.notes.length; j++) {
 			let note = person.notes[j]
 			if (!note) continue
 
-			// Mark old deleted items as permanent
-			if (
-				note.deletedAt &&
-				!note.permanentlyDeletedAt &&
-				note.deletedAt < thirtyDaysAgo
-			) {
-				note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
-			}
+			markStaleAsPermanentlyDeleted(note)
 
-			// Remove permanently deleted notes
 			if (note.permanentlyDeletedAt) {
 				notesToRemove.push(j)
 				continue
 			}
 
-			// Move deleted notes to inactive
-			if (note.deletedAt && person.inactiveNotes?.$isLoaded) {
-				person.inactiveNotes.$jazz.push(note)
+			if (note.deletedAt) {
+				inactiveNotes.$jazz.push(note)
 				notesToRemove.push(j)
 			}
 		}
-
-		// Remove in reverse order to maintain indices
-		if (person.notes.$isLoaded) {
-			for (let j = notesToRemove.length - 1; j >= 0; j--) {
-				person.notes.$jazz.splice(notesToRemove[j], 1)
-			}
-		}
+		removeAtIndices(person.notes, notesToRemove)
 	}
 
-	// Remove people in reverse order to maintain indices
-	if (root.people.$isLoaded) {
-		for (let i = peopleToRemove.length - 1; i >= 0; i--) {
-			root.people.$jazz.splice(peopleToRemove[i], 1)
-		}
-	}
-
-	console.log("[Jazz]: Migration v1 complete")
+	removeAtIndices(root.people, peopleToRemove)
 }
 
 function isDeleted(item: {
