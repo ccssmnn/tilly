@@ -55,10 +55,9 @@ export function ExportButton(props: {
 				resolve: exportQuery,
 			})
 
-			// Combine active and inactive people for export
 			let allPeople = [
-				...(accountData.root.people || []),
-				...(accountData.root.inactivePeople || []),
+				...accountData.root.people,
+				...(accountData.root.inactivePeople ?? []),
 			]
 
 			if (allPeople.length === 0) {
@@ -71,7 +70,8 @@ export function ExportButton(props: {
 			): Promise<FilePerson> => {
 				let avatar = null
 				if (person.avatar) {
-					let bestImage = highestResAvailable(person.avatar, 2048, 2048)
+					let a = await person.avatar.$jazz.ensureLoaded({ resolve: true })
+					let bestImage = highestResAvailable(a, 2048, 2048)
 					let blob = bestImage?.image.toBlob()
 					let dataURL = blob
 						? await new Promise<string>(resolve => {
@@ -95,16 +95,15 @@ export function ExportButton(props: {
 					createdAt: person.createdAt,
 					updatedAt: person.updatedAt,
 					notes: await Promise.all(
-						[...(person.notes || []), ...(person.inactiveNotes || [])]
-							.filter(note => note !== null)
-							?.map(async note => {
+						[...person.notes, ...(person.inactiveNotes || [])].map(
+							async ({ $jazz, ...note }) => {
 								let images = null
-								if (note.images?.$isLoaded) {
+								if (note.images) {
 									images = await Promise.all(
 										Array.from(note.images.values())
 											.filter(img => img !== null && img !== undefined)
-											.map(async img => {
-												if (!img) return null
+											.map(async i => {
+												let img = await i.$jazz.ensureLoaded({ resolve: true })
 												let bestImage = highestResAvailable(img, 2048, 2048)
 												let blob = bestImage?.image.toBlob()
 												let dataURL = blob
@@ -120,34 +119,17 @@ export function ExportButton(props: {
 									)
 									images = images.filter(Boolean)
 								}
-								return {
-									id: note.$jazz.id,
-									content: note.content,
-									pinned: note.pinned,
-									images: images || undefined,
-									deletedAt: note.deletedAt,
-									permanentlyDeletedAt: note.permanentlyDeletedAt,
-									createdAt: note.createdAt,
-									updatedAt: note.updatedAt,
-								}
-							}),
+								return { id: $jazz.id, ...note, images: images ?? undefined }
+							},
+						),
 					),
 					reminders: [
-						...(person.reminders || []),
+						...person.reminders,
 						...(person.inactiveReminders || []),
-					]
-						.filter(reminder => reminder !== null)
-						?.map(reminder => ({
-							id: reminder.$jazz.id,
-							text: reminder.text || "",
-							dueAtDate: reminder.dueAtDate,
-							repeat: reminder.repeat,
-							done: reminder.done,
-							deletedAt: reminder.deletedAt,
-							permanentlyDeletedAt: reminder.permanentlyDeletedAt,
-							createdAt: reminder.createdAt,
-							updatedAt: reminder.updatedAt,
-						})),
+					].map(({ $jazz, ...reminder }) => ({
+						id: $jazz.id,
+						...reminder,
+					})),
 				}
 			}
 
