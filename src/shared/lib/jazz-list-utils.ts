@@ -8,7 +8,7 @@ export {
 	useInactiveCleanup,
 	isStale,
 	markStaleAsPermanentlyDeleted,
-	cleanupStaleItems,
+	cleanupInactiveLists,
 }
 
 import { useEffect, useRef } from "react"
@@ -20,12 +20,6 @@ type JazzList = {
 		splice(index: number, count: number): void
 	}
 	values(): IterableIterator<({ $jazz: { id: string } } & unknown) | null>
-}
-
-type CleanupItem = {
-	deletedAt?: Date
-	permanentlyDeletedAt?: Date
-	$isLoaded?: boolean
 }
 
 function isLoadedList(list: unknown): list is JazzList {
@@ -96,63 +90,149 @@ function removeAtIndices(
 	}
 }
 
-function cleanupStaleItems(items: unknown): boolean {
+type PersonWithLists = {
+	notes?: unknown
+	inactiveNotes?: unknown
+	reminders?: unknown
+	inactiveReminders?: unknown
+	deletedAt?: Date
+	permanentlyDeletedAt?: Date
+	$jazz: { id: string; set(key: string, value: unknown): void }
+}
+
+type NoteItem = DeletableItem & {
+	$jazz: { id: string; set(key: string, value: unknown): void }
+}
+type ReminderItem = DeletableItem & {
+	done?: boolean
+	$jazz: { id: string; set(key: string, value: unknown): void }
+}
+
+function cleanupInactiveLists(
+	people: unknown,
+	inactivePeople: unknown,
+): boolean {
+	if (!isLoadedList(people)) return false
+
+	let didCleanup = false
+
+	// Process people: mark stale, remove permanently deleted, move deleted to inactive
+	didCleanup = processActiveList<PersonWithLists>(
+		people,
+		inactivePeople,
+		item => !!item.deletedAt,
+	)
+
+	// Clean stale from inactive people
+	didCleanup = cleanupStaleFromList(inactivePeople) || didCleanup
+
+	// Process each person's notes and reminders
+	for (let person of Array.from(
+		people.values(),
+	) as (PersonWithLists | null)[]) {
+		if (!person) continue
+
+		// Process notes
+		if (person.notes && person.inactiveNotes) {
+			didCleanup =
+				processActiveList<NoteItem>(
+					person.notes,
+					person.inactiveNotes,
+					item => !!item.deletedAt,
+				) || didCleanup
+		}
+		if (person.inactiveNotes) {
+			didCleanup = cleanupStaleFromList(person.inactiveNotes) || didCleanup
+		}
+
+		// Process reminders
+		if (person.reminders && person.inactiveReminders) {
+			didCleanup =
+				processActiveList<ReminderItem>(
+					person.reminders,
+					person.inactiveReminders,
+					item => !!item.deletedAt || !!item.done,
+				) || didCleanup
+		}
+		if (person.inactiveReminders) {
+			didCleanup = cleanupStaleFromList(person.inactiveReminders) || didCleanup
+		}
+	}
+
+	return didCleanup
+}
+
+function processActiveList<T extends DeletableItem & { $jazz: { id: string } }>(
+	active: unknown,
+	inactive: unknown,
+	shouldBeInactive: (item: T) => boolean,
+): boolean {
+	if (!isLoadedList(active) || !isLoadedList(inactive)) return false
+
+	let toRemove: number[] = []
+	let toMove: number[] = []
+	let activeArray = Array.from(active.values()) as (T | null)[]
+
+	for (let i = 0; i < activeArray.length; i++) {
+		let item = activeArray[i]
+		if (!item) continue
+
+		markStaleAsPermanentlyDeleted(item)
+
+		if (item.permanentlyDeletedAt) {
+			toRemove.push(i)
+			continue
+		}
+
+		if (shouldBeInactive(item)) {
+			toMove.push(i)
+		}
+	}
+
+	// Move items to inactive (in reverse to preserve indices)
+	for (let i = toMove.length - 1; i >= 0; i--) {
+		let item = activeArray[toMove[i]]
+		if (item) {
+			inactive.$jazz.push(item)
+		}
+	}
+
+	// Remove all items that should be removed or moved
+	let allToRemove = [...new Set([...toRemove, ...toMove])].sort((a, b) => a - b)
+	removeAtIndices(active, allToRemove)
+
+	return toRemove.length > 0 || toMove.length > 0
+}
+
+function cleanupStaleFromList(items: unknown): boolean {
 	if (!isLoadedList(items)) return false
 
 	let toRemove: number[] = []
-	let itemArray = Array.from(items.values()) as (CleanupItem | null)[]
+	let itemArray = Array.from(items.values()) as (DeletableItem | null)[]
 
 	for (let i = 0; i < itemArray.length; i++) {
 		let item = itemArray[i]
 		if (!item) continue
-		if (item.$isLoaded === false) continue
-		if (item.permanentlyDeletedAt || isStale(item.deletedAt)) {
+
+		markStaleAsPermanentlyDeleted(item)
+
+		if (item.permanentlyDeletedAt) {
 			toRemove.push(i)
 		}
 	}
 
 	if (toRemove.length > 0) {
-		for (let i = toRemove.length - 1; i >= 0; i--) {
-			items.$jazz.splice(toRemove[i], 1)
-		}
+		removeAtIndices(items, toRemove)
 		return true
 	}
 	return false
 }
 
-type PersonWithInactive = {
-	inactiveNotes?: unknown
-	inactiveReminders?: unknown
-}
-
-function useInactiveCleanup(
-	inactivePeople: unknown,
-	people: Array<PersonWithInactive> | undefined,
-): void {
+function useInactiveCleanup(people: unknown, inactivePeople: unknown): void {
 	let cleanupRan = useRef(false)
 
 	useEffect(() => {
 		if (cleanupRan.current) return
-
-		let didCleanup = false
-
-		if (inactivePeople) {
-			didCleanup = cleanupStaleItems(inactivePeople) || didCleanup
-		}
-
-		if (people) {
-			for (let person of people) {
-				if (person.inactiveNotes) {
-					didCleanup = cleanupStaleItems(person.inactiveNotes) || didCleanup
-				}
-				if (person.inactiveReminders) {
-					didCleanup = cleanupStaleItems(person.inactiveReminders) || didCleanup
-				}
-			}
-		}
-
-		if (didCleanup) {
-			cleanupRan.current = true
-		}
-	}, [inactivePeople, people])
+		cleanupRan.current = cleanupInactiveLists(people, inactivePeople)
+	}, [people, inactivePeople])
 }

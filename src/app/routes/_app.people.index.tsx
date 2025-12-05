@@ -25,7 +25,6 @@ import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 import { cn } from "#app/lib/utils"
 import { UserAccount } from "#shared/schema/user"
-import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
 import { personListQuery } from "#app/features/person-query"
 import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
 import { ListFilterButton } from "#app/features/list-filter-button"
@@ -55,8 +54,6 @@ function PeopleScreen() {
 	})
 
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
-
-	useInactiveCleanup(currentMe.root?.inactivePeople, undefined)
 
 	let allPeople = filterVisiblePeople(currentMe.root?.people)
 	let inactivePeople = filterVisiblePeople(currentMe.root?.inactivePeople)

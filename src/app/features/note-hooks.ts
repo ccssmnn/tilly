@@ -9,7 +9,6 @@ import {
 import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
-import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
 
 export {
 	usePersonNotes,
@@ -48,8 +47,6 @@ function usePersonNotes(
 	})
 
 	let loadedPerson = person.$isLoaded ? person : defaultPerson
-
-	useInactiveCleanup(undefined, loadedPerson ? [loadedPerson] : undefined)
 
 	let allNotes = [
 		...(loadedPerson?.notes?.filter(n => !isPermanentlyDeleted(n)) ?? []),
@@ -90,29 +87,20 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	let loadedAccount = account.$isLoaded ? account : defaultAccount
 	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
 
-	useInactiveCleanup(undefined, people)
-
 	let allNotePairs = []
-	let debugCounts = { activeDeleted: 0, inactiveNotDeleted: 0 }
 
 	for (let person of people) {
 		for (let note of person.notes.values()) {
 			if (isPermanentlyDeleted(note)) continue
-			if (isDeleted(note)) debugCounts.activeDeleted++
 			allNotePairs.push({ note, person })
 		}
 
 		if (person.inactiveNotes?.$isLoaded) {
 			for (let note of person.inactiveNotes.values()) {
 				if (!note || isPermanentlyDeleted(note)) continue
-				if (!isDeleted(note)) debugCounts.inactiveNotDeleted++
 				allNotePairs.push({ note, person })
 			}
 		}
-	}
-
-	if (debugCounts.activeDeleted > 0 || debugCounts.inactiveNotDeleted > 0) {
-		console.log("[useNotes] unexpected state:", debugCounts)
 	}
 
 	let searchLower = searchQuery.toLowerCase()

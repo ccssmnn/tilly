@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { UserAccount, isDeleted, isDueToday } from "#shared/schema/user"
 import { Navigation } from "#app/components/navigation"
 import { StatusIndicator } from "#app/components/status-indicator"
+import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
 
 export const Route = createFileRoute("/_app")({
 	beforeLoad: ({ context }) => {
@@ -18,6 +19,15 @@ function AppComponent() {
 	let me = useAccount(UserAccount, {
 		resolve: query,
 	})
+
+	let inactiveData = useAccount(UserAccount, {
+		resolve: inactiveQuery,
+	})
+
+	useInactiveCleanup(
+		me.$isLoaded ? me.root.people : undefined,
+		inactiveData.$isLoaded ? inactiveData.root.inactivePeople : undefined,
+	)
 
 	let dueReminderCount = (me.$isLoaded ? me.root.people : [])
 		.filter(person => !isDeleted(person))
@@ -49,10 +59,16 @@ let query = {
 			$each: {
 				avatar: true,
 				notes: { $each: true },
+				inactiveNotes: { $each: true },
 				reminders: { $each: true },
+				inactiveReminders: { $each: true },
 			},
 		},
 	},
+} as const satisfies ResolveQuery<typeof UserAccount>
+
+let inactiveQuery = {
+	root: { inactivePeople: { $each: true } },
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 async function setAppBadge(count: number) {

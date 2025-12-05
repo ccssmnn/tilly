@@ -10,7 +10,6 @@ import {
 import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
-import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
 
 export {
 	useReminders,
@@ -53,34 +52,20 @@ function useReminders(
 	let loadedAccount = account.$isLoaded ? account : defaultAccount
 	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
 
-	useInactiveCleanup(undefined, people)
-
 	let allReminderPairs = []
-	let debugCounts = { activeDeletedOrDone: 0, inactiveOpenAndNotDeleted: 0 }
 
 	for (let person of people) {
 		for (let reminder of person.reminders.values()) {
 			if (isPermanentlyDeleted(reminder)) continue
-			if (isDeleted(reminder) || reminder.done)
-				debugCounts.activeDeletedOrDone++
 			allReminderPairs.push({ reminder, person })
 		}
 
 		if (person.inactiveReminders?.$isLoaded) {
 			for (let reminder of person.inactiveReminders.values()) {
 				if (!reminder || isPermanentlyDeleted(reminder)) continue
-				if (!isDeleted(reminder) && !reminder.done)
-					debugCounts.inactiveOpenAndNotDeleted++
 				allReminderPairs.push({ reminder, person })
 			}
 		}
-	}
-
-	if (
-		debugCounts.activeDeletedOrDone > 0 ||
-		debugCounts.inactiveOpenAndNotDeleted > 0
-	) {
-		console.log("[useReminders] unexpected state:", debugCounts)
 	}
 
 	let searchLower = searchQuery.toLowerCase()
@@ -155,8 +140,6 @@ function usePersonReminders(
 	})
 
 	let loadedPerson = person.$isLoaded ? person : defaultPerson
-
-	useInactiveCleanup(undefined, loadedPerson ? [loadedPerson] : undefined)
 
 	let allReminders = [
 		...(loadedPerson?.reminders?.filter(r => !isPermanentlyDeleted(r)) ?? []),

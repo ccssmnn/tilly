@@ -1,9 +1,6 @@
 import { Group, co, z, type ResolveQuery } from "jazz-tools"
 import { isBefore, isToday } from "date-fns"
-import {
-	markStaleAsPermanentlyDeleted,
-	removeAtIndices,
-} from "#shared/lib/jazz-list-utils"
+import { cleanupInactiveLists } from "#shared/lib/jazz-list-utils"
 
 export {
 	isDeleted,
@@ -198,82 +195,29 @@ async function runMigrationV1(
 		},
 	})
 
-	let inactivePeople = root.inactivePeople
-	if (!inactivePeople) {
-		inactivePeople = co.list(Person).create([])
-		root.$jazz.set("inactivePeople", inactivePeople)
+	// Initialize inactive lists if missing
+	if (!root.inactivePeople) {
+		root.$jazz.set("inactivePeople", co.list(Person).create([]))
 	}
 
-	let peopleToRemove: number[] = []
-	for (let i = 0; i < root.people.length; i++) {
-		let person = root.people[i]
+	for (let person of root.people.values()) {
 		if (!person) continue
-
-		let inactiveReminders = person.inactiveReminders
-		if (!inactiveReminders) {
-			inactiveReminders = co.list(Reminder).create([])
-			person.$jazz.set("inactiveReminders", inactiveReminders)
+		if (!person.inactiveReminders) {
+			person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
 		}
-
-		let inactiveNotes = person.inactiveNotes
-		if (!inactiveNotes) {
-			inactiveNotes = co.list(Note).create([])
-			person.$jazz.set("inactiveNotes", inactiveNotes)
+		if (!person.inactiveNotes) {
+			person.$jazz.set("inactiveNotes", co.list(Note).create([]))
 		}
-
-		markStaleAsPermanentlyDeleted(person)
-
-		if (person.permanentlyDeletedAt) {
-			peopleToRemove.push(i)
-			continue
-		}
-
-		if (person.deletedAt) {
-			inactivePeople.$jazz.push(person)
-			peopleToRemove.push(i)
-			continue
-		}
-
-		let remindersToRemove: number[] = []
-		for (let j = 0; j < person.reminders.length; j++) {
-			let reminder = person.reminders[j]
-			if (!reminder) continue
-
-			markStaleAsPermanentlyDeleted(reminder)
-
-			if (reminder.permanentlyDeletedAt) {
-				remindersToRemove.push(j)
-				continue
-			}
-
-			if (reminder.done || reminder.deletedAt) {
-				inactiveReminders.$jazz.push(reminder)
-				remindersToRemove.push(j)
-			}
-		}
-		removeAtIndices(person.reminders, remindersToRemove)
-
-		let notesToRemove: number[] = []
-		for (let j = 0; j < person.notes.length; j++) {
-			let note = person.notes[j]
-			if (!note) continue
-
-			markStaleAsPermanentlyDeleted(note)
-
-			if (note.permanentlyDeletedAt) {
-				notesToRemove.push(j)
-				continue
-			}
-
-			if (note.deletedAt) {
-				inactiveNotes.$jazz.push(note)
-				notesToRemove.push(j)
-			}
-		}
-		removeAtIndices(person.notes, notesToRemove)
 	}
 
-	removeAtIndices(root.people, peopleToRemove)
+	// Re-load with inactive lists now initialized
+	let { root: loadedRoot } = await account.$jazz.ensureLoaded({
+		resolve: {
+			root: migrationResolveQuery,
+		},
+	})
+
+	cleanupInactiveLists(loadedRoot.people, loadedRoot.inactivePeople)
 }
 
 function isDeleted(item: {

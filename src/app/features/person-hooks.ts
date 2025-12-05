@@ -20,19 +20,6 @@ function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	searchQuery: string,
 	inactivePeople?: A,
 ): { active: P[]; deleted: P[] } {
-	let debugCounts = { activeDeleted: 0, inactiveNotDeleted: 0 }
-
-	for (let person of allPeople) {
-		if (isDeleted(person)) debugCounts.activeDeleted++
-	}
-	for (let person of inactivePeople ?? []) {
-		if (!isDeleted(person)) debugCounts.inactiveNotDeleted++
-	}
-
-	if (debugCounts.activeDeleted > 0 || debugCounts.inactiveNotDeleted > 0) {
-		console.log("[usePeople] unexpected state:", debugCounts)
-	}
-
 	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])]
 
 	let searchLower = searchQuery.toLowerCase().trim()
