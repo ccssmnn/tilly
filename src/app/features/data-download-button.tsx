@@ -73,13 +73,7 @@ export function ExportButton(props: {
 					let a = await person.avatar.$jazz.ensureLoaded({ resolve: true })
 					let bestImage = highestResAvailable(a, 2048, 2048)
 					let blob = bestImage?.image.toBlob()
-					let dataURL = blob
-						? await new Promise<string>(resolve => {
-								let reader = new FileReader()
-								reader.onloadend = () => resolve(reader.result as string)
-								reader.readAsDataURL(blob)
-							})
-						: undefined
+					let dataURL = blob ? await blobToDataURL(blob) : undefined
 					if (dataURL) {
 						avatar = { dataURL }
 					}
@@ -107,12 +101,7 @@ export function ExportButton(props: {
 												let bestImage = highestResAvailable(img, 2048, 2048)
 												let blob = bestImage?.image.toBlob()
 												let dataURL = blob
-													? await new Promise<string>(resolve => {
-															let reader = new FileReader()
-															reader.onloadend = () =>
-																resolve(reader.result as string)
-															reader.readAsDataURL(blob)
-														})
+													? await blobToDataURL(blob)
 													: undefined
 												return dataURL ? { dataURL } : null
 											}),
@@ -211,4 +200,12 @@ export function ExportButton(props: {
 			</DialogContent>
 		</Dialog>
 	)
+}
+
+async function blobToDataURL(blob: Blob): Promise<string> {
+	return new Promise(resolve => {
+		let reader = new FileReader()
+		reader.onloadend = () => resolve(reader.result as string)
+		reader.readAsDataURL(blob)
+	})
 }
