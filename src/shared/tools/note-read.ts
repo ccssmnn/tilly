@@ -41,6 +41,7 @@ async function listNotes(
 			for (let note of person.notes.values()) {
 				if (!note) continue
 				if (isPermanentlyDeleted(note)) continue
+				if (!options.includeDeleted && isDeleted(note)) continue
 				notePairs.push({ note, person })
 			}
 		}
