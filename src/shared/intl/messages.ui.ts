@@ -120,15 +120,10 @@ const baseUiMessages = messages({
 	"data.import.dialog.fileLabel": "Tilly File",
 	"data.import.dialog.chooseFile": "Choose File",
 	"data.import.dialog.noFileSelected": "No file selected",
-	"data.import.dialog.modeLabel": "Import Mode",
 	"data.import.dialog.description":
-		"Choose a .tilly.json backup to merge with or replace your current data.",
-	"data.import.mode.merge": "Merge",
-	"data.import.mode.merge.description":
-		"Add new people and update existing ones",
-	"data.import.mode.replace": "Replace",
-	"data.import.mode.replace.description":
-		"Delete all current data and import new data",
+		"Choose a .tilly.json backup to restore your data.",
+	"data.import.dialog.warning":
+		"⚠️ Warning: Importing will replace all existing data. This cannot be undone.",
 	"data.import.dialog.cancel": "Cancel",
 	"data.import.dialog.importing": "Importing...",
 	"data.import.dialog.import": "Import Data",
@@ -267,15 +262,10 @@ const deUiMessages = translate(baseUiMessages, {
 	"data.import.dialog.fileLabel": "Tilly-Datei",
 	"data.import.dialog.chooseFile": "Datei auswählen",
 	"data.import.dialog.noFileSelected": "Keine Datei ausgewählt",
-	"data.import.dialog.modeLabel": "Importmodus",
 	"data.import.dialog.description":
-		"Wähle eine .tilly.json-Sicherung, um deine aktuellen Daten zu ergänzen oder zu ersetzen.",
-	"data.import.mode.merge": "Zusammenführen",
-	"data.import.mode.merge.description":
-		"Neue Personen hinzufügen und bestehende aktualisieren",
-	"data.import.mode.replace": "Ersetzen",
-	"data.import.mode.replace.description":
-		"Alle aktuellen Daten löschen und neue Daten importieren",
+		"Wähle eine .tilly.json-Sicherung, um deine Daten wiederherzustellen.",
+	"data.import.dialog.warning":
+		"⚠️ Warnung: Der Import ersetzt alle vorhandenen Daten. Dies kann nicht rückgängig gemacht werden.",
 	"data.import.dialog.cancel": "Abbrechen",
 	"data.import.dialog.importing": "Importiere...",
 	"data.import.dialog.import": "Daten importieren",
