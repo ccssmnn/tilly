@@ -12,6 +12,12 @@ let personListQuery = {
 				reminders: { $each: true },
 			},
 		},
+		inactivePeople: {
+			$each: {
+				avatar: true,
+				reminders: { $each: true },
+			},
+		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 

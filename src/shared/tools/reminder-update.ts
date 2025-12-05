@@ -5,6 +5,11 @@ import { Person, Reminder, UserAccount } from "#shared/schema/user"
 import { addDays, addWeeks, addMonths, addYears } from "date-fns"
 import { co, type Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
+import {
+	moveToActive,
+	moveToInactive,
+	removeFromInactive,
+} from "#shared/lib/jazz-list-utils"
 
 export { createUpdateReminderTool, createRemoveReminderTool, updateReminder }
 
@@ -31,6 +36,10 @@ async function updateReminder(
 	let person = await Person.load(options.personId, { loadAs: options.worker })
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
+	if (!person.inactiveReminders) {
+		person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
+	}
+
 	let reminder = await Reminder.load(options.reminderId, {
 		loadAs: options.worker,
 	})
@@ -50,8 +59,14 @@ async function updateReminder(
 	if ("repeat" in updates && updates.repeat === undefined) {
 		reminder.$jazz.delete("repeat")
 	}
+
 	if (updates.done === true && !reminder.done && !reminder.repeat) {
 		reminder.$jazz.set("done", updates.done)
+		moveToInactive(
+			person.reminders,
+			person.inactiveReminders,
+			options.reminderId,
+		)
 	}
 	if (updates.done === true && !reminder.done && reminder.repeat) {
 		let { nextDueAtDate } = calculateNextDueDate(reminder)
@@ -60,18 +75,38 @@ async function updateReminder(
 	}
 	if (updates.done === false && reminder.done) {
 		reminder.$jazz.set("done", updates.done)
+		if (!reminder.deletedAt) {
+			moveToActive(
+				person.reminders,
+				person.inactiveReminders,
+				options.reminderId,
+			)
+		}
 	}
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		reminder.$jazz.delete("deletedAt")
+		if (!reminder.done) {
+			moveToActive(
+				person.reminders,
+				person.inactiveReminders,
+				options.reminderId,
+			)
+		}
 	}
 
 	if (updates.deletedAt !== undefined) {
 		reminder.$jazz.set("deletedAt", updates.deletedAt)
+		moveToInactive(
+			person.reminders,
+			person.inactiveReminders,
+			options.reminderId,
+		)
 	}
 
 	if (updates.permanentlyDeletedAt !== undefined) {
 		reminder.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
+		removeFromInactive(person.inactiveReminders, options.reminderId)
 	}
 
 	reminder.$jazz.set("updatedAt", new Date())
@@ -90,10 +125,7 @@ async function updateReminder(
 function calculateNextDueDate(reminder: co.loaded<typeof Reminder>): {
 	nextDueAtDate: string
 } {
-	if (!reminder.repeat)
-		return {
-			nextDueAtDate: reminder.dueAtDate || "",
-		}
+	if (!reminder.repeat) return { nextDueAtDate: reminder.dueAtDate || "" }
 
 	let currentDueDate = parse(reminder.dueAtDate, "yyyy-MM-dd", new Date())
 	let { interval, unit } = reminder.repeat
@@ -116,9 +148,7 @@ function calculateNextDueDate(reminder: co.loaded<typeof Reminder>): {
 			nextDueDate = addDays(currentDueDate, 1)
 	}
 
-	let nextDueAtDate = format(nextDueDate, "yyyy-MM-dd")
-
-	return { nextDueAtDate }
+	return { nextDueAtDate: format(nextDueDate, "yyyy-MM-dd") }
 }
 
 let errors = {

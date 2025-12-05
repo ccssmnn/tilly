@@ -10,18 +10,6 @@ import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
 
-function extractListFilterFromQuery(query: string): string | null {
-	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	return match ? match[1].toLowerCase() : null
-}
-
-function extractSearchWithoutFilter(query: string): string {
-	return query
-		.toLowerCase()
-		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
-		.trim()
-}
-
 export {
 	usePersonNotes,
 	useNotes,
@@ -32,12 +20,15 @@ export {
 
 let notesResolve = {
 	root: {
-		people: { $each: { notes: { $each: true } } },
+		people: {
+			$each: { notes: { $each: true }, inactiveNotes: { $each: true } },
+		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personNotesResolve = {
 	notes: { $each: true },
+	inactiveNotes: { $each: true },
 } as const satisfies ResolveQuery<typeof Person>
 
 type NotesLoadedAccount = co.loaded<typeof UserAccount, typeof notesResolve>
@@ -51,25 +42,23 @@ function usePersonNotes(
 	searchQuery: string,
 	defaultPerson?: PersonNotesLoadedPerson,
 ) {
-	let notes = useCoState(Person, personId, {
+	let person = useCoState(Person, personId, {
 		resolve: personNotesResolve,
-		select: person => {
-			if (!person.$isLoaded) {
-				if (defaultPerson && defaultPerson.$jazz.id === personId) {
-					return defaultPerson.notes.filter(n => !isPermanentlyDeleted(n))
-				}
-				return []
-			}
-			return person.notes.filter(n => !isPermanentlyDeleted(n))
-		},
 	})
 
+	let loadedPerson = person.$isLoaded ? person : defaultPerson
+
+	let allNotes = [
+		...(loadedPerson?.notes?.filter(n => !isPermanentlyDeleted(n)) ?? []),
+		...(loadedPerson?.inactiveNotes?.filter(n => !isPermanentlyDeleted(n)) ??
+			[]),
+	]
+
 	let filteredNotes = searchQuery
-		? notes.filter(note => {
-				let searchLower = searchQuery.toLowerCase()
-				return note.content.toLowerCase().includes(searchLower)
-			})
-		: notes
+		? allNotes.filter(note =>
+				note.content.toLowerCase().includes(searchQuery.toLowerCase()),
+			)
+		: allNotes
 
 	let active = []
 	let deleted = []
@@ -91,18 +80,12 @@ function usePersonNotes(
 }
 
 function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
-	let people = useAccount(UserAccount, {
+	let account = useAccount(UserAccount, {
 		resolve: notesResolve,
-		select: account => {
-			if (!account.$isLoaded) {
-				if (defaultAccount) {
-					return defaultAccount.root.people.filter(p => !isDeleted(p))
-				}
-				return []
-			}
-			return account.root.people.filter(p => !isDeleted(p))
-		},
 	})
+
+	let loadedAccount = account.$isLoaded ? account : defaultAccount
+	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
 
 	let allNotePairs = []
 
@@ -110,6 +93,13 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 		for (let note of person.notes.values()) {
 			if (isPermanentlyDeleted(note)) continue
 			allNotePairs.push({ note, person })
+		}
+
+		if (person.inactiveNotes?.$isLoaded) {
+			for (let note of person.inactiveNotes.values()) {
+				if (!note || isPermanentlyDeleted(note)) continue
+				allNotePairs.push({ note, person })
+			}
 		}
 	}
 
@@ -156,4 +146,16 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	})
 
 	return { active, deleted, total: allNotePairs.length }
+}
+
+function extractListFilterFromQuery(query: string): string | null {
+	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	return match ? match[1].toLowerCase() : null
+}
+
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
 }

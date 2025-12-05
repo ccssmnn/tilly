@@ -4,6 +4,11 @@ import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
 import { createImage } from "jazz-tools/media"
+import {
+	moveToActive,
+	moveToInactive,
+	removeFromInactive,
+} from "#shared/lib/jazz-list-utils"
 
 export { createEditNoteTool, createDeleteNoteTool, updateNote }
 
@@ -29,6 +34,10 @@ async function updateNote(
 		loadAs: options.worker,
 	})
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
+
+	if (!person.inactiveNotes) {
+		person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+	}
 
 	let note = await Note.load(options.noteId, {
 		resolve: { images: { $each: true } },
@@ -76,9 +85,8 @@ async function updateNote(
 	) {
 		let imageList = co.list(co.image()).create([])
 
-		// Add existing images that weren't removed
 		if (note.images?.$isLoaded) {
-			let removedIds = new Set(updates.removedImageIds || [])
+			let removedIds = new Set(updates.removedImageIds ?? [])
 			for (let existingImage of note.images.values()) {
 				if (existingImage && !removedIds.has(existingImage.$jazz.id)) {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,7 +95,6 @@ async function updateNote(
 			}
 		}
 
-		// Add new images
 		if (updates.imageFiles) {
 			let remainingSlots = 10 - imageList.length
 			for (let file of updates.imageFiles.slice(0, remainingSlots)) {
@@ -113,10 +120,12 @@ async function updateNote(
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		note.$jazz.delete("deletedAt")
+		moveToActive(person.notes, person.inactiveNotes, options.noteId)
 	}
 
 	if (updates.deletedAt !== undefined) {
 		note.$jazz.set("deletedAt", new Date(updates.deletedAt))
+		moveToInactive(person.notes, person.inactiveNotes, options.noteId)
 	}
 
 	if (updates.permanentlyDeletedAt !== undefined) {
@@ -124,6 +133,7 @@ async function updateNote(
 			"permanentlyDeletedAt",
 			new Date(updates.permanentlyDeletedAt),
 		)
+		removeFromInactive(person.inactiveNotes, options.noteId)
 	}
 
 	note.$jazz.set("updatedAt", new Date())

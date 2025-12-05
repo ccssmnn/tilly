@@ -14,11 +14,17 @@ export { createListNotesTool }
 export type { ListNotesResult }
 
 async function listNotes(
-	options: { searchQuery?: string },
+	options: { searchQuery?: string; includeDeleted?: boolean },
 	worker: Loaded<typeof UserAccount>,
 ): Promise<ListNotesResult> {
 	let user = await worker.$jazz.ensureLoaded({
-		resolve: { root: { people: { $each: { notes: { $each: true } } } } },
+		resolve: {
+			root: {
+				people: {
+					$each: { notes: { $each: true }, inactiveNotes: { $each: true } },
+				},
+			},
+		},
 	})
 
 	let notePairs: Array<{
@@ -29,12 +35,24 @@ async function listNotes(
 	for (let person of user.root.people.values()) {
 		if (!person) continue
 		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
-		if (!person.notes) continue
 
-		for (let note of person.notes.values()) {
-			if (!note) continue
-			if (isPermanentlyDeleted(note)) continue
-			notePairs.push({ note, person })
+		// Check active notes
+		if (person.notes) {
+			for (let note of person.notes.values()) {
+				if (!note) continue
+				if (isPermanentlyDeleted(note)) continue
+				if (!options.includeDeleted && isDeleted(note)) continue
+				notePairs.push({ note, person })
+			}
+		}
+
+		// Check inactive notes if includeDeleted is true
+		if (person.inactiveNotes && options.includeDeleted) {
+			for (let note of person.inactiveNotes.values()) {
+				if (!note) continue
+				if (isPermanentlyDeleted(note)) continue
+				notePairs.push({ note, person })
+			}
 		}
 	}
 

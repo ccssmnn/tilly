@@ -900,7 +900,7 @@ function ImageCarousel({
 							drag="x"
 							dragConstraints={{ left: 0, right: 0 }}
 							dragElastic={0.2}
-							onDragEnd={(event, info) => {
+							onDragEnd={(_, info) => {
 								let swipeThreshold = 50
 								if (info.offset.x > swipeThreshold) {
 									handlePrevious()

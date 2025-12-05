@@ -11,18 +11,6 @@ import { hasHashtag } from "#app/features/list-utilities"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
 
-function extractListFilterFromQuery(query: string): string | null {
-	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	return match ? match[1].toLowerCase() : null
-}
-
-function extractSearchWithoutFilter(query: string): string {
-	return query
-		.toLowerCase()
-		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
-		.trim()
-}
-
 export {
 	useReminders,
 	usePersonReminders,
@@ -32,11 +20,16 @@ export {
 }
 
 let remindersResolve = {
-	root: { people: { $each: { reminders: { $each: true } } } },
+	root: {
+		people: {
+			$each: { reminders: { $each: true }, inactiveReminders: { $each: true } },
+		},
+	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personRemindersResolve = {
 	reminders: { $each: true },
+	inactiveReminders: { $each: true },
 } as const satisfies ResolveQuery<typeof Person>
 
 type RemindersLoadedAccount = co.loaded<
@@ -52,24 +45,26 @@ function useReminders(
 	searchQuery: string,
 	defaultAccount?: RemindersLoadedAccount,
 ) {
-	let people = useAccount(UserAccount, {
+	let account = useAccount(UserAccount, {
 		resolve: remindersResolve,
-		select: account => {
-			if (!account.$isLoaded) {
-				if (defaultAccount) {
-					return defaultAccount.root.people.filter(p => !isDeleted(p))
-				}
-				return []
-			}
-			return account.root.people.filter(p => !isDeleted(p))
-		},
 	})
 
+	let loadedAccount = account.$isLoaded ? account : defaultAccount
+	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
+
 	let allReminderPairs = []
+
 	for (let person of people) {
 		for (let reminder of person.reminders.values()) {
 			if (isPermanentlyDeleted(reminder)) continue
 			allReminderPairs.push({ reminder, person })
+		}
+
+		if (person.inactiveReminders?.$isLoaded) {
+			for (let reminder of person.inactiveReminders.values()) {
+				if (!reminder || isPermanentlyDeleted(reminder)) continue
+				allReminderPairs.push({ reminder, person })
+			}
 		}
 	}
 
@@ -140,25 +135,24 @@ function usePersonReminders(
 	searchQuery: string,
 	defaultPerson?: PersonRemindersLoadedPerson,
 ) {
-	let reminders = useCoState(Person, personId, {
+	let person = useCoState(Person, personId, {
 		resolve: personRemindersResolve,
-		select: person => {
-			if (!person.$isLoaded) {
-				if (defaultPerson && defaultPerson.$jazz.id === personId) {
-					return defaultPerson.reminders.filter(r => !isPermanentlyDeleted(r))
-				}
-				return []
-			}
-			return person.reminders.filter(r => !isPermanentlyDeleted(r))
-		},
 	})
 
+	let loadedPerson = person.$isLoaded ? person : defaultPerson
+
+	let allReminders = [
+		...(loadedPerson?.reminders?.filter(r => !isPermanentlyDeleted(r)) ?? []),
+		...(loadedPerson?.inactiveReminders?.filter(
+			r => !isPermanentlyDeleted(r),
+		) ?? []),
+	]
+
 	let filteredReminders = searchQuery
-		? reminders.filter(reminder => {
-				let searchLower = searchQuery.toLowerCase()
-				return reminder.text.toLowerCase().includes(searchLower)
-			})
-		: reminders
+		? allReminders.filter(reminder =>
+				reminder.text.toLowerCase().includes(searchQuery.toLowerCase()),
+			)
+		: allReminders
 
 	let open = filteredReminders.filter(r => !r.done && !isDeleted(r))
 	let done = filteredReminders.filter(r => r.done && !isDeleted(r))
@@ -169,4 +163,16 @@ function usePersonReminders(
 	sortByDeletedAt(deleted)
 
 	return { open, done, deleted }
+}
+
+function extractListFilterFromQuery(query: string): string | null {
+	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
+	return match ? match[1].toLowerCase() : null
+}
+
+function extractSearchWithoutFilter(query: string): string {
+	return query
+		.toLowerCase()
+		.replace(/^#[a-zA-Z0-9_]+\s*/, "")
+		.trim()
 }

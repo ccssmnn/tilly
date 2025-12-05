@@ -1,12 +1,22 @@
 import { tool } from "ai"
 import { z } from "zod"
-import { Person, UserAccount } from "#shared/schema/user"
-import { co, type Loaded } from "jazz-tools"
+import { Person, UserAccount, UserAccountRoot } from "#shared/schema/user"
+import { co, type Loaded, type ResolveQuery } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
+import {
+	moveToActive,
+	moveToInactive,
+	removeFromInactive,
+} from "#shared/lib/jazz-list-utils"
 
 export { createUpdatePersonTool, createDeletePersonTool, updatePerson }
 
 export type { PersonData, PersonUpdated }
+
+let rootResolve = {
+	people: { $each: true },
+	inactivePeople: { $each: true },
+} as const satisfies ResolveQuery<typeof UserAccountRoot>
 
 async function updatePerson(
 	personId: string,
@@ -23,6 +33,14 @@ async function updatePerson(
 	let person = await Person.load(personId, { loadAs: worker })
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
+	let { root } = await worker.$jazz.ensureLoaded({
+		resolve: { root: rootResolve },
+	})
+
+	if (!root.inactivePeople) {
+		root.$jazz.set("inactivePeople", co.list(Person).create([]))
+	}
+
 	let previous = {
 		name: person.name,
 		summary: person.summary,
@@ -38,14 +56,17 @@ async function updatePerson(
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		person.$jazz.delete("deletedAt")
+		moveToActive(root.people, root.inactivePeople, personId)
 	}
 
 	if (updates.deletedAt !== undefined) {
 		person.$jazz.set("deletedAt", updates.deletedAt)
+		moveToInactive(root.people, root.inactivePeople, personId)
 	}
 
 	if (updates.permanentlyDeletedAt !== undefined) {
 		person.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
+		removeFromInactive(root.inactivePeople, personId)
 	}
 
 	if (updates.avatarFile !== undefined) {

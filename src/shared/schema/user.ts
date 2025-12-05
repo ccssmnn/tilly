@@ -1,5 +1,6 @@
 import { Group, co, z, type ResolveQuery } from "jazz-tools"
 import { isBefore, isToday } from "date-fns"
+import { cleanupInactiveLists } from "#shared/lib/jazz-list-utils"
 
 export {
 	isDeleted,
@@ -85,7 +86,9 @@ export let Person = co.map({
 	summary: z.string().optional(),
 	avatar: co.image().optional(),
 	notes: co.list(Note),
+	inactiveNotes: co.list(Note).optional(),
 	reminders: co.list(Reminder),
+	inactiveReminders: co.list(Reminder).optional(),
 	deletedAt: z.date().optional(),
 	permanentlyDeletedAt: z.date().optional(),
 	createdAt: z.date(),
@@ -102,10 +105,12 @@ export let Settings = co.map({
 
 export let UserAccountRoot = co.map({
 	people: co.list(Person),
+	inactivePeople: co.list(Person).optional(),
 	notificationSettings: NotificationSettings.optional(),
 	usageTracking: UsageTracking.optional(),
 	language: z.enum(["de", "en"]).optional(),
 	assistant: Assistant.optional(),
+	migrationVersion: z.number().optional(),
 })
 
 export let UserAccount = co
@@ -116,12 +121,28 @@ export let UserAccount = co
 	.withMigration(async account => {
 		initializeRootIfUndefined(account)
 		initializeProfileIfUndefined(account)
-		await markOldDeletedItemsAsPermanent(account)
+
+		let { root } = await account.$jazz.ensureLoaded({
+			resolve: { root: true },
+		})
+
+		if (!root.migrationVersion || root.migrationVersion < 1) {
+			await runMigrationV1(account)
+			root.$jazz.set("migrationVersion", 1)
+		}
 	})
 
 let migrationResolveQuery = {
 	notificationSettings: true,
-	people: { $each: { reminders: { $each: true }, notes: { $each: true } } },
+	inactivePeople: true,
+	people: {
+		$each: {
+			reminders: { $each: true },
+			inactiveReminders: true,
+			notes: { $each: true },
+			inactiveNotes: true,
+		},
+	},
 } satisfies ResolveQuery<typeof UserAccountRoot>
 
 function initializeRootIfUndefined(
@@ -133,6 +154,7 @@ function initializeRootIfUndefined(
 			"root",
 			UserAccountRoot.create({
 				people: co.list(Person).create([]),
+				inactivePeople: co.list(Person).create([]),
 				notificationSettings: NotificationSettings.create({
 					version: 1,
 					timezone: deviceTimezone,
@@ -145,6 +167,7 @@ function initializeRootIfUndefined(
 					stringifiedMessages: co.list(z.string()).create([]),
 					notifyOnComplete: true,
 				}),
+				migrationVersion: 1,
 			}),
 		)
 	}
@@ -163,7 +186,7 @@ function initializeProfileIfUndefined(
 	}
 }
 
-async function markOldDeletedItemsAsPermanent(
+async function runMigrationV1(
 	account: Parameters<Parameters<typeof UserAccount.withMigration>[0]>[0],
 ) {
 	let { root } = await account.$jazz.ensureLoaded({
@@ -172,38 +195,29 @@ async function markOldDeletedItemsAsPermanent(
 		},
 	})
 
-	let thirtyDaysAgo = new Date()
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+	// Initialize inactive lists if missing
+	if (!root.inactivePeople) {
+		root.$jazz.set("inactivePeople", co.list(Person).create([]))
+	}
 
 	for (let person of root.people.values()) {
-		if (
-			person.deletedAt &&
-			!person.permanentlyDeletedAt &&
-			person.deletedAt < thirtyDaysAgo
-		) {
-			person.$jazz.set("permanentlyDeletedAt", person.deletedAt)
+		if (!person) continue
+		if (!person.inactiveReminders) {
+			person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
 		}
-
-		for (let reminder of person.reminders.values()) {
-			if (
-				reminder.deletedAt &&
-				!reminder.permanentlyDeletedAt &&
-				reminder.deletedAt < thirtyDaysAgo
-			) {
-				reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
-			}
-		}
-
-		for (let note of person.notes.values()) {
-			if (
-				note.deletedAt &&
-				!note.permanentlyDeletedAt &&
-				note.deletedAt < thirtyDaysAgo
-			) {
-				note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
-			}
+		if (!person.inactiveNotes) {
+			person.$jazz.set("inactiveNotes", co.list(Note).create([]))
 		}
 	}
+
+	// Re-load with inactive lists now initialized
+	let { root: loadedRoot } = await account.$jazz.ensureLoaded({
+		resolve: {
+			root: migrationResolveQuery,
+		},
+	})
+
+	cleanupInactiveLists(loadedRoot.people, loadedRoot.inactivePeople)
 }
 
 function isDeleted(item: {

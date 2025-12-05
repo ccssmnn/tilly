@@ -54,7 +54,9 @@ function PeopleScreen() {
 	})
 
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
+
 	let allPeople = filterVisiblePeople(currentMe.root?.people)
+	let inactivePeople = filterVisiblePeople(currentMe.root?.inactivePeople)
 
 	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()
 	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)
@@ -62,6 +64,7 @@ function PeopleScreen() {
 	let people = usePeople<LoadedPerson[], LoadedPerson>(
 		allPeople,
 		deferredSearchQuery,
+		inactivePeople,
 	)
 
 	let didSearch = deferredSearchQuery !== ""

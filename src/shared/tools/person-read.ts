@@ -29,13 +29,20 @@ function createListPeopleTool(worker: Loaded<typeof UserAccount>) {
 		}),
 		execute: async input => {
 			let me = await worker.$jazz.ensureLoaded({
-				resolve: { root: { people: { $each: true } } },
+				resolve: {
+					root: { people: { $each: true }, inactivePeople: { $each: true } },
+				},
 			})
 			if (!me.root.people) {
 				return { error: "No people data available" }
 			}
 
-			let allPeople = me.root.people
+			// Merge active and inactive people when includeDeleted is true
+			let peopleToSearch = input.includeDeleted
+				? [...me.root.people, ...(me.root.inactivePeople || [])]
+				: me.root.people
+
+			let allPeople = peopleToSearch
 				.filter(person => person != null)
 				.filter(person => !isPermanentlyDeleted(person))
 				.filter(person => input.includeDeleted || !isDeleted(person))
