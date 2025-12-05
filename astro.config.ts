@@ -37,7 +37,6 @@ export default defineConfig({
 		react({ babel: { plugins: ["babel-plugin-react-compiler"] } }),
 		pwa({
 			registerType: "prompt",
-			scope: "/app/",
 			strategies: "injectManifest",
 			srcDir: "src/app",
 			filename: "sw.ts",
