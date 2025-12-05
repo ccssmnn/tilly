@@ -67,18 +67,35 @@ function usePersonNotes(
 			}
 
 			// Perform 30-day cleanup on inactive notes
-			if (person.inactiveNotes) {
+			if (person.inactiveNotes && person.inactiveNotes.$isLoaded) {
 				let thirtyDaysAgo = new Date()
 				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+				let toRemove: number[] = []
 
-				for (let note of person.inactiveNotes.values()) {
+				let inactiveArray = Array.from(person.inactiveNotes.values())
+				for (let i = 0; i < inactiveArray.length; i++) {
+					let note = inactiveArray[i]
+					if (!note) continue
+
+					// Remove permanently deleted items
+					if (isPermanentlyDeleted(note)) {
+						toRemove.push(i)
+						continue
+					}
+
+					// Perform 30-day cleanup - remove immediately
 					if (
 						note.deletedAt &&
 						!note.permanentlyDeletedAt &&
 						note.deletedAt < thirtyDaysAgo
 					) {
-						note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
+						toRemove.push(i)
 					}
+				}
+
+				// Remove items in reverse order
+				for (let i = toRemove.length - 1; i >= 0; i--) {
+					person.inactiveNotes.$jazz.splice(toRemove[i], 1)
 				}
 			}
 
@@ -140,24 +157,38 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 		}
 
 		// Process inactive notes with 30-day cleanup
-		if (person.inactiveNotes) {
+		if (person.inactiveNotes && person.inactiveNotes.$isLoaded) {
 			let thirtyDaysAgo = new Date()
 			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+			let toRemove: number[] = []
 
-			for (let note of person.inactiveNotes.values()) {
-				if (isPermanentlyDeleted(note)) continue
+			let inactiveArray = Array.from(person.inactiveNotes.values())
+			for (let i = 0; i < inactiveArray.length; i++) {
+				let note = inactiveArray[i]
+				if (!note) continue
 
-				// Perform 30-day cleanup
+				// Remove permanently deleted items
+				if (isPermanentlyDeleted(note)) {
+					toRemove.push(i)
+					continue
+				}
+
+				// Perform 30-day cleanup - remove immediately
 				if (
 					note.deletedAt &&
 					!note.permanentlyDeletedAt &&
 					note.deletedAt < thirtyDaysAgo
 				) {
-					note.$jazz.set("permanentlyDeletedAt", note.deletedAt)
+					toRemove.push(i)
 					continue
 				}
 
 				allNotePairs.push({ note, person })
+			}
+
+			// Remove items in reverse order
+			for (let i = toRemove.length - 1; i >= 0; i--) {
+				person.inactiveNotes.$jazz.splice(toRemove[i], 1)
 			}
 		}
 	}

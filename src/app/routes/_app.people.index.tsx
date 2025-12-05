@@ -13,7 +13,7 @@ import {
 import { useAccount } from "jazz-tools/react"
 import { co } from "jazz-tools"
 import { usePeople } from "#app/features/person-hooks"
-import { useDeferredValue, useId, type ReactNode } from "react"
+import { useDeferredValue, useEffect, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
 import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
@@ -54,6 +54,46 @@ function PeopleScreen() {
 	})
 
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
+
+	// Perform 30-day cleanup on inactive people
+	useEffect(() => {
+		if (!currentMe.root?.$isLoaded || !currentMe.root.inactivePeople?.$isLoaded) {
+			return
+		}
+
+		let thirtyDaysAgo = new Date()
+		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+		let toRemove: number[] = []
+
+		let inactiveArray = Array.from(currentMe.root.inactivePeople.values())
+		for (let i = 0; i < inactiveArray.length; i++) {
+			let person = inactiveArray[i]
+			if (!person || !person.$isLoaded) continue
+
+			// Remove permanently deleted items
+			if (person.permanentlyDeletedAt) {
+				toRemove.push(i)
+				continue
+			}
+
+			// Perform 30-day cleanup - remove immediately
+			if (
+				person.deletedAt &&
+				!person.permanentlyDeletedAt &&
+				person.deletedAt < thirtyDaysAgo
+			) {
+				toRemove.push(i)
+			}
+		}
+
+		// Remove items in reverse order
+		if (toRemove.length > 0) {
+			for (let i = toRemove.length - 1; i >= 0; i--) {
+				currentMe.root.inactivePeople.$jazz.splice(toRemove[i], 1)
+			}
+		}
+	}, [currentMe])
+
 	let allPeople = filterVisiblePeople(currentMe.root?.people)
 	let inactivePeople = filterVisiblePeople(currentMe.root?.inactivePeople)
 

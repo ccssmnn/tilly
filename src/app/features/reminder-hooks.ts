@@ -77,24 +77,38 @@ function useReminders(
 		}
 
 		// Process inactive reminders with 30-day cleanup
-		if (person.inactiveReminders) {
+		if (person.inactiveReminders && person.inactiveReminders.$isLoaded) {
 			let thirtyDaysAgo = new Date()
 			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+			let toRemove: number[] = []
 
-			for (let reminder of person.inactiveReminders.values()) {
-				if (isPermanentlyDeleted(reminder)) continue
+			let inactiveArray = Array.from(person.inactiveReminders.values())
+			for (let i = 0; i < inactiveArray.length; i++) {
+				let reminder = inactiveArray[i]
+				if (!reminder) continue
 
-				// Perform 30-day cleanup
+				// Remove permanently deleted items
+				if (isPermanentlyDeleted(reminder)) {
+					toRemove.push(i)
+					continue
+				}
+
+				// Perform 30-day cleanup - mark and remove immediately
 				if (
 					reminder.deletedAt &&
 					!reminder.permanentlyDeletedAt &&
 					reminder.deletedAt < thirtyDaysAgo
 				) {
-					reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
+					toRemove.push(i)
 					continue
 				}
 
 				allReminderPairs.push({ reminder, person })
+			}
+
+			// Remove items in reverse order
+			for (let i = toRemove.length - 1; i >= 0; i--) {
+				person.inactiveReminders.$jazz.splice(toRemove[i], 1)
 			}
 		}
 	}
@@ -181,18 +195,35 @@ function usePersonReminders(
 			}
 
 			// Perform 30-day cleanup on inactive reminders
-			if (person.inactiveReminders) {
+			if (person.inactiveReminders && person.inactiveReminders.$isLoaded) {
 				let thirtyDaysAgo = new Date()
 				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+				let toRemove: number[] = []
 
-				for (let reminder of person.inactiveReminders.values()) {
+				let inactiveArray = Array.from(person.inactiveReminders.values())
+				for (let i = 0; i < inactiveArray.length; i++) {
+					let reminder = inactiveArray[i]
+					if (!reminder) continue
+
+					// Remove permanently deleted items
+					if (isPermanentlyDeleted(reminder)) {
+						toRemove.push(i)
+						continue
+					}
+
+					// Perform 30-day cleanup - remove immediately
 					if (
 						reminder.deletedAt &&
 						!reminder.permanentlyDeletedAt &&
 						reminder.deletedAt < thirtyDaysAgo
 					) {
-						reminder.$jazz.set("permanentlyDeletedAt", reminder.deletedAt)
+						toRemove.push(i)
 					}
+				}
+
+				// Remove items in reverse order
+				for (let i = toRemove.length - 1; i >= 0; i--) {
+					person.inactiveReminders.$jazz.splice(toRemove[i], 1)
 				}
 			}
 
