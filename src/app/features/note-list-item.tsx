@@ -897,6 +897,17 @@ function ImageCarousel({
 							initial="enter"
 							animate="center"
 							exit="exit"
+							drag="x"
+							dragConstraints={{ left: 0, right: 0 }}
+							dragElastic={0.2}
+							onDragEnd={(event, info) => {
+								let swipeThreshold = 50
+								if (info.offset.x > swipeThreshold) {
+									handlePrevious()
+								} else if (info.offset.x < -swipeThreshold) {
+									handleNext()
+								}
+							}}
 							variants={{
 								enter: (dir: Direction) => ({
 									opacity: 0,
@@ -911,6 +922,7 @@ function ImageCarousel({
 							transition={{
 								duration: 0.075,
 							}}
+							style={{ touchAction: "pan-y" }}
 							className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center"
 						>
 							<JazzImage
