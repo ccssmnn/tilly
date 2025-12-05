@@ -20,7 +20,9 @@ function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	searchQuery: string,
 	inactivePeople?: A,
 ): { active: P[]; deleted: P[] } {
-	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])]
+	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])].filter(
+		p => !isPermanentlyDeleted(p),
+	)
 
 	let searchLower = searchQuery.toLowerCase().trim()
 
