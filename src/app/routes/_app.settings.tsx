@@ -63,7 +63,7 @@ import { WifiOff, Lightbulb, Book, Compass } from "react-bootstrap-icons"
 import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
-import { useAssistantAccess } from "#app/features/plus"
+import { useHasPlusAccess } from "#app/features/plus"
 
 export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
@@ -94,7 +94,7 @@ function SettingsScreen() {
 		resolve: resolve,
 	})
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data.me
-	let { status: accessStatus } = useAssistantAccess()
+	let { hasPlusAccess } = useHasPlusAccess()
 	let isPWAInstalled = useIsPWAInstalled()
 
 	return (
@@ -105,7 +105,7 @@ function SettingsScreen() {
 			</TypographyH1>
 			<div className="divide-border divide-y">
 				<AccountSection />
-				{accessStatus === "granted" && <AssistantSection me={currentMe} />}
+				{hasPlusAccess && <AssistantSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
 				{!isPWAInstalled && <PWASection />}

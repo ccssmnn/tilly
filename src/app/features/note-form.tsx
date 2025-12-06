@@ -23,7 +23,7 @@ import { format } from "date-fns"
 import { X, Plus } from "react-bootstrap-icons"
 import { Note } from "#shared/schema/user"
 import type { co } from "jazz-tools"
-import { useAssistantAccess } from "#app/features/plus"
+import { useHasPlusAccess } from "#app/features/plus"
 import { Image as JazzImage } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { isMac } from "#app/hooks/use-pwa"
@@ -58,8 +58,7 @@ export function NoteForm({
 	onSubmit: (data: NoteFormValues) => void
 }) {
 	let t = useIntl()
-	let access = useAssistantAccess()
-	let hasPlusAccess = access.status === "granted"
+	let { hasPlusAccess } = useHasPlusAccess()
 	let noteFormSchema = createNoteFormSchema(t)
 	let [placeholder] = useState(t("note.form.placeholder"))
 	let fileInputRef = useRef<HTMLInputElement>(null)
