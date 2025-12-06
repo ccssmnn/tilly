@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Upload } from "react-bootstrap-icons"
+import { Upload, ExclamationTriangle } from "react-bootstrap-icons"
 import { Button } from "#shared/ui/button"
 import {
 	Dialog,
@@ -17,8 +17,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "#shared/ui/form"
-import { RadioGroup, RadioGroupItem } from "#shared/ui/radio-group"
-import { Label } from "#shared/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -34,7 +33,6 @@ let uploadFormSchema = z.object({
 	file: z.instanceof(FileList).refine(files => files.length > 0, {
 		message: "data.import.noFile",
 	}),
-	mode: z.enum(["merge", "replace"]),
 })
 
 async function dataURLToFile(
@@ -52,9 +50,6 @@ export function UploadButton({ userID }: { userID: string }) {
 
 	let form = useForm<z.infer<typeof uploadFormSchema>>({
 		resolver: zodResolver(uploadFormSchema),
-		defaultValues: {
-			mode: "merge",
-		},
 	})
 
 	async function onSubmit(values: z.infer<typeof uploadFormSchema>) {
@@ -81,379 +76,127 @@ export function UploadButton({ userID }: { userID: string }) {
 
 		let jsonData: FileData = check.data
 
-		if (values.mode === "replace") {
-			account.root.people.$jazz.splice(0, account.root.people.length)
-		}
+		// Replace all existing data
+		account.root.people.$jazz.splice(0, account.root.people.length)
 
 		for (let personData of jsonData.people) {
 			try {
-				let existingPersonIndex = -1
-				if (values.mode === "merge") {
-					existingPersonIndex = account.root.people.findIndex(
-						p => p?.$jazz.id === personData.id,
-					)
-				}
+				let person = Person.create({
+					version: 1,
+					name: personData.name,
+					summary: personData.summary,
+					notes: co.list(Note).create([]),
+					reminders: co.list(Reminder).create([]),
+					deletedAt: personData.deletedAt,
+					permanentlyDeletedAt: personData.permanentlyDeletedAt,
+					createdAt: personData.createdAt ?? new Date(),
+					updatedAt: personData.updatedAt ?? new Date(),
+				})
+				if (personData.createdAt)
+					person.$jazz.set("createdAt", personData.createdAt)
+				if (personData.updatedAt)
+					person.$jazz.set("updatedAt", personData.updatedAt)
 
-				if (existingPersonIndex >= 0) {
-					let existingPerson = account.root.people[existingPersonIndex]
-					if (!existingPerson) continue
-
-					if (personData.name) {
-						existingPerson.$jazz.set("name", personData.name)
-					}
-					if (personData.summary) {
-						existingPerson.$jazz.set("summary", personData.summary)
-					}
-					if (personData.deletedAt !== undefined) {
-						existingPerson.$jazz.set("deletedAt", personData.deletedAt)
-					}
-					if (personData.permanentlyDeletedAt !== undefined) {
-						existingPerson.$jazz.set(
-							"permanentlyDeletedAt",
-							personData.permanentlyDeletedAt,
+				// Handle avatar dataURL
+				if (personData.avatar?.dataURL) {
+					try {
+						let avatarFile = await dataURLToFile(
+							personData.avatar.dataURL,
+							`${personData.name}-avatar.jpg`,
+						)
+						let avatarImage = await createImage(avatarFile, {
+							owner: person.$jazz.owner,
+							maxSize: 2048,
+							placeholder: "blur",
+							progressive: true,
+						})
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						person.$jazz.set("avatar", avatarImage as any)
+					} catch (error) {
+						console.warn(
+							`Failed to create avatar for ${personData.name}:`,
+							error,
 						)
 					}
-					if (personData.createdAt !== undefined) {
-						existingPerson.$jazz.set("createdAt", personData.createdAt)
-					}
-					if (personData.updatedAt !== undefined) {
-						existingPerson.$jazz.set("updatedAt", personData.updatedAt)
-					}
-
-					// Handle avatar dataURL
-					if (
-						personData.avatar?.dataURL &&
-						typeof personData.avatar.dataURL === "string"
-					) {
-						try {
-							let avatarFile = await dataURLToFile(
-								personData.avatar.dataURL,
-								`${personData.name}-avatar.jpg`,
-							)
-							let avatarImage = await createImage(avatarFile, {
-								owner: existingPerson.$jazz.owner,
-								maxSize: 2048,
-								placeholder: "blur",
-								progressive: true,
-							})
-							existingPerson.$jazz.set("avatar", avatarImage)
-						} catch (error) {
-							console.warn(
-								`Failed to create avatar for ${personData.name}:`,
-								error,
-							)
-						}
-					} else if (personData.avatar === null) {
-						existingPerson.$jazz.delete("avatar")
-					}
-
-					if (personData.notes && existingPerson.notes) {
-						for (let noteData of personData.notes) {
-							let existingNoteIndex = existingPerson.notes.findIndex(
-								n => n?.$jazz.id === noteData.id,
-							)
-							if (
-								existingNoteIndex >= 0 &&
-								existingPerson.notes[existingNoteIndex]
-							) {
-								existingPerson.notes[existingNoteIndex].$jazz.set(
-									"content",
-									noteData.content,
-								)
-								if (noteData.pinned !== undefined) {
-									existingPerson.notes[existingNoteIndex].$jazz.set(
-										"pinned",
-										noteData.pinned,
-									)
-								}
-								if (noteData.deletedAt !== undefined) {
-									existingPerson.notes[existingNoteIndex].$jazz.set(
-										"deletedAt",
-										noteData.deletedAt,
-									)
-								}
-								if (noteData.permanentlyDeletedAt !== undefined) {
-									existingPerson.notes[existingNoteIndex].$jazz.set(
-										"permanentlyDeletedAt",
-										noteData.permanentlyDeletedAt,
-									)
-								}
-								if (noteData.createdAt !== undefined) {
-									existingPerson.notes[existingNoteIndex].$jazz.set(
-										"createdAt",
-										noteData.createdAt,
-									)
-								}
-								if (noteData.updatedAt !== undefined) {
-									existingPerson.notes[existingNoteIndex].$jazz.set(
-										"updatedAt",
-										noteData.updatedAt,
-									)
-								}
-
-								// Handle note images for existing note
-								if (noteData.images) {
-									let imageList = co.list(co.image()).create([])
-									for (let imageData of noteData.images) {
-										if (imageData?.dataURL) {
-											try {
-												let imageFile = await dataURLToFile(
-													imageData.dataURL,
-													`note-image.jpg`,
-												)
-												let image = await createImage(imageFile, {
-													owner: existingPerson.$jazz.owner,
-													maxSize: 2048,
-													placeholder: "blur",
-													progressive: true,
-												})
-												// eslint-disable-next-line @typescript-eslint/no-explicit-any
-												imageList.$jazz.push(image as any)
-											} catch (error) {
-												console.warn(`Failed to create note image:`, error)
-											}
-										}
-									}
-									if (imageList.length > 0) {
-										existingPerson.notes[existingNoteIndex].$jazz.set(
-											"images",
-											imageList,
-										)
-									}
-								}
-							} else {
-								let note = Note.create({
-									version: 1,
-									content: noteData.content,
-									pinned: noteData.pinned || false,
-									deletedAt: noteData.deletedAt,
-									permanentlyDeletedAt: noteData.permanentlyDeletedAt,
-									createdAt: noteData.createdAt ?? new Date(),
-									updatedAt: noteData.updatedAt ?? new Date(),
-								})
-								if (noteData.createdAt)
-									note.$jazz.set("createdAt", noteData.createdAt)
-								if (noteData.updatedAt)
-									note.$jazz.set("updatedAt", noteData.updatedAt)
-
-								// Handle note images for new note
-								if (noteData.images) {
-									let imageList = co.list(co.image()).create([])
-									for (let imageData of noteData.images) {
-										if (imageData?.dataURL) {
-											try {
-												let imageFile = await dataURLToFile(
-													imageData.dataURL,
-													`note-image.jpg`,
-												)
-												let image = await createImage(imageFile, {
-													owner: existingPerson.$jazz.owner,
-													maxSize: 2048,
-													placeholder: "blur",
-													progressive: true,
-												})
-												// eslint-disable-next-line @typescript-eslint/no-explicit-any
-												imageList.$jazz.push(image as any)
-											} catch (error) {
-												console.warn(`Failed to create note image:`, error)
-											}
-										}
-									}
-									if (imageList.length > 0) {
-										note.$jazz.set("images", imageList)
-									}
-								}
-
-								existingPerson.notes.$jazz.push(note)
-							}
-						}
-					}
-
-					if (personData.reminders && existingPerson.reminders) {
-						for (let reminderData of personData.reminders) {
-							let existingReminderIndex = existingPerson.reminders.findIndex(
-								r => r?.$jazz.id === reminderData.id,
-							)
-							if (
-								existingReminderIndex >= 0 &&
-								existingPerson.reminders[existingReminderIndex]
-							) {
-								let existingReminder =
-									existingPerson.reminders[existingReminderIndex]
-								existingReminder.$jazz.set("text", reminderData.text)
-								existingReminder.$jazz.set("dueAtDate", reminderData.dueAtDate)
-								if (reminderData.repeat !== undefined) {
-									existingReminder.$jazz.set("repeat", reminderData.repeat)
-								}
-								if (reminderData.done !== undefined) {
-									existingReminder.$jazz.set("done", reminderData.done)
-								}
-								if (reminderData.deletedAt !== undefined) {
-									existingReminder.$jazz.set(
-										"deletedAt",
-										reminderData.deletedAt,
-									)
-								}
-								if (reminderData.permanentlyDeletedAt !== undefined) {
-									existingReminder.$jazz.set(
-										"permanentlyDeletedAt",
-										reminderData.permanentlyDeletedAt,
-									)
-								}
-								if (reminderData.createdAt !== undefined) {
-									existingReminder.$jazz.set(
-										"createdAt",
-										reminderData.createdAt,
-									)
-								}
-								if (reminderData.updatedAt !== undefined) {
-									existingReminder.$jazz.set(
-										"updatedAt",
-										reminderData.updatedAt,
-									)
-								}
-							} else {
-								let reminder = Reminder.create({
-									version: 1,
-									text: reminderData.text,
-									dueAtDate: reminderData.dueAtDate,
-									repeat: reminderData.repeat,
-									done: reminderData.done || false,
-									deletedAt: reminderData.deletedAt,
-									permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
-									createdAt: reminderData.createdAt ?? new Date(),
-									updatedAt: reminderData.updatedAt ?? new Date(),
-								})
-								if (reminderData.createdAt)
-									reminder.$jazz.set("createdAt", reminderData.createdAt)
-								if (reminderData.updatedAt)
-									reminder.$jazz.set("updatedAt", reminderData.updatedAt)
-								existingPerson.reminders.$jazz.push(reminder)
-							}
-						}
-					}
-				} else {
-					let person = Person.create({
-						version: 1,
-						name: personData.name,
-						summary: personData.summary,
-						notes: co.list(Note).create([]),
-						reminders: co.list(Reminder).create([]),
-						deletedAt: personData.deletedAt,
-						permanentlyDeletedAt: personData.permanentlyDeletedAt,
-						createdAt: personData.createdAt ?? new Date(),
-						updatedAt: personData.updatedAt ?? new Date(),
-					})
-					if (personData.createdAt)
-						person.$jazz.set("createdAt", personData.createdAt)
-					if (personData.updatedAt)
-						person.$jazz.set("updatedAt", personData.updatedAt)
-
-					// Handle avatar dataURL for new person
-					if (personData.avatar?.dataURL) {
-						try {
-							let avatarFile = await dataURLToFile(
-								personData.avatar.dataURL,
-								`${personData.name}-avatar.jpg`,
-							)
-							let avatarImage = await createImage(avatarFile, {
-								owner: person.$jazz.owner,
-								maxSize: 2048,
-								placeholder: "blur",
-								progressive: true,
-							})
-							// eslint-disable-next-line @typescript-eslint/no-explicit-any
-							person.$jazz.set("avatar", avatarImage as any) // TODO: is this an error on the jazz side of things?
-						} catch (error) {
-							console.warn(
-								`Failed to create avatar for ${personData.name}:`,
-								error,
-							)
-						}
-					}
-
-					if (personData.notes) {
-						for (let noteData of personData.notes) {
-							let note = Note.create({
-								version: 1,
-								content: noteData.content,
-								pinned: noteData.pinned || false,
-								deletedAt: noteData.deletedAt,
-								permanentlyDeletedAt: noteData.permanentlyDeletedAt,
-								createdAt: noteData.createdAt ?? new Date(),
-								updatedAt: noteData.updatedAt ?? new Date(),
-							})
-							if (noteData.createdAt)
-								note.$jazz.set("createdAt", noteData.createdAt)
-							if (noteData.updatedAt)
-								note.$jazz.set("updatedAt", noteData.updatedAt)
-
-							// Handle note images for new person
-							if (noteData.images) {
-								let imageList = co.list(co.image()).create([])
-								for (let imageData of noteData.images) {
-									if (imageData?.dataURL) {
-										try {
-											let imageFile = await dataURLToFile(
-												imageData.dataURL,
-												`note-image.jpg`,
-											)
-											let image = await createImage(imageFile, {
-												owner: person.$jazz.owner,
-												maxSize: 2048,
-												placeholder: "blur",
-												progressive: true,
-											})
-											// eslint-disable-next-line @typescript-eslint/no-explicit-any
-											imageList.$jazz.push(image as any)
-										} catch (error) {
-											console.warn(`Failed to create note image:`, error)
-										}
-									}
-								}
-								if (imageList.length > 0) {
-									note.$jazz.set("images", imageList)
-								}
-							}
-
-							person.notes.$jazz.push(note)
-						}
-					}
-
-					if (personData.reminders) {
-						for (let reminderData of personData.reminders) {
-							let reminder = Reminder.create({
-								version: 1,
-								text: reminderData.text,
-								dueAtDate: reminderData.dueAtDate,
-								repeat: reminderData.repeat,
-								done: reminderData.done || false,
-								deletedAt: reminderData.deletedAt,
-								permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
-								createdAt: reminderData.createdAt ?? new Date(),
-								updatedAt: reminderData.updatedAt ?? new Date(),
-							})
-							if (reminderData.createdAt)
-								reminder.$jazz.set("createdAt", reminderData.createdAt)
-							if (reminderData.updatedAt)
-								reminder.$jazz.set("updatedAt", reminderData.updatedAt)
-							person.reminders.$jazz.push(reminder)
-						}
-					}
-
-					account.root.people.$jazz.push(person)
 				}
+
+				if (personData.notes) {
+					for (let noteData of personData.notes) {
+						let note = Note.create({
+							version: 1,
+							content: noteData.content,
+							pinned: noteData.pinned || false,
+							deletedAt: noteData.deletedAt,
+							permanentlyDeletedAt: noteData.permanentlyDeletedAt,
+							createdAt: noteData.createdAt ?? new Date(),
+							updatedAt: noteData.updatedAt ?? new Date(),
+						})
+						if (noteData.createdAt)
+							note.$jazz.set("createdAt", noteData.createdAt)
+						if (noteData.updatedAt)
+							note.$jazz.set("updatedAt", noteData.updatedAt)
+
+						// Handle note images
+						if (noteData.images) {
+							let imageList = co.list(co.image()).create([])
+							for (let imageData of noteData.images) {
+								if (imageData?.dataURL) {
+									try {
+										let imageFile = await dataURLToFile(
+											imageData.dataURL,
+											`note-image.jpg`,
+										)
+										let image = await createImage(imageFile, {
+											owner: person.$jazz.owner,
+											maxSize: 2048,
+											placeholder: "blur",
+											progressive: true,
+										})
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
+										imageList.$jazz.push(image as any)
+									} catch (error) {
+										console.warn(`Failed to create note image:`, error)
+									}
+								}
+							}
+							if (imageList.length > 0) {
+								note.$jazz.set("images", imageList)
+							}
+						}
+
+						person.notes.$jazz.push(note)
+					}
+				}
+
+				if (personData.reminders) {
+					for (let reminderData of personData.reminders) {
+						let reminder = Reminder.create({
+							version: 1,
+							text: reminderData.text,
+							dueAtDate: reminderData.dueAtDate,
+							repeat: reminderData.repeat,
+							done: reminderData.done || false,
+							deletedAt: reminderData.deletedAt,
+							permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
+							createdAt: reminderData.createdAt ?? new Date(),
+							updatedAt: reminderData.updatedAt ?? new Date(),
+						})
+						if (reminderData.createdAt)
+							reminder.$jazz.set("createdAt", reminderData.createdAt)
+						if (reminderData.updatedAt)
+							reminder.$jazz.set("updatedAt", reminderData.updatedAt)
+						person.reminders.$jazz.push(reminder)
+					}
+				}
+
+				account.root.people.$jazz.push(person)
 			} catch (error) {
 				console.error(`Error processing person ${personData.name}:`, error)
 				toast.error(t("data.import.personError", { name: personData.name }))
 			}
 		}
 
-		toast.success(
-			values.mode === "replace"
-				? t("data.import.success.replace")
-				: t("data.import.success.merge"),
-		)
+		toast.success(t("data.import.success"))
 		setOpen(false)
 		form.reset()
 	}
@@ -519,70 +262,16 @@ export function UploadButton({ userID }: { userID: string }) {
 							)}
 						/>
 
-						<FormField
-							control={form.control}
-							name="mode"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>
-										<T k="data.import.dialog.modeLabel" />
-									</FormLabel>
-									<FormControl>
-										<RadioGroup
-											onValueChange={field.onChange}
-											defaultValue={field.value}
-											className="flex flex-col space-y-1"
-										>
-											<Label
-												htmlFor="merge"
-												className={cn(
-													"border-border hover:bg-muted/50 flex cursor-pointer items-center space-x-4 rounded-md border p-3 transition-colors",
-													field.value === "merge" &&
-														"bg-accent text-accent-foreground",
-												)}
-											>
-												<RadioGroupItem
-													value="merge"
-													id="merge"
-													className="h-5 w-5"
-												/>
-												<div className="flex-1">
-													<div className="text-sm font-medium">
-														<T k="data.import.mode.merge" />
-													</div>
-													<div className="text-muted-foreground text-sm">
-														<T k="data.import.mode.merge.description" />
-													</div>
-												</div>
-											</Label>
-											<Label
-												htmlFor="replace"
-												className={cn(
-													"border-border hover:bg-muted/50 flex cursor-pointer items-center space-x-4 rounded-md border p-3 transition-colors",
-													field.value === "replace" &&
-														"bg-accent text-accent-foreground",
-												)}
-											>
-												<RadioGroupItem
-													value="replace"
-													id="replace"
-													className="h-5 w-5"
-												/>
-												<div className="flex-1">
-													<div className="text-sm font-medium">
-														<T k="data.import.mode.replace" />
-													</div>
-													<div className="text-muted-foreground text-sm">
-														<T k="data.import.mode.replace.description" />
-													</div>
-												</div>
-											</Label>
-										</RadioGroup>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<Alert variant="destructive">
+							<ExclamationTriangle />
+							<AlertTitle>
+								<T k="data.import.dialog.warning.title" />
+							</AlertTitle>
+							<AlertDescription>
+								<T k="data.import.dialog.warning.description" />
+							</AlertDescription>
+						</Alert>
+
 						<div className="flex space-x-2">
 							<Button
 								type="button"
