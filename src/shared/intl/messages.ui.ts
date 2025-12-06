@@ -121,8 +121,9 @@ const baseUiMessages = messages({
 	"data.import.dialog.noFileSelected": "No file selected",
 	"data.import.dialog.description":
 		"Choose a .tilly.json backup to restore your data.",
-	"data.import.dialog.warning":
-		"⚠️ Warning: Importing will replace all existing data. This cannot be undone.",
+	"data.import.dialog.warning.title": "Warning",
+	"data.import.dialog.warning.description":
+		"Importing will replace all existing data. This cannot be undone.",
 	"data.import.dialog.cancel": "Cancel",
 	"data.import.dialog.importing": "Importing...",
 	"data.import.dialog.import": "Import Data",
@@ -262,8 +263,9 @@ const deUiMessages = translate(baseUiMessages, {
 	"data.import.dialog.noFileSelected": "Keine Datei ausgewählt",
 	"data.import.dialog.description":
 		"Wähle eine .tilly.json-Sicherung, um deine Daten wiederherzustellen.",
-	"data.import.dialog.warning":
-		"⚠️ Warnung: Der Import ersetzt alle vorhandenen Daten. Dies kann nicht rückgängig gemacht werden.",
+	"data.import.dialog.warning.title": "Warnung",
+	"data.import.dialog.warning.description":
+		"Der Import ersetzt alle vorhandenen Daten. Dies kann nicht rückgängig gemacht werden.",
 	"data.import.dialog.cancel": "Abbrechen",
 	"data.import.dialog.importing": "Importiere...",
 	"data.import.dialog.import": "Daten importieren",

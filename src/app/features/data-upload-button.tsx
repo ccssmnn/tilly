@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Upload } from "react-bootstrap-icons"
+import { Upload, ExclamationTriangle } from "react-bootstrap-icons"
 import { Button } from "#shared/ui/button"
 import {
 	Dialog,
@@ -17,6 +17,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "#shared/ui/form"
+import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -261,9 +262,15 @@ export function UploadButton({ userID }: { userID: string }) {
 							)}
 						/>
 
-						<div className="bg-destructive/10 border-destructive/20 text-destructive rounded-md border p-3 text-sm">
-							<T k="data.import.dialog.warning" />
-						</div>
+						<Alert variant="destructive">
+							<ExclamationTriangle />
+							<AlertTitle>
+								<T k="data.import.dialog.warning.title" />
+							</AlertTitle>
+							<AlertDescription>
+								<T k="data.import.dialog.warning.description" />
+							</AlertDescription>
+						</Alert>
 
 						<div className="flex space-x-2">
 							<Button
