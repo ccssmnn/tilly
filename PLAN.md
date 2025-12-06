@@ -159,9 +159,9 @@ Order of Implementation
 1. ~~useHasPlusAccess() hook~~
 2. ~~Update createPerson() with Group ownership~~
 3. ~~Create person-sharing.ts utilities~~
-4. Create share dialog component
-5. Add share button to person details
-6. Update people list query + UI for shared indicator
+4. ~~Create share dialog component~~
+5. ~~Add share button to person details~~
+6. ~~Update people list query + UI for shared indicator~~
 7. Create invite route
 8. Add collaborator joined notification
 9. Update system prompt

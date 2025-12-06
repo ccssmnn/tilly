@@ -26,7 +26,10 @@ import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 import { cn } from "#app/lib/utils"
 import { UserAccount } from "#shared/schema/user"
 import { personListQuery } from "#app/features/person-query"
-import type { LoadedPerson as PersonListLoadedPerson } from "#app/features/person-query"
+import type {
+	LoadedPerson as PersonListLoadedPerson,
+	MaybeLoadedPerson,
+} from "#app/features/person-query"
 import { ListFilterButton } from "#app/features/list-filter-button"
 
 export let Route = createFileRoute("/_app/people/")({
@@ -42,7 +45,7 @@ export let Route = createFileRoute("/_app/people/")({
 })
 
 type LoadedAccount = co.loaded<typeof UserAccount, typeof personListQuery>
-type LoadedPeopleList = LoadedAccount["root"]["people"]
+type MaybeLoadedPeopleList = LoadedAccount["root"]["people"]
 type LoadedPerson = PersonListLoadedPerson
 
 function PeopleScreen() {
@@ -430,16 +433,17 @@ function DeletedHeading({ count }: { count: number }) {
 }
 
 function filterVisiblePeople(
-	people: LoadedPeopleList | undefined,
+	people: MaybeLoadedPeopleList | undefined,
 ): LoadedPerson[] {
 	if (!people) return []
 	return people.filter(isVisiblePerson)
 }
 
 function isVisiblePerson(
-	person: LoadedPeopleList[number],
+	person: MaybeLoadedPerson | null,
 ): person is LoadedPerson {
-	return Boolean(person && !person.permanentlyDeletedAt)
+	// Filter out null, permanently deleted, and inaccessible (unauthorized) people
+	return Boolean(person && person.$isLoaded && !person.permanentlyDeletedAt)
 }
 
 function Spacer() {

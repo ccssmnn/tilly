@@ -119,6 +119,21 @@ const basePeopleMessages = messages({
 	"person.listFilter.clearFilter": "Clear Filter",
 	"person.listFilter.editTooltip": "Right-click or long press to edit",
 	"person.listFilter.createTooltip": "Create new list",
+
+	// Share dialog
+	"person.share.button": "Share",
+	"person.share.dialog.title": "Share {$name}",
+	"person.share.dialog.description":
+		"Invite others to collaborate on this person's notes and reminders.",
+	"person.share.inviteLink.label": "Invite link",
+	"person.share.inviteLink.generate": "Generate invite link",
+	"person.share.inviteLink.copied": "Copied!",
+	"person.share.collaborators.title": "Collaborators",
+	"person.share.collaborators.remove": "Remove",
+	"person.share.collaborators.empty": "No collaborators yet",
+	"person.share.requiresPlus": "Sharing requires Plus",
+	"person.shared.badge": "Shared",
+	"person.shared.indicator.tooltip": "Shared with you",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -245,4 +260,19 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.listFilter.editTooltip":
 		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
 	"person.listFilter.createTooltip": "Neue Liste erstellen",
+
+	// Share dialog
+	"person.share.button": "Teilen",
+	"person.share.dialog.title": "{$name} teilen",
+	"person.share.dialog.description":
+		"Lade andere ein, an Notizen und Erinnerungen dieser Person mitzuarbeiten.",
+	"person.share.inviteLink.label": "Einladungslink",
+	"person.share.inviteLink.generate": "Einladungslink erstellen",
+	"person.share.inviteLink.copied": "Kopiert!",
+	"person.share.collaborators.title": "Mitarbeiter",
+	"person.share.collaborators.remove": "Entfernen",
+	"person.share.collaborators.empty": "Noch keine Mitarbeiter",
+	"person.share.requiresPlus": "Teilen erfordert Plus",
+	"person.shared.badge": "Geteilt",
+	"person.shared.indicator.tooltip": "Mit dir geteilt",
 })

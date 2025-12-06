@@ -1,4 +1,5 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
+import { Group, co } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Button } from "#shared/ui/button"
 import {
@@ -26,10 +27,18 @@ import {
 } from "#shared/ui/alert-dialog"
 import { Person, UserAccount, isDeleted } from "#shared/schema/user"
 import { extractHashtags } from "#app/features/list-utilities"
-import { co } from "jazz-tools"
-import { Collection, PencilSquare, Trash, Plus, X } from "react-bootstrap-icons"
+import {
+	Collection,
+	PencilSquare,
+	Trash,
+	Plus,
+	X,
+	Share,
+} from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
 import { NewListDialog } from "./new-list-dialog"
+import { PersonShareDialog } from "./person-share-dialog"
+import { useHasPlusAccess } from "./plus"
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -56,6 +65,10 @@ function PersonDetails({
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
+	let [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+
+	let { hasPlusAccess } = useHasPlusAccess()
+	let isAdmin = isPersonAdmin(person)
 
 	let allPeople = useAccount(UserAccount, {
 		resolve: { root: { people: { $each: true } } },
@@ -151,6 +164,8 @@ function PersonDetails({
 					onEdit={() => setIsEditDialogOpen(true)}
 					onDelete={() => setIsDeleteDialogOpen(true)}
 					onManageLists={() => setIsManageListsDialogOpen(true)}
+					onShare={() => setIsShareDialogOpen(true)}
+					showShare={hasPlusAccess && isAdmin}
 				>
 					<Avatar
 						className="size-48 cursor-pointer"
@@ -181,6 +196,8 @@ function PersonDetails({
 							onEdit={() => setIsEditDialogOpen(true)}
 							onDelete={() => setIsDeleteDialogOpen(true)}
 							onManageLists={() => setIsManageListsDialogOpen(true)}
+							onShare={() => setIsShareDialogOpen(true)}
+							showShare={hasPlusAccess && isAdmin}
 						>
 							<Button variant="secondary" size="sm">
 								<T k="person.actions.title" />
@@ -280,6 +297,11 @@ function PersonDetails({
 				personName={person.name}
 				personSummary={person.summary}
 				allPeople={allPeople}
+			/>
+			<PersonShareDialog
+				open={isShareDialogOpen}
+				onOpenChange={setIsShareDialogOpen}
+				person={person}
 			/>
 		</>
 	)
@@ -446,11 +468,15 @@ function ActionsDropdown({
 	onEdit,
 	onDelete,
 	onManageLists,
+	onShare,
+	showShare = false,
 }: {
 	children: ReactNode
 	onEdit: () => void
 	onDelete: () => void
 	onManageLists: () => void
+	onShare?: () => void
+	showShare?: boolean
 }) {
 	let [open, setOpen] = useState(false)
 
@@ -458,6 +484,17 @@ function ActionsDropdown({
 		<DropdownMenu open={open} onOpenChange={setOpen}>
 			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent>
+				{showShare && onShare && (
+					<DropdownMenuItem
+						onClick={() => {
+							setOpen(false)
+							onShare()
+						}}
+					>
+						<T k="person.share.button" />
+						<Share />
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuItem
 					onClick={() => {
 						setOpen(false)
@@ -489,4 +526,10 @@ function ActionsDropdown({
 			</DropdownMenuContent>
 		</DropdownMenu>
 	)
+}
+
+function isPersonAdmin(person: co.loaded<typeof Person>): boolean {
+	let owner = person.$jazz.owner
+	if (!(owner instanceof Group)) return true // Account-owned = user is owner
+	return owner.myRole() === "admin"
 }

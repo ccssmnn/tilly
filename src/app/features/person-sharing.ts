@@ -11,13 +11,16 @@ async function createPersonInviteLink(
 ): Promise<string> {
 	let group = getPersonGroup(person)
 
+	// Base URL for invite route
+	let baseURL = `${window.location.origin}/app/invite`
+
 	// Check admin permission on existing group
 	if (group) {
 		let myRole = group.myRole()
 		if (myRole !== "admin") {
 			throw new Error("Only admins can create invite links")
 		}
-		return createInviteLink(person, "writer", { valueHint: "person" })
+		return createInviteLink(person, "writer", { valueHint: "person", baseURL })
 	}
 
 	// Migrate to group (creator becomes admin)
@@ -40,7 +43,7 @@ async function createPersonInviteLink(
 	)
 	if (!newPerson) throw new Error("Migrated person not found")
 
-	return createInviteLink(newPerson, "writer", { valueHint: "person" })
+	return createInviteLink(newPerson, "writer", { valueHint: "person", baseURL })
 }
 
 async function getPersonCollaborators(

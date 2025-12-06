@@ -1,4 +1,5 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
+import { Group } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { isDueToday, isDeleted, UserAccount } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
@@ -31,6 +32,8 @@ import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
+import { PeopleFill } from "react-bootstrap-icons"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import type { LoadedPerson } from "#app/features/person-query"
 
 export { PersonListItem }
@@ -139,6 +142,10 @@ function PersonItemHeader({
 
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
+
+	// Check if this is a shared person (not admin of the group)
+	let isShared = isSharedPerson(person)
+
 	return (
 		<div
 			className="flex items-center justify-between leading-none select-text"
@@ -148,6 +155,7 @@ function PersonItemHeader({
 				<p className={nameColor}>
 					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
+				{isShared && <SharedIndicator />}
 				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
 			<p className="text-muted-foreground text-xs text-nowrap">
@@ -163,6 +171,27 @@ function PersonItemHeader({
 			</p>
 		</div>
 	)
+}
+
+function SharedIndicator() {
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<span className="text-muted-foreground">
+					<PeopleFill className="size-3" />
+				</span>
+			</TooltipTrigger>
+			<TooltipContent>
+				<T k="person.shared.indicator.tooltip" />
+			</TooltipContent>
+		</Tooltip>
+	)
+}
+
+function isSharedPerson(person: PersonListItemPerson): boolean {
+	let owner = person.$jazz.owner
+	if (!(owner instanceof Group)) return false
+	return owner.myRole() !== "admin"
 }
 
 function PersonItemSummary({
