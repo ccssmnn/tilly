@@ -613,6 +613,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 							e.preventDefault()
 						}
 					}}
+					onClick={() => setDropdownOpen(true)}
 					asChild
 				>
 					<div className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
