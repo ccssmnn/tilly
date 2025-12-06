@@ -77,7 +77,7 @@ const baseSettingsMessages = messages({
 		"Download all your relationship notes and details as JSON",
 	"settings.data.import.label": "Import Data",
 	"settings.data.import.description":
-		"Upload a JSON file to restore or merge your relationship notes",
+		"Upload a JSON file to restore your relationship notes",
 
 	// Data deletion
 	"settings.data.delete.title": "Delete All Your Data",
@@ -421,7 +421,7 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.data.export.description": "Lade alle deine Daten als JSON herunter",
 	"settings.data.import.label": "Daten importieren",
 	"settings.data.import.description":
-		"Lade eine JSON-Datei hoch, um deine Daten wiederherzustellen oder mit den bestehenden zusammenzufügen.",
+		"Lade eine JSON-Datei hoch, um deine Daten wiederherzustellen.",
 
 	// Data deletion
 	"settings.data.delete.title": "Alle deine Daten löschen",
