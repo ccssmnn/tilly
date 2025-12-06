@@ -59,15 +59,40 @@ function DialogContent({
 	let dragY = useMotionValue(0)
 	let closeRef = useRef<HTMLButtonElement>(null)
 
+	let buttonRotation = useMotionValue(0)
+	let wiggleAnimation = useRef<ReturnType<typeof animate> | null>(null)
+
+	function startWiggle() {
+		if (wiggleAnimation.current) return
+		let wiggle = () => {
+			wiggleAnimation.current = animate(buttonRotation, [0, -8, 8, -8, 8, 0], {
+				duration: 0.4,
+				ease: "easeInOut",
+				onComplete: () => {
+					if (wiggleAnimation.current) wiggle()
+				},
+			})
+		}
+		wiggle()
+	}
+
+	function stopWiggle() {
+		wiggleAnimation.current?.stop()
+		wiggleAnimation.current = null
+		buttonRotation.set(0)
+	}
+
 	let content = (
 		<>
 			<div className="flex items-start justify-between gap-3">
 				{titleSlot}
-				<Button asChild variant="secondary">
-					<DialogPrimitive.Close ref={closeRef}>
-						<T k="common.close" />
-					</DialogPrimitive.Close>
-				</Button>
+				<motion.div style={{ rotate: buttonRotation }}>
+					<Button asChild variant="secondary">
+						<DialogPrimitive.Close ref={closeRef}>
+							<T k="common.close" />
+						</DialogPrimitive.Close>
+					</Button>
+				</motion.div>
 			</div>
 			{children}
 		</>
@@ -103,7 +128,16 @@ function DialogContent({
 						drag="y"
 						dragConstraints={{ top: -50, bottom: 500 }}
 						dragElastic={0}
+						onDrag={(_, info) => {
+							let isPastThreshold = info.offset.y > 100
+							if (isPastThreshold) {
+								startWiggle()
+							} else {
+								stopWiggle()
+							}
+						}}
 						onDragEnd={(_, info) => {
+							stopWiggle()
 							if (info.offset.y > 100) {
 								closeRef.current?.click()
 							} else {
