@@ -1,7 +1,7 @@
 import { tool, type InferUITool } from "ai"
 import { z } from "zod"
 import { Person, Note, UserAccount, Reminder } from "#shared/schema/user"
-import { co } from "jazz-tools"
+import { co, Group } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
 import { tryCatch } from "#shared/lib/trycatch"
 
@@ -21,20 +21,24 @@ async function createPerson(
 	if (!account.$isLoaded) throw errors.USER_ACCOUNT_NOT_FOUND
 
 	let now = new Date()
-	let person = Person.create({
-		version: 1,
-		name: data.name,
-		summary: data.summary,
-		notes: co.list(Note).create([]),
-		reminders: co.list(Reminder).create([]),
-		createdAt: now,
-		updatedAt: now,
-	})
+	let group = Group.create()
+	let person = Person.create(
+		{
+			version: 1,
+			name: data.name,
+			summary: data.summary,
+			notes: co.list(Note).create([], group),
+			reminders: co.list(Reminder).create([], group),
+			createdAt: now,
+			updatedAt: now,
+		},
+		group,
+	)
 
 	if (data.avatarFile) {
 		try {
 			let avatar = await createImage(data.avatarFile, {
-				owner: account,
+				owner: group,
 				maxSize: 2048,
 				placeholder: "blur",
 				progressive: true,
