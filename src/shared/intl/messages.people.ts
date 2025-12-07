@@ -134,6 +134,13 @@ const basePeopleMessages = messages({
 	"person.share.requiresPlus": "Sharing requires Plus",
 	"person.shared.badge": "Shared",
 	"person.shared.indicator.tooltip": "Shared with you",
+	"person.shared.indicator.owner.tooltip": "Shared with others",
+	"person.shared.indicator.badge": "Shared",
+	"person.shared.indicator.owner.badge": "Sharing",
+	"person.shared.sharedBy": "Shared by {$name}",
+	"person.shared.sharedWith": "Shared with {$name}",
+	"person.shared.sharedWithCount":
+		".input {$count :number} .match $count one {{Shared with {$count} person}} * {{Shared with {$count} people}}",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -275,4 +282,11 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.share.requiresPlus": "Teilen erfordert Plus",
 	"person.shared.badge": "Geteilt",
 	"person.shared.indicator.tooltip": "Mit dir geteilt",
+	"person.shared.indicator.owner.tooltip": "Mit anderen geteilt",
+	"person.shared.indicator.badge": "Geteilt",
+	"person.shared.indicator.owner.badge": "Teile",
+	"person.shared.sharedBy": "Geteilt von {$name}",
+	"person.shared.sharedWith": "Geteilt mit {$name}",
+	"person.shared.sharedWithCount":
+		".input {$count :number} .match $count one {{Geteilt mit {$count} Person}} * {{Geteilt mit {$count} Personen}}",
 })

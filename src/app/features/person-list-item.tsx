@@ -32,8 +32,7 @@ import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
-import { PeopleFill } from "react-bootstrap-icons"
-import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
+import { Badge } from "#shared/ui/badge"
 import type { LoadedPerson } from "#app/features/person-query"
 
 export { PersonListItem }
@@ -143,8 +142,8 @@ function PersonItemHeader({
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 
-	// Check if this is a shared person (not admin of the group)
-	let isShared = isSharedPerson(person)
+	// Check if this person has sharing (either shared with me, or I shared with others)
+	let sharingStatus = getPersonSharingStatus(person)
 
 	return (
 		<div
@@ -155,7 +154,9 @@ function PersonItemHeader({
 				<p className={nameColor}>
 					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
-				{isShared && <SharedIndicator />}
+				{sharingStatus !== "none" && (
+					<SharedIndicator isOwner={sharingStatus === "owner"} />
+				)}
 				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
 			<p className="text-muted-foreground text-xs text-nowrap">
@@ -173,25 +174,37 @@ function PersonItemHeader({
 	)
 }
 
-function SharedIndicator() {
+function SharedIndicator({ isOwner }: { isOwner: boolean }) {
 	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<span className="text-muted-foreground">
-					<PeopleFill className="size-3" />
-				</span>
-			</TooltipTrigger>
-			<TooltipContent>
-				<T k="person.shared.indicator.tooltip" />
-			</TooltipContent>
-		</Tooltip>
+		<Badge
+			variant="outline"
+			className="text-muted-foreground px-1.5 py-0 text-xs"
+		>
+			<T
+				k={
+					isOwner
+						? "person.shared.indicator.owner.badge"
+						: "person.shared.indicator.badge"
+				}
+			/>
+		</Badge>
 	)
 }
 
-function isSharedPerson(person: PersonListItemPerson): boolean {
+function getPersonSharingStatus(
+	person: PersonListItemPerson,
+): "none" | "owner" | "collaborator" {
 	let owner = person.$jazz.owner
-	if (!(owner instanceof Group)) return false
-	return owner.myRole() !== "admin"
+	if (!(owner instanceof Group)) return "none"
+
+	let myRole = owner.myRole()
+	if (myRole !== "admin") return "collaborator"
+
+	// I'm admin - check if there are other members (collaborators)
+	let hasCollaborators = owner.members.some(
+		m => m.role !== "admin" && (m.role === "writer" || m.role === "reader"),
+	)
+	return hasCollaborators ? "owner" : "none"
 }
 
 function PersonItemSummary({

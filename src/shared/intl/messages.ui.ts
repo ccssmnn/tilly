@@ -17,6 +17,7 @@ const baseUiMessages = messages({
 	"common.undo": "Undo",
 	"common.back": "Back",
 	"common.loading": "Loading...",
+	"common.unknown": "Unknown",
 
 	// Authentication messages
 	"auth.signIn.title": "Sync Across Devices",
@@ -174,6 +175,7 @@ const deUiMessages = translate(baseUiMessages, {
 	"common.undo": "Rückgängig",
 	"common.back": "Zurück",
 	"common.loading": "Lädt...",
+	"common.unknown": "Unbekannt",
 
 	// Authentication messages
 	"auth.signIn.title": "Über Geräte hinweg synchronisieren",

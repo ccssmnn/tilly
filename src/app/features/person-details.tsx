@@ -25,6 +25,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
+import { Badge } from "#shared/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Person, UserAccount, isDeleted } from "#shared/schema/user"
 import { extractHashtags } from "#app/features/list-utilities"
 import {
@@ -39,7 +41,7 @@ import { PersonForm } from "./person-form"
 import { NewListDialog } from "./new-list-dialog"
 import { PersonShareDialog } from "./person-share-dialog"
 import { useHasPlusAccess } from "./plus"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
@@ -48,6 +50,11 @@ import { isTextSelectionOngoing } from "#app/lib/utils"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
+import { getPersonOwnerName } from "#app/features/person-sharing"
+import {
+	useCollaborators,
+	type Collaborator,
+} from "#app/hooks/use-collaborators"
 import type { ReactNode } from "react"
 
 export { PersonDetails }
@@ -69,6 +76,16 @@ function PersonDetails({
 
 	let { hasPlusAccess } = useHasPlusAccess()
 	let isAdmin = isPersonAdmin(person)
+	let isShared = !isAdmin
+	let [ownerName, setOwnerName] = useState<string | null>(null)
+	let { collaborators: allCollaborators } = useCollaborators(person)
+	let collaborators = allCollaborators.filter(c => c.role !== "admin")
+
+	useEffect(() => {
+		if (isShared) {
+			getPersonOwnerName(person).then(setOwnerName)
+		}
+	}, [person, isShared])
 
 	let allPeople = useAccount(UserAccount, {
 		resolve: { root: { people: { $each: true } } },
@@ -219,6 +236,14 @@ function PersonDetails({
 						</p>
 					)}
 
+					{isShared && ownerName && (
+						<Badge variant="secondary" className="mb-2">
+							{t("person.shared.sharedBy", { name: ownerName })}
+						</Badge>
+					)}
+					{isAdmin && collaborators.length > 0 && (
+						<SharedWithBadge collaborators={collaborators} />
+					)}
 					<p className="text-muted-foreground space-y-1 text-sm select-text">
 						{t("person.added.suffix", {
 							ago: formatDistanceToNow(
@@ -532,4 +557,30 @@ function isPersonAdmin(person: co.loaded<typeof Person>): boolean {
 	let owner = person.$jazz.owner
 	if (!(owner instanceof Group)) return true // Account-owned = user is owner
 	return owner.myRole() === "admin"
+}
+
+function SharedWithBadge({ collaborators }: { collaborators: Collaborator[] }) {
+	let t = useIntl()
+	let names = collaborators.map(c => c.name)
+
+	if (collaborators.length === 1) {
+		return (
+			<Badge variant="secondary" className="mb-2">
+				{t("person.shared.sharedWith", { name: names[0] })}
+			</Badge>
+		)
+	}
+
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<Badge variant="secondary" className="mb-2 cursor-default">
+					{t("person.shared.sharedWithCount", { count: collaborators.length })}
+				</Badge>
+			</TooltipTrigger>
+			<TooltipContent>
+				<p>{names.join(", ")}</p>
+			</TooltipContent>
+		</Tooltip>
+	)
 }

@@ -2,7 +2,12 @@ import { Group, Account, co, type ID } from "jazz-tools"
 import { createInviteLink } from "jazz-tools/browser"
 import { Person, Note, Reminder, UserAccount } from "#shared/schema/user"
 
-export { createPersonInviteLink, getPersonCollaborators, removeCollaborator }
+export {
+	createPersonInviteLink,
+	getPersonCollaborators,
+	removeCollaborator,
+	getPersonOwnerName,
+}
 export type { Collaborator }
 
 async function createPersonInviteLink(
@@ -122,6 +127,21 @@ function getPersonGroup(person: co.loaded<typeof Person>): Group | null {
 	let group = person.$jazz.owner
 	if (!group || !(group instanceof Group)) return null
 	return group
+}
+
+async function getPersonOwnerName(
+	person: co.loaded<typeof Person>,
+): Promise<string | null> {
+	let group = getPersonGroup(person)
+	if (!group) return null
+
+	let admin = group.members.find(m => m.role === "admin")
+	if (!admin?.account?.$isLoaded) return null
+
+	let profile = await admin.account.$jazz.ensureLoaded({
+		resolve: { profile: true },
+	})
+	return profile.profile?.name ?? null
 }
 
 function isGroupOwned(person: co.loaded<typeof Person>): boolean {

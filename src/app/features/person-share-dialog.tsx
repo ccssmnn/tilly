@@ -16,11 +16,19 @@ import {
 } from "#app/features/person-sharing"
 import type { Collaborator } from "#app/features/person-sharing"
 import { tryCatch } from "#shared/lib/trycatch"
+import { isMac } from "#app/hooks/use-pwa"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
 import { co, type ID, type Account } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
-import { Clipboard, Check, Share, X, PersonFill } from "react-bootstrap-icons"
+import {
+	Clipboard,
+	Check,
+	Share,
+	BoxArrowUp,
+	X,
+	PersonFill,
+} from "react-bootstrap-icons"
 
 export { PersonShareDialog }
 
@@ -193,7 +201,7 @@ function PersonShareDialogContent({
 									size="icon"
 									onClick={handleNativeShare}
 								>
-									<Share className="h-4 w-4" />
+									<PlatformShareIcon className="h-4 w-4" />
 								</Button>
 							)}
 						</div>
@@ -254,5 +262,13 @@ function PersonShareDialogContent({
 				</div>
 			</div>
 		</DialogContent>
+	)
+}
+
+function PlatformShareIcon({ className }: { className?: string }) {
+	return isMac() ? (
+		<BoxArrowUp className={className} />
+	) : (
+		<Share className={className} />
 	)
 }
