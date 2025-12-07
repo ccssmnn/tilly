@@ -6,20 +6,30 @@ import {
 	DialogTitle,
 	DialogDescription,
 } from "#shared/ui/dialog"
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#shared/ui/alert-dialog"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import { Person, UserAccount } from "#shared/schema/user"
 import {
 	createPersonInviteLink,
-	getPersonCollaborators,
-	removeCollaborator,
+	getInviteGroupsWithMembers,
+	removeInviteGroup,
 } from "#app/features/person-sharing"
-import type { Collaborator } from "#app/features/person-sharing"
+import type { InviteGroupWithMembers } from "#app/features/person-sharing"
 import { tryCatch } from "#shared/lib/trycatch"
 import { isMac } from "#app/hooks/use-pwa"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
-import { co, type ID, type Account } from "jazz-tools"
+import { co, Group, type ID } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import {
 	Clipboard,
@@ -81,17 +91,19 @@ function PersonShareDialogContent({
 	let [inviteLink, setInviteLink] = useState<string | null>(null)
 	let [isGenerating, setIsGenerating] = useState(false)
 	let [isCopied, setIsCopied] = useState(false)
-	let [collaborators, setCollaborators] = useState<Collaborator[]>([])
+	let [inviteGroups, setInviteGroups] = useState<InviteGroupWithMembers[]>([])
 	let [isLoadingCollaborators, setIsLoadingCollaborators] = useState(true)
-	let [removingId, setRemovingId] = useState<string | null>(null)
+	let [removingGroupId, setRemovingGroupId] = useState<string | null>(null)
+	let [confirmRemoveGroup, setConfirmRemoveGroup] =
+		useState<InviteGroupWithMembers | null>(null)
 	let [refreshKey, setRefreshKey] = useState(0)
 
 	useEffect(() => {
 		async function load() {
-			let result = await tryCatch(getPersonCollaborators(person))
+			let result = await tryCatch(getInviteGroupsWithMembers(person))
 			setIsLoadingCollaborators(false)
 			if (result.ok) {
-				setCollaborators(result.data)
+				setInviteGroups(result.data)
 			}
 		}
 		load()
@@ -146,12 +158,21 @@ function PersonShareDialogContent({
 		}
 	}
 
-	async function handleRemoveCollaborator(collaborator: Collaborator) {
-		setRemovingId(collaborator.id)
-		let result = await tryCatch(
-			removeCollaborator(person, collaborator.id as ID<Account>),
+	function handleRemoveClick(group: InviteGroupWithMembers) {
+		// If only one member, show confirmation with that member
+		// If multiple members, show confirmation listing all
+		setConfirmRemoveGroup(group)
+	}
+
+	function handleConfirmRemove() {
+		if (!confirmRemoveGroup) return
+
+		setRemovingGroupId(confirmRemoveGroup.groupId)
+		let result = tryCatch(() =>
+			removeInviteGroup(person, confirmRemoveGroup.groupId as ID<Group>),
 		)
-		setRemovingId(null)
+		setRemovingGroupId(null)
+		setConfirmRemoveGroup(null)
 
 		if (!result.ok) {
 			toast.error(
@@ -160,118 +181,162 @@ function PersonShareDialogContent({
 			return
 		}
 
-		setCollaborators(prev => prev.filter(c => c.id !== collaborator.id))
+		toast.success(t("person.share.remove.success"))
+		setInviteGroups(prev =>
+			prev.filter(g => g.groupId !== confirmRemoveGroup?.groupId),
+		)
 	}
 
-	let isAdmin = collaborators.some(
-		c => c.id === me.$jazz.id && c.role === "admin",
-	)
-	let nonAdminCollaborators = collaborators.filter(c => c.role !== "admin")
+	let personGroup = person.$jazz.owner
+	let isAdmin = personGroup instanceof Group && personGroup.myRole() === "admin"
+	let allCollaborators = inviteGroups.flatMap(g => g.members)
 	let hasNativeShare = typeof navigator !== "undefined" && "share" in navigator
 
 	return (
-		<DialogContent
-			className="sm:max-w-md"
-			titleSlot={
-				<DialogHeader>
-					<DialogTitle>
-						<T k="person.share.dialog.title" params={{ name: person.name }} />
-					</DialogTitle>
-					<DialogDescription>
-						<T k="person.share.dialog.description" />
-					</DialogDescription>
-				</DialogHeader>
-			}
-		>
-			<div className="space-y-6">
-				{/* Invite link section */}
-				<div className="space-y-3">
-					<label className="text-sm font-medium">
-						<T k="person.share.inviteLink.label" />
-					</label>
-					{inviteLink ? (
-						<div className="flex gap-2">
-							<Input
-								value={inviteLink}
-								readOnly
-								className="font-mono text-xs"
-							/>
-							<Button variant="secondary" size="icon" onClick={handleCopyLink}>
-								{isCopied ? (
-									<Check className="h-4 w-4" />
-								) : (
-									<Clipboard className="h-4 w-4" />
-								)}
-							</Button>
-							{hasNativeShare && (
+		<>
+			<DialogContent
+				className="sm:max-w-md"
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.share.dialog.title" params={{ name: person.name }} />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="person.share.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
+				}
+			>
+				<div className="space-y-6">
+					{/* Invite link section */}
+					<div className="space-y-3">
+						<label className="text-sm font-medium">
+							<T k="person.share.inviteLink.label" />
+						</label>
+						{inviteLink ? (
+							<div className="flex gap-2">
+								<Input
+									value={inviteLink}
+									readOnly
+									className="font-mono text-xs"
+								/>
 								<Button
 									variant="secondary"
 									size="icon"
-									onClick={handleNativeShare}
+									onClick={handleCopyLink}
 								>
-									<PlatformShareIcon className="h-4 w-4" />
-								</Button>
-							)}
-						</div>
-					) : (
-						<Button
-							onClick={handleGenerateLink}
-							disabled={isGenerating || !hasPlusAccess}
-							className="w-full"
-						>
-							{isGenerating ? (
-								<T k="common.loading" />
-							) : !hasPlusAccess ? (
-								<T k="person.share.requiresPlus" />
-							) : (
-								<T k="person.share.inviteLink.generate" />
-							)}
-						</Button>
-					)}
-				</div>
-
-				{/* Collaborators section */}
-				<div className="space-y-3">
-					<label className="text-sm font-medium">
-						<T k="person.share.collaborators.title" />
-					</label>
-					{isLoadingCollaborators ? (
-						<p className="text-muted-foreground text-sm">
-							<T k="common.loading" />
-						</p>
-					) : nonAdminCollaborators.length === 0 ? (
-						<p className="text-muted-foreground text-sm">
-							<T k="person.share.collaborators.empty" />
-						</p>
-					) : (
-						<ul className="space-y-2">
-							{nonAdminCollaborators.map(collaborator => (
-								<li
-									key={collaborator.id}
-									className="flex items-center justify-between gap-2"
-								>
-									<div className="flex items-center gap-2">
-										<PersonFill className="text-muted-foreground h-4 w-4" />
-										<span className="text-sm">{collaborator.name}</span>
-									</div>
-									{isAdmin && (
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => handleRemoveCollaborator(collaborator)}
-											disabled={removingId === collaborator.id}
-										>
-											<X className="h-4 w-4" />
-											<T k="person.share.collaborators.remove" />
-										</Button>
+									{isCopied ? (
+										<Check className="h-4 w-4" />
+									) : (
+										<Clipboard className="h-4 w-4" />
 									)}
+								</Button>
+								{hasNativeShare && (
+									<Button
+										variant="secondary"
+										size="icon"
+										onClick={handleNativeShare}
+									>
+										<PlatformShareIcon className="h-4 w-4" />
+									</Button>
+								)}
+							</div>
+						) : (
+							<Button
+								onClick={handleGenerateLink}
+								disabled={isGenerating || !hasPlusAccess}
+								className="w-full"
+							>
+								{isGenerating ? (
+									<T k="common.loading" />
+								) : !hasPlusAccess ? (
+									<T k="person.share.requiresPlus" />
+								) : (
+									<T k="person.share.inviteLink.generate" />
+								)}
+							</Button>
+						)}
+					</div>
+
+					{/* Collaborators section */}
+					<div className="space-y-3">
+						<label className="text-sm font-medium">
+							<T k="person.share.collaborators.title" />
+						</label>
+						{isLoadingCollaborators ? (
+							<p className="text-muted-foreground text-sm">
+								<T k="common.loading" />
+							</p>
+						) : allCollaborators.length === 0 ? (
+							<p className="text-muted-foreground text-sm">
+								<T k="person.share.collaborators.empty" />
+							</p>
+						) : (
+							<ul className="space-y-2">
+								{inviteGroups.map(group =>
+									group.members.map((collaborator, idx) => (
+										<li
+											key={collaborator.id}
+											className="flex items-center justify-between gap-2"
+										>
+											<div className="flex items-center gap-2">
+												<PersonFill className="text-muted-foreground h-4 w-4" />
+												<span className="text-sm">{collaborator.name}</span>
+											</div>
+											{isAdmin && idx === 0 && (
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={() => handleRemoveClick(group)}
+													disabled={removingGroupId === group.groupId}
+												>
+													<X className="h-4 w-4" />
+													<T k="person.share.collaborators.remove" />
+												</Button>
+											)}
+										</li>
+									)),
+								)}
+							</ul>
+						)}
+					</div>
+				</div>
+			</DialogContent>
+
+			<AlertDialog
+				open={!!confirmRemoveGroup}
+				onOpenChange={open => !open && setConfirmRemoveGroup(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							<T k="person.share.remove.title" />
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							<T k="person.share.remove.description" />
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					{confirmRemoveGroup && (
+						<ul className="my-2 space-y-1">
+							{confirmRemoveGroup.members.map(m => (
+								<li key={m.id} className="flex items-center gap-2 text-sm">
+									<PersonFill className="text-muted-foreground h-4 w-4" />
+									{m.name}
 								</li>
 							))}
 						</ul>
 					)}
-				</div>
-			</div>
-		</DialogContent>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							<T k="common.cancel" />
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={handleConfirmRemove}>
+							<T k="person.share.remove.confirm" />
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	)
 }
 

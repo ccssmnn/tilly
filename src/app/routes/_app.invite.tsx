@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { useAcceptInvite, useIsAuthenticated } from "jazz-tools/react"
 import { T, useIntl } from "#shared/intl/setup"
 import { ExclamationTriangle } from "react-bootstrap-icons"
-import { Person, UserAccount } from "#shared/schema/user"
+import { Person, UserAccount, InviteBridge } from "#shared/schema/user"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Button } from "#shared/ui/button"
@@ -16,6 +16,7 @@ import {
 } from "#shared/ui/empty"
 import { Spinner } from "#shared/ui/spinner"
 import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
+import type { ID } from "jazz-tools"
 
 export const Route = createFileRoute("/_app/invite")({
 	loader: () => {
@@ -47,11 +48,12 @@ function AcceptInviteHandler() {
 	let navigate = Route.useNavigate()
 	let t = useIntl()
 	let [error, setError] = useState("")
+	let [isRevoked, setIsRevoked] = useState(false)
 
 	useAcceptInvite({
-		invitedObjectSchema: Person,
-		forValueHint: "person",
-		onAccept: async personId => {
+		invitedObjectSchema: InviteBridge,
+		forValueHint: "invite",
+		onAccept: async bridgeId => {
 			clearPendingInvite()
 
 			// me is guaranteed by loader check, but TypeScript doesn't know
@@ -60,9 +62,20 @@ function AcceptInviteHandler() {
 				return
 			}
 
-			let person = await Person.load(personId, { resolve: { avatar: true } })
-			if (!person.$isLoaded) {
+			// Load the bridge to get personId
+			let bridge = await InviteBridge.load(bridgeId)
+			if (!bridge?.$isLoaded || !bridge.personId) {
 				setError(t("invite.error.failed"))
+				return
+			}
+
+			let personId = bridge.personId as ID<typeof Person>
+
+			// Try to load the person - if revoked, this will fail
+			let person = await Person.load(personId, { resolve: { avatar: true } })
+			if (!person?.$isLoaded) {
+				// Invite was revoked - user joined InviteGroup but it no longer has access
+				setIsRevoked(true)
 				return
 			}
 
@@ -84,6 +97,10 @@ function AcceptInviteHandler() {
 			navigate({ to: "/people/$personID", params: { personID: personId } })
 		},
 	})
+
+	if (isRevoked) {
+		return <RevokedInviteState />
+	}
 
 	if (error) {
 		return <ErrorState message={error} />
@@ -125,6 +142,33 @@ function InvalidInviteState() {
 					</EmptyTitle>
 					<EmptyDescription>
 						<T k="invite.error.invalid.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
+					<Button asChild>
+						<Link to="/people">
+							<T k="invite.error.invalid.action" />
+						</Link>
+					</Button>
+				</EmptyContent>
+			</Empty>
+		</div>
+	)
+}
+
+function RevokedInviteState() {
+	return (
+		<div className="flex min-h-[50vh] items-center justify-center">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<ExclamationTriangle className="size-8" />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="invite.error.revoked.title" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="invite.error.revoked.description" />
 					</EmptyDescription>
 				</EmptyHeader>
 				<EmptyContent>

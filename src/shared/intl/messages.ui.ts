@@ -155,6 +155,9 @@ const baseUiMessages = messages({
 	"invite.error.invalid.action": "Go to People",
 	"invite.error.failed": "Failed to accept invite",
 	"invite.error.failed.title": "Something went wrong",
+	"invite.error.revoked.title": "Invite no longer valid",
+	"invite.error.revoked.description":
+		"This invite link no longer works. Ask the person who shared it with you for a new link.",
 	"invite.signIn.title": "Sign in to accept invite",
 	"invite.signIn.description":
 		"You've been invited to collaborate. Sign in or create an account to continue.",
@@ -314,6 +317,9 @@ const deUiMessages = translate(baseUiMessages, {
 	"invite.error.invalid.action": "Zu Personen",
 	"invite.error.failed": "Einladung konnte nicht angenommen werden",
 	"invite.error.failed.title": "Etwas ist schiefgelaufen",
+	"invite.error.revoked.title": "Einladung nicht mehr gültig",
+	"invite.error.revoked.description":
+		"Dieser Einladungslink funktioniert nicht mehr. Bitte die Person, die ihn geteilt hat, um einen neuen Link.",
 	"invite.signIn.title": "Anmelden um Einladung anzunehmen",
 	"invite.signIn.description":
 		"Du wurdest zur Zusammenarbeit eingeladen. Melde dich an oder erstelle ein Konto um fortzufahren.",

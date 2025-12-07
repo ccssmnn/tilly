@@ -132,6 +132,11 @@ const basePeopleMessages = messages({
 	"person.share.collaborators.remove": "Remove",
 	"person.share.collaborators.empty": "No collaborators yet",
 	"person.share.requiresPlus": "Sharing requires Plus",
+	"person.share.remove.title": "Remove access?",
+	"person.share.remove.description":
+		"The following people will lose access because they joined via the same invite link:",
+	"person.share.remove.confirm": "Remove access",
+	"person.share.remove.success": "Access removed",
 	"person.shared.badge": "Shared",
 	"person.shared.indicator.tooltip": "Shared with you",
 	"person.shared.indicator.owner.tooltip": "Shared with others",
@@ -300,6 +305,11 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.share.collaborators.remove": "Entfernen",
 	"person.share.collaborators.empty": "Noch keine Mitarbeiter",
 	"person.share.requiresPlus": "Teilen erfordert Plus",
+	"person.share.remove.title": "Zugriff entziehen?",
+	"person.share.remove.description":
+		"Die folgenden Personen verlieren den Zugriff, da sie über denselben Einladungslink beigetreten sind:",
+	"person.share.remove.confirm": "Zugriff entziehen",
+	"person.share.remove.success": "Zugriff entzogen",
 	"person.shared.badge": "Geteilt",
 	"person.shared.indicator.tooltip": "Mit dir geteilt",
 	"person.shared.indicator.owner.tooltip": "Mit anderen geteilt",

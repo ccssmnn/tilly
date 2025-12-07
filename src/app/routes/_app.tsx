@@ -2,11 +2,12 @@ import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 import { Group } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import type { ResolveQuery } from "jazz-tools"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { UserAccount, isDeleted, isDueToday } from "#shared/schema/user"
 import { Navigation } from "#app/components/navigation"
 import { StatusIndicator } from "#app/components/status-indicator"
 import { useInactiveCleanup } from "#shared/lib/jazz-list-utils"
+import { cleanupEmptyInviteGroups } from "#app/features/person-sharing"
 
 export const Route = createFileRoute("/_app")({
 	beforeLoad: ({ context }) => {
@@ -38,6 +39,18 @@ function AppComponent() {
 			}
 		},
 	)
+
+	// Cleanup empty invite groups (links that were never used after 7 days)
+	let inviteCleanupRan = useRef(false)
+	useEffect(() => {
+		if (inviteCleanupRan.current || !me.$isLoaded) return
+		inviteCleanupRan.current = true
+		for (let person of me.root.people.values()) {
+			if (person && !isDeleted(person)) {
+				cleanupEmptyInviteGroups(person)
+			}
+		}
+	}, [me.$isLoaded, me])
 
 	let dueReminderCount = (me.$isLoaded ? me.root.people : [])
 		.filter(person => !isDeleted(person))

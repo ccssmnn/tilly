@@ -1,43 +1,68 @@
 import { Group, Account, co, type ID } from "jazz-tools"
 import { createInviteLink } from "jazz-tools/browser"
-import { Person, Note, Reminder, UserAccount } from "#shared/schema/user"
+import {
+	Person,
+	Note,
+	Reminder,
+	UserAccount,
+	InviteBridge,
+} from "#shared/schema/user"
 
 export {
 	createPersonInviteLink,
 	getPersonCollaborators,
 	removeCollaborator,
+	removeInviteGroup,
 	getPersonOwnerName,
+	getInviteGroupsWithMembers,
+	cleanupEmptyInviteGroups,
 }
-export type { Collaborator }
+export type { Collaborator, InviteGroupWithMembers }
 
 async function createPersonInviteLink(
 	person: LoadedPerson,
 	userId: string,
 ): Promise<string> {
-	let group = getPersonGroup(person)
+	let personGroup = getPersonGroup(person)
 
 	// Base URL for invite route
 	let baseURL = `${window.location.origin}/app/invite`
 
 	// Check admin permission on existing group
-	if (group) {
-		let myRole = group.myRole()
+	if (personGroup) {
+		let myRole = personGroup.myRole()
 		if (myRole !== "admin") {
 			throw new Error("Only admins can create invite links")
 		}
 
 		// Ensure nested lists are also group-owned
-		// This handles cases where Person is group-owned but lists aren't
-		let needsMigration = !areNestedListsGroupOwned(person, group)
+		let needsMigration = !areNestedListsGroupOwned(person, personGroup)
 		if (needsMigration) {
-			await migrateNestedListsToGroup(person, group)
+			await migrateNestedListsToGroup(person, personGroup)
 		}
 
-		return createInviteLink(person, "writer", { valueHint: "person", baseURL })
+		// Create InviteGroup and add it as writer to PersonGroup
+		let inviteGroup = Group.create()
+		personGroup.addMember(inviteGroup, "writer")
+
+		// Create InviteBridge owned by InviteGroup
+		let bridge = InviteBridge.create(
+			{
+				version: 1,
+				personId: person.$jazz.id,
+				createdAt: new Date(),
+			},
+			inviteGroup,
+		)
+
+		return createInviteLink(bridge, "reader", {
+			valueHint: "invite",
+			baseURL,
+		})
 	}
 
 	// Migrate to group (creator becomes admin)
-	await migratePersonToGroup(person, userId)
+	let newPersonGroup = await migratePersonToGroup(person, userId)
 
 	// Re-load person to get the new group-owned version
 	let account = await UserAccount.load(userId, {
@@ -61,51 +86,167 @@ async function createPersonInviteLink(
 	)
 	if (!newPerson) throw new Error("Migrated person not found")
 
-	return createInviteLink(newPerson, "writer", { valueHint: "person", baseURL })
+	// Create InviteGroup and add it as writer to PersonGroup
+	let inviteGroup = Group.create()
+	newPersonGroup.addMember(inviteGroup, "writer")
+
+	// Create InviteBridge owned by InviteGroup
+	let bridge = InviteBridge.create(
+		{
+			version: 1,
+			personId: newPerson.$jazz.id,
+			createdAt: new Date(),
+		},
+		inviteGroup,
+	)
+
+	return createInviteLink(bridge, "reader", { valueHint: "invite", baseURL })
 }
 
 async function getPersonCollaborators(
 	person: co.loaded<typeof Person>,
 ): Promise<Collaborator[]> {
-	let group = getPersonGroup(person)
-	if (!group) return []
+	let personGroup = getPersonGroup(person)
+	if (!personGroup) return []
 
 	let collaborators: Collaborator[] = []
-	for (let member of group.members) {
-		if (
-			member.role === "admin" ||
-			member.role === "writer" ||
-			member.role === "reader"
-		) {
-			let account = member.account
-			let name = "Unknown"
-			if (account?.$isLoaded) {
-				let profile = await account.$jazz.ensureLoaded({
-					resolve: { profile: true },
-				})
-				name = profile.profile?.name ?? "Unknown"
-			}
+
+	for (let member of personGroup.members) {
+		// Direct account members (admin = creator, or legacy direct invites)
+		if (member.account && member.account.$isLoaded) {
+			let profile = await member.account.$jazz.ensureLoaded({
+				resolve: { profile: true },
+			})
 			collaborators.push({
 				id: member.id,
 				role: member.role,
-				name,
+				name: profile.profile?.name ?? "Unknown",
+				inviteGroupId: undefined,
 			})
 		}
 	}
+
 	return collaborators
+}
+
+async function getInviteGroupsWithMembers(
+	person: co.loaded<typeof Person>,
+): Promise<InviteGroupWithMembers[]> {
+	let personGroup = getPersonGroup(person)
+	if (!personGroup) return []
+
+	let inviteGroups: InviteGroupWithMembers[] = []
+
+	// Find all Group members (these are InviteGroups)
+	let parentGroups = personGroup.getParentGroups()
+	for (let inviteGroup of parentGroups) {
+		let members: Collaborator[] = []
+
+		for (let member of inviteGroup.members) {
+			// Skip admins - they're the invite creators, not collaborators
+			// Collaborators join as "reader" when accepting the invite
+			if (member.role === "admin") continue
+
+			if (member.account && member.account.$isLoaded) {
+				let profile = await member.account.$jazz.ensureLoaded({
+					resolve: { profile: true },
+				})
+				members.push({
+					id: member.id,
+					role: member.role,
+					name: profile.profile?.name ?? "Unknown",
+					inviteGroupId: inviteGroup.$jazz.id,
+				})
+			}
+		}
+
+		if (members.length > 0) {
+			inviteGroups.push({
+				groupId: inviteGroup.$jazz.id,
+				createdAt: new Date(inviteGroup.$jazz.createdAt),
+				members,
+			})
+		}
+	}
+
+	return inviteGroups
 }
 
 async function removeCollaborator(
 	person: co.loaded<typeof Person>,
 	accountId: ID<Account>,
 ): Promise<void> {
-	let group = getPersonGroup(person)
-	if (!group) throw new Error("Person is not group-owned")
+	let personGroup = getPersonGroup(person)
+	if (!personGroup) throw new Error("Person is not group-owned")
 
-	let member = group.members.find(m => m.id === accountId)
-	if (!member) throw new Error("Collaborator not found")
+	// Check if this is a direct member
+	let directMember = personGroup.members.find(m => m.id === accountId)
+	if (directMember && directMember.account) {
+		personGroup.removeMember(directMember.account)
+		return
+	}
 
-	group.removeMember(member.account)
+	// Check InviteGroups for this account
+	let parentGroups = personGroup.getParentGroups()
+	for (let inviteGroup of parentGroups) {
+		let member = inviteGroup.members.find(m => m.id === accountId)
+		if (member && member.account) {
+			// Remove the entire InviteGroup from PersonGroup
+			// This revokes access for all users who joined via this invite
+			personGroup.removeMember(inviteGroup)
+			return
+		}
+	}
+
+	throw new Error("Collaborator not found")
+}
+
+function removeInviteGroup(
+	person: co.loaded<typeof Person>,
+	inviteGroupId: ID<Group>,
+): void {
+	let personGroup = getPersonGroup(person)
+	if (!personGroup) throw new Error("Person is not group-owned")
+
+	let parentGroups = personGroup.getParentGroups()
+	let inviteGroup = parentGroups.find(g => g.$jazz.id === inviteGroupId)
+	if (!inviteGroup) throw new Error("Invite group not found")
+
+	personGroup.removeMember(inviteGroup)
+}
+
+let INVITE_GROUP_EXPIRY_DAYS = 7
+
+function cleanupEmptyInviteGroups(person: co.loaded<typeof Person>): boolean {
+	let personGroup = getPersonGroup(person)
+	if (!personGroup) return false
+
+	let parentGroups = personGroup.getParentGroups()
+	let didCleanup = false
+
+	for (let inviteGroup of parentGroups) {
+		// Check if invite group has any non-admin members (accounts that joined)
+		let hasMembers = inviteGroup.members.some(
+			m =>
+				m.account &&
+				m.account.$isLoaded &&
+				(m.role === "writer" || m.role === "reader"),
+		)
+
+		if (hasMembers) continue
+
+		// Check if the invite group is older than 7 days
+		let createdAt = new Date(inviteGroup.$jazz.createdAt)
+		let expiryDate = new Date()
+		expiryDate.setDate(expiryDate.getDate() - INVITE_GROUP_EXPIRY_DAYS)
+
+		if (createdAt < expiryDate) {
+			personGroup.removeMember(inviteGroup)
+			didCleanup = true
+		}
+	}
+
+	return didCleanup
 }
 
 type LoadedPerson = co.loaded<
@@ -119,8 +260,14 @@ type LoadedPerson = co.loaded<
 >
 type Collaborator = {
 	id: string
-	role: "admin" | "writer" | "reader" | "writeOnly"
+	role: "admin" | "writer" | "reader" | "writeOnly" | "manager"
 	name: string
+	inviteGroupId?: string
+}
+type InviteGroupWithMembers = {
+	groupId: string
+	createdAt: Date
+	members: Collaborator[]
 }
 
 function getPersonGroup(person: co.loaded<typeof Person>): Group | null {
