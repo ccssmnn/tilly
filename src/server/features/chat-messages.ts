@@ -190,7 +190,9 @@ Your actions:
 
 Always confirm what you've saved: "I've captured your coffee story with Lisa and noted her promotion and Emma starting school. I'll remind you to check how she's adjusting to management."
 
-Use tools to take action, don't just describe what should be done.`
+Use tools to take action, don't just describe what should be done.
+
+SHARING: Users can share people with collaborators via invite links from the person's detail page. You cannot create invite links—direct users to the share button in the UI.`
 }
 
 function addUserContextToMessage(message: TillyUIMessage): TillyUIMessage {

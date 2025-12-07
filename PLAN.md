@@ -95,20 +95,10 @@ Implementation Tasks
 
 ---
 
-9. Add push notification for invite acceptance
-   File: src/server/features/push-shared.ts (or new endpoint)
-   New function to notify admin when collaborator joins:
-
-- Load admin's notification settings
-- Send push: "{userName} joined {personName}"
-  May need a simple API endpoint for the client to call after accepting invite.
-
----
-
-10. Update AI system prompt
-    File: src/server/features/chat-messages.ts
-    Add to system prompt:
-    > "Users can share people with collaborators via invite links from the person's detail page. You cannot create invite links—direct users to the share button in the UI."
+9. Update AI system prompt
+   File: src/server/features/chat-messages.ts
+   Add to system prompt:
+   > "Users can share people with collaborators via invite links from the person's detail page. You cannot create invite links—direct users to the share button in the UI."
 
 ---
 
@@ -130,8 +120,6 @@ Implementation Tasks
 - invite.accepting - "Accepting invite..."
 - invite.success - "You now have access to {name}"
 - invite.error.invalid - "Invalid invite link"
-- server.push.collaboratorJoined.title - "New collaborator"
-- server.push.collaboratorJoined.body - "{userName} joined {personName}"
 
 ---
 
@@ -148,7 +136,7 @@ File Summary
 | src/app/features/person-list-item.tsx | Add shared icon |
 | src/app/routes/_app.people.$personID.tsx | Share button, unauthorized handling |
 | src/app/features/person-details.tsx | Shared badge |
-| src/server/features/push-shared.ts | Add collaborator joined notification |
+
 | src/server/features/chat-messages.ts | Update system prompt |
 | src/shared/intl/messages.\*.ts | Add i18n strings |
 
@@ -163,6 +151,5 @@ Order of Implementation
 5. ~~Add share button to person details~~
 6. ~~Update people list query + UI for shared indicator~~
 7. ~~Create invite route~~
-8. Add collaborator joined notification
-9. Update system prompt
-10. Add i18n strings throughout
+8. ~~Update system prompt~~
+9. ~~Add i18n strings throughout~~
