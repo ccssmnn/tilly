@@ -105,6 +105,7 @@ function SettingsScreen() {
 			</TypographyH1>
 			<div className="divide-border divide-y">
 				<AccountSection />
+				<ProfileSection me={currentMe} />
 				{hasPlusAccess && <AssistantSection me={currentMe} />}
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
@@ -266,27 +267,172 @@ function AccountSection() {
 	)
 }
 
-let assistantFormSchema = z.object({
+let profileFormSchema = z.object({
 	name: z.string().min(1, {
 		message: "Name is required.",
 	}),
 })
+
+function ProfileSection({
+	me,
+}: {
+	me: co.loaded<typeof UserAccount, typeof resolve>
+}) {
+	let [isDisplayNameDialogOpen, setIsDisplayNameDialogOpen] = useState(false)
+	let t = useIntl()
+
+	function onSubmit(values: z.infer<typeof profileFormSchema>) {
+		if (me?.profile) {
+			me.profile.$jazz.set("name", values.name)
+		}
+		setIsDisplayNameDialogOpen(false)
+	}
+
+	return (
+		<SettingsSection
+			title={t("settings.profile.title")}
+			description={t("settings.profile.description")}
+		>
+			<div className="space-y-6">
+				<div className="space-y-2">
+					<p className="text-sm font-medium">
+						<T k="settings.profile.displayName.label" />
+					</p>
+					<div className="flex items-center gap-2">
+						<DisplayField
+							value={me?.profile?.name ?? ""}
+							placeholder={<T k="settings.profile.displayName.placeholder" />}
+							className="flex-1"
+						/>
+						<Button
+							variant="outline"
+							onClick={() => setIsDisplayNameDialogOpen(true)}
+							disabled={!me?.profile}
+						>
+							<T k="settings.profile.displayName.change" />
+						</Button>
+					</div>
+				</div>
+			</div>
+			<ProfileNameDialog
+				currentName={me?.profile?.name || ""}
+				isOpen={isDisplayNameDialogOpen}
+				onClose={() => setIsDisplayNameDialogOpen(false)}
+				onSave={onSubmit}
+			/>
+		</SettingsSection>
+	)
+}
+
+interface ProfileNameDialogProps {
+	currentName: string
+	isOpen: boolean
+	onClose: () => void
+	onSave: (values: z.infer<typeof profileFormSchema>) => void
+}
+
+function ProfileNameDialog({
+	currentName,
+	isOpen,
+	onClose,
+	onSave,
+}: ProfileNameDialogProps) {
+	let t = useIntl()
+	let form = useForm<z.infer<typeof profileFormSchema>>({
+		resolver: zodResolver(profileFormSchema),
+		defaultValues: {
+			name: currentName,
+		},
+	})
+
+	function handleSubmit(data: z.infer<typeof profileFormSchema>) {
+		onSave(data)
+		onClose()
+	}
+
+	function handleCancel() {
+		form.reset({ name: currentName })
+		onClose()
+	}
+
+	return (
+		<Dialog open={isOpen} onOpenChange={onClose}>
+			<DialogContent
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							<T k="settings.profile.displayName.dialog.title" />
+						</DialogTitle>
+					</DialogHeader>
+				}
+			>
+				<Form {...form}>
+					<form
+						onSubmit={form.handleSubmit(handleSubmit)}
+						className="space-y-4"
+					>
+						<div className="space-y-2">
+							<Label>
+								<T k="settings.profile.displayName.current.label" />
+							</Label>
+							<p className="text-muted-foreground text-sm">
+								{currentName || (
+									<T k="settings.profile.displayName.placeholder" />
+								)}
+							</p>
+						</div>
+
+						<FormField
+							control={form.control}
+							name="name"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										<T k="settings.profile.displayName.new.label" />
+									</FormLabel>
+									<FormControl>
+										<Input
+											placeholder={t(
+												"settings.profile.displayName.new.placeholder",
+											)}
+											{...field}
+										/>
+									</FormControl>
+									<FormDescription>
+										<T k="settings.profile.displayName.new.description" />
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						<div className="flex items-center gap-3">
+							<Button
+								type="button"
+								variant="outline"
+								className="flex-1"
+								onClick={handleCancel}
+							>
+								<T k="settings.profile.displayName.cancel" />
+							</Button>
+							<Button type="submit" className="flex-1">
+								<T k="settings.profile.displayName.save" />
+							</Button>
+						</div>
+					</form>
+				</Form>
+			</DialogContent>
+		</Dialog>
+	)
+}
 
 function AssistantSection({
 	me,
 }: {
 	me: co.loaded<typeof UserAccount, typeof resolve>
 }) {
-	let [isDisplayNameDialogOpen, setIsDisplayNameDialogOpen] = useState(false)
 	let [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
 	let t = useIntl()
-
-	function onSubmit(values: z.infer<typeof assistantFormSchema>) {
-		if (me?.profile) {
-			me.profile.$jazz.set("name", values.name)
-		}
-		setIsDisplayNameDialogOpen(false)
-	}
 
 	let usageTracking = me.root.usageTracking
 	let usagePercentage = Math.round(usageTracking?.weeklyPercentUsed ?? 0)
@@ -314,25 +460,6 @@ function AssistantSection({
 			description={t("settings.agent.description")}
 		>
 			<div className="space-y-6">
-				<div className="space-y-2">
-					<p className="text-sm font-medium">
-						<T k="settings.agent.displayName.label" />
-					</p>
-					<div className="flex items-center gap-2">
-						<DisplayField
-							value={me?.profile?.name ?? ""}
-							placeholder={<T k="settings.agent.displayName.placeholder" />}
-							className="flex-1"
-						/>
-						<Button
-							variant="outline"
-							onClick={() => setIsDisplayNameDialogOpen(true)}
-							disabled={!me?.profile}
-						>
-							<T k="settings.agent.displayName.change" />
-						</Button>
-					</div>
-				</div>
 				{hasPushDevices && (
 					<div className="flex items-center justify-between gap-3">
 						<div className="space-y-1">
@@ -388,12 +515,6 @@ function AssistantSection({
 					</Button>
 				</div>
 			</div>
-			<AgentNameDialog
-				currentName={me?.profile?.name || ""}
-				isOpen={isDisplayNameDialogOpen}
-				onClose={() => setIsDisplayNameDialogOpen(false)}
-				onSave={onSubmit}
-			/>
 			<Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
 				<DialogContent
 					titleSlot={
@@ -422,111 +543,6 @@ function AssistantSection({
 				</DialogContent>
 			</Dialog>
 		</SettingsSection>
-	)
-}
-
-interface AgentNameDialogProps {
-	currentName: string
-	isOpen: boolean
-	onClose: () => void
-	onSave: (values: z.infer<typeof assistantFormSchema>) => void
-}
-
-function AgentNameDialog({
-	currentName,
-	isOpen,
-	onClose,
-	onSave,
-}: AgentNameDialogProps) {
-	let t = useIntl()
-	let form = useForm<z.infer<typeof assistantFormSchema>>({
-		resolver: zodResolver(assistantFormSchema),
-		defaultValues: {
-			name: currentName,
-		},
-	})
-
-	function handleSubmit(data: z.infer<typeof assistantFormSchema>) {
-		onSave(data)
-		onClose()
-	}
-
-	function handleCancel() {
-		form.reset({ name: currentName })
-		onClose()
-	}
-
-	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="settings.agent.displayName.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="settings.agent.displayName.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<Form {...form}>
-					<form
-						onSubmit={form.handleSubmit(handleSubmit)}
-						className="space-y-4"
-					>
-						<div className="space-y-2">
-							<Label>
-								<T k="settings.agent.displayName.current.label" />
-							</Label>
-							<p className="text-muted-foreground text-sm">
-								{currentName || (
-									<T k="settings.agent.displayName.placeholder" />
-								)}
-							</p>
-						</div>
-
-						<FormField
-							control={form.control}
-							name="name"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>
-										<T k="settings.agent.displayName.new.label" />
-									</FormLabel>
-									<FormControl>
-										<Input
-											placeholder={t(
-												"settings.agent.displayName.new.placeholder",
-											)}
-											{...field}
-										/>
-									</FormControl>
-									<FormDescription>
-										<T k="settings.agent.displayName.new.description" />
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<div className="flex items-center gap-3">
-							<Button
-								type="button"
-								variant="outline"
-								className="flex-1"
-								onClick={handleCancel}
-							>
-								<T k="settings.agent.displayName.cancel" />
-							</Button>
-							<Button type="submit" className="flex-1">
-								<T k="settings.agent.displayName.save" />
-							</Button>
-						</div>
-					</form>
-				</Form>
-			</DialogContent>
-		</Dialog>
 	)
 }
 
