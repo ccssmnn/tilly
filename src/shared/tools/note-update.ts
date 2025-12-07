@@ -36,7 +36,10 @@ async function updateNote(
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	if (!person.inactiveNotes) {
-		person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+		person.$jazz.set(
+			"inactiveNotes",
+			co.list(Note).create([], person.$jazz.owner),
+		)
 	}
 
 	let note = await Note.load(options.noteId, {

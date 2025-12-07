@@ -37,7 +37,10 @@ async function updateReminder(
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	if (!person.inactiveReminders) {
-		person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
+		person.$jazz.set(
+			"inactiveReminders",
+			co.list(Reminder).create([], person.$jazz.owner),
+		)
 	}
 
 	let reminder = await Reminder.load(options.reminderId, {

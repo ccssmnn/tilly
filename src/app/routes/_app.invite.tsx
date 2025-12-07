@@ -74,9 +74,14 @@ function AcceptInviteHandler() {
 				return
 			}
 
-			account.root.people.$jazz.push(person)
+			// Check if user already has this person
+			let alreadyHas = account.root.people.some(p => p?.$jazz.id === personId)
+
+			if (!alreadyHas) {
+				account.root.people.$jazz.push(person)
+				toast.success(t("invite.success", { name: person.name }))
+			}
 			navigate({ to: "/people/$personID", params: { personID: personId } })
-			toast.success(t("invite.success", { name: person.name }))
 		},
 	})
 

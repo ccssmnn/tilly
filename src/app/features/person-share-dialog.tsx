@@ -29,6 +29,13 @@ type LoadedPerson = co.loaded<
 	{ notes: { $each: true }; reminders: { $each: true } }
 >
 
+let fullResolve = {
+	notes: { $each: true },
+	reminders: { $each: true },
+	inactiveNotes: { $each: true },
+	inactiveReminders: { $each: true },
+} as const
+
 function PersonShareDialog({
 	open,
 	onOpenChange,
@@ -78,7 +85,18 @@ function PersonShareDialogContent({
 		if (!me.$isLoaded) return
 
 		setIsGenerating(true)
-		let result = await tryCatch(createPersonInviteLink(person, me.$jazz.id))
+
+		// Load full person with inactive lists for migration check
+		let fullPerson = await Person.load(person.$jazz.id, {
+			resolve: fullResolve,
+		})
+		if (!fullPerson.$isLoaded) {
+			setIsGenerating(false)
+			toast.error(t("invite.error.failed"))
+			return
+		}
+
+		let result = await tryCatch(createPersonInviteLink(fullPerson, me.$jazz.id))
 		setIsGenerating(false)
 
 		if (!result.ok) {

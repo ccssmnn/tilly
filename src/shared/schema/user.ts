@@ -203,10 +203,16 @@ async function runMigrationV1(
 	for (let person of root.people.values()) {
 		if (!person) continue
 		if (!person.inactiveReminders) {
-			person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
+			person.$jazz.set(
+				"inactiveReminders",
+				co.list(Reminder).create([], person.$jazz.owner),
+			)
 		}
 		if (!person.inactiveNotes) {
-			person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+			person.$jazz.set(
+				"inactiveNotes",
+				co.list(Note).create([], person.$jazz.owner),
+			)
 		}
 	}
 
