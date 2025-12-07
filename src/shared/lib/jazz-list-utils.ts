@@ -75,8 +75,12 @@ type DeletableItem = {
 	$jazz: { set(key: string, value: unknown): void }
 }
 
-function markStaleAsPermanentlyDeleted(item: DeletableItem): void {
+function markStaleAsPermanentlyDeleted(
+	item: DeletableItem,
+	beforePermanentDelete?: (item: DeletableItem) => void,
+): void {
 	if (item.deletedAt && !item.permanentlyDeletedAt && isStale(item.deletedAt)) {
+		beforePermanentDelete?.(item)
 		item.$jazz.set("permanentlyDeletedAt", item.deletedAt)
 	}
 }
@@ -97,7 +101,7 @@ type PersonWithLists = {
 	inactiveReminders?: unknown
 	deletedAt?: Date
 	permanentlyDeletedAt?: Date
-	$jazz: { id: string; set(key: string, value: unknown): void }
+	$jazz: { id: string; set(key: string, value: unknown): void; owner: unknown }
 }
 
 type NoteItem = DeletableItem & {
@@ -111,6 +115,7 @@ type ReminderItem = DeletableItem & {
 function cleanupInactiveLists(
 	people: unknown,
 	inactivePeople: unknown,
+	beforePersonPermanentDelete?: (person: PersonWithLists) => void,
 ): boolean {
 	if (!isLoadedList(people)) return false
 
@@ -121,10 +126,13 @@ function cleanupInactiveLists(
 		people,
 		inactivePeople,
 		item => !!item.deletedAt,
+		beforePersonPermanentDelete,
 	)
 
 	// Clean stale from inactive people
-	didCleanup = cleanupStaleFromList(inactivePeople) || didCleanup
+	didCleanup =
+		cleanupStaleFromList(inactivePeople, beforePersonPermanentDelete) ||
+		didCleanup
 
 	// Process each person's notes and reminders
 	for (let person of Array.from(
@@ -166,6 +174,7 @@ function processActiveList<T extends DeletableItem & { $jazz: { id: string } }>(
 	active: unknown,
 	inactive: unknown,
 	shouldBeInactive: (item: T) => boolean,
+	beforePermanentDelete?: (item: T) => void,
 ): boolean {
 	if (!isLoadedList(active) || !isLoadedList(inactive)) return false
 
@@ -177,7 +186,10 @@ function processActiveList<T extends DeletableItem & { $jazz: { id: string } }>(
 		let item = activeArray[i]
 		if (!item) continue
 
-		markStaleAsPermanentlyDeleted(item)
+		markStaleAsPermanentlyDeleted(
+			item,
+			beforePermanentDelete as (item: DeletableItem) => void,
+		)
 
 		if (item.permanentlyDeletedAt) {
 			toRemove.push(i)
@@ -204,17 +216,23 @@ function processActiveList<T extends DeletableItem & { $jazz: { id: string } }>(
 	return toRemove.length > 0 || toMove.length > 0
 }
 
-function cleanupStaleFromList(items: unknown): boolean {
+function cleanupStaleFromList<T extends DeletableItem>(
+	items: unknown,
+	beforePermanentDelete?: (item: T) => void,
+): boolean {
 	if (!isLoadedList(items)) return false
 
 	let toRemove: number[] = []
-	let itemArray = Array.from(items.values()) as (DeletableItem | null)[]
+	let itemArray = Array.from(items.values()) as (T | null)[]
 
 	for (let i = 0; i < itemArray.length; i++) {
 		let item = itemArray[i]
 		if (!item) continue
 
-		markStaleAsPermanentlyDeleted(item)
+		markStaleAsPermanentlyDeleted(
+			item,
+			beforePermanentDelete as (item: DeletableItem) => void,
+		)
 
 		if (item.permanentlyDeletedAt) {
 			toRemove.push(i)
@@ -228,11 +246,19 @@ function cleanupStaleFromList(items: unknown): boolean {
 	return false
 }
 
-function useInactiveCleanup(people: unknown, inactivePeople: unknown): void {
+function useInactiveCleanup(
+	people: unknown,
+	inactivePeople: unknown,
+	beforePersonPermanentDelete?: (person: PersonWithLists) => void,
+): void {
 	let cleanupRan = useRef(false)
 
 	useEffect(() => {
 		if (cleanupRan.current) return
-		cleanupRan.current = cleanupInactiveLists(people, inactivePeople)
-	}, [people, inactivePeople])
+		cleanupRan.current = cleanupInactiveLists(
+			people,
+			inactivePeople,
+			beforePersonPermanentDelete,
+		)
+	}, [people, inactivePeople, beforePersonPermanentDelete])
 }

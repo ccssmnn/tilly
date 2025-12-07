@@ -278,6 +278,7 @@ function RestorePersonDialog({
 
 	async function handlePermanentDelete() {
 		if (!me.$isLoaded) return
+
 		let result = await tryCatch(
 			updatePerson(person.$jazz.id, { permanentlyDeletedAt: new Date() }, me),
 		)

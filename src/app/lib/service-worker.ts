@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-react"
 import { tryCatch } from "#shared/lib/trycatch"
-import { useEffect, useCallback } from "react"
+import { useEffect } from "react"
 
 export { useServiceWorker, getServiceWorkerRegistration }
 
@@ -53,7 +53,7 @@ function clearUserIdInServiceWorker() {
 function useSyncUserIdToServiceWorker() {
 	let { user, isLoaded } = useUser()
 
-	let syncUserId = useCallback(() => {
+	function syncUserId() {
 		if (!isLoaded) return
 
 		if (user?.id) {
@@ -61,7 +61,7 @@ function useSyncUserIdToServiceWorker() {
 		} else {
 			clearUserIdInServiceWorker()
 		}
-	}, [user, isLoaded])
+	}
 
 	useEffect(() => {
 		syncUserId()

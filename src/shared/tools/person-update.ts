@@ -1,7 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
 import { Person, UserAccount, UserAccountRoot } from "#shared/schema/user"
-import { co, type Loaded, type ResolveQuery } from "jazz-tools"
+import { co, Group, type Loaded, type ResolveQuery } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
 import {
 	moveToActive,
@@ -65,6 +65,7 @@ async function updatePerson(
 	}
 
 	if (updates.permanentlyDeletedAt !== undefined) {
+		revokeAllCollaborators(person)
 		person.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
 		removeFromInactive(root.inactivePeople, personId)
 	}
@@ -95,6 +96,16 @@ async function updatePerson(
 		},
 		previous,
 		_ref: person,
+	}
+}
+
+function revokeAllCollaborators(person: co.loaded<typeof Person>): void {
+	let group = person.$jazz.owner
+	if (!(group instanceof Group)) return
+	for (let member of group.members) {
+		if (member.role !== "admin") {
+			group.removeMember(member.account)
+		}
 	}
 }
 

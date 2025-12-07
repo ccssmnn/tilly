@@ -223,7 +223,15 @@ async function runMigrationV1(
 		},
 	})
 
-	cleanupInactiveLists(loadedRoot.people, loadedRoot.inactivePeople)
+	cleanupInactiveLists(loadedRoot.people, loadedRoot.inactivePeople, person => {
+		let group = person.$jazz.owner
+		if (!(group instanceof Group)) return
+		for (let member of group.members) {
+			if (member.role !== "admin") {
+				group.removeMember(member.account)
+			}
+		}
+	})
 }
 
 function isDeleted(item: {

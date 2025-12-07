@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
+import { Group } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import type { ResolveQuery } from "jazz-tools"
 import { useEffect } from "react"
@@ -27,6 +28,15 @@ function AppComponent() {
 	useInactiveCleanup(
 		me.$isLoaded ? me.root.people : undefined,
 		inactiveData.$isLoaded ? inactiveData.root.inactivePeople : undefined,
+		person => {
+			let group = person.$jazz.owner
+			if (!(group instanceof Group)) return
+			for (let member of group.members) {
+				if (member.role !== "admin") {
+					group.removeMember(member.account)
+				}
+			}
+		},
 	)
 
 	let dueReminderCount = (me.$isLoaded ? me.root.people : [])
