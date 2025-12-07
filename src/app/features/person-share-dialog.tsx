@@ -48,15 +48,21 @@ function PersonShareDialog({
 	open,
 	onOpenChange,
 	person,
+	hasPlusAccess,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	person: LoadedPerson
+	hasPlusAccess: boolean
 }) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			{open && (
-				<PersonShareDialogContent person={person} onOpenChange={onOpenChange} />
+				<PersonShareDialogContent
+					person={person}
+					onOpenChange={onOpenChange}
+					hasPlusAccess={hasPlusAccess}
+				/>
 			)}
 		</Dialog>
 	)
@@ -64,9 +70,11 @@ function PersonShareDialog({
 
 function PersonShareDialogContent({
 	person,
+	hasPlusAccess,
 }: {
 	person: LoadedPerson
 	onOpenChange: (open: boolean) => void
+	hasPlusAccess: boolean
 }) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
@@ -208,11 +216,13 @@ function PersonShareDialogContent({
 					) : (
 						<Button
 							onClick={handleGenerateLink}
-							disabled={isGenerating}
+							disabled={isGenerating || !hasPlusAccess}
 							className="w-full"
 						>
 							{isGenerating ? (
 								<T k="common.loading" />
+							) : !hasPlusAccess ? (
+								<T k="person.share.requiresPlus" />
 							) : (
 								<T k="person.share.inviteLink.generate" />
 							)}

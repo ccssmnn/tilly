@@ -76,9 +76,10 @@ function PersonDetails({
 	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
 	let [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
 
-	let { hasPlusAccess } = useHasPlusAccess()
+	let { hasPlusAccess, isLoading: isPlusLoading } = useHasPlusAccess()
 	let isAdmin = isPersonAdmin(person)
 	let isShared = !isAdmin
+	let showShareOption = isAdmin && !isPlusLoading
 	let [ownerName, setOwnerName] = useState<string | null>(null)
 	let { collaborators: allCollaborators } = useCollaborators(person)
 	let collaborators = allCollaborators.filter(c => c.role !== "admin")
@@ -207,7 +208,8 @@ function PersonDetails({
 					onStopSharing={() => setIsStopSharingDialogOpen(true)}
 					onManageLists={() => setIsManageListsDialogOpen(true)}
 					onShare={() => setIsShareDialogOpen(true)}
-					showShare={hasPlusAccess && isAdmin}
+					showShare={showShareOption}
+					hasPlusAccess={hasPlusAccess}
 					isShared={isShared}
 				>
 					<Avatar
@@ -241,7 +243,8 @@ function PersonDetails({
 							onStopSharing={() => setIsStopSharingDialogOpen(true)}
 							onManageLists={() => setIsManageListsDialogOpen(true)}
 							onShare={() => setIsShareDialogOpen(true)}
-							showShare={hasPlusAccess && isAdmin}
+							showShare={showShareOption}
+							hasPlusAccess={hasPlusAccess}
 							isShared={isShared}
 						>
 							<Button variant="secondary" size="sm">
@@ -378,6 +381,7 @@ function PersonDetails({
 				open={isShareDialogOpen}
 				onOpenChange={setIsShareDialogOpen}
 				person={person}
+				hasPlusAccess={hasPlusAccess}
 			/>
 		</>
 	)
@@ -547,6 +551,7 @@ function ActionsDropdown({
 	onManageLists,
 	onShare,
 	showShare = false,
+	hasPlusAccess = false,
 	isShared = false,
 }: {
 	children: ReactNode
@@ -556,6 +561,7 @@ function ActionsDropdown({
 	onManageLists: () => void
 	onShare?: () => void
 	showShare?: boolean
+	hasPlusAccess?: boolean
 	isShared?: boolean
 }) {
 	let [open, setOpen] = useState(false)
@@ -564,14 +570,20 @@ function ActionsDropdown({
 		<DropdownMenu open={open} onOpenChange={setOpen}>
 			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent>
-				{showShare && onShare && (
+				{showShare && (
 					<DropdownMenuItem
+						disabled={!hasPlusAccess}
 						onClick={() => {
+							if (!hasPlusAccess) return
 							setOpen(false)
-							onShare()
+							onShare?.()
 						}}
 					>
-						<T k="person.share.button" />
+						{hasPlusAccess ? (
+							<T k="person.share.button" />
+						) : (
+							<T k="person.share.requiresPlus" />
+						)}
 						<Share />
 					</DropdownMenuItem>
 				)}
