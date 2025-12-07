@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useAcceptInvite, useIsAuthenticated } from "jazz-tools/react"
+import { useIsAuthenticated, useAccount } from "jazz-tools/react"
+import { Group, type ID } from "jazz-tools"
 import { T, useIntl } from "#shared/intl/setup"
 import { ExclamationTriangle } from "react-bootstrap-icons"
-import { Person, UserAccount, InviteBridge } from "#shared/schema/user"
+import { Person, UserAccount } from "#shared/schema/user"
 import { toast } from "sonner"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "#shared/ui/button"
 import {
 	Empty,
@@ -16,23 +17,28 @@ import {
 } from "#shared/ui/empty"
 import { Spinner } from "#shared/ui/spinner"
 import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
-import type { ID } from "jazz-tools"
 
 export const Route = createFileRoute("/_app/invite")({
 	loader: () => {
-		let inviteHash = getOrRestoreInviteHash()
-		return { inviteHash }
+		let inviteData = getOrRestoreInviteData()
+		return { inviteData }
 	},
 	component: InviteScreen,
 })
 
 let PENDING_INVITE_KEY = "tilly:pending-invite"
 
+type InviteData = {
+	personId: string
+	inviteGroupId: string
+	inviteSecret: string
+}
+
 function InviteScreen() {
-	let { inviteHash } = Route.useLoaderData()
+	let { inviteData } = Route.useLoaderData()
 	let isAuthenticated = useIsAuthenticated()
 
-	if (!inviteHash) {
+	if (!inviteData) {
 		return <InvalidInviteState />
 	}
 
@@ -40,63 +46,67 @@ function InviteScreen() {
 		return <SignInPromptState />
 	}
 
-	return <AcceptInviteHandler />
+	return <AcceptInviteHandler inviteData={inviteData} />
 }
 
-function AcceptInviteHandler() {
+function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
 	let { me } = Route.useRouteContext()
+	let account = useAccount(UserAccount, { resolve: { root: { people: true } } })
 	let navigate = Route.useNavigate()
 	let t = useIntl()
 	let [error, setError] = useState("")
 	let [isRevoked, setIsRevoked] = useState(false)
+	let [isProcessing, setIsProcessing] = useState(true)
 
-	useAcceptInvite({
-		invitedObjectSchema: InviteBridge,
-		forValueHint: "invite",
-		onAccept: async bridgeId => {
-			clearPendingInvite()
+	useEffect(() => {
+		async function acceptInvite() {
+			if (!me || !account.$isLoaded) return
 
-			// me is guaranteed by loader check, but TypeScript doesn't know
-			if (!me) {
+			try {
+				// Accept the invite to join InviteGroup
+				await me.acceptInvite(
+					inviteData.inviteGroupId as ID<Group>,
+					inviteData.inviteSecret as `inviteSecret_z${string}`,
+					Group,
+				)
+
+				clearPendingInvite()
+
+				// Now try to load the person - if access was revoked, this will fail
+				let person = await Person.load(
+					inviteData.personId as ID<typeof Person>,
+					{ resolve: { avatar: true } },
+				)
+
+				if (!person?.$isLoaded) {
+					setIsRevoked(true)
+					setIsProcessing(false)
+					return
+				}
+
+				// Check if user already has this person
+				let alreadyHas = account.root.people.some(
+					p => p?.$jazz.id === inviteData.personId,
+				)
+
+				if (!alreadyHas) {
+					account.root.people.$jazz.push(person)
+					toast.success(t("invite.success", { name: person.name }))
+				}
+
+				navigate({
+					to: "/people/$personID",
+					params: { personID: inviteData.personId },
+				})
+			} catch (err) {
+				console.error("Failed to accept invite:", err)
 				setError(t("invite.error.failed"))
-				return
+				setIsProcessing(false)
 			}
+		}
 
-			// Load the bridge to get personId
-			let bridge = await InviteBridge.load(bridgeId)
-			if (!bridge?.$isLoaded || !bridge.personId) {
-				setError(t("invite.error.failed"))
-				return
-			}
-
-			let personId = bridge.personId as ID<typeof Person>
-
-			// Try to load the person - if revoked, this will fail
-			let person = await Person.load(personId, { resolve: { avatar: true } })
-			if (!person?.$isLoaded) {
-				// Invite was revoked - user joined InviteGroup but it no longer has access
-				setIsRevoked(true)
-				return
-			}
-
-			let account = await UserAccount.load(me.$jazz.id, {
-				resolve: { root: { people: true } },
-			})
-			if (!account.$isLoaded) {
-				setError(t("invite.error.failed"))
-				return
-			}
-
-			// Check if user already has this person
-			let alreadyHas = account.root.people.some(p => p?.$jazz.id === personId)
-
-			if (!alreadyHas) {
-				account.root.people.$jazz.push(person)
-				toast.success(t("invite.success", { name: person.name }))
-			}
-			navigate({ to: "/people/$personID", params: { personID: personId } })
-		},
-	})
+		acceptInvite()
+	}, [me, account.$isLoaded, inviteData, navigate, t])
 
 	if (isRevoked) {
 		return <RevokedInviteState />
@@ -104,6 +114,10 @@ function AcceptInviteHandler() {
 
 	if (error) {
 		return <ErrorState message={error} />
+	}
+
+	if (isProcessing) {
+		return <LoadingState />
 	}
 
 	return <LoadingState />
@@ -237,19 +251,33 @@ function SignInPromptState() {
 	)
 }
 
-function getOrRestoreInviteHash(): string | null {
+function parseInviteHash(hash: string): InviteData | null {
+	// Format: #/person/{personId}/invite/{inviteGroupId}/{inviteSecret}
+	let match = hash.match(
+		/^#\/person\/(co_[^/]+)\/invite\/(co_[^/]+)\/(inviteSecret_[^/]+)$/,
+	)
+	if (!match) return null
+	return {
+		personId: match[1],
+		inviteGroupId: match[2],
+		inviteSecret: match[3],
+	}
+}
+
+function getOrRestoreInviteData(): InviteData | null {
 	if (typeof window === "undefined") return null
 
 	let currentHash = window.location.hash
-	if (currentHash.includes("/invite/")) {
+	let parsed = parseInviteHash(currentHash)
+	if (parsed) {
 		localStorage.setItem(PENDING_INVITE_KEY, currentHash)
-		return currentHash
+		return parsed
 	}
 
 	let pending = localStorage.getItem(PENDING_INVITE_KEY)
 	if (pending) {
 		window.location.hash = pending
-		return pending
+		return parseInviteHash(pending)
 	}
 
 	return null

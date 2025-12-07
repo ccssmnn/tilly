@@ -80,12 +80,6 @@ export let Reminder = co.map({
 	updatedAt: z.date(),
 })
 
-export let InviteBridge = co.map({
-	version: z.literal(1),
-	personId: z.string(),
-	createdAt: z.date(),
-})
-
 export let Person = co.map({
 	version: z.literal(1),
 	name: z.string(),

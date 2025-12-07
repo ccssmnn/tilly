@@ -1,12 +1,5 @@
 import { Group, Account, co, type ID } from "jazz-tools"
-import { createInviteLink } from "jazz-tools/browser"
-import {
-	Person,
-	Note,
-	Reminder,
-	UserAccount,
-	InviteBridge,
-} from "#shared/schema/user"
+import { Person, Note, Reminder, UserAccount } from "#shared/schema/user"
 
 export {
 	createPersonInviteLink,
@@ -45,20 +38,9 @@ async function createPersonInviteLink(
 		let inviteGroup = Group.create()
 		personGroup.addMember(inviteGroup, "writer")
 
-		// Create InviteBridge owned by InviteGroup
-		let bridge = InviteBridge.create(
-			{
-				version: 1,
-				personId: person.$jazz.id,
-				createdAt: new Date(),
-			},
-			inviteGroup,
-		)
-
-		return createInviteLink(bridge, "reader", {
-			valueHint: "invite",
-			baseURL,
-		})
+		// Create invite secret for InviteGroup, build URL with personId
+		let inviteSecret = inviteGroup.$jazz.createInvite("reader")
+		return `${baseURL}#/person/${person.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 	}
 
 	// Migrate to group (creator becomes admin)
@@ -90,17 +72,9 @@ async function createPersonInviteLink(
 	let inviteGroup = Group.create()
 	newPersonGroup.addMember(inviteGroup, "writer")
 
-	// Create InviteBridge owned by InviteGroup
-	let bridge = InviteBridge.create(
-		{
-			version: 1,
-			personId: newPerson.$jazz.id,
-			createdAt: new Date(),
-		},
-		inviteGroup,
-	)
-
-	return createInviteLink(bridge, "reader", { valueHint: "invite", baseURL })
+	// Create invite secret for InviteGroup, build URL with personId
+	let inviteSecret = inviteGroup.$jazz.createInvite("reader")
+	return `${baseURL}#/person/${newPerson.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 }
 
 async function getPersonCollaborators(
