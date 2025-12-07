@@ -149,6 +149,18 @@ const basePeopleMessages = messages({
 		"You will lose access to {$name} and all their notes and reminders.",
 	"person.leave.confirm": "Leave",
 	"person.leave.success": "You left {$name}",
+
+	// Person access states
+	"person.notFound.title": "Person Not Found",
+	"person.notFound.description":
+		"This person doesn't exist or may have been deleted.",
+	"person.notFound.goBack": "Go Back",
+	"person.notFound.goToPeople": "Go to People",
+	"person.unauthorized.title": "Access Revoked",
+	"person.unauthorized.description":
+		"You no longer have access to this person. The owner may have removed you.",
+	"person.unauthorized.goBack": "Go Back",
+	"person.unauthorized.goToPeople": "Go to People",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -305,4 +317,16 @@ const dePeopleMessages = translate(basePeopleMessages, {
 		"Du verlierst den Zugriff auf {$name} und alle zugehörigen Notizen und Erinnerungen.",
 	"person.leave.confirm": "Verlassen",
 	"person.leave.success": "Du hast {$name} verlassen",
+
+	// Person access states
+	"person.notFound.title": "Person nicht gefunden",
+	"person.notFound.description":
+		"Diese Person existiert nicht oder wurde gelöscht.",
+	"person.notFound.goBack": "Zurück",
+	"person.notFound.goToPeople": "Zu Personen",
+	"person.unauthorized.title": "Zugriff entzogen",
+	"person.unauthorized.description":
+		"Du hast keinen Zugriff mehr auf diese Person. Der Besitzer hat dich möglicherweise entfernt.",
+	"person.unauthorized.goBack": "Zurück",
+	"person.unauthorized.goToPeople": "Zu Personen",
 })
