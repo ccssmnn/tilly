@@ -36,6 +36,7 @@ import {
 	Plus,
 	X,
 	Share,
+	BoxArrowRight,
 } from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
 import { NewListDialog } from "./new-list-dialog"
@@ -71,6 +72,7 @@ function PersonDetails({
 	let t = useIntl()
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
 	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
 	let [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
 
@@ -174,15 +176,39 @@ function PersonDetails({
 		})
 	}
 
+	async function handleStopSharing() {
+		let owner = person.$jazz.owner
+		if (!(owner instanceof Group)) return
+
+		let result = await tryCatch(
+			Promise.resolve().then(() => {
+				if (!me.$isLoaded) throw new Error("User not loaded")
+				owner.removeMember(me)
+			}),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		setIsStopSharingDialogOpen(false)
+		navigate({ to: "/people" })
+		toast.success(t("person.leave.success", { name: person.name }))
+	}
+
 	return (
 		<>
 			<div className="flex flex-col items-center gap-6 md:flex-row">
 				<ActionsDropdown
 					onEdit={() => setIsEditDialogOpen(true)}
 					onDelete={() => setIsDeleteDialogOpen(true)}
+					onStopSharing={() => setIsStopSharingDialogOpen(true)}
 					onManageLists={() => setIsManageListsDialogOpen(true)}
 					onShare={() => setIsShareDialogOpen(true)}
 					showShare={hasPlusAccess && isAdmin}
+					isShared={isShared}
 				>
 					<Avatar
 						className="size-48 cursor-pointer"
@@ -212,9 +238,11 @@ function PersonDetails({
 						<ActionsDropdown
 							onEdit={() => setIsEditDialogOpen(true)}
 							onDelete={() => setIsDeleteDialogOpen(true)}
+							onStopSharing={() => setIsStopSharingDialogOpen(true)}
 							onManageLists={() => setIsManageListsDialogOpen(true)}
 							onShare={() => setIsShareDialogOpen(true)}
 							showShare={hasPlusAccess && isAdmin}
+							isShared={isShared}
 						>
 							<Button variant="secondary" size="sm">
 								<T k="person.actions.title" />
@@ -311,6 +339,29 @@ function PersonDetails({
 						</AlertDialogCancel>
 						<AlertDialogAction onClick={handleDeletePerson}>
 							<T k="person.delete.title" />
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+			<AlertDialog
+				open={isStopSharingDialogOpen}
+				onOpenChange={setIsStopSharingDialogOpen}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("person.leave.title", { name: person.name })}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t("person.leave.description", { name: person.name })}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							<T k="common.cancel" />
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={handleStopSharing}>
+							<T k="person.leave.confirm" />
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -492,16 +543,20 @@ function ActionsDropdown({
 	children,
 	onEdit,
 	onDelete,
+	onStopSharing,
 	onManageLists,
 	onShare,
 	showShare = false,
+	isShared = false,
 }: {
 	children: ReactNode
 	onEdit: () => void
 	onDelete: () => void
+	onStopSharing: () => void
 	onManageLists: () => void
 	onShare?: () => void
 	showShare?: boolean
+	isShared?: boolean
 }) {
 	let [open, setOpen] = useState(false)
 
@@ -538,16 +593,29 @@ function ActionsDropdown({
 					<T k="person.edit.title" />
 					<PencilSquare />
 				</DropdownMenuItem>
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => {
-						setOpen(false)
-						onDelete()
-					}}
-				>
-					<T k="person.delete.title" />
-					<Trash />
-				</DropdownMenuItem>
+				{isShared ? (
+					<DropdownMenuItem
+						variant="destructive"
+						onClick={() => {
+							setOpen(false)
+							onStopSharing()
+						}}
+					>
+						<T k="person.leave.button" />
+						<BoxArrowRight />
+					</DropdownMenuItem>
+				) : (
+					<DropdownMenuItem
+						variant="destructive"
+						onClick={() => {
+							setOpen(false)
+							onDelete()
+						}}
+					>
+						<T k="person.delete.title" />
+						<Trash />
+					</DropdownMenuItem>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	)

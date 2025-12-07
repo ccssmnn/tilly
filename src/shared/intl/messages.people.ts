@@ -141,6 +141,14 @@ const basePeopleMessages = messages({
 	"person.shared.sharedWith": "Shared with {$name}",
 	"person.shared.sharedWithCount":
 		".input {$count :number} .match $count one {{Shared with {$count} person}} * {{Shared with {$count} people}}",
+
+	// Leave shared person
+	"person.leave.button": "Leave",
+	"person.leave.title": "Leave {$name}?",
+	"person.leave.description":
+		"You will lose access to {$name} and all their notes and reminders.",
+	"person.leave.confirm": "Leave",
+	"person.leave.success": "You left {$name}",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -289,4 +297,12 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.shared.sharedWith": "Geteilt mit {$name}",
 	"person.shared.sharedWithCount":
 		".input {$count :number} .match $count one {{Geteilt mit {$count} Person}} * {{Geteilt mit {$count} Personen}}",
+
+	// Leave shared person
+	"person.leave.button": "Verlassen",
+	"person.leave.title": "{$name} verlassen?",
+	"person.leave.description":
+		"Du verlierst den Zugriff auf {$name} und alle zugehörigen Notizen und Erinnerungen.",
+	"person.leave.confirm": "Verlassen",
+	"person.leave.success": "Du hast {$name} verlassen",
 })
