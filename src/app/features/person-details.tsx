@@ -450,18 +450,12 @@ function ActionsDropdown({
 				<DropdownMenuContent>
 					{showShare && (
 						<DropdownMenuItem
-							disabled={!hasPlusAccess}
 							onClick={() => {
-								if (!hasPlusAccess) return
 								setOpen(false)
 								setIsShareDialogOpen(true)
 							}}
 						>
-							{hasPlusAccess ? (
-								<T k="person.share.button" />
-							) : (
-								<T k="person.share.requiresPlus" />
-							)}
+							<T k="person.share.button" />
 							<Share />
 						</DropdownMenuItem>
 					)}
