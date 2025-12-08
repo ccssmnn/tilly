@@ -176,7 +176,7 @@ function NoteListItem(props: {
 						{showPerson && hasDueReminders && (
 							<div className="bg-primary size-2 rounded-full" />
 						)}
-						<SharedIndicator item={props.note} />
+						{showPerson && <SharedIndicator item={props.note} />}
 						<Pinned pinned={props.note.pinned} />
 						<div className="flex-1" />
 						<TimeStamp record={props.note} />

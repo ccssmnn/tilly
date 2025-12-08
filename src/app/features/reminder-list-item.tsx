@@ -202,7 +202,7 @@ function ReminderListItem({
 								<TextHighlight text={person.name} query={searchQuery} />
 							</p>
 						)}
-						<SharedIndicator item={reminder} />
+						{showPerson && <SharedIndicator item={reminder} />}
 					</div>
 					<p className="text-md/tight text-left select-text">
 						<TextHighlight text={reminder.text} query={searchQuery} />
