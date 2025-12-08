@@ -1,6 +1,5 @@
 import { Group, co, z, type ResolveQuery } from "jazz-tools"
 import { isBefore, isToday } from "date-fns"
-import { cleanupInactiveLists } from "#shared/lib/jazz-list-utils"
 
 export {
 	isDeleted,
@@ -215,23 +214,6 @@ async function runMigrationV1(
 			)
 		}
 	}
-
-	// Re-load with inactive lists now initialized
-	let { root: loadedRoot } = await account.$jazz.ensureLoaded({
-		resolve: {
-			root: migrationResolveQuery,
-		},
-	})
-
-	cleanupInactiveLists(loadedRoot.people, loadedRoot.inactivePeople, person => {
-		let group = person.$jazz.owner
-		if (!(group instanceof Group)) return
-		for (let member of group.members) {
-			if (member.role !== "admin") {
-				group.removeMember(member.account)
-			}
-		}
-	})
 }
 
 function isDeleted(item: {

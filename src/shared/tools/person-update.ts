@@ -3,11 +3,6 @@ import { z } from "zod"
 import { Person, UserAccount, UserAccountRoot } from "#shared/schema/user"
 import { co, Group, type Loaded, type ResolveQuery } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
-import {
-	moveToActive,
-	moveToInactive,
-	removeFromInactive,
-} from "#shared/lib/jazz-list-utils"
 
 export { createUpdatePersonTool, createDeletePersonTool, updatePerson }
 
@@ -56,18 +51,44 @@ async function updatePerson(
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		person.$jazz.delete("deletedAt")
-		moveToActive(root.people, root.inactivePeople, personId)
+		// Move from inactive to active
+		if (root.inactivePeople) {
+			let inactiveIdx = Array.from(root.inactivePeople.values()).findIndex(
+				p => p?.$jazz.id === personId,
+			)
+			if (inactiveIdx !== -1) {
+				root.people.$jazz.push(person)
+				root.inactivePeople.$jazz.splice(inactiveIdx, 1)
+			}
+		}
 	}
 
 	if (updates.deletedAt !== undefined) {
 		person.$jazz.set("deletedAt", updates.deletedAt)
-		moveToInactive(root.people, root.inactivePeople, personId)
+		// Move from active to inactive
+		if (root.inactivePeople) {
+			let activeIdx = Array.from(root.people.values()).findIndex(
+				p => p?.$jazz.id === personId,
+			)
+			if (activeIdx !== -1) {
+				root.inactivePeople.$jazz.push(person)
+				root.people.$jazz.splice(activeIdx, 1)
+			}
+		}
 	}
 
 	if (updates.permanentlyDeletedAt !== undefined) {
 		revokeAllCollaborators(person)
 		person.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
-		removeFromInactive(root.inactivePeople, personId)
+		// Remove from inactive
+		if (root.inactivePeople) {
+			let inactiveIdx = Array.from(root.inactivePeople.values()).findIndex(
+				p => p?.$jazz.id === personId,
+			)
+			if (inactiveIdx !== -1) {
+				root.inactivePeople.$jazz.splice(inactiveIdx, 1)
+			}
+		}
 	}
 
 	if (updates.avatarFile !== undefined) {
