@@ -106,6 +106,7 @@ function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
 		}
 
 		acceptInvite()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [me, account.$isLoaded, inviteData, navigate, t])
 
 	if (isRevoked) {

@@ -18,63 +18,34 @@ async function createPersonInviteLink(
 ): Promise<string> {
 	let personGroup = getPersonGroup(person)
 
-	// Base URL for invite route
 	let baseURL = `${window.location.origin}/app/invite`
 
-	// Check admin permission on existing group
 	if (personGroup) {
 		let myRole = personGroup.myRole()
 		if (myRole !== "admin") {
 			throw new Error("Only admins can create invite links")
 		}
 
-		// Ensure nested lists are also group-owned
 		let needsMigration = !areNestedListsGroupOwned(person, personGroup)
 		if (needsMigration) {
 			await migrateNestedListsToGroup(person, personGroup)
 		}
 
-		// Create InviteGroup and add it as writer to PersonGroup
 		let inviteGroup = Group.create()
 		personGroup.addMember(inviteGroup, "writer")
 
-		// Create invite secret for InviteGroup, build URL with personId
-		let inviteSecret = inviteGroup.$jazz.createInvite("reader")
+		let inviteSecret = inviteGroup.$jazz.createInvite("writer")
 		return `${baseURL}#/person/${person.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
+	} else {
+		let { group: newPersonGroup, person: newPerson } =
+			await migratePersonToGroup(person, userId)
+
+		let inviteGroup = Group.create()
+		newPersonGroup.addMember(inviteGroup, "writer")
+
+		let inviteSecret = inviteGroup.$jazz.createInvite("writer")
+		return `${baseURL}#/person/${newPerson.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 	}
-
-	// Migrate to group (creator becomes admin)
-	let newPersonGroup = await migratePersonToGroup(person, userId)
-
-	// Re-load person to get the new group-owned version
-	let account = await UserAccount.load(userId, {
-		resolve: {
-			root: {
-				people: {
-					$each: {
-						notes: { $each: true },
-						reminders: { $each: true },
-						inactiveNotes: { $each: true },
-						inactiveReminders: { $each: true },
-					},
-				},
-			},
-		},
-	})
-	if (!account?.$isLoaded) throw new Error("User account not found")
-
-	let newPerson = account.root.people.find(
-		p => p?.name === person.name && !p.permanentlyDeletedAt,
-	)
-	if (!newPerson) throw new Error("Migrated person not found")
-
-	// Create InviteGroup and add it as writer to PersonGroup
-	let inviteGroup = Group.create()
-	newPersonGroup.addMember(inviteGroup, "writer")
-
-	// Create invite secret for InviteGroup, build URL with personId
-	let inviteSecret = inviteGroup.$jazz.createInvite("reader")
-	return `${baseURL}#/person/${newPerson.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 }
 
 async function getPersonCollaborators(
@@ -118,7 +89,6 @@ async function getInviteGroupsWithMembers(
 
 		for (let member of inviteGroup.members) {
 			// Skip admins - they're the invite creators, not collaborators
-			// Collaborators join as "reader" when accepting the invite
 			if (member.role === "admin") continue
 
 			if (member.account && member.account.$isLoaded) {
@@ -402,12 +372,17 @@ async function migrateNestedListsToGroup(
 	}
 }
 
+type MigrationResult = {
+	group: Group
+	person: co.loaded<typeof Person>
+}
+
 async function migratePersonToGroup(
 	person: LoadedPerson,
 	userId: string,
-): Promise<Group> {
+): Promise<MigrationResult> {
 	if (isGroupOwned(person)) {
-		return getPersonGroup(person)!
+		return { group: getPersonGroup(person)!, person }
 	}
 
 	let group = Group.create()
@@ -485,5 +460,5 @@ async function migratePersonToGroup(
 	// Mark old person as deleted
 	person.$jazz.set("permanentlyDeletedAt", now)
 
-	return group
+	return { group, person: newPerson }
 }

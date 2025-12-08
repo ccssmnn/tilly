@@ -34,6 +34,7 @@ import { differenceInDays } from "date-fns"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
 import { Badge } from "#shared/ui/badge"
 import type { LoadedPerson } from "#app/features/person-query"
+import { PeopleFill } from "react-bootstrap-icons"
 
 export { PersonListItem }
 export type { PersonListItemPerson }
@@ -142,9 +143,6 @@ function PersonItemHeader({
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 
-	// Check if this person has sharing (either shared with me, or I shared with others)
-	let sharingStatus = getPersonSharingStatus(person)
-
 	return (
 		<div
 			className="flex items-center justify-between leading-none select-text"
@@ -154,9 +152,7 @@ function PersonItemHeader({
 				<p className={nameColor}>
 					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
-				{sharingStatus !== "none" && (
-					<SharedIndicator isOwner={sharingStatus === "owner"} />
-				)}
+				<SharedIndicator person={person} />
 				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
 			<p className="text-muted-foreground text-xs text-nowrap">
@@ -174,19 +170,17 @@ function PersonItemHeader({
 	)
 }
 
-function SharedIndicator({ isOwner }: { isOwner: boolean }) {
+function SharedIndicator({ person }: { person: PersonListItemPerson }) {
+	let sharedStatus = getPersonSharingStatus(person)
+	if (sharedStatus === "none") return null
 	return (
-		<Badge
-			variant="outline"
-			className="text-muted-foreground px-1.5 py-0 text-xs"
-		>
-			<T
-				k={
-					isOwner
-						? "person.shared.indicator.owner.badge"
-						: "person.shared.indicator.badge"
-				}
-			/>
+		<Badge variant="secondary">
+			<PeopleFill />
+			{sharedStatus === "owner" ? (
+				<T k="person.shared.indicator.owner.badge" />
+			) : (
+				<T k="person.shared.indicator.badge" />
+			)}
 		</Badge>
 	)
 }
@@ -200,11 +194,15 @@ function getPersonSharingStatus(
 	let myRole = owner.myRole()
 	if (myRole !== "admin") return "collaborator"
 
-	// I'm admin - check if there are other members (collaborators)
-	let hasCollaborators = owner.members.some(
-		m => m.role !== "admin" && (m.role === "writer" || m.role === "reader"),
-	)
-	return hasCollaborators ? "owner" : "none"
+	// Check if there are collaborators via InviteGroups
+	for (let inviteGroup of owner.getParentGroups()) {
+		let hasMembers = inviteGroup.members.some(
+			m => m.role !== "admin" && (m.role === "writer" || m.role === "reader"),
+		)
+		if (hasMembers) return "owner"
+	}
+
+	return "none"
 }
 
 function PersonItemSummary({
