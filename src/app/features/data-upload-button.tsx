@@ -220,7 +220,6 @@ export function UploadButton({ userID }: { userID: string }) {
 				</Button>
 			</DialogTrigger>
 			<DialogContent
-				className="sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
 						<DialogTitle>

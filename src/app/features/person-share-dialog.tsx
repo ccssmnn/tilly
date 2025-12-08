@@ -195,7 +195,6 @@ function PersonShareDialogContent({
 	return (
 		<>
 			<DialogContent
-				className="sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
 						<DialogTitle>
