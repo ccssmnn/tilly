@@ -1,5 +1,4 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
-import { Group } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { isDueToday, isDeleted, UserAccount } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
@@ -32,9 +31,8 @@ import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
-import { Badge } from "#shared/ui/badge"
 import type { LoadedPerson } from "#app/features/person-query"
-import { PeopleFill } from "react-bootstrap-icons"
+import { SharedIndicator } from "#app/features/person-shared-indicator"
 
 export { PersonListItem }
 export type { PersonListItemPerson }
@@ -152,7 +150,7 @@ function PersonItemHeader({
 				<p className={nameColor}>
 					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
-				<SharedIndicator person={person} />
+				<SharedIndicator item={person} />
 				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
 			<p className="text-muted-foreground text-xs text-nowrap">
@@ -168,41 +166,6 @@ function PersonItemHeader({
 			</p>
 		</div>
 	)
-}
-
-function SharedIndicator({ person }: { person: PersonListItemPerson }) {
-	let sharedStatus = getPersonSharingStatus(person)
-	if (sharedStatus === "none") return null
-	return (
-		<Badge variant="secondary">
-			<PeopleFill />
-			{sharedStatus === "owner" ? (
-				<T k="person.shared.indicator.owner.badge" />
-			) : (
-				<T k="person.shared.indicator.badge" />
-			)}
-		</Badge>
-	)
-}
-
-function getPersonSharingStatus(
-	person: PersonListItemPerson,
-): "none" | "owner" | "collaborator" {
-	let owner = person.$jazz.owner
-	if (!(owner instanceof Group)) return "none"
-
-	let myRole = owner.myRole()
-	if (myRole !== "admin") return "collaborator"
-
-	// Check if there are collaborators via InviteGroups
-	for (let inviteGroup of owner.getParentGroups()) {
-		let hasMembers = inviteGroup.members.some(
-			m => m.role !== "admin" && (m.role === "writer" || m.role === "reader"),
-		)
-		if (hasMembers) return "owner"
-	}
-
-	return "none"
 }
 
 function PersonItemSummary({

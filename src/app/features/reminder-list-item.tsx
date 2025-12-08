@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Person, Reminder, UserAccount } from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
+import { SharedIndicator } from "#app/features/person-shared-indicator"
 import {
 	Calendar,
 	PencilSquare,
@@ -201,6 +202,7 @@ function ReminderListItem({
 								<TextHighlight text={person.name} query={searchQuery} />
 							</p>
 						)}
+						<SharedIndicator item={reminder} />
 					</div>
 					<p className="text-md/tight text-left select-text">
 						<TextHighlight text={reminder.text} query={searchQuery} />
