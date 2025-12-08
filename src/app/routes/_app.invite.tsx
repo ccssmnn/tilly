@@ -5,7 +5,7 @@ import { T, useIntl } from "#shared/intl/setup"
 import { ExclamationTriangle } from "react-bootstrap-icons"
 import { Person, UserAccount } from "#shared/schema/user"
 import { toast } from "sonner"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "#shared/ui/button"
 import {
 	Empty,
@@ -57,10 +57,13 @@ function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
 	let [error, setError] = useState("")
 	let [isRevoked, setIsRevoked] = useState(false)
 	let [isProcessing, setIsProcessing] = useState(true)
+	let acceptingRef = useRef(false)
 
 	useEffect(() => {
 		async function acceptInvite() {
 			if (!account.$isLoaded || !isAuthenticated) return
+			if (acceptingRef.current) return
+			acceptingRef.current = true
 
 			try {
 				// Accept the invite to join InviteGroup
@@ -84,10 +87,15 @@ function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
 					return
 				}
 
-				// Check if user already has this person
-				let alreadyHas = account.root.people.some(
-					p => p?.$jazz.id === inviteData.personId,
-				)
+				// Check if user already has this person (reload to get fresh data)
+				let freshAccount = await UserAccount.load(account.$jazz.id, {
+					resolve: { root: { people: true } },
+				})
+				let alreadyHas =
+					freshAccount?.$isLoaded &&
+					freshAccount.root.people.some(
+						p => p?.$jazz.id === inviteData.personId,
+					)
 
 				if (!alreadyHas) {
 					account.root.people.$jazz.push(person)

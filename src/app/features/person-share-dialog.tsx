@@ -22,9 +22,13 @@ import { Person, UserAccount } from "#shared/schema/user"
 import {
 	createPersonInviteLink,
 	getInviteGroupsWithMembers,
+	getPendingInviteGroups,
 	removeInviteGroup,
 } from "#app/features/person-sharing"
-import type { InviteGroupWithMembers } from "#app/features/person-sharing"
+import type {
+	InviteGroupWithMembers,
+	PendingInviteGroup,
+} from "#app/features/person-sharing"
 import { tryCatch } from "#shared/lib/trycatch"
 import { isMac } from "#app/hooks/use-pwa"
 import { toast } from "sonner"
@@ -38,7 +42,11 @@ import {
 	BoxArrowUp,
 	X,
 	PersonFill,
+	Link45deg,
 } from "react-bootstrap-icons"
+import { formatDistanceToNow } from "date-fns"
+import { de as dfnsDe } from "date-fns/locale"
+import { useLocale } from "#shared/intl/setup"
 
 export { PersonShareDialog }
 
@@ -70,7 +78,6 @@ function PersonShareDialog({
 			{open && (
 				<PersonShareDialogContent
 					person={person}
-					onOpenChange={onOpenChange}
 					hasPlusAccess={hasPlusAccess}
 				/>
 			)}
@@ -83,29 +90,39 @@ function PersonShareDialogContent({
 	hasPlusAccess,
 }: {
 	person: LoadedPerson
-	onOpenChange: (open: boolean) => void
 	hasPlusAccess: boolean
 }) {
 	let t = useIntl()
+	let locale = useLocale()
 	let me = useAccount(UserAccount)
 	let [inviteLink, setInviteLink] = useState<string | null>(null)
 	let [isGenerating, setIsGenerating] = useState(false)
 	let [isCopied, setIsCopied] = useState(false)
 	let [inviteGroups, setInviteGroups] = useState<InviteGroupWithMembers[]>([])
+	let [pendingInvites, setPendingInvites] = useState<PendingInviteGroup[]>([])
 	let [isLoadingCollaborators, setIsLoadingCollaborators] = useState(true)
 	let [removingCollaboratorId, setRemovingCollaboratorId] = useState<
 		string | null
 	>(null)
 	let [confirmRemoveGroup, setConfirmRemoveGroup] =
 		useState<InviteGroupWithMembers | null>(null)
+	let [cancellingInviteId, setCancellingInviteId] = useState<string | null>(
+		null,
+	)
 	let [refreshKey, setRefreshKey] = useState(0)
 
 	useEffect(() => {
 		async function load() {
-			let result = await tryCatch(getInviteGroupsWithMembers(person))
+			let [groupsResult, pendingResult] = await Promise.all([
+				tryCatch(getInviteGroupsWithMembers(person)),
+				tryCatch(Promise.resolve(getPendingInviteGroups(person))),
+			])
 			setIsLoadingCollaborators(false)
-			if (result.ok) {
-				setInviteGroups(result.data)
+			if (groupsResult.ok) {
+				setInviteGroups(groupsResult.data)
+			}
+			if (pendingResult.ok) {
+				setPendingInvites(pendingResult.data)
 			}
 		}
 		load()
@@ -190,6 +207,27 @@ function PersonShareDialogContent({
 		)
 	}
 
+	function handleCancelPendingInvite(groupId: string) {
+		setCancellingInviteId(groupId)
+
+		let result = tryCatch(() => removeInviteGroup(person, groupId as ID<Group>))
+		setCancellingInviteId(null)
+
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		toast.success(t("person.share.pending.cancelSuccess"))
+		setPendingInvites(prev => prev.filter(p => p.groupId !== groupId))
+		// Clear invite link if it was for this group
+		if (inviteLink?.includes(groupId)) {
+			setInviteLink(null)
+		}
+	}
+
 	let personGroup = person.$jazz.owner
 	let isAdmin = personGroup instanceof Group && personGroup.myRole() === "admin"
 	let allCollaborators = inviteGroups.flatMap(g => g.members)
@@ -259,6 +297,56 @@ function PersonShareDialogContent({
 							</Button>
 						)}
 					</div>
+
+					{/* Pending invites section */}
+					{isAdmin && (
+						<div className="space-y-3">
+							<label className="text-sm font-medium">
+								<T k="person.share.pending.title" />
+							</label>
+							{isLoadingCollaborators ? (
+								<p className="text-muted-foreground text-sm">
+									<T k="common.loading" />
+								</p>
+							) : pendingInvites.length === 0 ? (
+								<p className="text-muted-foreground text-sm">
+									<T k="person.share.pending.empty" />
+								</p>
+							) : (
+								<ul className="space-y-2">
+									{pendingInvites.map(invite => (
+										<li
+											key={invite.groupId}
+											className="flex items-center justify-between gap-2"
+										>
+											<div className="flex items-center gap-2">
+												<Link45deg className="text-muted-foreground h-4 w-4" />
+												<span className="text-muted-foreground text-sm">
+													{t("person.share.pending.createdAt", {
+														ago: formatDistanceToNow(invite.createdAt, {
+															addSuffix: true,
+															locale: locale === "de" ? dfnsDe : undefined,
+														}),
+													})}
+												</span>
+											</div>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() =>
+													handleCancelPendingInvite(invite.groupId)
+												}
+												disabled={cancellingInviteId === invite.groupId}
+											>
+												<X className="h-4 w-4" />
+												<T k="person.share.pending.cancel" />
+											</Button>
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
+					)}
 
 					{/* Collaborators section */}
 					<div className="space-y-3">

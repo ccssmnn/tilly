@@ -1,16 +1,16 @@
-import { Group, Account, co, type ID } from "jazz-tools"
+import { Group, co, type ID } from "jazz-tools"
 import { Person, Note, Reminder, UserAccount } from "#shared/schema/user"
 
 export {
 	createPersonInviteLink,
 	getPersonCollaborators,
-	removeCollaborator,
 	removeInviteGroup,
 	getPersonOwnerName,
 	getInviteGroupsWithMembers,
+	getPendingInviteGroups,
 	cleanupEmptyInviteGroups,
 }
-export type { Collaborator, InviteGroupWithMembers }
+export type { Collaborator, InviteGroupWithMembers, PendingInviteGroup }
 
 async function createPersonInviteLink(
 	person: LoadedPerson,
@@ -116,33 +116,33 @@ async function getInviteGroupsWithMembers(
 	return inviteGroups
 }
 
-async function removeCollaborator(
+function getPendingInviteGroups(
 	person: co.loaded<typeof Person>,
-	accountId: ID<Account>,
-): Promise<void> {
+): PendingInviteGroup[] {
 	let personGroup = getPersonGroup(person)
-	if (!personGroup) throw new Error("Person is not group-owned")
+	if (!personGroup) return []
 
-	// Check if this is a direct member
-	let directMember = personGroup.members.find(m => m.id === accountId)
-	if (directMember && directMember.account) {
-		personGroup.removeMember(directMember.account)
-		return
-	}
-
-	// Check InviteGroups for this account
+	let pendingGroups: PendingInviteGroup[] = []
 	let parentGroups = personGroup.getParentGroups()
+
 	for (let inviteGroup of parentGroups) {
-		let member = inviteGroup.members.find(m => m.id === accountId)
-		if (member && member.account) {
-			// Remove the entire InviteGroup from PersonGroup
-			// This revokes access for all users who joined via this invite
-			personGroup.removeMember(inviteGroup)
-			return
+		// Check if invite group has any non-admin members (accounts that joined)
+		let hasMembers = inviteGroup.members.some(
+			m =>
+				m.account &&
+				m.account.$isLoaded &&
+				(m.role === "writer" || m.role === "reader"),
+		)
+
+		if (!hasMembers) {
+			pendingGroups.push({
+				groupId: inviteGroup.$jazz.id,
+				createdAt: new Date(inviteGroup.$jazz.createdAt),
+			})
 		}
 	}
 
-	throw new Error("Collaborator not found")
+	return pendingGroups
 }
 
 function removeInviteGroup(
@@ -212,6 +212,10 @@ type InviteGroupWithMembers = {
 	groupId: string
 	createdAt: Date
 	members: Collaborator[]
+}
+type PendingInviteGroup = {
+	groupId: string
+	createdAt: Date
 }
 
 function getPersonGroup(person: co.loaded<typeof Person>): Group | null {

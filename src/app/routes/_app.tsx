@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 import { useAccount } from "jazz-tools/react"
-import type { ResolveQuery } from "jazz-tools"
+import type { ResolveQuery, co } from "jazz-tools"
 import { useEffect } from "react"
 import { UserAccount, isDeleted, isDueToday } from "#shared/schema/user"
 import { Navigation } from "#app/components/navigation"
@@ -28,12 +28,7 @@ function AppComponent() {
 	useCleanupEmptyGroups()
 	useCleanupInaccessiblePeople()
 
-	let dueReminderCount = (me.$isLoaded ? me.root.people : [])
-		.filter(person => !isDeleted(person))
-		.flatMap(person => person.reminders)
-		.filter(reminder => reminder.$isLoaded)
-		.filter(reminder => !reminder.done && !isDeleted(reminder))
-		.filter(reminder => isDueToday(reminder)).length
+	let dueReminderCount = countDueReminders(me)
 
 	useEffect(() => {
 		setAppBadge(dueReminderCount)
@@ -61,6 +56,7 @@ let query = {
 				inactiveNotes: { $each: true },
 				reminders: { $each: true },
 				inactiveReminders: { $each: true },
+				$onError: "catch",
 			},
 		},
 	},
@@ -80,4 +76,22 @@ async function setAppBadge(count: number) {
 	} catch (error) {
 		console.warn("Failed to set app badge:", error)
 	}
+}
+
+type LoadedAccount = co.loaded<typeof UserAccount, typeof query>
+
+function countDueReminders(me: LoadedAccount | { $isLoaded: false }): number {
+	if (!me.$isLoaded) return 0
+
+	let count = 0
+	for (let person of me.root.people.values()) {
+		if (!person?.$isLoaded || isDeleted(person)) continue
+		for (let reminder of person.reminders.values()) {
+			if (!reminder?.$isLoaded) continue
+			if (!reminder.done && !isDeleted(reminder) && isDueToday(reminder)) {
+				count++
+			}
+		}
+	}
+	return count
 }
