@@ -2,7 +2,7 @@
 
 # Tilly
 
-Tilly is an open-source personal relationship manager that helps you stay connected with the people who matter most. Built as a React PWA with client-side sync, offline-first design, and optional agentic AI assistance.
+Tilly is an open-source relationship journal that helps you stay connected with the people who matter most. Built as a React PWA with client-side sync, offline-first design, realtime collaboration, and optional agentic (and actually useful) AI assistance.
 
 **Try it live:** [tilly.social](https://tilly.social)
 
@@ -53,7 +53,7 @@ Tilly is a **React PWA** built with:
 
 - **App**: React + TanStack Router + Shadcn/ui + Tailwind CSS
 - **API Endpoints**: Astro serving marketing pages + Hono API routes
-- **Database**: [Jazz](https://jazz.tools) - Client-side encrypted, distributed, offline-first (keys managed via Clerk for multi-device use)
+- **Database**: [Jazz](https://jazz.tools) - Client-side encrypted, distributed, offline-first, collaborative (keys managed via Clerk for multi-device use)
 - **Auth**: Clerk
 - **AI**: AI SDK with Google
 - **Deployment**: Vercel
@@ -95,8 +95,8 @@ Report suspected vulnerabilities privately by emailing [assmann@hey.com](mailto:
 
 ## License
 
-O'Saasy License - Free for personal use and self-hosting. Cannot be offered as a competing SaaS.
+O'Saasy License - Do whatever you want except offering a competing SaaS.
 
 ## Status
 
-Actively maintained and used daily by the creator. Available as a hosted service at [tilly.social](https://tilly.social) (30 day free trial + $6/month for AI features) to make development sustainable and cover token costs.
+Actively maintained and used daily by the creator. Available as a hosted service at [tilly.social](https://tilly.social) (30 day free trial + $6/month for Plus features) to make development sustainable and cover token costs.
