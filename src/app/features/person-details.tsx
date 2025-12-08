@@ -67,151 +67,22 @@ function PersonDetails({
 	person: co.loaded<typeof Person, Query>
 	me: co.loaded<typeof UserAccount>
 }) {
-	let navigate = useNavigate()
-	let locale = useLocale()
 	let t = useIntl()
-	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
-	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
-	let [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
-
-	let { hasPlusAccess, isLoading: isPlusLoading } = useHasPlusAccess()
 	let isAdmin = isPersonAdmin(person)
 	let isShared = !isAdmin
-	let showShareOption = isAdmin && !isPlusLoading
 	let [ownerName, setOwnerName] = useState<string | null>(null)
 	let { collaborators: allCollaborators } = useCollaborators(person)
 	let collaborators = allCollaborators.filter(c => c.role !== "admin")
 
 	useEffect(() => {
-		if (isShared) {
-			getPersonOwnerName(person).then(setOwnerName)
-		}
+		if (!isShared) return
+		getPersonOwnerName(person).then(setOwnerName)
 	}, [person, isShared])
-
-	let allPeople = useAccount(UserAccount, {
-		resolve: { root: { people: { $each: true } } },
-		select: account => {
-			if (!account.$isLoaded) return []
-			return account.root.people.filter(p => p && !isDeleted(p))
-		},
-	})
-
-	async function handleFormSave(values: {
-		name: string
-		summary?: string
-		avatar?: File | null
-	}) {
-		let result = await tryCatch(
-			updatePerson(
-				person.$jazz.id,
-				{
-					name: values.name,
-					summary: values.summary,
-					avatarFile: values.avatar,
-				},
-				me,
-			),
-		)
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
-		}
-
-		setIsEditDialogOpen(false)
-		toast.success(t("toast.personUpdated"), {
-			action: {
-				label: t("common.undo"),
-				onClick: async () => {
-					let undoResult = await tryCatch(
-						updatePerson(person.$jazz.id, result.data.previous, me),
-					)
-					if (undoResult.ok) {
-						toast.success(t("toast.personUpdateUndone"))
-					} else {
-						toast.error(
-							typeof undoResult.error === "string"
-								? undoResult.error
-								: undoResult.error.message,
-						)
-					}
-				},
-			},
-		})
-	}
-
-	async function handleDeletePerson() {
-		let result = await tryCatch(
-			updatePerson(person.$jazz.id, { deletedAt: new Date() }, me),
-		)
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
-		}
-
-		setIsDeleteDialogOpen(false)
-		navigate({ to: "/people" })
-		toast.success(t("toast.personDeletedScheduled"), {
-			action: {
-				label: t("common.undo"),
-				onClick: async () => {
-					let undoResult = await tryCatch(
-						updatePerson(person.$jazz.id, { deletedAt: undefined }, me),
-					)
-					if (undoResult.ok) {
-						toast.success(t("toast.personRestored"))
-					} else {
-						toast.error(
-							typeof undoResult.error === "string"
-								? undoResult.error
-								: undoResult.error.message,
-						)
-					}
-				},
-			},
-		})
-	}
-
-	async function handleStopSharing() {
-		let owner = person.$jazz.owner
-		if (!(owner instanceof Group)) return
-
-		let result = await tryCatch(
-			Promise.resolve().then(() => {
-				if (!me.$isLoaded) throw new Error("User not loaded")
-				owner.removeMember(me)
-			}),
-		)
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
-		}
-
-		setIsStopSharingDialogOpen(false)
-		navigate({ to: "/people" })
-		toast.success(t("person.leave.success", { name: person.name }))
-	}
 
 	return (
 		<>
 			<div className="flex flex-col items-center gap-6 md:flex-row">
-				<ActionsDropdown
-					onEdit={() => setIsEditDialogOpen(true)}
-					onDelete={() => setIsDeleteDialogOpen(true)}
-					onStopSharing={() => setIsStopSharingDialogOpen(true)}
-					onManageLists={() => setIsManageListsDialogOpen(true)}
-					onShare={() => setIsShareDialogOpen(true)}
-					showShare={showShareOption}
-					hasPlusAccess={hasPlusAccess}
-					isShared={isShared}
-				>
+				<ActionsDropdown person={person} me={me}>
 					<Avatar
 						className="size-48 cursor-pointer"
 						onClick={e => {
@@ -237,22 +108,12 @@ function PersonDetails({
 				<div className="w-full flex-1 md:w-auto">
 					<div className="flex items-center justify-between gap-3">
 						<h1 className="text-3xl font-bold select-text">{person.name}</h1>
-						<ActionsDropdown
-							onEdit={() => setIsEditDialogOpen(true)}
-							onDelete={() => setIsDeleteDialogOpen(true)}
-							onStopSharing={() => setIsStopSharingDialogOpen(true)}
-							onManageLists={() => setIsManageListsDialogOpen(true)}
-							onShare={() => setIsShareDialogOpen(true)}
-							showShare={showShareOption}
-							hasPlusAccess={hasPlusAccess}
-							isShared={isShared}
-						>
+						<ActionsDropdown person={person} me={me}>
 							<Button variant="secondary" size="sm">
 								<T k="person.actions.title" />
 							</Button>
 						</ActionsDropdown>
 					</div>
-
 					{person.summary && (
 						<p className="text-muted-foreground my-3 select-text">
 							{person.summary.split(/(#[a-zA-Z0-9_]+)/).map((part, i) =>
@@ -276,113 +137,11 @@ function PersonDetails({
 						<SharedWithBadge collaborators={collaborators} />
 					)}
 					<p className="text-muted-foreground space-y-1 text-sm select-text">
-						{t("person.added.suffix", {
-							ago: formatDistanceToNow(
-								person.createdAt || new Date(person.$jazz.createdAt),
-								{
-									addSuffix: true,
-									locale: locale === "de" ? dfnsDe : undefined,
-								},
-							),
-						})}
-						{(person.updatedAt ||
-							(person.$jazz.lastUpdatedAt &&
-								new Date(person.$jazz.lastUpdatedAt))) &&
-							(
-								person.updatedAt || new Date(person.$jazz.lastUpdatedAt)
-							).getTime() !==
-								(
-									person.createdAt || new Date(person.$jazz.createdAt)
-								).getTime() &&
-							t("person.updated.suffix", {
-								ago: formatDistanceToNow(
-									person.updatedAt || new Date(person.$jazz.lastUpdatedAt),
-									{
-										addSuffix: true,
-										locale: locale === "de" ? dfnsDe : undefined,
-									},
-								),
-							})}
+						<CreatedAtTimestamp value={person} />
+						<UpdatedAtTimestamp value={person} />
 					</p>
 				</div>
 			</div>
-			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="person.edit.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="person.edit.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
-					<PersonForm person={person} onSave={handleFormSave} />
-				</DialogContent>
-			</Dialog>
-			<AlertDialog
-				open={isDeleteDialogOpen}
-				onOpenChange={setIsDeleteDialogOpen}
-			>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>
-							<T k="person.delete.title" />
-						</AlertDialogTitle>
-						<AlertDialogDescription>
-							Are you sure you want to delete {person.name}? This will
-							permanently remove all their notes and reminders.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>
-							<T k="common.cancel" />
-						</AlertDialogCancel>
-						<AlertDialogAction onClick={handleDeletePerson}>
-							<T k="person.delete.title" />
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-			<AlertDialog
-				open={isStopSharingDialogOpen}
-				onOpenChange={setIsStopSharingDialogOpen}
-			>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>
-							{t("person.leave.title", { name: person.name })}
-						</AlertDialogTitle>
-						<AlertDialogDescription>
-							{t("person.leave.description", { name: person.name })}
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>
-							<T k="common.cancel" />
-						</AlertDialogCancel>
-						<AlertDialogAction onClick={handleStopSharing}>
-							<T k="person.leave.confirm" />
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-			<ManageListsDialog
-				open={isManageListsDialogOpen}
-				onOpenChange={setIsManageListsDialogOpen}
-				personId={person.$jazz.id}
-				personName={person.name}
-				personSummary={person.summary}
-				allPeople={allPeople}
-			/>
-			<PersonShareDialog
-				open={isShareDialogOpen}
-				onOpenChange={setIsShareDialogOpen}
-				person={person}
-				hasPlusAccess={hasPlusAccess}
-			/>
 		</>
 	)
 }
@@ -545,91 +304,288 @@ function ManageListsDialog({
 
 function ActionsDropdown({
 	children,
-	onEdit,
-	onDelete,
-	onStopSharing,
-	onManageLists,
-	onShare,
-	showShare = false,
-	hasPlusAccess = false,
-	isShared = false,
+	person,
+	me,
 }: {
 	children: ReactNode
-	onEdit: () => void
-	onDelete: () => void
-	onStopSharing: () => void
-	onManageLists: () => void
-	onShare?: () => void
-	showShare?: boolean
-	hasPlusAccess?: boolean
-	isShared?: boolean
+	person: co.loaded<typeof Person, Query>
+	me: co.loaded<typeof UserAccount>
 }) {
+	let navigate = useNavigate()
+	let t = useIntl()
 	let [open, setOpen] = useState(false)
+	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
+	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
+	let [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+
+	let { hasPlusAccess, isLoading: isPlusLoading } = useHasPlusAccess()
+	let isAdmin = isPersonAdmin(person)
+	let isShared = !isAdmin
+	let showShare = isAdmin && !isPlusLoading
+
+	let allPeople = useAccount(UserAccount, {
+		resolve: { root: { people: { $each: true } } },
+		select: account => {
+			if (!account.$isLoaded) return []
+			return account.root.people.filter(p => p && !isDeleted(p))
+		},
+	})
+
+	async function handleFormSave(values: {
+		name: string
+		summary?: string
+		avatar?: File | null
+	}) {
+		let result = await tryCatch(
+			updatePerson(
+				person.$jazz.id,
+				{
+					name: values.name,
+					summary: values.summary,
+					avatarFile: values.avatar,
+				},
+				me,
+			),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		setIsEditDialogOpen(false)
+		toast.success(t("toast.personUpdated"), {
+			action: {
+				label: t("common.undo"),
+				onClick: async () => {
+					let undoResult = await tryCatch(
+						updatePerson(person.$jazz.id, result.data.previous, me),
+					)
+					if (undoResult.ok) {
+						toast.success(t("toast.personUpdateUndone"))
+					} else {
+						toast.error(
+							typeof undoResult.error === "string"
+								? undoResult.error
+								: undoResult.error.message,
+						)
+					}
+				},
+			},
+		})
+	}
+
+	async function handleDeletePerson() {
+		let result = await tryCatch(
+			updatePerson(person.$jazz.id, { deletedAt: new Date() }, me),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		setIsDeleteDialogOpen(false)
+		navigate({ to: "/people" })
+		toast.success(t("toast.personDeletedScheduled"), {
+			action: {
+				label: t("common.undo"),
+				onClick: async () => {
+					let undoResult = await tryCatch(
+						updatePerson(person.$jazz.id, { deletedAt: undefined }, me),
+					)
+					if (undoResult.ok) {
+						toast.success(t("toast.personRestored"))
+					} else {
+						toast.error(
+							typeof undoResult.error === "string"
+								? undoResult.error
+								: undoResult.error.message,
+						)
+					}
+				},
+			},
+		})
+	}
+
+	async function handleStopSharing() {
+		let personGroup = person.$jazz.owner
+		if (!(personGroup instanceof Group)) return
+
+		let result = await tryCatch(
+			Promise.resolve().then(() => {
+				if (!me.$isLoaded) throw new Error("User not loaded")
+
+				// Find the InviteGroup where the user is a member
+				for (let inviteGroup of personGroup.getParentGroups()) {
+					let member = inviteGroup.members.find(m => m.id === me.$jazz.id)
+					if (member) {
+						inviteGroup.removeMember(me)
+						return
+					}
+				}
+				throw new Error("Could not find membership")
+			}),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		setIsStopSharingDialogOpen(false)
+		navigate({ to: "/people" })
+		toast.success(t("person.leave.success", { name: person.name }))
+	}
 
 	return (
-		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-			<DropdownMenuContent>
-				{showShare && (
+		<>
+			<DropdownMenu open={open} onOpenChange={setOpen}>
+				<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+				<DropdownMenuContent>
+					{showShare && (
+						<DropdownMenuItem
+							disabled={!hasPlusAccess}
+							onClick={() => {
+								if (!hasPlusAccess) return
+								setOpen(false)
+								setIsShareDialogOpen(true)
+							}}
+						>
+							{hasPlusAccess ? (
+								<T k="person.share.button" />
+							) : (
+								<T k="person.share.requiresPlus" />
+							)}
+							<Share />
+						</DropdownMenuItem>
+					)}
 					<DropdownMenuItem
-						disabled={!hasPlusAccess}
 						onClick={() => {
-							if (!hasPlusAccess) return
 							setOpen(false)
-							onShare?.()
+							setIsManageListsDialogOpen(true)
 						}}
 					>
-						{hasPlusAccess ? (
-							<T k="person.share.button" />
-						) : (
-							<T k="person.share.requiresPlus" />
-						)}
-						<Share />
+						<T k="person.manageLists.title" />
+						<Collection />
 					</DropdownMenuItem>
-				)}
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onManageLists()
-					}}
+					<DropdownMenuItem
+						onClick={() => {
+							setOpen(false)
+							setIsEditDialogOpen(true)
+						}}
+					>
+						<T k="person.edit.title" />
+						<PencilSquare />
+					</DropdownMenuItem>
+					{isShared ? (
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => {
+								setOpen(false)
+								setIsStopSharingDialogOpen(true)
+							}}
+						>
+							<T k="person.leave.button" />
+							<BoxArrowRight />
+						</DropdownMenuItem>
+					) : (
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => {
+								setOpen(false)
+								setIsDeleteDialogOpen(true)
+							}}
+						>
+							<T k="person.delete.title" />
+							<Trash />
+						</DropdownMenuItem>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
+			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+				<DialogContent
+					titleSlot={
+						<DialogHeader>
+							<DialogTitle>
+								<T k="person.edit.title" />
+							</DialogTitle>
+							<DialogDescription>
+								<T k="person.edit.description" />
+							</DialogDescription>
+						</DialogHeader>
+					}
 				>
-					<T k="person.manageLists.title" />
-					<Collection />
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onEdit()
-					}}
-				>
-					<T k="person.edit.title" />
-					<PencilSquare />
-				</DropdownMenuItem>
-				{isShared ? (
-					<DropdownMenuItem
-						variant="destructive"
-						onClick={() => {
-							setOpen(false)
-							onStopSharing()
-						}}
-					>
-						<T k="person.leave.button" />
-						<BoxArrowRight />
-					</DropdownMenuItem>
-				) : (
-					<DropdownMenuItem
-						variant="destructive"
-						onClick={() => {
-							setOpen(false)
-							onDelete()
-						}}
-					>
-						<T k="person.delete.title" />
-						<Trash />
-					</DropdownMenuItem>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
+					<PersonForm person={person} onSave={handleFormSave} />
+				</DialogContent>
+			</Dialog>
+			<AlertDialog
+				open={isDeleteDialogOpen}
+				onOpenChange={setIsDeleteDialogOpen}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							<T k="person.delete.title" />
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete {person.name}? This will
+							permanently remove all their notes and reminders.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							<T k="common.cancel" />
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDeletePerson}>
+							<T k="person.delete.title" />
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+			<AlertDialog
+				open={isStopSharingDialogOpen}
+				onOpenChange={setIsStopSharingDialogOpen}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("person.leave.title", { name: person.name })}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t("person.leave.description", { name: person.name })}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							<T k="common.cancel" />
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={handleStopSharing}>
+							<T k="person.leave.confirm" />
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+			<ManageListsDialog
+				open={isManageListsDialogOpen}
+				onOpenChange={setIsManageListsDialogOpen}
+				personId={person.$jazz.id}
+				personName={person.name}
+				personSummary={person.summary}
+				allPeople={allPeople}
+			/>
+			<PersonShareDialog
+				open={isShareDialogOpen}
+				onOpenChange={setIsShareDialogOpen}
+				person={person}
+				hasPlusAccess={hasPlusAccess}
+			/>
+		</>
 	)
 }
 
@@ -637,6 +593,56 @@ function isPersonAdmin(person: co.loaded<typeof Person>): boolean {
 	let owner = person.$jazz.owner
 	if (!(owner instanceof Group)) return true // Account-owned = user is owner
 	return owner.myRole() === "admin"
+}
+
+type WithCreatedAt = {
+	createdAt?: Date | null
+	$jazz: { createdAt: number }
+}
+
+type WithUpdatedAt = {
+	createdAt?: Date | null
+	updatedAt?: Date | null
+	$jazz: { createdAt: number; lastUpdatedAt?: number }
+}
+
+function CreatedAtTimestamp({ value }: { value: WithCreatedAt }) {
+	let locale = useLocale()
+	let t = useIntl()
+	let date = value.createdAt || new Date(value.$jazz.createdAt)
+
+	return (
+		<>
+			{t("person.added.suffix", {
+				ago: formatDistanceToNow(date, {
+					addSuffix: true,
+					locale: locale === "de" ? dfnsDe : undefined,
+				}),
+			})}
+		</>
+	)
+}
+
+function UpdatedAtTimestamp({ value }: { value: WithUpdatedAt }) {
+	let locale = useLocale()
+	let t = useIntl()
+	let createdAt = value.createdAt || new Date(value.$jazz.createdAt)
+	let updatedAt =
+		value.updatedAt ||
+		(value.$jazz.lastUpdatedAt && new Date(value.$jazz.lastUpdatedAt))
+
+	if (!updatedAt || updatedAt.getTime() === createdAt.getTime()) return null
+
+	return (
+		<>
+			{t("person.updated.suffix", {
+				ago: formatDistanceToNow(updatedAt, {
+					addSuffix: true,
+					locale: locale === "de" ? dfnsDe : undefined,
+				}),
+			})}
+		</>
+	)
 }
 
 function SharedWithBadge({ collaborators }: { collaborators: Collaborator[] }) {
