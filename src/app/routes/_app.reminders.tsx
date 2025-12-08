@@ -49,6 +49,7 @@ let resolve = {
 			$each: {
 				avatar: true,
 				reminders: { $each: true },
+				$onError: "catch",
 			},
 		},
 	},
@@ -68,6 +69,8 @@ function Reminders() {
 
 	let allPeople = Array.from(
 		(data as RemindersLoadedAccount).root.people.values(),
+	).filter(
+		(p): p is Extract<typeof p, { $isLoaded: true }> => p?.$isLoaded === true,
 	)
 
 	let didSearch = !!searchQuery

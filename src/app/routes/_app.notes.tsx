@@ -43,6 +43,7 @@ let resolve = {
 			$each: {
 				notes: { $each: true },
 				reminders: { $each: true },
+				$onError: "catch",
 			},
 		},
 	},
@@ -59,7 +60,11 @@ function NotesScreen() {
 	let didSearch = !!searchQuery
 	let hasMatches = notes.active.length > 0 || notes.deleted.length > 0
 
-	let allPeople = Array.from((data as NotesLoadedAccount).root.people.values())
+	let allPeople = Array.from(
+		(data as NotesLoadedAccount).root.people.values(),
+	).filter(
+		(p): p is Extract<typeof p, { $isLoaded: true }> => p?.$isLoaded === true,
+	)
 
 	let virtualItems: VirtualItem[] = []
 

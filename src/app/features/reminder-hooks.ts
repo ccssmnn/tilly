@@ -22,7 +22,11 @@ export {
 let remindersResolve = {
 	root: {
 		people: {
-			$each: { reminders: { $each: true }, inactiveReminders: { $each: true } },
+			$each: {
+				reminders: { $each: true },
+				inactiveReminders: { $each: true },
+				$onError: "catch",
+			},
 		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
@@ -50,7 +54,11 @@ function useReminders(
 	})
 
 	let loadedAccount = account.$isLoaded ? account : defaultAccount
-	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
+	let people =
+		loadedAccount?.root.people.filter(
+			(p): p is Extract<typeof p, { $isLoaded: true }> =>
+				p?.$isLoaded === true && !isDeleted(p) && !isPermanentlyDeleted(p),
+		) ?? []
 
 	let allReminderPairs = []
 

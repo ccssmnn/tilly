@@ -21,7 +21,11 @@ export {
 let notesResolve = {
 	root: {
 		people: {
-			$each: { notes: { $each: true }, inactiveNotes: { $each: true } },
+			$each: {
+				notes: { $each: true },
+				inactiveNotes: { $each: true },
+				$onError: "catch",
+			},
 		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
@@ -85,7 +89,11 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	})
 
 	let loadedAccount = account.$isLoaded ? account : defaultAccount
-	let people = loadedAccount?.root.people.filter(p => !isDeleted(p)) ?? []
+	let people =
+		loadedAccount?.root.people.filter(
+			(p): p is Extract<typeof p, { $isLoaded: true }> =>
+				p?.$isLoaded === true && !isDeleted(p) && !isPermanentlyDeleted(p),
+		) ?? []
 
 	let allNotePairs = []
 
