@@ -50,8 +50,8 @@ function InviteScreen() {
 }
 
 function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
-	let { me } = Route.useRouteContext()
 	let account = useAccount(UserAccount, { resolve: { root: { people: true } } })
+	let isAuthenticated = useIsAuthenticated()
 	let navigate = Route.useNavigate()
 	let t = useIntl()
 	let [error, setError] = useState("")
@@ -60,11 +60,11 @@ function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
 
 	useEffect(() => {
 		async function acceptInvite() {
-			if (!me || !account.$isLoaded) return
+			if (!account.$isLoaded || !isAuthenticated) return
 
 			try {
 				// Accept the invite to join InviteGroup
-				await me.acceptInvite(
+				await account.acceptInvite(
 					inviteData.inviteGroupId as ID<Group>,
 					inviteData.inviteSecret as `inviteSecret_z${string}`,
 					Group,
@@ -106,8 +106,7 @@ function AcceptInviteHandler({ inviteData }: { inviteData: InviteData }) {
 		}
 
 		acceptInvite()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [me, account.$isLoaded, inviteData, navigate, t])
+	}, [account.$isLoaded, isAuthenticated, inviteData, navigate, t, account])
 
 	if (isRevoked) {
 		return <RevokedInviteState />

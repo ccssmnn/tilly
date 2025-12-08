@@ -93,7 +93,9 @@ function PersonShareDialogContent({
 	let [isCopied, setIsCopied] = useState(false)
 	let [inviteGroups, setInviteGroups] = useState<InviteGroupWithMembers[]>([])
 	let [isLoadingCollaborators, setIsLoadingCollaborators] = useState(true)
-	let [removingGroupId, setRemovingGroupId] = useState<string | null>(null)
+	let [removingCollaboratorId, setRemovingCollaboratorId] = useState<
+		string | null
+	>(null)
 	let [confirmRemoveGroup, setConfirmRemoveGroup] =
 		useState<InviteGroupWithMembers | null>(null)
 	let [refreshKey, setRefreshKey] = useState(0)
@@ -158,20 +160,21 @@ function PersonShareDialogContent({
 		}
 	}
 
-	function handleRemoveClick(group: InviteGroupWithMembers) {
-		// If only one member, show confirmation with that member
-		// If multiple members, show confirmation listing all
+	function handleRemoveClick(
+		collaboratorId: string,
+		group: InviteGroupWithMembers,
+	) {
+		setRemovingCollaboratorId(collaboratorId)
 		setConfirmRemoveGroup(group)
 	}
 
 	function handleConfirmRemove() {
 		if (!confirmRemoveGroup) return
 
-		setRemovingGroupId(confirmRemoveGroup.groupId)
 		let result = tryCatch(() =>
 			removeInviteGroup(person, confirmRemoveGroup.groupId as ID<Group>),
 		)
-		setRemovingGroupId(null)
+		setRemovingCollaboratorId(null)
 		setConfirmRemoveGroup(null)
 
 		if (!result.ok) {
@@ -272,8 +275,8 @@ function PersonShareDialogContent({
 							</p>
 						) : (
 							<ul className="space-y-2">
-								{inviteGroups.map(group =>
-									group.members.map((collaborator, idx) => (
+								{inviteGroups.flatMap(group =>
+									group.members.map(collaborator => (
 										<li
 											key={collaborator.id}
 											className="flex items-center justify-between gap-2"
@@ -282,12 +285,14 @@ function PersonShareDialogContent({
 												<PersonFill className="text-muted-foreground h-4 w-4" />
 												<span className="text-sm">{collaborator.name}</span>
 											</div>
-											{isAdmin && idx === 0 && (
+											{isAdmin && (
 												<Button
 													variant="ghost"
 													size="sm"
-													onClick={() => handleRemoveClick(group)}
-													disabled={removingGroupId === group.groupId}
+													onClick={() =>
+														handleRemoveClick(collaborator.id, group)
+													}
+													disabled={removingCollaboratorId === collaborator.id}
 												>
 													<X className="h-4 w-4" />
 													<T k="person.share.collaborators.remove" />
