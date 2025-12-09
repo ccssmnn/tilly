@@ -54,6 +54,7 @@ import { Link } from "@tanstack/react-router"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Button } from "#shared/ui/button"
 import { motion, AnimatePresence } from "motion/react"
+import { SharedIndicator } from "#app/features/person-shared-indicator"
 export { NoteListItem }
 
 let CHAR_LIMIT = 280
@@ -175,6 +176,7 @@ function NoteListItem(props: {
 						{showPerson && hasDueReminders && (
 							<div className="bg-primary size-2 rounded-full" />
 						)}
+						{showPerson && <SharedIndicator item={props.note} />}
 						<Pinned pinned={props.note.pinned} />
 						<div className="flex-1" />
 						<TimeStamp record={props.note} />

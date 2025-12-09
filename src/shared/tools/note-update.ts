@@ -4,11 +4,6 @@ import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type Loaded } from "jazz-tools"
 import { tryCatch } from "#shared/lib/trycatch"
 import { createImage } from "jazz-tools/media"
-import {
-	moveToActive,
-	moveToInactive,
-	removeFromInactive,
-} from "#shared/lib/jazz-list-utils"
 
 export { createEditNoteTool, createDeleteNoteTool, updateNote }
 
@@ -31,12 +26,16 @@ async function updateNote(
 	},
 ): Promise<NoteUpdated> {
 	let person = await Person.load(options.personId, {
+		resolve: { notes: true, inactiveNotes: true },
 		loadAs: options.worker,
 	})
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	if (!person.inactiveNotes) {
-		person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+		person.$jazz.set(
+			"inactiveNotes",
+			co.list(Note).create([], person.$jazz.owner),
+		)
 	}
 
 	let note = await Note.load(options.noteId, {
@@ -120,12 +119,30 @@ async function updateNote(
 
 	if ("deletedAt" in updates && updates.deletedAt === undefined) {
 		note.$jazz.delete("deletedAt")
-		moveToActive(person.notes, person.inactiveNotes, options.noteId)
+		// Move to active
+		if (person.inactiveNotes?.$isLoaded) {
+			let inactiveIdx = Array.from(person.inactiveNotes.values()).findIndex(
+				n => n?.$jazz.id === options.noteId,
+			)
+			if (inactiveIdx !== -1) {
+				person.notes.$jazz.push(note)
+				person.inactiveNotes.$jazz.splice(inactiveIdx, 1)
+			}
+		}
 	}
 
 	if (updates.deletedAt !== undefined) {
 		note.$jazz.set("deletedAt", new Date(updates.deletedAt))
-		moveToInactive(person.notes, person.inactiveNotes, options.noteId)
+		// Move to inactive
+		if (person.inactiveNotes?.$isLoaded) {
+			let activeIdx = Array.from(person.notes.values()).findIndex(
+				n => n?.$jazz.id === options.noteId,
+			)
+			if (activeIdx !== -1) {
+				person.inactiveNotes.$jazz.push(note)
+				person.notes.$jazz.splice(activeIdx, 1)
+			}
+		}
 	}
 
 	if (updates.permanentlyDeletedAt !== undefined) {
@@ -133,7 +150,15 @@ async function updateNote(
 			"permanentlyDeletedAt",
 			new Date(updates.permanentlyDeletedAt),
 		)
-		removeFromInactive(person.inactiveNotes, options.noteId)
+		// Remove from inactive
+		if (person.inactiveNotes?.$isLoaded) {
+			let inactiveIdx = Array.from(person.inactiveNotes.values()).findIndex(
+				n => n?.$jazz.id === options.noteId,
+			)
+			if (inactiveIdx !== -1) {
+				person.inactiveNotes.$jazz.splice(inactiveIdx, 1)
+			}
+		}
 	}
 
 	note.$jazz.set("updatedAt", new Date())

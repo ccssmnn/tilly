@@ -39,7 +39,7 @@ import { type TillyUIMessage } from "#shared/tools/tools"
 import { MessageRenderer } from "#app/features/assistant-message-components"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import { T, useIntl } from "#shared/intl/setup"
-import { useAssistantAccess } from "#app/features/plus"
+import { useHasPlusAccess } from "#app/features/plus"
 import { useStarterPrompts } from "#app/features/personalized-prompts"
 import { nanoid } from "nanoid"
 
@@ -70,9 +70,9 @@ let resolve = {
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 function AssistantScreen() {
-	let access = useAssistantAccess()
+	let { hasPlusAccess, isLoading } = useHasPlusAccess()
 
-	if (access.status === "loading") {
+	if (isLoading) {
 		return (
 			<AssistantLayout hideTitle>
 				<AssistantLoading />
@@ -80,16 +80,13 @@ function AssistantScreen() {
 		)
 	}
 
-	if (access.status === "denied") {
+	if (!hasPlusAccess) {
 		return (
 			<AssistantLayout hideTitle>
 				<SubscribePrompt />
 			</AssistantLayout>
 		)
 	}
-
-	// just to be sure :)
-	access.status satisfies "granted"
 
 	return <AuthenticatedChat />
 }

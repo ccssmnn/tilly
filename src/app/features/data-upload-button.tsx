@@ -25,7 +25,7 @@ import { toast } from "sonner"
 import { createImage } from "jazz-tools/media"
 import { cn } from "#app/lib/utils"
 import { Person, Note, UserAccount, Reminder } from "#shared/schema/user"
-import { co } from "jazz-tools"
+import { co, Group } from "jazz-tools"
 import { FileDataSchema, type FileData } from "./data-file-schema"
 import { T, useIntl } from "#shared/intl/setup"
 
@@ -81,17 +81,21 @@ export function UploadButton({ userID }: { userID: string }) {
 
 		for (let personData of jsonData.people) {
 			try {
-				let person = Person.create({
-					version: 1,
-					name: personData.name,
-					summary: personData.summary,
-					notes: co.list(Note).create([]),
-					reminders: co.list(Reminder).create([]),
-					deletedAt: personData.deletedAt,
-					permanentlyDeletedAt: personData.permanentlyDeletedAt,
-					createdAt: personData.createdAt ?? new Date(),
-					updatedAt: personData.updatedAt ?? new Date(),
-				})
+				let group = Group.create()
+				let person = Person.create(
+					{
+						version: 1,
+						name: personData.name,
+						summary: personData.summary,
+						notes: co.list(Note).create([], group),
+						reminders: co.list(Reminder).create([], group),
+						deletedAt: personData.deletedAt,
+						permanentlyDeletedAt: personData.permanentlyDeletedAt,
+						createdAt: personData.createdAt ?? new Date(),
+						updatedAt: personData.updatedAt ?? new Date(),
+					},
+					group,
+				)
 				if (personData.createdAt)
 					person.$jazz.set("createdAt", personData.createdAt)
 				if (personData.updatedAt)
@@ -122,15 +126,18 @@ export function UploadButton({ userID }: { userID: string }) {
 
 				if (personData.notes) {
 					for (let noteData of personData.notes) {
-						let note = Note.create({
-							version: 1,
-							content: noteData.content,
-							pinned: noteData.pinned || false,
-							deletedAt: noteData.deletedAt,
-							permanentlyDeletedAt: noteData.permanentlyDeletedAt,
-							createdAt: noteData.createdAt ?? new Date(),
-							updatedAt: noteData.updatedAt ?? new Date(),
-						})
+						let note = Note.create(
+							{
+								version: 1,
+								content: noteData.content,
+								pinned: noteData.pinned || false,
+								deletedAt: noteData.deletedAt,
+								permanentlyDeletedAt: noteData.permanentlyDeletedAt,
+								createdAt: noteData.createdAt ?? new Date(),
+								updatedAt: noteData.updatedAt ?? new Date(),
+							},
+							group,
+						)
 						if (noteData.createdAt)
 							note.$jazz.set("createdAt", noteData.createdAt)
 						if (noteData.updatedAt)
@@ -138,7 +145,7 @@ export function UploadButton({ userID }: { userID: string }) {
 
 						// Handle note images
 						if (noteData.images) {
-							let imageList = co.list(co.image()).create([])
+							let imageList = co.list(co.image()).create([], group)
 							for (let imageData of noteData.images) {
 								if (imageData?.dataURL) {
 									try {
@@ -170,17 +177,20 @@ export function UploadButton({ userID }: { userID: string }) {
 
 				if (personData.reminders) {
 					for (let reminderData of personData.reminders) {
-						let reminder = Reminder.create({
-							version: 1,
-							text: reminderData.text,
-							dueAtDate: reminderData.dueAtDate,
-							repeat: reminderData.repeat,
-							done: reminderData.done || false,
-							deletedAt: reminderData.deletedAt,
-							permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
-							createdAt: reminderData.createdAt ?? new Date(),
-							updatedAt: reminderData.updatedAt ?? new Date(),
-						})
+						let reminder = Reminder.create(
+							{
+								version: 1,
+								text: reminderData.text,
+								dueAtDate: reminderData.dueAtDate,
+								repeat: reminderData.repeat,
+								done: reminderData.done || false,
+								deletedAt: reminderData.deletedAt,
+								permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
+								createdAt: reminderData.createdAt ?? new Date(),
+								updatedAt: reminderData.updatedAt ?? new Date(),
+							},
+							group,
+						)
 						if (reminderData.createdAt)
 							reminder.$jazz.set("createdAt", reminderData.createdAt)
 						if (reminderData.updatedAt)
@@ -210,7 +220,6 @@ export function UploadButton({ userID }: { userID: string }) {
 				</Button>
 			</DialogTrigger>
 			<DialogContent
-				className="sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
 						<DialogTitle>

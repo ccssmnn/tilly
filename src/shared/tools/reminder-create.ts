@@ -31,15 +31,18 @@ async function createReminder(
 
 	let now = new Date()
 
-	let reminder = Reminder.create({
-		version: 1,
-		text: data.text,
-		dueAtDate: data.dueAtDate,
-		repeat: data.repeat,
-		done: false,
-		createdAt: now,
-		updatedAt: now,
-	})
+	let reminder = Reminder.create(
+		{
+			version: 1,
+			text: data.text,
+			dueAtDate: data.dueAtDate,
+			repeat: data.repeat,
+			done: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		person.$jazz.owner,
+	)
 
 	person.reminders.$jazz.push(reminder)
 	person.$jazz.set("updatedAt", new Date())

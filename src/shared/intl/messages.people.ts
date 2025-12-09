@@ -119,6 +119,60 @@ const basePeopleMessages = messages({
 	"person.listFilter.clearFilter": "Clear Filter",
 	"person.listFilter.editTooltip": "Right-click or long press to edit",
 	"person.listFilter.createTooltip": "Create new list",
+
+	// Share dialog
+	"person.share.button": "Share",
+	"person.share.dialog.title": "Share {$name}",
+	"person.share.dialog.description":
+		"Invite others to collaborate on this person's notes and reminders.",
+	"person.share.inviteLink.label": "Invite link",
+	"person.share.inviteLink.generate": "Generate invite link",
+	"person.share.inviteLink.copy": "Copy link",
+	"person.share.inviteLink.share": "Share link",
+	"person.share.inviteLink.copied": "Copied!",
+	"person.share.collaborators.title": "Collaborators",
+	"person.share.collaborators.remove": "Remove",
+	"person.share.collaborators.empty": "No collaborators yet",
+	"person.share.requiresPlus": "Sharing requires Plus",
+	"person.share.remove.title": "Remove access?",
+	"person.share.remove.description":
+		"The following people will lose access because they joined via the same invite link:",
+	"person.share.remove.confirm": "Remove access",
+	"person.share.remove.success": "Access removed",
+	"person.share.pending.title": "Pending invites",
+	"person.share.pending.empty": "No pending invites",
+	"person.share.pending.createdAt": "Created {$ago}",
+	"person.share.pending.cancel": "Cancel",
+	"person.share.pending.cancelSuccess": "Invite cancelled",
+	"person.shared.badge": "Shared",
+	"person.shared.indicator.tooltip": "Shared with you",
+	"person.shared.indicator.owner.tooltip": "Shared with others",
+	"person.shared.indicator.badge": "Shared",
+	"person.shared.indicator.owner.badge": "Sharing",
+	"person.shared.sharedBy": "Shared by {$name}",
+	"person.shared.sharedWith": "Shared with {$name}",
+	"person.shared.sharedWithCount":
+		".input {$count :number} .match $count one {{Shared with {$count} person}} * {{Shared with {$count} people}}",
+
+	// Leave shared person
+	"person.leave.button": "Leave",
+	"person.leave.title": "Leave {$name}?",
+	"person.leave.description":
+		"You will lose access to {$name} and all their notes and reminders.",
+	"person.leave.confirm": "Leave",
+	"person.leave.success": "You left {$name}",
+
+	// Person access states
+	"person.notFound.title": "Person Not Found",
+	"person.notFound.description":
+		"This person doesn't exist or may have been deleted.",
+	"person.notFound.goBack": "Go Back",
+	"person.notFound.goToPeople": "Go to People",
+	"person.unauthorized.title": "Access Revoked",
+	"person.unauthorized.description":
+		"You no longer have access to this person. The owner may have removed you.",
+	"person.unauthorized.goBack": "Go Back",
+	"person.unauthorized.goToPeople": "Go to People",
 })
 
 const dePeopleMessages = translate(basePeopleMessages, {
@@ -245,4 +299,58 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"person.listFilter.editTooltip":
 		"Klick mit der rechten Maustaste oder langer Druck zum Bearbeiten",
 	"person.listFilter.createTooltip": "Neue Liste erstellen",
+
+	// Share dialog
+	"person.share.button": "Teilen",
+	"person.share.dialog.title": "{$name} teilen",
+	"person.share.dialog.description":
+		"Lade andere ein, an Notizen und Erinnerungen dieser Person mitzuarbeiten.",
+	"person.share.inviteLink.label": "Einladungslink",
+	"person.share.inviteLink.generate": "Einladungslink erstellen",
+	"person.share.inviteLink.copy": "Link kopieren",
+	"person.share.inviteLink.share": "Link teilen",
+	"person.share.inviteLink.copied": "Kopiert!",
+	"person.share.collaborators.title": "Mitarbeiter",
+	"person.share.collaborators.remove": "Entfernen",
+	"person.share.collaborators.empty": "Noch keine Mitarbeiter",
+	"person.share.requiresPlus": "Teilen erfordert Plus",
+	"person.share.remove.title": "Zugriff entziehen?",
+	"person.share.remove.description":
+		"Die folgenden Personen verlieren den Zugriff, da sie über denselben Einladungslink beigetreten sind:",
+	"person.share.remove.confirm": "Zugriff entziehen",
+	"person.share.remove.success": "Zugriff entzogen",
+	"person.share.pending.title": "Ausstehende Einladungen",
+	"person.share.pending.empty": "Keine ausstehenden Einladungen",
+	"person.share.pending.createdAt": "Erstellt {$ago}",
+	"person.share.pending.cancel": "Abbrechen",
+	"person.share.pending.cancelSuccess": "Einladung abgebrochen",
+	"person.shared.badge": "Geteilt",
+	"person.shared.indicator.tooltip": "Mit dir geteilt",
+	"person.shared.indicator.owner.tooltip": "Mit anderen geteilt",
+	"person.shared.indicator.badge": "Geteilt",
+	"person.shared.indicator.owner.badge": "Teile",
+	"person.shared.sharedBy": "Geteilt von {$name}",
+	"person.shared.sharedWith": "Geteilt mit {$name}",
+	"person.shared.sharedWithCount":
+		".input {$count :number} .match $count one {{Geteilt mit {$count} Person}} * {{Geteilt mit {$count} Personen}}",
+
+	// Leave shared person
+	"person.leave.button": "Verlassen",
+	"person.leave.title": "{$name} verlassen?",
+	"person.leave.description":
+		"Du verlierst den Zugriff auf {$name} und alle zugehörigen Notizen und Erinnerungen.",
+	"person.leave.confirm": "Verlassen",
+	"person.leave.success": "Du hast {$name} verlassen",
+
+	// Person access states
+	"person.notFound.title": "Person nicht gefunden",
+	"person.notFound.description":
+		"Diese Person existiert nicht oder wurde gelöscht.",
+	"person.notFound.goBack": "Zurück",
+	"person.notFound.goToPeople": "Zu Personen",
+	"person.unauthorized.title": "Zugriff entzogen",
+	"person.unauthorized.description":
+		"Du hast keinen Zugriff mehr auf diese Person. Der Besitzer hat dich möglicherweise entfernt.",
+	"person.unauthorized.goBack": "Zurück",
+	"person.unauthorized.goToPeople": "Zu Personen",
 })

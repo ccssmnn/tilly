@@ -1,6 +1,5 @@
 import { Group, co, z, type ResolveQuery } from "jazz-tools"
 import { isBefore, isToday } from "date-fns"
-import { cleanupInactiveLists } from "#shared/lib/jazz-list-utils"
 
 export {
 	isDeleted,
@@ -203,21 +202,18 @@ async function runMigrationV1(
 	for (let person of root.people.values()) {
 		if (!person) continue
 		if (!person.inactiveReminders) {
-			person.$jazz.set("inactiveReminders", co.list(Reminder).create([]))
+			person.$jazz.set(
+				"inactiveReminders",
+				co.list(Reminder).create([], person.$jazz.owner),
+			)
 		}
 		if (!person.inactiveNotes) {
-			person.$jazz.set("inactiveNotes", co.list(Note).create([]))
+			person.$jazz.set(
+				"inactiveNotes",
+				co.list(Note).create([], person.$jazz.owner),
+			)
 		}
 	}
-
-	// Re-load with inactive lists now initialized
-	let { root: loadedRoot } = await account.$jazz.ensureLoaded({
-		resolve: {
-			root: migrationResolveQuery,
-		},
-	})
-
-	cleanupInactiveLists(loadedRoot.people, loadedRoot.inactivePeople)
 }
 
 function isDeleted(item: {

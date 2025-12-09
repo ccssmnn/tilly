@@ -1,4 +1,5 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
+import { Group, co } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Button } from "#shared/ui/button"
 import {
@@ -24,13 +25,24 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
+import { Badge } from "#shared/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Person, UserAccount, isDeleted } from "#shared/schema/user"
 import { extractHashtags } from "#app/features/list-utilities"
-import { co } from "jazz-tools"
-import { Collection, PencilSquare, Trash, Plus, X } from "react-bootstrap-icons"
+import {
+	Collection,
+	PencilSquare,
+	Trash,
+	Plus,
+	X,
+	Share,
+	BoxArrowRight,
+} from "react-bootstrap-icons"
 import { PersonForm } from "./person-form"
 import { NewListDialog } from "./new-list-dialog"
-import { useState } from "react"
+import { PersonShareDialog } from "./person-share-dialog"
+import { useHasPlusAccess } from "./plus"
+import { useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
@@ -39,6 +51,11 @@ import { isTextSelectionOngoing } from "#app/lib/utils"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
+
+import {
+	useCollaborators,
+	type Collaborator,
+} from "#app/hooks/use-collaborators"
 import type { ReactNode } from "react"
 
 export { PersonDetails }
@@ -50,12 +67,261 @@ function PersonDetails({
 	person: co.loaded<typeof Person, Query>
 	me: co.loaded<typeof UserAccount>
 }) {
+	let t = useIntl()
+	let isAdmin = isPersonAdmin(person)
+	let isShared = !isAdmin
+	let [ownerName, setOwnerName] = useState<string | null>(null)
+	let { collaborators: allCollaborators } = useCollaborators(person)
+	let collaborators = allCollaborators.filter(c => c.role !== "admin")
+
+	useEffect(() => {
+		if (!isShared) return
+		getPersonOwnerName(person).then(setOwnerName)
+	}, [person, isShared])
+
+	return (
+		<>
+			<div className="flex flex-col items-center gap-6 md:flex-row">
+				<ActionsDropdown person={person} me={me}>
+					<Avatar
+						className="size-48 cursor-pointer"
+						onClick={e => {
+							if (isTextSelectionOngoing()) {
+								e.preventDefault()
+								return
+							}
+						}}
+					>
+						{person.avatar ? (
+							<JazzImage
+								imageId={person.avatar.$jazz.id}
+								alt={person.name}
+								width={192}
+								data-slot="avatar-image"
+								className="aspect-square size-full object-cover shadow-inner"
+							/>
+						) : (
+							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+						)}
+					</Avatar>
+				</ActionsDropdown>
+				<div className="w-full flex-1 md:w-auto">
+					<div className="flex items-center justify-between gap-3">
+						<h1 className="text-3xl font-bold select-text">{person.name}</h1>
+						<ActionsDropdown person={person} me={me}>
+							<Button variant="secondary" size="sm">
+								<T k="person.actions.title" />
+							</Button>
+						</ActionsDropdown>
+					</div>
+					{person.summary && (
+						<p className="text-muted-foreground my-3 select-text">
+							{person.summary.split(/(#[a-zA-Z0-9_]+)/).map((part, i) =>
+								part.startsWith("#") ? (
+									<span key={i} className="text-primary font-bold">
+										{part}
+									</span>
+								) : (
+									part
+								),
+							)}
+						</p>
+					)}
+
+					{isShared && ownerName && (
+						<Badge variant="secondary" className="mb-2">
+							{t("person.shared.sharedBy", { name: ownerName })}
+						</Badge>
+					)}
+					{isAdmin && collaborators.length > 0 && (
+						<SharedWithBadge collaborators={collaborators} />
+					)}
+					<p className="text-muted-foreground space-y-1 text-sm select-text">
+						<CreatedAtTimestamp value={person} />
+						<UpdatedAtTimestamp value={person} />
+					</p>
+				</div>
+			</div>
+		</>
+	)
+}
+
+type Query = {
+	avatar: true
+	notes: { $each: true }
+	reminders: { $each: true }
+}
+
+function ManageListsDialog({
+	open,
+	onOpenChange,
+	personId,
+	personName,
+	personSummary,
+	allPeople,
+}: {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	personId: string
+	personName: string
+	personSummary?: string
+	allPeople: Array<{
+		$jazz: { id: string }
+		name: string
+		summary?: string
+	}>
+}) {
+	let [isLoading, setIsLoading] = useState(false)
+	let [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false)
+	let me = useAccount(UserAccount)
+	let t = useIntl()
+
+	let existingLists = Array.from(
+		new Set(
+			allPeople
+				.flatMap(p => extractHashtags(p.summary))
+				.map(tag => tag.substring(1)),
+		),
+	).sort()
+
+	let personLists = extractHashtags(personSummary).map(tag => tag.substring(1))
+
+	async function handleAddToList(listName: string) {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${listName.toLowerCase()}`
+			let currentSummary = personSummary || ""
+			let newSummary = `${currentSummary} ${hashtag}`.trim()
+
+			await updatePerson(personId, { summary: newSummary }, me)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	async function handleRemoveFromList(listName: string) {
+		if (!me.$isLoaded) return
+
+		setIsLoading(true)
+		try {
+			let hashtag = `#${listName.toLowerCase()}`
+			let currentSummary = personSummary || ""
+			let newSummary = currentSummary
+				.split(/\s+/)
+				.filter((word: string) => word !== hashtag)
+				.join(" ")
+				.trim()
+
+			await updatePerson(personId, { summary: newSummary }, me)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	function handleListCreated(hashtag: string) {
+		setIsNewListDialogOpen(false)
+		toast.success(t("person.manageLists.toast.created", { listName: hashtag }))
+	}
+
+	return (
+		<>
+			<Dialog open={open} onOpenChange={onOpenChange}>
+				<DialogContent
+					titleSlot={
+						<DialogHeader>
+							<DialogTitle>
+								<T k="person.manageLists.title" />
+							</DialogTitle>
+							<DialogDescription>
+								{t("person.manageLists.description", { name: personName })}
+							</DialogDescription>
+						</DialogHeader>
+					}
+				>
+					<div className="space-y-4">
+						{existingLists.length > 0 && (
+							<ul className="space-y-2">
+								{existingLists.map(listName => {
+									let isInList = personLists.includes(listName)
+									return (
+										<li
+											key={listName}
+											className="flex items-center justify-between gap-2"
+										>
+											<span className="text-sm">#{listName}</span>
+											<Button
+												size="sm"
+												variant={isInList ? "destructive" : "default"}
+												onClick={() => {
+													if (isInList) {
+														handleRemoveFromList(listName)
+													} else {
+														handleAddToList(listName)
+													}
+												}}
+												disabled={isLoading}
+											>
+												{isInList ? (
+													<>
+														<X className="mr-1 h-3 w-3" />
+														Remove
+													</>
+												) : (
+													<>
+														<Plus className="mr-1 h-3 w-3" />
+														<T k="common.add" />
+													</>
+												)}
+											</Button>
+										</li>
+									)
+								})}
+							</ul>
+						)}
+						<Button
+							onClick={() => setIsNewListDialogOpen(true)}
+							disabled={isLoading}
+							className="w-full"
+						>
+							<T k="person.manageLists.createList" />
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+			<NewListDialog
+				open={isNewListDialogOpen}
+				onOpenChange={setIsNewListDialogOpen}
+				people={allPeople}
+				onListCreated={handleListCreated}
+				defaultSelectedPeople={new Set([personId])}
+			/>
+		</>
+	)
+}
+
+function ActionsDropdown({
+	children,
+	person,
+	me,
+}: {
+	children: ReactNode
+	person: co.loaded<typeof Person, Query>
+	me: co.loaded<typeof UserAccount>
+}) {
 	let navigate = useNavigate()
-	let locale = useLocale()
 	let t = useIntl()
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
 	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
+	let [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+
+	let { hasPlusAccess, isLoading: isPlusLoading } = useHasPlusAccess()
+	let isAdmin = isPersonAdmin(person)
+	let isShared = !isAdmin
+	let showShare = isAdmin && !isPlusLoading
 
 	let allPeople = useAccount(UserAccount, {
 		resolve: { root: { people: { $each: true } } },
@@ -144,95 +410,71 @@ function PersonDetails({
 		})
 	}
 
+	async function handleStopSharing() {
+		let personGroup = person.$jazz.owner
+		if (!(personGroup instanceof Group)) return
+
+		let result = tryCatch(() => {
+			if (!me.$isLoaded) throw new Error("User not loaded")
+
+			for (let inviteGroup of personGroup.getParentGroups()) {
+				let member = inviteGroup.members.find(m => m.id === me.$jazz.id)
+				if (!member) continue
+				inviteGroup.removeMember(me)
+				return
+			}
+			throw new Error("Could not find membership")
+		})
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		setIsStopSharingDialogOpen(false)
+		navigate({ to: "/people" })
+		toast.success(t("person.leave.success", { name: person.name }))
+	}
+
 	return (
 		<>
-			<div className="flex flex-col items-center gap-6 md:flex-row">
-				<ActionsDropdown
-					onEdit={() => setIsEditDialogOpen(true)}
-					onDelete={() => setIsDeleteDialogOpen(true)}
-					onManageLists={() => setIsManageListsDialogOpen(true)}
-				>
-					<Avatar
-						className="size-48 cursor-pointer"
-						onClick={e => {
-							if (isTextSelectionOngoing()) {
-								e.preventDefault()
-								return
-							}
-						}}
-					>
-						{person.avatar ? (
-							<JazzImage
-								imageId={person.avatar.$jazz.id}
-								alt={person.name}
-								width={192}
-								data-slot="avatar-image"
-								className="aspect-square size-full object-cover shadow-inner"
-							/>
-						) : (
-							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-						)}
-					</Avatar>
-				</ActionsDropdown>
-				<div className="w-full flex-1 md:w-auto">
-					<div className="flex items-center justify-between gap-3">
-						<h1 className="text-3xl font-bold select-text">{person.name}</h1>
-						<ActionsDropdown
-							onEdit={() => setIsEditDialogOpen(true)}
-							onDelete={() => setIsDeleteDialogOpen(true)}
-							onManageLists={() => setIsManageListsDialogOpen(true)}
-						>
-							<Button variant="secondary" size="sm">
-								<T k="person.actions.title" />
-							</Button>
-						</ActionsDropdown>
-					</div>
-
-					{person.summary && (
-						<p className="text-muted-foreground my-3 select-text">
-							{person.summary.split(/(#[a-zA-Z0-9_]+)/).map((part, i) =>
-								part.startsWith("#") ? (
-									<span key={i} className="text-primary font-bold">
-										{part}
-									</span>
-								) : (
-									part
-								),
-							)}
-						</p>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+				<DropdownMenuContent>
+					{showShare && (
+						<DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
+							<T k="person.share.button" />
+							<Share />
+						</DropdownMenuItem>
 					)}
-
-					<p className="text-muted-foreground space-y-1 text-sm select-text">
-						{t("person.added.suffix", {
-							ago: formatDistanceToNow(
-								person.createdAt || new Date(person.$jazz.createdAt),
-								{
-									addSuffix: true,
-									locale: locale === "de" ? dfnsDe : undefined,
-								},
-							),
-						})}
-						{(person.updatedAt ||
-							(person.$jazz.lastUpdatedAt &&
-								new Date(person.$jazz.lastUpdatedAt))) &&
-							(
-								person.updatedAt || new Date(person.$jazz.lastUpdatedAt)
-							).getTime() !==
-								(
-									person.createdAt || new Date(person.$jazz.createdAt)
-								).getTime() &&
-							t("person.updated.suffix", {
-								ago: formatDistanceToNow(
-									person.updatedAt || new Date(person.$jazz.lastUpdatedAt),
-									{
-										addSuffix: true,
-										locale: locale === "de" ? dfnsDe : undefined,
-									},
-								),
-							})}
-					</p>
-				</div>
-			</div>
+					<DropdownMenuItem onClick={() => setIsManageListsDialogOpen(true)}>
+						<T k="person.manageLists.title" />
+						<Collection />
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+						<T k="person.edit.title" />
+						<PencilSquare />
+					</DropdownMenuItem>
+					{isShared ? (
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => setIsStopSharingDialogOpen(true)}
+						>
+							<T k="person.leave.button" />
+							<BoxArrowRight />
+						</DropdownMenuItem>
+					) : (
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => setIsDeleteDialogOpen(true)}
+						>
+							<T k="person.delete.title" />
+							<Trash />
+						</DropdownMenuItem>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
 			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<DialogContent
 					titleSlot={
@@ -273,6 +515,29 @@ function PersonDetails({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+			<AlertDialog
+				open={isStopSharingDialogOpen}
+				onOpenChange={setIsStopSharingDialogOpen}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("person.leave.title", { name: person.name })}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t("person.leave.description", { name: person.name })}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							<T k="common.cancel" />
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={handleStopSharing}>
+							<T k="person.leave.confirm" />
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<ManageListsDialog
 				open={isManageListsDialogOpen}
 				onOpenChange={setIsManageListsDialogOpen}
@@ -281,212 +546,109 @@ function PersonDetails({
 				personSummary={person.summary}
 				allPeople={allPeople}
 			/>
-		</>
-	)
-}
-
-type Query = {
-	avatar: true
-	notes: { $each: true }
-	reminders: { $each: true }
-}
-
-function ManageListsDialog({
-	open,
-	onOpenChange,
-	personId,
-	personName,
-	personSummary,
-	allPeople,
-}: {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	personId: string
-	personName: string
-	personSummary?: string
-	allPeople: Array<{
-		$jazz: { id: string }
-		name: string
-		summary?: string
-	}>
-}) {
-	let [isLoading, setIsLoading] = useState(false)
-	let [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false)
-	let me = useAccount(UserAccount)
-	let t = useIntl()
-
-	let existingLists = Array.from(
-		new Set(
-			allPeople
-				.flatMap(p => extractHashtags(p.summary))
-				.map(tag => tag.substring(1)),
-		),
-	).sort()
-
-	let personLists = extractHashtags(personSummary).map(tag => tag.substring(1))
-
-	async function handleAddToList(listName: string) {
-		if (!me.$isLoaded) return
-
-		setIsLoading(true)
-		try {
-			let hashtag = `#${listName.toLowerCase()}`
-			let currentSummary = personSummary || ""
-			let newSummary = `${currentSummary} ${hashtag}`.trim()
-
-			await updatePerson(personId, { summary: newSummary }, me)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	async function handleRemoveFromList(listName: string) {
-		if (!me.$isLoaded) return
-
-		setIsLoading(true)
-		try {
-			let hashtag = `#${listName.toLowerCase()}`
-			let currentSummary = personSummary || ""
-			let newSummary = currentSummary
-				.split(/\s+/)
-				.filter((word: string) => word !== hashtag)
-				.join(" ")
-				.trim()
-
-			await updatePerson(personId, { summary: newSummary }, me)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	function handleListCreated(hashtag: string) {
-		setIsNewListDialogOpen(false)
-		toast.success(t("person.manageLists.toast.created", { listName: hashtag }))
-	}
-
-	return (
-		<>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent
-					className="sm:max-w-md"
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="person.manageLists.title" />
-							</DialogTitle>
-							<DialogDescription>
-								{t("person.manageLists.description", { name: personName })}
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
-					<div className="space-y-4">
-						{existingLists.length > 0 && (
-							<ul className="space-y-2">
-								{existingLists.map(listName => {
-									let isInList = personLists.includes(listName)
-									return (
-										<li
-											key={listName}
-											className="flex items-center justify-between gap-2"
-										>
-											<span className="text-sm">#{listName}</span>
-											<Button
-												size="sm"
-												variant={isInList ? "destructive" : "default"}
-												onClick={() => {
-													if (isInList) {
-														handleRemoveFromList(listName)
-													} else {
-														handleAddToList(listName)
-													}
-												}}
-												disabled={isLoading}
-											>
-												{isInList ? (
-													<>
-														<X className="mr-1 h-3 w-3" />
-														Remove
-													</>
-												) : (
-													<>
-														<Plus className="mr-1 h-3 w-3" />
-														<T k="common.add" />
-													</>
-												)}
-											</Button>
-										</li>
-									)
-								})}
-							</ul>
-						)}
-						<Button
-							onClick={() => setIsNewListDialogOpen(true)}
-							disabled={isLoading}
-							className="w-full"
-						>
-							<T k="person.manageLists.createList" />
-						</Button>
-					</div>
-				</DialogContent>
-			</Dialog>
-			<NewListDialog
-				open={isNewListDialogOpen}
-				onOpenChange={setIsNewListDialogOpen}
-				people={allPeople}
-				onListCreated={handleListCreated}
-				defaultSelectedPeople={new Set([personId])}
+			<PersonShareDialog
+				open={isShareDialogOpen}
+				onOpenChange={setIsShareDialogOpen}
+				person={person}
+				hasPlusAccess={hasPlusAccess}
 			/>
 		</>
 	)
 }
 
-function ActionsDropdown({
-	children,
-	onEdit,
-	onDelete,
-	onManageLists,
-}: {
-	children: ReactNode
-	onEdit: () => void
-	onDelete: () => void
-	onManageLists: () => void
-}) {
-	let [open, setOpen] = useState(false)
+function isPersonAdmin(person: co.loaded<typeof Person>): boolean {
+	let owner = person.$jazz.owner
+	if (!(owner instanceof Group)) return true // Account-owned = user is owner
+	return owner.myRole() === "admin"
+}
+
+type WithCreatedAt = {
+	createdAt?: Date | null
+	$jazz: { createdAt: number }
+}
+
+type WithUpdatedAt = {
+	createdAt?: Date | null
+	updatedAt?: Date | null
+	$jazz: { createdAt: number; lastUpdatedAt?: number }
+}
+
+function CreatedAtTimestamp({ value }: { value: WithCreatedAt }) {
+	let locale = useLocale()
+	let t = useIntl()
+	let date = value.createdAt || new Date(value.$jazz.createdAt)
 
 	return (
-		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-			<DropdownMenuContent>
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onManageLists()
-					}}
-				>
-					<T k="person.manageLists.title" />
-					<Collection />
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						setOpen(false)
-						onEdit()
-					}}
-				>
-					<T k="person.edit.title" />
-					<PencilSquare />
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => {
-						setOpen(false)
-						onDelete()
-					}}
-				>
-					<T k="person.delete.title" />
-					<Trash />
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<>
+			{t("person.added.suffix", {
+				ago: formatDistanceToNow(date, {
+					addSuffix: true,
+					locale: locale === "de" ? dfnsDe : undefined,
+				}),
+			})}
+		</>
 	)
+}
+
+function UpdatedAtTimestamp({ value }: { value: WithUpdatedAt }) {
+	let locale = useLocale()
+	let t = useIntl()
+	let createdAt = value.createdAt || new Date(value.$jazz.createdAt)
+	let updatedAt =
+		value.updatedAt ||
+		(value.$jazz.lastUpdatedAt && new Date(value.$jazz.lastUpdatedAt))
+
+	if (!updatedAt || updatedAt.getTime() === createdAt.getTime()) return null
+
+	return (
+		<>
+			{t("person.updated.suffix", {
+				ago: formatDistanceToNow(updatedAt, {
+					addSuffix: true,
+					locale: locale === "de" ? dfnsDe : undefined,
+				}),
+			})}
+		</>
+	)
+}
+
+function SharedWithBadge({ collaborators }: { collaborators: Collaborator[] }) {
+	let t = useIntl()
+	let names = collaborators.map(c => c.name)
+
+	if (collaborators.length === 1) {
+		return (
+			<Badge variant="secondary" className="mb-2">
+				{t("person.shared.sharedWith", { name: names[0] })}
+			</Badge>
+		)
+	}
+
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<Badge variant="secondary" className="mb-2 cursor-default">
+					{t("person.shared.sharedWithCount", { count: collaborators.length })}
+				</Badge>
+			</TooltipTrigger>
+			<TooltipContent>
+				<p>{names.join(", ")}</p>
+			</TooltipContent>
+		</Tooltip>
+	)
+}
+
+async function getPersonOwnerName(
+	person: co.loaded<typeof Person>,
+): Promise<string | null> {
+	let group = person.$jazz.owner
+	if (!group || !(group instanceof Group)) return null
+
+	let admin = group.members.find(m => m.role === "admin")
+	if (!admin?.account?.$isLoaded) return null
+
+	let profile = await admin.account.$jazz.ensureLoaded({
+		resolve: { profile: true },
+	})
+	return profile.profile?.name ?? null
 }

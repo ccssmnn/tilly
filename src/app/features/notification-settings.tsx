@@ -694,7 +694,6 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 
 			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
 				<DialogContent
-					className="sm:max-w-[425px]"
 					titleSlot={
 						<DialogHeader>
 							<DialogTitle>
@@ -992,7 +991,6 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 				</Button>
 			</DialogTrigger>
 			<DialogContent
-				className="sm:max-w-[425px]"
 				titleSlot={
 					<DialogHeader>
 						<DialogTitle>

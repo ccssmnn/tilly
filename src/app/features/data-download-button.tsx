@@ -163,7 +163,6 @@ export function ExportButton(props: {
 				</Button>
 			</DialogTrigger>
 			<DialogContent
-				className="sm:max-w-md"
 				titleSlot={
 					<DialogHeader>
 						<DialogTitle>

@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { z } from "zod"
 import { useCoState } from "jazz-tools/react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#shared/ui/tabs"
@@ -13,7 +13,14 @@ import { usePersonNotes } from "#app/features/note-hooks"
 import { usePersonReminders } from "#app/features/reminder-hooks"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useState, useDeferredValue, useId } from "react"
-import { FileEarmarkText, Plus, Bell, X, Search } from "react-bootstrap-icons"
+import {
+	FileEarmarkText,
+	Plus,
+	Bell,
+	X,
+	Search,
+	ShieldSlash,
+} from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
 import { NoteListItem } from "#app/features/note-list-item"
@@ -24,11 +31,13 @@ import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import {
 	Empty,
+	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
+
 import {
 	Dialog,
 	DialogContent,
@@ -59,8 +68,15 @@ export const Route = createFileRoute("/_app/people/$personID")({
 	}),
 	loader: async ({ params }) => {
 		let person = await Person.load(params.personID, { resolve })
-		if (!person.$isLoaded) throw notFound()
-		return { person }
+		if (!person.$isLoaded) {
+			return {
+				person: null,
+				loadingState: person.$jazz.loadingState as
+					| "unauthorized"
+					| "unavailable",
+			}
+		}
+		return { person, loadingState: null }
 	},
 	component: PersonScreen,
 })
@@ -78,16 +94,35 @@ function PersonScreen() {
 	let { tab } = Route.useSearch()
 
 	let subscribedPerson = useCoState(Person, personID, { resolve })
-	let person = subscribedPerson.$isLoaded ? subscribedPerson : data.person
 	let isMobile = useIsMobile()
 	let [searchQuery, setSearchQuery] = useState("")
 	let deferredSearchQuery = useDeferredValue(searchQuery)
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
-	let notes = usePersonNotes(person.$jazz.id, deferredSearchQuery)
 	let searchInputId = useId()
+	let notes = usePersonNotes(personID, deferredSearchQuery)
+	let reminders = usePersonReminders(personID, deferredSearchQuery)
 
-	let reminders = usePersonReminders(person.$jazz.id, deferredSearchQuery)
+	// Handle initial load states from loader
+	if (!data.person) {
+		if (data.loadingState === "unauthorized") {
+			return <PersonUnauthorized />
+		}
+		return <PersonNotFound />
+	}
+
+	// Handle live access revocation (ignore "loading" state - use loader data as fallback)
+	if (
+		!subscribedPerson.$isLoaded &&
+		subscribedPerson.$jazz.loadingState !== "loading"
+	) {
+		if (subscribedPerson.$jazz.loadingState === "unauthorized") {
+			return <PersonUnauthorized />
+		}
+		return <PersonNotFound />
+	}
+
+	let person = subscribedPerson.$isLoaded ? subscribedPerson : data.person
 	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
 
 	if (!me) {
@@ -614,5 +649,69 @@ function AddItemButton(props: {
 				</DialogContent>
 			</Dialog>
 		</>
+	)
+}
+
+function PersonNotFound() {
+	return (
+		<div className="flex flex-col items-center justify-center py-12 md:mt-12">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<span className="text-3xl font-bold">404</span>
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="person.notFound.title" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="person.notFound.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
+					<div className="flex gap-2">
+						<Button variant="outline" onClick={() => window.history.back()}>
+							<T k="person.notFound.goBack" />
+						</Button>
+						<Button asChild>
+							<Link to="/people">
+								<T k="person.notFound.goToPeople" />
+							</Link>
+						</Button>
+					</div>
+				</EmptyContent>
+			</Empty>
+		</div>
+	)
+}
+
+function PersonUnauthorized() {
+	return (
+		<div className="flex flex-col items-center justify-center py-12 md:mt-12">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<ShieldSlash />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="person.unauthorized.title" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="person.unauthorized.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
+					<div className="flex gap-2">
+						<Button variant="outline" onClick={() => window.history.back()}>
+							<T k="person.unauthorized.goBack" />
+						</Button>
+						<Button asChild>
+							<Link to="/people">
+								<T k="person.unauthorized.goToPeople" />
+							</Link>
+						</Button>
+					</div>
+				</EmptyContent>
+			</Empty>
+		</div>
 	)
 }

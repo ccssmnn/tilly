@@ -16,6 +16,8 @@ const baseUiMessages = messages({
 	"common.close": "Close",
 	"common.undo": "Undo",
 	"common.back": "Back",
+	"common.loading": "Loading...",
+	"common.unknown": "Unknown",
 
 	// Authentication messages
 	"auth.signIn.title": "Sync Across Devices",
@@ -141,6 +143,24 @@ const baseUiMessages = messages({
 	"markdown.list": "List",
 	"markdown.heading": "Heading",
 	"markdown.noPreview": "Nothing to preview",
+
+	// Invite messages
+	"invite.accepting": "Accepting invite...",
+	"invite.loading.description": "Please wait while we set things up.",
+	"invite.success": "You now have access to {$name}",
+	"invite.error.invalid": "Invalid invite link",
+	"invite.error.invalid.title": "Invalid invite link",
+	"invite.error.invalid.description":
+		"This invite link is invalid or has expired. Ask the person who shared it to send a new one.",
+	"invite.error.invalid.action": "Go to People",
+	"invite.error.failed": "Failed to accept invite",
+	"invite.error.failed.title": "Something went wrong",
+	"invite.error.revoked.title": "Invite no longer valid",
+	"invite.error.revoked.description":
+		"This invite link no longer works. Ask the person who shared it with you for a new link.",
+	"invite.signIn.title": "Sign in to accept invite",
+	"invite.signIn.description":
+		"You've been invited to collaborate. Sign in or create an account to continue.",
 })
 
 const deUiMessages = translate(baseUiMessages, {
@@ -157,6 +177,8 @@ const deUiMessages = translate(baseUiMessages, {
 	"common.close": "Schließen",
 	"common.undo": "Rückgängig",
 	"common.back": "Zurück",
+	"common.loading": "Lädt...",
+	"common.unknown": "Unbekannt",
 
 	// Authentication messages
 	"auth.signIn.title": "Über Geräte hinweg synchronisieren",
@@ -283,4 +305,22 @@ const deUiMessages = translate(baseUiMessages, {
 	"markdown.list": "Liste",
 	"markdown.heading": "Überschrift",
 	"markdown.noPreview": "Nichts zum Anzeigen",
+
+	// Invite messages
+	"invite.accepting": "Einladung wird angenommen...",
+	"invite.loading.description": "Bitte warte, während wir alles einrichten.",
+	"invite.success": "Du hast jetzt Zugriff auf {$name}",
+	"invite.error.invalid": "Ungültiger Einladungslink",
+	"invite.error.invalid.title": "Ungültiger Einladungslink",
+	"invite.error.invalid.description":
+		"Dieser Einladungslink ist ungültig oder abgelaufen. Bitte die Person, die ihn geteilt hat, einen neuen zu senden.",
+	"invite.error.invalid.action": "Zu Personen",
+	"invite.error.failed": "Einladung konnte nicht angenommen werden",
+	"invite.error.failed.title": "Etwas ist schiefgelaufen",
+	"invite.error.revoked.title": "Einladung nicht mehr gültig",
+	"invite.error.revoked.description":
+		"Dieser Einladungslink funktioniert nicht mehr. Bitte die Person, die ihn geteilt hat, um einen neuen Link.",
+	"invite.signIn.title": "Anmelden um Einladung anzunehmen",
+	"invite.signIn.description":
+		"Du wurdest zur Zusammenarbeit eingeladen. Melde dich an oder erstelle ein Konto um fortzufahren.",
 })

@@ -26,17 +26,20 @@ async function createNote(
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let now = new Date()
-	let note = Note.create({
-		version: 1,
-		title: data.title,
-		content: data.content,
-		pinned: data.pinned || false,
-		createdAt: now,
-		updatedAt: now,
-	})
+	let note = Note.create(
+		{
+			version: 1,
+			title: data.title,
+			content: data.content,
+			pinned: data.pinned || false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		person.$jazz.owner,
+	)
 
 	if (data.imageFiles && data.imageFiles.length > 0) {
-		let imageList = co.list(co.image()).create([])
+		let imageList = co.list(co.image()).create([], person.$jazz.owner)
 		for (let file of data.imageFiles.slice(0, 10)) {
 			let image = await createImage(file, {
 				owner: person.$jazz.owner,

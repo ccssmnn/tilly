@@ -1,6 +1,7 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
+import { co } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { isDueToday, isDeleted, UserAccount } from "#shared/schema/user"
+import { isDueToday, isDeleted, UserAccount, Person } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
@@ -31,12 +32,18 @@ import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
-import type { LoadedPerson } from "#app/features/person-query"
+import { SharedIndicator } from "#app/features/person-shared-indicator"
 
 export { PersonListItem }
 export type { PersonListItemPerson }
 
-type PersonListItemPerson = LoadedPerson
+type PersonListItemPerson = co.loaded<
+	typeof Person,
+	{
+		avatar: true
+		reminders: { $each: true }
+	}
+>
 
 type PersonListItemProps = {
 	person: PersonListItemPerson
@@ -139,6 +146,7 @@ function PersonItemHeader({
 
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
+
 	return (
 		<div
 			className="flex items-center justify-between leading-none select-text"
@@ -148,6 +156,7 @@ function PersonItemHeader({
 				<p className={nameColor}>
 					<TextHighlight text={person.name} query={searchQuery} />
 				</p>
+				<SharedIndicator item={person} />
 				{hasDueReminders && <div className="bg-primary size-2 rounded-full" />}
 			</div>
 			<p className="text-muted-foreground text-xs text-nowrap">
@@ -236,6 +245,7 @@ function RestorePersonDialog({
 
 	async function handlePermanentDelete() {
 		if (!me.$isLoaded) return
+
 		let result = await tryCatch(
 			updatePerson(person.$jazz.id, { permanentlyDeletedAt: new Date() }, me),
 		)

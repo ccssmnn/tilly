@@ -25,9 +25,13 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useState, useRef } from "react"
+import type { KeyboardEvent } from "react"
 import { Image as JazzImage } from "jazz-tools/react"
 import Cropper from "react-easy-crop"
 import { tryCatch } from "#shared/lib/trycatch"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
+import { Kbd, KbdGroup } from "#shared/ui/kbd"
+import { isMac } from "#app/hooks/use-pwa"
 
 import { T, useIntl } from "#shared/intl/setup"
 
@@ -153,6 +157,23 @@ function PersonForm({
 	let [selectedImage, setSelectedImage] = useState<string | null>(null)
 	let fileInputRef = useRef<HTMLInputElement>(null)
 
+	function submitOnCtrlEnter(e: KeyboardEvent) {
+		if (form.formState.isSubmitting) {
+			return
+		}
+
+		if (e.repeat || e.shiftKey || e.altKey) {
+			return
+		}
+
+		let isCtrlOrMetaEnter = (e.metaKey || e.ctrlKey) && e.key === "Enter"
+
+		if (isCtrlOrMetaEnter) {
+			e.preventDefault()
+			form.handleSubmit(onSave)()
+		}
+	}
+
 	function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
 		let file = event.target.files?.[0]
 		if (file) {
@@ -203,6 +224,7 @@ function PersonForm({
 							<FormControl>
 								<Input
 									placeholder={t("person.form.name.placeholder")}
+									onKeyDown={submitOnCtrlEnter}
 									{...field}
 								/>
 							</FormControl>
@@ -223,6 +245,7 @@ function PersonForm({
 								<Textarea
 									placeholder={t("person.form.summary.placeholder")}
 									rows={4}
+									onKeyDown={submitOnCtrlEnter}
 									{...field}
 								/>
 							</FormControl>
@@ -233,13 +256,24 @@ function PersonForm({
 
 				{(person || submitButtonText) && (
 					<div className="flex justify-end">
-						<Button type="submit" disabled={form.formState.isSubmitting}>
-							{form.formState.isSubmitting ? (
-								<T k="person.form.saving" />
-							) : (
-								submitButtonText || <T k="person.form.saveChanges" />
-							)}
-						</Button>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button type="submit" disabled={form.formState.isSubmitting}>
+									{form.formState.isSubmitting ? (
+										<T k="person.form.saving" />
+									) : (
+										submitButtonText || <T k="person.form.saveChanges" />
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<KbdGroup>
+									<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+									<span>+</span>
+									<Kbd>Enter</Kbd>
+								</KbdGroup>
+							</TooltipContent>
+						</Tooltip>
 					</div>
 				)}
 			</form>

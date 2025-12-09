@@ -22,6 +22,10 @@ import { z } from "zod"
 import { Textarea } from "#shared/ui/textarea"
 import { useState } from "react"
 import { nanoid } from "nanoid"
+import type { KeyboardEvent } from "react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
+import { Kbd, KbdGroup } from "#shared/ui/kbd"
+import { isMac } from "#app/hooks/use-pwa"
 
 import { T, useIntl } from "#shared/intl/setup"
 
@@ -70,6 +74,23 @@ export function ReminderForm({
 	let [selectKey, setSelectKey] = useState(nanoid())
 	let repeat = useWatch({ control: form.control, name: "repeat" })
 
+	function submitOnCtrlEnter(e: KeyboardEvent) {
+		if (form.formState.isSubmitting) {
+			return
+		}
+
+		if (e.repeat || e.shiftKey || e.altKey) {
+			return
+		}
+
+		let isCtrlOrMetaEnter = (e.metaKey || e.ctrlKey) && e.key === "Enter"
+
+		if (isCtrlOrMetaEnter) {
+			e.preventDefault()
+			form.handleSubmit(onSubmit)()
+		}
+	}
+
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
@@ -82,7 +103,11 @@ export function ReminderForm({
 								<T k="reminder.form.text.label" />
 							</FormLabel>
 							<FormControl>
-								<Textarea placeholder={placeholder} {...field} />
+								<Textarea
+									placeholder={placeholder}
+									onKeyDown={submitOnCtrlEnter}
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -213,17 +238,28 @@ export function ReminderForm({
 					>
 						<T k="form.cancel" />
 					</Button>
-					<Button
-						type="submit"
-						disabled={form.formState.isSubmitting}
-						className="flex-1"
-					>
-						{form.formState.isSubmitting ? (
-							<T k="form.saving" />
-						) : (
-							<T k="form.save" />
-						)}
-					</Button>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								type="submit"
+								disabled={form.formState.isSubmitting}
+								className="flex-1"
+							>
+								{form.formState.isSubmitting ? (
+									<T k="form.saving" />
+								) : (
+									<T k="form.save" />
+								)}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<KbdGroup>
+								<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+								<span>+</span>
+								<Kbd>Enter</Kbd>
+							</KbdGroup>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 			</form>
 		</Form>

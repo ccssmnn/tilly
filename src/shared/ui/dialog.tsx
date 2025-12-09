@@ -99,9 +99,15 @@ function DialogContent({
 	)
 
 	let contentClassName = cn(
-		"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out md:data-[state=open]:fade-in-0 md:data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-md:data-[state=closed]:slide-out-to-bottom max-md:data-[state=open]:slide-in-from-bottom fixed z-50 flex max-h-[95dvh] w-full flex-col gap-4 overflow-y-auto rounded-lg p-4 shadow-lg duration-300 ease-out max-md:rounded-t-3xl max-md:rounded-b-none md:top-6 md:left-[50%] md:w-full md:max-w-lg md:translate-x-[-50%] md:border",
-		isMobile &&
-			"bottom-[-100px] pb-[calc(100px+max(calc(var(--spacing)*4),env(safe-area-inset-bottom)))]",
+		// all sizes
+		"bg-background fixed z-50 flex max-h-[95dvh] flex-col gap-4 overflow-y-auto p-4 shadow-lg duration-300 ease-out",
+		"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+		// small screens (below 768px)
+		"max-md:inset-x-0 max-md:bottom-[-100px] max-md:w-screen max-md:rounded-t-3xl max-md:rounded-b-none max-md:pb-[calc(100px+max(calc(var(--spacing)*4),env(safe-area-inset-bottom)))]",
+		"max-md:data-[state=closed]:slide-out-to-bottom max-md:data-[state=open]:slide-in-from-bottom",
+		// large screens (768px+)
+		"md:top-6 md:left-1/2 md:-translate-x-1/2 md:max-w-lg md:rounded-lg md:border",
+		"md:data-[state=open]:fade-in-0 md:data-[state=closed]:fade-out-0",
 		className,
 	)
 
