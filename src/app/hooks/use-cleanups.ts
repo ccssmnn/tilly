@@ -6,9 +6,8 @@ export {
 
 import { useEffect, useRef } from "react"
 import { useAccount } from "jazz-tools/react"
-import type { co, ResolveQuery } from "jazz-tools"
-import { UserAccount, isDeleted } from "#shared/schema/user"
-import { cleanupEmptyInviteGroups } from "#app/features/person-sharing"
+import { Group, type co, type ResolveQuery } from "jazz-tools"
+import { UserAccount, Person, isDeleted } from "#shared/schema/user"
 
 let inactiveListsQuery = {
 	root: {
@@ -294,4 +293,42 @@ function isStale(deletedAt: Date): boolean {
 	let thirtyDaysAgo = new Date()
 	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 	return deletedAt < thirtyDaysAgo
+}
+
+let INVITE_GROUP_EXPIRY_DAYS = 7
+
+function cleanupEmptyInviteGroups(person: co.loaded<typeof Person>): boolean {
+	let personGroup = getPersonGroup(person)
+	if (!personGroup) return false
+
+	let parentGroups = personGroup.getParentGroups()
+	let didCleanup = false
+
+	for (let inviteGroup of parentGroups) {
+		let hasMembers = inviteGroup.members.some(
+			m =>
+				m.account &&
+				m.account.$isLoaded &&
+				(m.role === "writer" || m.role === "reader"),
+		)
+
+		if (hasMembers) continue
+
+		let createdAt = new Date(inviteGroup.$jazz.createdAt)
+		let expiryDate = new Date()
+		expiryDate.setDate(expiryDate.getDate() - INVITE_GROUP_EXPIRY_DAYS)
+
+		if (createdAt < expiryDate) {
+			personGroup.removeMember(inviteGroup)
+			didCleanup = true
+		}
+	}
+
+	return didCleanup
+}
+
+function getPersonGroup(person: co.loaded<typeof Person>): Group | null {
+	let group = person.$jazz.owner
+	if (!group || !(group instanceof Group)) return null
+	return group
 }

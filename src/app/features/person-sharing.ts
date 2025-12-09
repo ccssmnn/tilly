@@ -7,7 +7,6 @@ export {
 	getPersonOwnerName,
 	getInviteGroupsWithMembers,
 	getPendingInviteGroups,
-	cleanupEmptyInviteGroups,
 }
 export type { Collaborator, InviteGroupWithMembers, PendingInviteGroup }
 
@@ -130,40 +129,6 @@ function removeInviteGroup(
 	if (!inviteGroup) throw new Error("Invite group not found")
 
 	personGroup.removeMember(inviteGroup)
-}
-
-let INVITE_GROUP_EXPIRY_DAYS = 7
-
-function cleanupEmptyInviteGroups(person: co.loaded<typeof Person>): boolean {
-	let personGroup = getPersonGroup(person)
-	if (!personGroup) return false
-
-	let parentGroups = personGroup.getParentGroups()
-	let didCleanup = false
-
-	for (let inviteGroup of parentGroups) {
-		// Check if invite group has any non-admin members (accounts that joined)
-		let hasMembers = inviteGroup.members.some(
-			m =>
-				m.account &&
-				m.account.$isLoaded &&
-				(m.role === "writer" || m.role === "reader"),
-		)
-
-		if (hasMembers) continue
-
-		// Check if the invite group is older than 7 days
-		let createdAt = new Date(inviteGroup.$jazz.createdAt)
-		let expiryDate = new Date()
-		expiryDate.setDate(expiryDate.getDate() - INVITE_GROUP_EXPIRY_DAYS)
-
-		if (createdAt < expiryDate) {
-			personGroup.removeMember(inviteGroup)
-			didCleanup = true
-		}
-	}
-
-	return didCleanup
 }
 
 type LoadedPerson = co.loaded<

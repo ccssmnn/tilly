@@ -1,5 +1,5 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
-import { co, type ResolveQuery } from "jazz-tools"
+import { co } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { isDueToday, isDeleted, UserAccount, Person } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
