@@ -82,17 +82,15 @@ function DialogContent({
 		buttonRotation.set(0)
 	}
 
-	let content = (
+	let desktopContent = (
 		<>
 			<div className="flex items-start justify-between gap-3">
 				{titleSlot}
-				<motion.div style={{ rotate: buttonRotation }}>
-					<Button asChild variant="secondary">
-						<DialogPrimitive.Close ref={closeRef}>
-							<T k="common.close" />
-						</DialogPrimitive.Close>
-					</Button>
-				</motion.div>
+				<Button asChild variant="secondary">
+					<DialogPrimitive.Close>
+						<T k="common.close" />
+					</DialogPrimitive.Close>
+				</Button>
 			</div>
 			{children}
 		</>
@@ -131,33 +129,46 @@ function DialogContent({
 					{...props}
 				>
 					<motion.div
-						drag="y"
-						dragConstraints={{ top: -50, bottom: 500 }}
-						dragElastic={0}
-						onDrag={(_, info) => {
-							let isPastThreshold = info.offset.y > 100
-							if (isPastThreshold) {
-								startWiggle()
-							} else {
-								stopWiggle()
-							}
-						}}
-						onDragEnd={(_, info) => {
-							stopWiggle()
-							if (info.offset.y > 100) {
-								closeRef.current?.click()
-							} else {
-								animate(dragY, 0, {
-									type: "spring",
-									stiffness: 300,
-									damping: 25,
-								})
-							}
-						}}
 						style={{ ...mobileStyle, y: dragY }}
 						className={contentClassName}
 					>
-						{content}
+						<motion.div
+							drag="y"
+							dragConstraints={{ top: 0, bottom: 0 }}
+							dragElastic={0}
+							onDrag={(_, info) => {
+								dragY.set(Math.max(0, info.offset.y))
+								if (info.offset.y > 100) {
+									startWiggle()
+								} else {
+									stopWiggle()
+								}
+							}}
+							onDragEnd={(_, info) => {
+								stopWiggle()
+								if (info.offset.y > 100) {
+									closeRef.current?.click()
+								} else {
+									animate(dragY, 0, {
+										type: "spring",
+										stiffness: 300,
+										damping: 25,
+									})
+								}
+							}}
+							style={{ x: 0, y: 0 }}
+							className="flex cursor-grab items-start justify-between gap-3 active:cursor-grabbing"
+						>
+							{titleSlot}
+							<motion.div style={{ rotate: buttonRotation }}>
+								<Button asChild variant="secondary">
+									<DialogPrimitive.Close ref={closeRef}>
+										<T k="common.close" />
+									</DialogPrimitive.Close>
+								</Button>
+							</motion.div>
+						</motion.div>
+						{children}
 					</motion.div>
 				</DialogPrimitive.Content>
 			</DialogPortal>
@@ -172,7 +183,7 @@ function DialogContent({
 				className={contentClassName}
 				{...props}
 			>
-				{content}
+				{desktopContent}
 			</DialogPrimitive.Content>
 		</DialogPortal>
 	)
