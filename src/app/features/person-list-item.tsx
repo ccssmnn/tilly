@@ -37,12 +37,13 @@ import { SharedIndicator } from "#app/features/person-shared-indicator"
 export { PersonListItem }
 export type { PersonListItemPerson }
 
-let personListItemQuery = {
-	avatar: true,
-	reminders: { $each: true },
-} as const satisfies ResolveQuery<typeof Person>
-
-type PersonListItemPerson = co.loaded<typeof Person, typeof personListItemQuery>
+type PersonListItemPerson = co.loaded<
+	typeof Person,
+	{
+		avatar: true
+		reminders: { $each: true }
+	}
+>
 
 type PersonListItemProps = {
 	person: PersonListItemPerson

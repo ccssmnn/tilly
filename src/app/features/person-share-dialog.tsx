@@ -73,43 +73,13 @@ function PersonShareDialog({
 	person: LoadedPerson
 	hasPlusAccess: boolean
 }) {
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			{open && (
-				<PersonShareDialogContent
-					person={person}
-					hasPlusAccess={hasPlusAccess}
-				/>
-			)}
-		</Dialog>
-	)
-}
-
-function PersonShareDialogContent({
-	person,
-	hasPlusAccess,
-}: {
-	person: LoadedPerson
-	hasPlusAccess: boolean
-}) {
-	let t = useIntl()
-	let locale = useLocale()
-	let me = useAccount(UserAccount)
-	let [inviteLink, setInviteLink] = useState<string | null>(null)
-	let [isGenerating, setIsGenerating] = useState(false)
-	let [isCopied, setIsCopied] = useState(false)
 	let [inviteGroups, setInviteGroups] = useState<InviteGroupWithMembers[]>([])
 	let [pendingInvites, setPendingInvites] = useState<PendingInviteGroup[]>([])
-	let [isLoadingCollaborators, setIsLoadingCollaborators] = useState(true)
-	let [removingCollaboratorId, setRemovingCollaboratorId] = useState<
-		string | null
-	>(null)
-	let [confirmRemoveGroup, setConfirmRemoveGroup] =
-		useState<InviteGroupWithMembers | null>(null)
-	let [cancellingInviteId, setCancellingInviteId] = useState<string | null>(
-		null,
-	)
+	let [isLoading, setIsLoading] = useState(true)
 	let [refreshKey, setRefreshKey] = useState(0)
+
+	let personGroup = person.$jazz.owner
+	let isAdmin = personGroup instanceof Group && personGroup.myRole() === "admin"
 
 	useEffect(() => {
 		async function load() {
@@ -117,7 +87,7 @@ function PersonShareDialogContent({
 				tryCatch(getInviteGroupsWithMembers(person)),
 				tryCatch(Promise.resolve(getPendingInviteGroups(person))),
 			])
-			setIsLoadingCollaborators(false)
+			setIsLoading(false)
 			if (groupsResult.ok) {
 				setInviteGroups(groupsResult.data)
 			}
@@ -127,13 +97,75 @@ function PersonShareDialogContent({
 		}
 		load()
 	}, [person, refreshKey])
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.share.dialog.title" params={{ name: person.name }} />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="person.share.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
+				}
+			>
+				<div className="space-y-6">
+					<InviteLinkSection
+						person={person}
+						hasPlusAccess={hasPlusAccess}
+						onLinkGenerated={() => setRefreshKey(k => k + 1)}
+					/>
+					{isAdmin && (
+						<PendingInvitesSection
+							person={person}
+							pendingInvites={pendingInvites}
+							isLoading={isLoading}
+							onInviteCancelled={groupId =>
+								setPendingInvites(prev =>
+									prev.filter(p => p.groupId !== groupId),
+								)
+							}
+						/>
+					)}
+					<CollaboratorsSection
+						person={person}
+						inviteGroups={inviteGroups}
+						isLoading={isLoading}
+						isAdmin={isAdmin}
+						onGroupRemoved={groupId =>
+							setInviteGroups(prev => prev.filter(g => g.groupId !== groupId))
+						}
+					/>
+				</div>
+			</DialogContent>
+		</Dialog>
+	)
+}
+
+function InviteLinkSection({
+	person,
+	hasPlusAccess,
+	onLinkGenerated,
+}: {
+	person: LoadedPerson
+	hasPlusAccess: boolean
+	onLinkGenerated: () => void
+}) {
+	let t = useIntl()
+	let me = useAccount(UserAccount)
+	let [inviteLink, setInviteLink] = useState("")
+	let [isGenerating, setIsGenerating] = useState(false)
+	let [isCopied, setIsCopied] = useState(false)
+
+	let hasNativeShare = typeof navigator !== "undefined" && "share" in navigator
 
 	async function handleGenerateLink() {
 		if (!me.$isLoaded) return
 
 		setIsGenerating(true)
 
-		// Load full person with inactive lists for migration check
 		let fullPerson = await Person.load(person.$jazz.id, {
 			resolve: fullResolve,
 		})
@@ -154,7 +186,7 @@ function PersonShareDialogContent({
 		}
 
 		setInviteLink(result.data)
-		setRefreshKey(k => k + 1)
+		onLinkGenerated()
 	}
 
 	async function handleCopyLink() {
@@ -176,6 +208,156 @@ function PersonShareDialogContent({
 			})
 		}
 	}
+
+	return (
+		<div className="space-y-3">
+			<label className="text-sm font-medium">
+				<T k="person.share.inviteLink.label" />
+			</label>
+			{inviteLink ? (
+				<div className="flex gap-2">
+					<Input value={inviteLink} readOnly className="font-mono text-xs" />
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={handleCopyLink}
+						aria-label={t("person.share.inviteLink.copy")}
+					>
+						{isCopied ? <Check /> : <Clipboard />}
+					</Button>
+					{hasNativeShare && (
+						<Button
+							variant="secondary"
+							size="icon"
+							onClick={handleNativeShare}
+							aria-label={t("person.share.inviteLink.share")}
+						>
+							<PlatformShareIcon />
+						</Button>
+					)}
+				</div>
+			) : (
+				<Button
+					onClick={handleGenerateLink}
+					disabled={isGenerating || !hasPlusAccess}
+					className="w-full"
+				>
+					{isGenerating ? (
+						<T k="common.loading" />
+					) : !hasPlusAccess ? (
+						<T k="person.share.requiresPlus" />
+					) : (
+						<T k="person.share.inviteLink.generate" />
+					)}
+				</Button>
+			)}
+		</div>
+	)
+}
+
+function PendingInvitesSection({
+	person,
+	pendingInvites,
+	isLoading,
+	onInviteCancelled,
+}: {
+	person: LoadedPerson
+	pendingInvites: PendingInviteGroup[]
+	isLoading: boolean
+	onInviteCancelled: (groupId: string) => void
+}) {
+	let t = useIntl()
+	let locale = useLocale()
+	let [cancellingInviteId, setCancellingInviteId] = useState<string | null>(
+		null,
+	)
+
+	function handleCancelPendingInvite(groupId: string) {
+		setCancellingInviteId(groupId)
+
+		let result = tryCatch(() => removeInviteGroup(person, groupId as ID<Group>))
+		setCancellingInviteId(null)
+
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		toast.success(t("person.share.pending.cancelSuccess"))
+		onInviteCancelled(groupId)
+	}
+
+	return (
+		<div className="space-y-3">
+			<label className="text-sm font-medium">
+				<T k="person.share.pending.title" />
+			</label>
+			{isLoading ? (
+				<p className="text-muted-foreground text-sm">
+					<T k="common.loading" />
+				</p>
+			) : pendingInvites.length === 0 ? (
+				<p className="text-muted-foreground text-sm">
+					<T k="person.share.pending.empty" />
+				</p>
+			) : (
+				<ul className="space-y-2">
+					{pendingInvites.map(invite => (
+						<li
+							key={invite.groupId}
+							className="flex items-center justify-between gap-2"
+						>
+							<div className="flex items-center gap-2">
+								<Link45deg className="text-muted-foreground" />
+								<span className="text-muted-foreground text-sm">
+									{t("person.share.pending.createdAt", {
+										ago: formatDistanceToNow(invite.createdAt, {
+											addSuffix: true,
+											locale: locale === "de" ? dfnsDe : undefined,
+										}),
+									})}
+								</span>
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => handleCancelPendingInvite(invite.groupId)}
+								disabled={cancellingInviteId === invite.groupId}
+							>
+								<X />
+								<T k="person.share.pending.cancel" />
+							</Button>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	)
+}
+
+function CollaboratorsSection({
+	person,
+	inviteGroups,
+	isLoading,
+	isAdmin,
+	onGroupRemoved,
+}: {
+	person: LoadedPerson
+	inviteGroups: InviteGroupWithMembers[]
+	isLoading: boolean
+	isAdmin: boolean
+	onGroupRemoved: (groupId: string) => void
+}) {
+	let t = useIntl()
+	let [removingCollaboratorId, setRemovingCollaboratorId] = useState<
+		string | null
+	>(null)
+	let [confirmRemoveGroup, setConfirmRemoveGroup] =
+		useState<InviteGroupWithMembers | null>(null)
+
+	let allCollaborators = inviteGroups.flatMap(g => g.members)
 
 	function handleRemoveClick(
 		collaboratorId: string,
@@ -202,202 +384,61 @@ function PersonShareDialogContent({
 		}
 
 		toast.success(t("person.share.remove.success"))
-		setInviteGroups(prev =>
-			prev.filter(g => g.groupId !== confirmRemoveGroup?.groupId),
-		)
+		onGroupRemoved(confirmRemoveGroup.groupId)
 	}
-
-	function handleCancelPendingInvite(groupId: string) {
-		setCancellingInviteId(groupId)
-
-		let result = tryCatch(() => removeInviteGroup(person, groupId as ID<Group>))
-		setCancellingInviteId(null)
-
-		if (!result.ok) {
-			toast.error(
-				typeof result.error === "string" ? result.error : result.error.message,
-			)
-			return
-		}
-
-		toast.success(t("person.share.pending.cancelSuccess"))
-		setPendingInvites(prev => prev.filter(p => p.groupId !== groupId))
-		// Clear invite link if it was for this group
-		if (inviteLink?.includes(groupId)) {
-			setInviteLink(null)
-		}
-	}
-
-	let personGroup = person.$jazz.owner
-	let isAdmin = personGroup instanceof Group && personGroup.myRole() === "admin"
-	let allCollaborators = inviteGroups.flatMap(g => g.members)
-	let hasNativeShare = typeof navigator !== "undefined" && "share" in navigator
 
 	return (
 		<>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.share.dialog.title" params={{ name: person.name }} />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.share.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<div className="space-y-6">
-					{/* Invite link section */}
-					<div className="space-y-3">
-						<label className="text-sm font-medium">
-							<T k="person.share.inviteLink.label" />
-						</label>
-						{inviteLink ? (
-							<div className="flex gap-2">
-								<Input
-									value={inviteLink}
-									readOnly
-									className="font-mono text-xs"
-								/>
-								<Button
-									variant="secondary"
-									size="icon"
-									onClick={handleCopyLink}
+			<div className="space-y-3">
+				<label className="text-sm font-medium">
+					<T k="person.share.collaborators.title" />
+				</label>
+				{isLoading ? (
+					<p className="text-muted-foreground text-sm">
+						<T k="common.loading" />
+					</p>
+				) : allCollaborators.length === 0 ? (
+					<p className="text-muted-foreground text-sm">
+						<T k="person.share.collaborators.empty" />
+					</p>
+				) : (
+					<ul className="space-y-2">
+						{inviteGroups.flatMap(group =>
+							group.members.map(collaborator => (
+								<li
+									key={collaborator.id}
+									className="flex items-center justify-between gap-2"
 								>
-									{isCopied ? (
-										<Check className="h-4 w-4" />
-									) : (
-										<Clipboard className="h-4 w-4" />
+									<div className="flex items-center gap-2">
+										<PersonFill className="text-muted-foreground" />
+										<span className="text-sm">{collaborator.name}</span>
+									</div>
+									{isAdmin && (
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => handleRemoveClick(collaborator.id, group)}
+											disabled={removingCollaboratorId === collaborator.id}
+										>
+											<X />
+											<T k="person.share.collaborators.remove" />
+										</Button>
 									)}
-								</Button>
-								{hasNativeShare && (
-									<Button
-										variant="secondary"
-										size="icon"
-										onClick={handleNativeShare}
-									>
-										<PlatformShareIcon className="h-4 w-4" />
-									</Button>
-								)}
-							</div>
-						) : (
-							<Button
-								onClick={handleGenerateLink}
-								disabled={isGenerating || !hasPlusAccess}
-								className="w-full"
-							>
-								{isGenerating ? (
-									<T k="common.loading" />
-								) : !hasPlusAccess ? (
-									<T k="person.share.requiresPlus" />
-								) : (
-									<T k="person.share.inviteLink.generate" />
-								)}
-							</Button>
+								</li>
+							)),
 						)}
-					</div>
-
-					{/* Pending invites section */}
-					{isAdmin && (
-						<div className="space-y-3">
-							<label className="text-sm font-medium">
-								<T k="person.share.pending.title" />
-							</label>
-							{isLoadingCollaborators ? (
-								<p className="text-muted-foreground text-sm">
-									<T k="common.loading" />
-								</p>
-							) : pendingInvites.length === 0 ? (
-								<p className="text-muted-foreground text-sm">
-									<T k="person.share.pending.empty" />
-								</p>
-							) : (
-								<ul className="space-y-2">
-									{pendingInvites.map(invite => (
-										<li
-											key={invite.groupId}
-											className="flex items-center justify-between gap-2"
-										>
-											<div className="flex items-center gap-2">
-												<Link45deg className="text-muted-foreground h-4 w-4" />
-												<span className="text-muted-foreground text-sm">
-													{t("person.share.pending.createdAt", {
-														ago: formatDistanceToNow(invite.createdAt, {
-															addSuffix: true,
-															locale: locale === "de" ? dfnsDe : undefined,
-														}),
-													})}
-												</span>
-											</div>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() =>
-													handleCancelPendingInvite(invite.groupId)
-												}
-												disabled={cancellingInviteId === invite.groupId}
-											>
-												<X className="h-4 w-4" />
-												<T k="person.share.pending.cancel" />
-											</Button>
-										</li>
-									))}
-								</ul>
-							)}
-						</div>
-					)}
-
-					{/* Collaborators section */}
-					<div className="space-y-3">
-						<label className="text-sm font-medium">
-							<T k="person.share.collaborators.title" />
-						</label>
-						{isLoadingCollaborators ? (
-							<p className="text-muted-foreground text-sm">
-								<T k="common.loading" />
-							</p>
-						) : allCollaborators.length === 0 ? (
-							<p className="text-muted-foreground text-sm">
-								<T k="person.share.collaborators.empty" />
-							</p>
-						) : (
-							<ul className="space-y-2">
-								{inviteGroups.flatMap(group =>
-									group.members.map(collaborator => (
-										<li
-											key={collaborator.id}
-											className="flex items-center justify-between gap-2"
-										>
-											<div className="flex items-center gap-2">
-												<PersonFill className="text-muted-foreground h-4 w-4" />
-												<span className="text-sm">{collaborator.name}</span>
-											</div>
-											{isAdmin && (
-												<Button
-													variant="ghost"
-													size="sm"
-													onClick={() =>
-														handleRemoveClick(collaborator.id, group)
-													}
-													disabled={removingCollaboratorId === collaborator.id}
-												>
-													<X className="h-4 w-4" />
-													<T k="person.share.collaborators.remove" />
-												</Button>
-											)}
-										</li>
-									)),
-								)}
-							</ul>
-						)}
-					</div>
-				</div>
-			</DialogContent>
+					</ul>
+				)}
+			</div>
 
 			<AlertDialog
 				open={!!confirmRemoveGroup}
-				onOpenChange={open => !open && setConfirmRemoveGroup(null)}
+				onOpenChange={open => {
+					if (!open) {
+						setConfirmRemoveGroup(null)
+						setRemovingCollaboratorId(null)
+					}
+				}}
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
@@ -412,7 +453,7 @@ function PersonShareDialogContent({
 						<ul className="my-2 space-y-1">
 							{confirmRemoveGroup.members.map(m => (
 								<li key={m.id} className="flex items-center gap-2 text-sm">
-									<PersonFill className="text-muted-foreground h-4 w-4" />
+									<PersonFill className="text-muted-foreground" />
 									{m.name}
 								</li>
 							))}
@@ -432,10 +473,6 @@ function PersonShareDialogContent({
 	)
 }
 
-function PlatformShareIcon({ className }: { className?: string }) {
-	return isMac() ? (
-		<BoxArrowUp className={className} />
-	) : (
-		<Share className={className} />
-	)
+function PlatformShareIcon() {
+	return isMac() ? <BoxArrowUp /> : <Share />
 }
