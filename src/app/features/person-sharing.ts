@@ -3,7 +3,6 @@ import { Person, Note, Reminder, UserAccount } from "#shared/schema/user"
 
 export {
 	createPersonInviteLink,
-	getPersonCollaborators,
 	removeInviteGroup,
 	getPersonOwnerName,
 	getInviteGroupsWithMembers,
@@ -46,32 +45,6 @@ async function createPersonInviteLink(
 		let inviteSecret = inviteGroup.$jazz.createInvite("writer")
 		return `${baseURL}#/person/${newPerson.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 	}
-}
-
-async function getPersonCollaborators(
-	person: co.loaded<typeof Person>,
-): Promise<Collaborator[]> {
-	let personGroup = getPersonGroup(person)
-	if (!personGroup) return []
-
-	let collaborators: Collaborator[] = []
-
-	for (let member of personGroup.members) {
-		// Direct account members (admin = creator, or legacy direct invites)
-		if (member.account && member.account.$isLoaded) {
-			let profile = await member.account.$jazz.ensureLoaded({
-				resolve: { profile: true },
-			})
-			collaborators.push({
-				id: member.id,
-				role: member.role,
-				name: profile.profile?.name ?? "Unknown",
-				inviteGroupId: undefined,
-			})
-		}
-	}
-
-	return collaborators
 }
 
 async function getInviteGroupsWithMembers(
