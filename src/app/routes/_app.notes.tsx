@@ -60,11 +60,7 @@ function NotesScreen() {
 	let didSearch = !!searchQuery
 	let hasMatches = notes.active.length > 0 || notes.deleted.length > 0
 
-	let allPeople = Array.from(
-		(data as NotesLoadedAccount).root.people.values(),
-	).filter(
-		(p): p is Extract<typeof p, { $isLoaded: true }> => p?.$isLoaded === true,
-	)
+	let allPeople = data.root.people.filter(p => p?.$isLoaded)
 
 	let virtualItems: VirtualItem[] = []
 

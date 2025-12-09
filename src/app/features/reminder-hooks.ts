@@ -55,10 +55,9 @@ function useReminders(
 
 	let loadedAccount = account.$isLoaded ? account : defaultAccount
 	let people =
-		loadedAccount?.root.people.filter(
-			(p): p is Extract<typeof p, { $isLoaded: true }> =>
-				p?.$isLoaded === true && !isDeleted(p) && !isPermanentlyDeleted(p),
-		) ?? []
+		loadedAccount?.root.people
+			.filter(p => p.$isLoaded)
+			.filter(p => !isDeleted(p) && !isPermanentlyDeleted(p)) ?? []
 
 	let allReminderPairs = []
 
