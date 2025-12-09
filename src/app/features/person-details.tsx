@@ -229,7 +229,6 @@ function ManageListsDialog({
 		<>
 			<Dialog open={open} onOpenChange={onOpenChange}>
 				<DialogContent
-					className="sm:max-w-md"
 					titleSlot={
 						<DialogHeader>
 							<DialogTitle>
@@ -313,7 +312,6 @@ function ActionsDropdown({
 }) {
 	let navigate = useNavigate()
 	let t = useIntl()
-	let [open, setOpen] = useState(false)
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
@@ -416,21 +414,17 @@ function ActionsDropdown({
 		let personGroup = person.$jazz.owner
 		if (!(personGroup instanceof Group)) return
 
-		let result = await tryCatch(
-			Promise.resolve().then(() => {
-				if (!me.$isLoaded) throw new Error("User not loaded")
+		let result = tryCatch(() => {
+			if (!me.$isLoaded) throw new Error("User not loaded")
 
-				// Find the InviteGroup where the user is a member
-				for (let inviteGroup of personGroup.getParentGroups()) {
-					let member = inviteGroup.members.find(m => m.id === me.$jazz.id)
-					if (member) {
-						inviteGroup.removeMember(me)
-						return
-					}
-				}
-				throw new Error("Could not find membership")
-			}),
-		)
+			for (let inviteGroup of personGroup.getParentGroups()) {
+				let member = inviteGroup.members.find(m => m.id === me.$jazz.id)
+				if (!member) continue
+				inviteGroup.removeMember(me)
+				return
+			}
+			throw new Error("Could not find membership")
+		})
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,
@@ -445,45 +439,27 @@ function ActionsDropdown({
 
 	return (
 		<>
-			<DropdownMenu open={open} onOpenChange={setOpen}>
+			<DropdownMenu>
 				<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 				<DropdownMenuContent>
 					{showShare && (
-						<DropdownMenuItem
-							onClick={() => {
-								setOpen(false)
-								setIsShareDialogOpen(true)
-							}}
-						>
+						<DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
 							<T k="person.share.button" />
 							<Share />
 						</DropdownMenuItem>
 					)}
-					<DropdownMenuItem
-						onClick={() => {
-							setOpen(false)
-							setIsManageListsDialogOpen(true)
-						}}
-					>
+					<DropdownMenuItem onClick={() => setIsManageListsDialogOpen(true)}>
 						<T k="person.manageLists.title" />
 						<Collection />
 					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => {
-							setOpen(false)
-							setIsEditDialogOpen(true)
-						}}
-					>
+					<DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
 						<T k="person.edit.title" />
 						<PencilSquare />
 					</DropdownMenuItem>
 					{isShared ? (
 						<DropdownMenuItem
 							variant="destructive"
-							onClick={() => {
-								setOpen(false)
-								setIsStopSharingDialogOpen(true)
-							}}
+							onClick={() => setIsStopSharingDialogOpen(true)}
 						>
 							<T k="person.leave.button" />
 							<BoxArrowRight />
@@ -491,10 +467,7 @@ function ActionsDropdown({
 					) : (
 						<DropdownMenuItem
 							variant="destructive"
-							onClick={() => {
-								setOpen(false)
-								setIsDeleteDialogOpen(true)
-							}}
+							onClick={() => setIsDeleteDialogOpen(true)}
 						>
 							<T k="person.delete.title" />
 							<Trash />
