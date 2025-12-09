@@ -51,7 +51,7 @@ import { isTextSelectionOngoing } from "#app/lib/utils"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
-import { getPersonOwnerName } from "#app/features/person-sharing"
+
 import {
 	useCollaborators,
 	type Collaborator,
@@ -636,4 +636,19 @@ function SharedWithBadge({ collaborators }: { collaborators: Collaborator[] }) {
 			</TooltipContent>
 		</Tooltip>
 	)
+}
+
+async function getPersonOwnerName(
+	person: co.loaded<typeof Person>,
+): Promise<string | null> {
+	let group = person.$jazz.owner
+	if (!group || !(group instanceof Group)) return null
+
+	let admin = group.members.find(m => m.role === "admin")
+	if (!admin?.account?.$isLoaded) return null
+
+	let profile = await admin.account.$jazz.ensureLoaded({
+		resolve: { profile: true },
+	})
+	return profile.profile?.name ?? null
 }
