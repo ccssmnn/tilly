@@ -1,6 +1,7 @@
 import { Image as JazzImage, useAccount } from "jazz-tools/react"
+import { co, type ResolveQuery } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
-import { isDueToday, isDeleted, UserAccount } from "#shared/schema/user"
+import { isDueToday, isDeleted, UserAccount, Person } from "#shared/schema/user"
 import { Link } from "@tanstack/react-router"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
@@ -31,13 +32,17 @@ import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
 import { T, useLocale, useIntl } from "#shared/intl/setup"
-import type { LoadedPerson } from "#app/features/person-query"
 import { SharedIndicator } from "#app/features/person-shared-indicator"
 
 export { PersonListItem }
 export type { PersonListItemPerson }
 
-type PersonListItemPerson = LoadedPerson
+let personListItemQuery = {
+	avatar: true,
+	reminders: { $each: true },
+} as const satisfies ResolveQuery<typeof Person>
+
+type PersonListItemPerson = co.loaded<typeof Person, typeof personListItemQuery>
 
 type PersonListItemProps = {
 	person: PersonListItemPerson

@@ -11,7 +11,7 @@ import {
 	EmptyTitle,
 } from "#shared/ui/empty"
 import { useAccount } from "jazz-tools/react"
-import { co } from "jazz-tools"
+import { co, type ResolveQuery } from "jazz-tools"
 import { usePeople } from "#app/features/person-hooks"
 import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
@@ -25,11 +25,6 @@ import { T, useIntl } from "#shared/intl/setup"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 import { cn } from "#app/lib/utils"
 import { UserAccount } from "#shared/schema/user"
-import { personListQuery } from "#app/features/person-query"
-import type {
-	LoadedPerson as PersonListLoadedPerson,
-	MaybeLoadedPerson,
-} from "#app/features/person-query"
 import { ListFilterButton } from "#app/features/list-filter-button"
 
 export let Route = createFileRoute("/_app/people/")({
@@ -44,9 +39,28 @@ export let Route = createFileRoute("/_app/people/")({
 	component: PeopleScreen,
 })
 
+let personListQuery = {
+	root: {
+		people: {
+			$each: {
+				avatar: true,
+				reminders: { $each: true },
+				$onError: "catch",
+			},
+		},
+		inactivePeople: {
+			$each: {
+				avatar: true,
+				reminders: { $each: true },
+				$onError: "catch",
+			},
+		},
+	},
+} as const satisfies ResolveQuery<typeof UserAccount>
 type LoadedAccount = co.loaded<typeof UserAccount, typeof personListQuery>
 type MaybeLoadedPeopleList = LoadedAccount["root"]["people"]
-type LoadedPerson = PersonListLoadedPerson
+type MaybeLoadedPerson = NonNullable<MaybeLoadedPeopleList>[number]
+type LoadedPerson = Extract<MaybeLoadedPerson, { $isLoaded: true }>
 
 function PeopleScreen() {
 	let { me: data, eagerCount } = Route.useLoaderData()
