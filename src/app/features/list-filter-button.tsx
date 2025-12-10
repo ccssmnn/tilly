@@ -33,6 +33,7 @@ function ListFilterButton({
 }) {
 	let t = useIntl()
 	let availableLists = useAvailableLists(people)
+	let [dropdownOpen, setDropdownOpen] = useState(false)
 	let [editListOpen, setEditListOpen] = useState(false)
 	let [editingHashtag, setEditingHashtag] = useState("")
 	let [newListOpen, setNewListOpen] = useState(false)
@@ -52,9 +53,9 @@ function ListFilterButton({
 
 	return (
 		<>
-			<DropdownMenu>
+			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="secondary">
+					<Button variant="secondary" onClick={() => setDropdownOpen(true)}>
 						{currentFilter ? <CollectionFill /> : <Collection />}
 						<span className="sr-only md:not-sr-only">
 							<T k="person.listFilter.lists" />

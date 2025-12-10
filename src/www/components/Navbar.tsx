@@ -40,6 +40,8 @@ interface NavbarProps {
 
 function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 	let [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+	let [langMenuOpen, setLangMenuOpen] = useState(false)
+	let [mobileLangMenuOpen, setMobileLangMenuOpen] = useState(false)
 	let currentLanguageEmoji = locale === "de" ? "🇩🇪" : "🇺🇸"
 
 	return (
@@ -64,9 +66,13 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 							</Button>
 						))}
 						{languages && (
-							<DropdownMenu modal={false}>
+							<DropdownMenu open={langMenuOpen} onOpenChange={setLangMenuOpen}>
 								<DropdownMenuTrigger asChild>
-									<Button variant="ghost" size="icon">
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => setLangMenuOpen(true)}
+									>
 										{currentLanguageEmoji}
 									</Button>
 								</DropdownMenuTrigger>
@@ -82,9 +88,17 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 					</div>
 					<div className="flex gap-3">
 						{languages && (
-							<DropdownMenu modal={false}>
+							<DropdownMenu
+								open={mobileLangMenuOpen}
+								onOpenChange={setMobileLangMenuOpen}
+							>
 								<DropdownMenuTrigger asChild>
-									<Button variant="ghost" className="md:hidden" size="icon">
+									<Button
+										variant="ghost"
+										className="md:hidden"
+										size="icon"
+										onClick={() => setMobileLangMenuOpen(true)}
+									>
 										{currentLanguageEmoji}
 									</Button>
 								</DropdownMenuTrigger>

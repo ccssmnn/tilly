@@ -312,6 +312,7 @@ function ActionsDropdown({
 }) {
 	let navigate = useNavigate()
 	let t = useIntl()
+	let [dropdownOpen, setDropdownOpen] = useState(false)
 	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
@@ -439,8 +440,10 @@ function ActionsDropdown({
 
 	return (
 		<>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+				<DropdownMenuTrigger asChild onClick={() => setDropdownOpen(true)}>
+					{children}
+				</DropdownMenuTrigger>
 				<DropdownMenuContent>
 					{showShare && (
 						<DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
