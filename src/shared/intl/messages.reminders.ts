@@ -127,7 +127,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
 	"reminders.add.title": "Erinnerung",
 	"reminders.add.description":
-		"Lege eine Erinnerung fest – zum Nachfassen, Einchecken oder um etwas Wichtiges nicht zu vergessen.",
+		"Lege eine Erinnerung fest – zum Melden, Nachfragen oder um etwas Wichtiges nicht zu vergessen.",
 
 	// Individual reminder messages
 	"reminder.select.title": "Person auswählen",
