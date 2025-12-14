@@ -644,7 +644,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 						</div>
 					</div>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="center" side="top">
+				<DropdownMenuContent align="center">
 					<DropdownMenuItem
 						onClick={() =>
 							handleToggleDeviceEnabled(

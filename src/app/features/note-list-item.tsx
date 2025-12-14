@@ -410,7 +410,7 @@ function ActionsDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent align={"center"} side={"top"}>
+			<DropdownMenuContent align="center">
 				<DropdownMenuItem onClick={onEditClick}>
 					<T k="note.actions.edit" />
 					<PencilSquare />
@@ -523,7 +523,7 @@ function RestoreNoteDropdown({
 		<>
 			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 				{children}
-				<DropdownMenuContent align={"center"} side={"top"}>
+				<DropdownMenuContent align="center">
 					<DropdownMenuItem onClick={handleRestore}>
 						<T k="note.restore.button" />
 						<ArrowCounterclockwise />

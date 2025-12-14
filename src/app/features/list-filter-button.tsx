@@ -62,7 +62,7 @@ function ListFilterButton({
 						</span>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start">
+				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>
 						<T k="person.listFilter.lists" />
 					</DropdownMenuLabel>
