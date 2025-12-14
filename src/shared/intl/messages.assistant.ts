@@ -173,16 +173,16 @@ const baseAssistantMessages = messages({
 		".input {$unit :string} .match $unit day {{Repeats every {$interval :number} day(s)}} week {{Repeats every {$interval :number} week(s)}} month {{Repeats every {$interval :number} month(s)}} year {{Repeats every {$interval :number} year(s)}} * {{Repeats every {$interval :number} {$unit}}}",
 	"tool.reminder.done": "Done",
 	"tool.reminder.notDone": "Not done",
-	"tool.reminder.updated.message": "Updated reminder",
-	"tool.reminder.updated.undone": "Updated reminder (undone)",
+	"tool.reminder.updated.message": "Updated reminder: {$text}",
+	"tool.reminder.updated.undone": "Updated reminder {$text} (undone)",
 	"tool.reminder.updated.dialog.title": "Reminder Updated",
 	"tool.reminder.updated.dialog.description":
 		"Before and after comparison of the reminder changes.",
 	"tool.reminder.updated.dialog.current": "Current",
 	"tool.reminder.updated.dialog.previous": "Previous",
 	"tool.reminder.updated.undo.success": "✅ Undo: Restored reminder",
-	"tool.reminder.deleted.message": "Removed reminder",
-	"tool.reminder.deleted.undone": "Removed reminder (undone)",
+	"tool.reminder.deleted.message": "Removed reminder: {$text}",
+	"tool.reminder.deleted.undone": "Removed reminder {$text} (undone)",
 	"tool.reminder.deleted.dialog.title": "Reminder Removed",
 	"tool.reminder.deleted.dialog.description":
 		"Details of the reminder that was removed.",
@@ -410,9 +410,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		".input {$unit :string} .match $unit day {{Wiederholt sich alle {$interval :number} Tag(e)}} week {{Wiederholt sich alle {$interval :number} Woche(n)}} month {{Wiederholt sich alle {$interval :number} Monat(e)}} year {{Wiederholt sich alle {$interval :number} Jahr(e)}} * {{Wiederholt sich alle {$interval :number} {$unit}}}",
 	"tool.reminder.done": "Erledigt",
 	"tool.reminder.notDone": "Nicht erledigt",
-	"tool.reminder.updated.message": "Erinnerung aktualisiert",
+	"tool.reminder.updated.message": "Erinnerung aktualisiert: {$text}",
 	"tool.reminder.updated.undone":
-		"Erinnerung aktualisiert (rückgängig gemacht)",
+		"Erinnerung {$text} aktualisiert (rückgängig gemacht)",
 	"tool.reminder.updated.dialog.title": "Erinnerung aktualisiert",
 	"tool.reminder.updated.dialog.description":
 		"Vorher-Nachher-Vergleich der Änderungen.",
@@ -420,8 +420,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.reminder.updated.dialog.previous": "Vorher",
 	"tool.reminder.updated.undo.success":
 		"✅ Rückgängig: Erinnerung wiederhergestellt",
-	"tool.reminder.deleted.message": "Erinnerung entfernt",
-	"tool.reminder.deleted.undone": "Erinnerung entfernt (rückgängig gemacht)",
+	"tool.reminder.deleted.message": "Erinnerung entfernt: {$text}",
+	"tool.reminder.deleted.undone":
+		"Erinnerung {$text} entfernt (rückgängig gemacht)",
 	"tool.reminder.deleted.dialog.title": "Erinnerung entfernt",
 	"tool.reminder.deleted.dialog.description":
 		"Details zur entfernten Erinnerung.",
