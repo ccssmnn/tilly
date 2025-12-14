@@ -102,6 +102,7 @@ let router = createRouter({
 	basepath: "/app",
 	routeTree,
 	defaultGcTime: 0,
+	defaultPreload: "viewport",
 	context: { me: undefined! },
 })
 
