@@ -1,6 +1,6 @@
 ---
 layout: ../../www/layouts/LegalPageLayout.astro
-title: "Imprint - Tilly"
+title: "Imprint"
 description: "Legal information and contact details for Tilly."
 locale: "en"
 ---

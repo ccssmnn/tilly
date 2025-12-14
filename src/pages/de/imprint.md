@@ -1,6 +1,6 @@
 ---
 layout: ../../www/layouts/LegalPageLayout.astro
-title: "Impressum - Tilly"
+title: "Impressum"
 description: "Rechtliche Informationen und Kontaktdaten für Tilly."
 locale: "de"
 ---

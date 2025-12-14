@@ -360,7 +360,7 @@ function NoPeopleState({
 	setPeopleSearchQuery: (query: string) => void
 }) {
 	return (
-		<div className="mt-6 flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+		<div className="flex flex-col items-center justify-center gap-8 text-center">
 			<PersonTour
 				onSuccess={personId => {
 					setPeopleSearchQuery("")

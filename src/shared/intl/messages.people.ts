@@ -5,7 +5,7 @@ export { basePeopleMessages, dePeopleMessages }
 const basePeopleMessages = messages({
 	// People page messages
 	"people.title": "People",
-	"people.pageTitle": "People - Tilly",
+	"people.pageTitle": "People",
 	"people.search.placeholder": "Find someone...",
 	"people.search.clearLabel": "Clear Search",
 	"people.newPersonLabel": "New Person",
@@ -42,7 +42,7 @@ const basePeopleMessages = messages({
 		"Drag to select the square area of the photo you want to keep.",
 	"person.crop.cancel": "Cancel",
 	"person.crop.confirm": "Crop",
-	"person.detail.pageTitle": "{$name} - Tilly",
+	"person.detail.pageTitle": "{$name}",
 	"person.detail.search.placeholder": "Search notes and reminders...",
 	"person.detail.notes.tab": "Notes ({$count :number})",
 	"person.detail.reminders.tab": "Reminder ({$count :number})",
@@ -178,7 +178,7 @@ const basePeopleMessages = messages({
 const dePeopleMessages = translate(basePeopleMessages, {
 	// People page messages
 	"people.title": "Personen",
-	"people.pageTitle": "Personen - Tilly",
+	"people.pageTitle": "Personen",
 	"people.search.placeholder": "Jemanden finden...",
 	"people.search.clearLabel": "Suche löschen",
 	"people.newPersonLabel": "Neue Person",
@@ -215,7 +215,7 @@ const dePeopleMessages = translate(basePeopleMessages, {
 		"Ziehe den Rahmen, um den quadratischen Bildausschnitt festzulegen.",
 	"person.crop.cancel": "Abbrechen",
 	"person.crop.confirm": "Zuschneiden",
-	"person.detail.pageTitle": "{$name} - Tilly",
+	"person.detail.pageTitle": "{$name}",
 	"person.detail.search.placeholder": "Nach Notizen und Erinnerungen suchen...",
 	"person.detail.notes.tab": "Notizen ({$count :number})",
 	"person.detail.reminders.tab": "Erinnerungen ({$count :number})",

@@ -5,7 +5,7 @@ export { baseRemindersMessages, deRemindersMessages }
 const baseRemindersMessages = messages({
 	// Reminders page messages
 	"reminders.title": "Reminders",
-	"reminders.pageTitle": "Reminders - Tilly",
+	"reminders.pageTitle": "Reminders",
 	"reminders.search.placeholder": "Find reminders...",
 	"reminders.addButton": "Add Reminder",
 	"reminders.noPeople.title": "Add people first",
@@ -96,7 +96,7 @@ const baseRemindersMessages = messages({
 const deRemindersMessages = translate(baseRemindersMessages, {
 	// Reminders page messages
 	"reminders.title": "Erinnerungen",
-	"reminders.pageTitle": "Erinnerungen - Tilly",
+	"reminders.pageTitle": "Erinnerungen",
 	"reminders.search.placeholder": "Erinnerungen finden...",
 	"reminders.addButton": "Erinnerung hinzufügen",
 	"reminders.noPeople.title": "Zuerst Personen hinzufügen",
@@ -127,7 +127,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
 	"reminders.add.title": "Erinnerung",
 	"reminders.add.description":
-		"Lege eine Erinnerung fest – zum Nachfassen, Einchecken oder um etwas Wichtiges nicht zu vergessen.",
+		"Lege eine Erinnerung fest – zum Melden, Nachfragen oder um etwas Wichtiges nicht zu vergessen.",
 
 	// Individual reminder messages
 	"reminder.select.title": "Person auswählen",
@@ -138,7 +138,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminder.add.title": "Erinnerung hinzufügen",
 	"reminder.add.description": "Lege eine Erinnerung für {$person} fest.",
 	"reminder.form.placeholder":
-		"Erinnerung setzen, um nachzufassen, wenn es wichtig ist",
+		"Erinnerung setzen, um dich zu melden, wenn es wichtig ist",
 	"reminder.actions.title": "Aktionen zur Erinnerung",
 	"reminder.actions.description": "Was möchtest du mit dieser Erinnerung tun?",
 	"reminder.actions.markDone": "Als erledigt markieren",

@@ -5,7 +5,7 @@ export { baseAssistantMessages, deAssistantMessages }
 const baseAssistantMessages = messages({
 	// Assistant interface messages
 	"assistant.title": "Chat with Tilly",
-	"assistant.pageTitle": "Chat - Tilly",
+	"assistant.pageTitle": "Chat",
 	"assistant.subscribe.title": "Get AI Assistance with Tilly Plus",
 	"assistant.subscribe.description":
 		"Tilly Agent can turn your thoughts into notes and reminders. It's like talking to your journal! Try free for 30 days.",
@@ -169,19 +169,20 @@ const baseAssistantMessages = messages({
 	"tool.reminder.created.dialog.section": "Reminder",
 	"tool.reminder.created.undo.success": '✅ Undo: Deleted reminder "{$text}"',
 	"tool.reminder.noDate": "No date",
-	"tool.reminder.repeats": "Repeats every {$interval :number} {$unit}(s)",
+	"tool.reminder.repeats":
+		".input {$unit :string} .match $unit day {{Repeats every {$interval :number} day(s)}} week {{Repeats every {$interval :number} week(s)}} month {{Repeats every {$interval :number} month(s)}} year {{Repeats every {$interval :number} year(s)}} * {{Repeats every {$interval :number} {$unit}}}",
 	"tool.reminder.done": "Done",
 	"tool.reminder.notDone": "Not done",
-	"tool.reminder.updated.message": "Updated reminder",
-	"tool.reminder.updated.undone": "Updated reminder (undone)",
+	"tool.reminder.updated.message": "Updated reminder: {$text}",
+	"tool.reminder.updated.undone": "Updated reminder {$text} (undone)",
 	"tool.reminder.updated.dialog.title": "Reminder Updated",
 	"tool.reminder.updated.dialog.description":
 		"Before and after comparison of the reminder changes.",
 	"tool.reminder.updated.dialog.current": "Current",
 	"tool.reminder.updated.dialog.previous": "Previous",
 	"tool.reminder.updated.undo.success": "✅ Undo: Restored reminder",
-	"tool.reminder.deleted.message": "Removed reminder",
-	"tool.reminder.deleted.undone": "Removed reminder (undone)",
+	"tool.reminder.deleted.message": "Removed reminder: {$text}",
+	"tool.reminder.deleted.undone": "Removed reminder {$text} (undone)",
 	"tool.reminder.deleted.dialog.title": "Reminder Removed",
 	"tool.reminder.deleted.dialog.description":
 		"Details of the reminder that was removed.",
@@ -233,7 +234,7 @@ const baseAssistantMessages = messages({
 const deAssistantMessages = translate(baseAssistantMessages, {
 	// Assistant interface messages
 	"assistant.title": "Mit Tilly chatten",
-	"assistant.pageTitle": "Chat - Tilly",
+	"assistant.pageTitle": "Chat",
 	"assistant.subscribe.title": "Erhalte KI Unterstützung mit Tilly Plus",
 	"assistant.subscribe.description":
 		"Der Tilly Agent verwandelt lose Gedanken in Notizen und Erinnerungen. Als würdest du mit deinem Journal Sprechen. 30 Tage kostenlos testen.",
@@ -406,12 +407,12 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 		'✅ Rückgängig: Erinnerung "{$text}" gelöscht',
 	"tool.reminder.noDate": "Kein Datum",
 	"tool.reminder.repeats":
-		"Wiederholt sich alle {$interval :number} {$unit}(e)",
+		".input {$unit :string} .match $unit day {{Wiederholt sich alle {$interval :number} Tag(e)}} week {{Wiederholt sich alle {$interval :number} Woche(n)}} month {{Wiederholt sich alle {$interval :number} Monat(e)}} year {{Wiederholt sich alle {$interval :number} Jahr(e)}} * {{Wiederholt sich alle {$interval :number} {$unit}}}",
 	"tool.reminder.done": "Erledigt",
 	"tool.reminder.notDone": "Nicht erledigt",
-	"tool.reminder.updated.message": "Erinnerung aktualisiert",
+	"tool.reminder.updated.message": "Erinnerung aktualisiert: {$text}",
 	"tool.reminder.updated.undone":
-		"Erinnerung aktualisiert (rückgängig gemacht)",
+		"Erinnerung {$text} aktualisiert (rückgängig gemacht)",
 	"tool.reminder.updated.dialog.title": "Erinnerung aktualisiert",
 	"tool.reminder.updated.dialog.description":
 		"Vorher-Nachher-Vergleich der Änderungen.",
@@ -419,8 +420,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.reminder.updated.dialog.previous": "Vorher",
 	"tool.reminder.updated.undo.success":
 		"✅ Rückgängig: Erinnerung wiederhergestellt",
-	"tool.reminder.deleted.message": "Erinnerung entfernt",
-	"tool.reminder.deleted.undone": "Erinnerung entfernt (rückgängig gemacht)",
+	"tool.reminder.deleted.message": "Erinnerung entfernt: {$text}",
+	"tool.reminder.deleted.undone":
+		"Erinnerung {$text} entfernt (rückgängig gemacht)",
 	"tool.reminder.deleted.dialog.title": "Erinnerung entfernt",
 	"tool.reminder.deleted.dialog.description":
 		"Details zur entfernten Erinnerung.",

@@ -37,7 +37,6 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-
 import {
 	Dialog,
 	DialogContent,
@@ -57,7 +56,6 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "#shared/ui/accordion"
-
 import { T, useIntl } from "#shared/intl/setup"
 import { NoteTour } from "#app/features/note-tour"
 import { ReminderTour } from "#app/features/reminder-tour"

@@ -104,11 +104,13 @@ function UpdateReminderResult({
 		}
 	}
 
+	let textPreview = `"${result.text.length > 50 ? result.text.substring(0, 50) + "..." : result.text}"`
+
 	if (isUndone) {
 		return (
 			<ToolMessageWrapper>
 				<span className="text-gray-500 line-through">
-					<T k="tool.reminder.updated.undone" />
+					<T k="tool.reminder.updated.undone" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
 		)
@@ -121,7 +123,7 @@ function UpdateReminderResult({
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
-					<T k="tool.reminder.updated.message" />
+					<T k="tool.reminder.updated.message" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -258,11 +260,13 @@ function RemoveReminderResult({
 		}
 	}
 
+	let textPreview = `"${result.text.length > 50 ? result.text.substring(0, 50) + "..." : result.text}"`
+
 	if (isUndone) {
 		return (
 			<ToolMessageWrapper>
 				<span className="text-gray-500 line-through">
-					<T k="tool.reminder.deleted.undone" />
+					<T k="tool.reminder.deleted.undone" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
 		)
@@ -275,7 +279,7 @@ function RemoveReminderResult({
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
-					<T k="tool.reminder.deleted.message" />
+					<T k="tool.reminder.deleted.message" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

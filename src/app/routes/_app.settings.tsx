@@ -784,13 +784,13 @@ function AboutSection() {
 			description={t("settings.about.description")}
 		>
 			<div className="space-y-3">
-				<Button asChild variant="outline" className="w-full">
+				<Button asChild variant="outline" className="w-full justify-start">
 					<a href="/" target="_blank" rel="noopener noreferrer">
 						<Compass />
 						<T k="settings.about.visit" />
 					</a>
 				</Button>
-				<Button asChild variant="outline" className="w-full">
+				<Button asChild variant="outline" className="w-full justify-start">
 					<a
 						href={`/${currentLang}/blog/pragmatic-relationship-journaling`}
 						target="_blank"
@@ -802,7 +802,7 @@ function AboutSection() {
 				</Button>
 				<Button
 					variant="outline"
-					className="w-full"
+					className="w-full justify-start"
 					onClick={() => setTourSkipped(false)}
 					asChild
 				>

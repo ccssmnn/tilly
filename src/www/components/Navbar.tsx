@@ -76,7 +76,7 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 										{currentLanguageEmoji}
 									</Button>
 								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
+								<DropdownMenuContent align="center">
 									{languages.map(item => (
 										<DropdownMenuItem key={item.name} asChild>
 											<a href={item.href}>{item.name}</a>

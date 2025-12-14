@@ -1,6 +1,6 @@
 ---
 layout: ../../www/layouts/LegalPageLayout.astro
-title: "Datenschutzerklärung - Tilly"
+title: "Datenschutzerklärung"
 description: "Datenschutzerklärung und Informationen zum Datenschutz für Tilly-Nutzer."
 locale: "de"
 ---

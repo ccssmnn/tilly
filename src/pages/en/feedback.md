@@ -1,6 +1,6 @@
 ---
 layout: ../../www/layouts/LegalPageLayout.astro
-title: "Feedback - Tilly"
+title: "Feedback"
 description: "Send feedback and get in touch with the Tilly team."
 locale: "en"
 ---
