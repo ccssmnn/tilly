@@ -366,7 +366,7 @@ function SectionHeading({
 
 function NoRemindersState() {
 	return (
-		<div className="flex min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] flex-col items-center justify-center gap-8 text-center md:min-h-[calc(100dvh-6rem)]">
+		<div className="flex flex-col items-center justify-center gap-8 text-center">
 			<ReminderTour />
 		</div>
 	)
