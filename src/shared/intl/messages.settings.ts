@@ -5,7 +5,7 @@ export { baseSettingsMessages, deSettingsMessages }
 const baseSettingsMessages = messages({
 	// Settings page messages
 	"settings.title": "Settings",
-	"settings.pageTitle": "Settings - Tilly",
+	"settings.pageTitle": "Settings",
 	"settings.account.title": "Account",
 	"settings.account.description.signedIn":
 		"Manage your authentication status, access account settings, and handle your subscription.",
@@ -348,7 +348,7 @@ const baseSettingsMessages = messages({
 let deSettingsMessages = translate(baseSettingsMessages, {
 	// Settings page messages
 	"settings.title": "Einstellungen",
-	"settings.pageTitle": "Einstellungen - Tilly",
+	"settings.pageTitle": "Einstellungen",
 	"settings.account.title": "Konto",
 	"settings.account.description.signedIn":
 		"Verwalte deinen Authentifizierungsstatus, greife auf Kontoeinstellungen zu und verwalte dein Abonnement.",

@@ -4,7 +4,7 @@ export { baseNotesMessages, deNotesMessages }
 
 const baseNotesMessages = messages({
 	// Notes collection messages
-	"notes.pageTitle": "Notes - Tilly",
+	"notes.pageTitle": "Notes",
 	"notes.title": "Notes",
 	"notes.addButton": "Add Note",
 	"notes.search.placeholder": "Search notes...",
@@ -87,7 +87,7 @@ const baseNotesMessages = messages({
 
 const deNotesMessages = translate(baseNotesMessages, {
 	// Notes collection messages
-	"notes.pageTitle": "Notizen - Tilly",
+	"notes.pageTitle": "Notizen",
 	"notes.title": "Notizen",
 	"notes.addButton": "Notiz hinzufügen",
 	"notes.search.placeholder": "Notizen durchsuchen...",

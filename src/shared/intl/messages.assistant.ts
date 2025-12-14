@@ -5,7 +5,7 @@ export { baseAssistantMessages, deAssistantMessages }
 const baseAssistantMessages = messages({
 	// Assistant interface messages
 	"assistant.title": "Chat with Tilly",
-	"assistant.pageTitle": "Chat - Tilly",
+	"assistant.pageTitle": "Chat",
 	"assistant.subscribe.title": "Get AI Assistance with Tilly Plus",
 	"assistant.subscribe.description":
 		"Tilly Agent can turn your thoughts into notes and reminders. It's like talking to your journal! Try free for 30 days.",
@@ -234,7 +234,7 @@ const baseAssistantMessages = messages({
 const deAssistantMessages = translate(baseAssistantMessages, {
 	// Assistant interface messages
 	"assistant.title": "Mit Tilly chatten",
-	"assistant.pageTitle": "Chat - Tilly",
+	"assistant.pageTitle": "Chat",
 	"assistant.subscribe.title": "Erhalte KI Unterstützung mit Tilly Plus",
 	"assistant.subscribe.description":
 		"Der Tilly Agent verwandelt lose Gedanken in Notizen und Erinnerungen. Als würdest du mit deinem Journal Sprechen. 30 Tage kostenlos testen.",

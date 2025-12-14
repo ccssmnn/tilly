@@ -5,7 +5,7 @@ export { baseRemindersMessages, deRemindersMessages }
 const baseRemindersMessages = messages({
 	// Reminders page messages
 	"reminders.title": "Reminders",
-	"reminders.pageTitle": "Reminders - Tilly",
+	"reminders.pageTitle": "Reminders",
 	"reminders.search.placeholder": "Find reminders...",
 	"reminders.addButton": "Add Reminder",
 	"reminders.noPeople.title": "Add people first",
@@ -96,7 +96,7 @@ const baseRemindersMessages = messages({
 const deRemindersMessages = translate(baseRemindersMessages, {
 	// Reminders page messages
 	"reminders.title": "Erinnerungen",
-	"reminders.pageTitle": "Erinnerungen - Tilly",
+	"reminders.pageTitle": "Erinnerungen",
 	"reminders.search.placeholder": "Erinnerungen finden...",
 	"reminders.addButton": "Erinnerung hinzufügen",
 	"reminders.noPeople.title": "Zuerst Personen hinzufügen",

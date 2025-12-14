@@ -1,6 +1,6 @@
 ---
 layout: ../../www/layouts/LegalPageLayout.astro
-title: "Privacy Policy - Tilly"
+title: "Privacy Policy"
 description: "Privacy policy and data protection information for Tilly users."
 locale: "en"
 ---
