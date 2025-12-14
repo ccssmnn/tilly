@@ -14,7 +14,7 @@ export function ScrollReset({
 		if (!el) return
 		let reset = () => el.scrollTo({ top: 0, left: 0, behavior: "instant" })
 		requestAnimationFrame(() => requestAnimationFrame(reset))
-	}, [location.pathname, containerId])
+	}, [location.pathname, location.search, containerId])
 
 	return null
 }
