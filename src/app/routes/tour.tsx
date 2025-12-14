@@ -5,6 +5,7 @@ import { useAppStore } from "#app/lib/store"
 import { motion, AnimatePresence } from "motion/react"
 import { isIOS, useIsPWAInstalled, isAndroid } from "#app/hooks/use-pwa"
 import { TypographyH1 } from "#shared/ui/typography"
+import { cn } from "#app/lib/utils"
 import {
 	Empty,
 	EmptyContent,
@@ -51,6 +52,11 @@ function TourComponent() {
 	function prevStep() {
 		setDirection("left")
 		setCurrentStep(Math.max(currentStep - 1, 0))
+	}
+
+	function handleDotClick(index: number) {
+		setDirection(index > currentStep ? "right" : "left")
+		setTimeout(() => setCurrentStep(index), 10)
 	}
 
 	useEffect(() => {
@@ -109,6 +115,17 @@ function TourComponent() {
 								initial="enter"
 								animate="center"
 								exit="exit"
+								drag="x"
+								dragConstraints={{ left: 0, right: 0 }}
+								dragElastic={0.2}
+								onDragEnd={(_, info) => {
+									let swipeThreshold = 50
+									if (info.offset.x > swipeThreshold) {
+										prevStep()
+									} else if (info.offset.x < -swipeThreshold) {
+										nextStep()
+									}
+								}}
 								variants={{
 									enter: (dir: Direction) => ({
 										opacity: 0,
@@ -124,26 +141,44 @@ function TourComponent() {
 									duration: 0.075,
 									delay: direction === undefined ? 0.5 : 0,
 								}}
+								style={{ touchAction: "pan-y" }}
 							>
 								{renderStep(steps[currentStep], setCurrentStep)}
 							</motion.div>
 						</AnimatePresence>
 					</div>
 				</div>
-				<div className="absolute inset-x-0 bottom-0 flex justify-center">
-					{currentStep > 0 && (
-						<Button variant="outline" onClick={prevStep} className="h-12">
-							<ChevronLeft />
-							<T k="navigation.previous" />
-						</Button>
-					)}
-					<div className="flex-1" />
-					{currentStep !== steps.length - 1 && (
-						<Button onClick={nextStep} className="h-12">
-							<T k="navigation.next" />
-							<ChevronRight />
-						</Button>
-					)}
+				<div className="absolute inset-x-0 bottom-0 flex items-center justify-between">
+					<div className="w-32">
+						{currentStep > 0 && (
+							<Button variant="outline" onClick={prevStep} className="h-12">
+								<ChevronLeft />
+								<T k="navigation.previous" />
+							</Button>
+						)}
+					</div>
+					<div className="flex gap-2">
+						{steps.map((_, index) => (
+							<button
+								key={index}
+								onClick={() => handleDotClick(index)}
+								className={cn(
+									"size-2 rounded-full transition-all",
+									currentStep === index
+										? "bg-foreground w-6"
+										: "bg-foreground/50 hover:bg-foreground/75",
+								)}
+							/>
+						))}
+					</div>
+					<div className="flex w-32 justify-end">
+						{currentStep !== steps.length - 1 && (
+							<Button onClick={nextStep} className="h-12">
+								<T k="navigation.next" />
+								<ChevronRight />
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>
