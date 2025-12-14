@@ -14,13 +14,8 @@ import {
 } from "#shared/ui/card"
 import { TypographyMuted } from "#shared/ui/typography"
 import { QuestionCircle } from "react-bootstrap-icons"
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#shared/ui/select"
+import { RadioGroup, RadioGroupItem } from "#shared/ui/radio-group"
+import { Label } from "#shared/ui/label"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import {
 	userQuestionExecute,
@@ -125,25 +120,28 @@ function UserQuestionConfirmation({
 								render={({ field }) => (
 									<FormItem>
 										<FormControl>
-											<Select
+											<RadioGroup
 												value={field.value}
 												onValueChange={field.onChange}
 											>
-												<SelectTrigger className="w-full">
-													<SelectValue
-														placeholder={t(
-															"tool.userQuestion.selectPlaceholder",
-														)}
-													/>
-												</SelectTrigger>
-												<SelectContent>
-													{part.input.options!.map(option => (
-														<SelectItem key={option.value} value={option.value}>
+												{part.input.options!.map(option => (
+													<div
+														key={option.value}
+														className="flex items-start gap-3"
+													>
+														<RadioGroupItem
+															value={option.value}
+															id={option.value}
+														/>
+														<Label
+															htmlFor={option.value}
+															className="leading-normal font-normal"
+														>
 															{option.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
+														</Label>
+													</div>
+												))}
+											</RadioGroup>
 										</FormControl>
 									</FormItem>
 								)}
