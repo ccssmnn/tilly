@@ -138,7 +138,7 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminder.add.title": "Erinnerung hinzufügen",
 	"reminder.add.description": "Lege eine Erinnerung für {$person} fest.",
 	"reminder.form.placeholder":
-		"Erinnerung setzen, um nachzufassen, wenn es wichtig ist",
+		"Erinnerung setzen, um dich zu melden, wenn es wichtig ist",
 	"reminder.actions.title": "Aktionen zur Erinnerung",
 	"reminder.actions.description": "Was möchtest du mit dieser Erinnerung tun?",
 	"reminder.actions.markDone": "Als erledigt markieren",
