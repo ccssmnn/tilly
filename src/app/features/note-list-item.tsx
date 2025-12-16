@@ -55,6 +55,15 @@ import { TextHighlight } from "#shared/ui/text-highlight"
 import { Button } from "#shared/ui/button"
 import { motion, AnimatePresence } from "motion/react"
 import { SharedIndicator } from "#app/features/person-shared-indicator"
+import {
+	SwipeableListItem,
+	type SwipeAction,
+} from "#shared/ui/swipeable-list-item"
+import {
+	Pin,
+	ArrowCounterclockwise as RestoreIcon,
+} from "react-bootstrap-icons"
+
 export { NoteListItem }
 
 let CHAR_LIMIT = 280
@@ -67,6 +76,7 @@ function NoteListItem(props: {
 	showPerson?: boolean
 }) {
 	let me = useAccount(UserAccount)
+	let t = useIntl()
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
@@ -103,9 +113,51 @@ function NoteListItem(props: {
 		}
 	}
 
+	let deletedSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("note.permanentDelete.confirm"),
+			color: "destructive",
+			onAction: () => operations.deletePermanently(),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: RestoreIcon,
+				label: t("note.restore.button"),
+				color: "success",
+				onAction: () => operations.restore(),
+			} satisfies SwipeAction,
+		},
+	}
+
+	let activeSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("note.actions.delete"),
+			color: "destructive",
+			onAction: () => operations.deleteNote(),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: Pin,
+				label: props.note.pinned
+					? t("note.actions.unpin")
+					: t("note.actions.pin"),
+				color: "primary",
+				onAction: () => operations.togglePin(),
+			} satisfies SwipeAction,
+			secondary: {
+				icon: PencilSquare,
+				label: t("note.actions.edit"),
+				color: "warning",
+				onAction: () => setOpenDialog("edit"),
+			} satisfies SwipeAction,
+		},
+	}
+
 	if (props.note.deletedAt) {
 		return (
-			<>
+			<SwipeableListItem {...deletedSwipeActions}>
 				<RestoreNoteDropdown
 					open={openDialog === "restore"}
 					onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
@@ -142,12 +194,12 @@ function NoteListItem(props: {
 					/>
 				)}
 				<NoteImageGrid note={props.note} isDeleted={true} />
-			</>
+			</SwipeableListItem>
 		)
 	}
 
 	return (
-		<>
+		<SwipeableListItem {...activeSwipeActions}>
 			<ActionsDropdown
 				open={openDialog === "actions"}
 				onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
@@ -210,7 +262,7 @@ function NoteListItem(props: {
 				onOpenChange={() => setOpenDialog(undefined)}
 				operations={operations}
 			/>
-		</>
+		</SwipeableListItem>
 	)
 }
 
@@ -569,6 +621,7 @@ type NoteItemOperations = {
 		removedImageIds?: string[]
 	}) => Promise<{ success: true } | undefined>
 	deleteNote: () => Promise<void>
+	togglePin: () => Promise<void>
 	restore: () => Promise<boolean>
 	deletePermanently: () => Promise<boolean>
 }
@@ -666,6 +719,28 @@ function useNoteItemOperations({
 		toast.success(t("note.toast.deleted"))
 	}
 
+	async function togglePin() {
+		let newPinned = !note.pinned
+		let result = await tryCatch(
+			updateNote(
+				{ pinned: newPinned },
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: loadedMe,
+				},
+			),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		toast.success(newPinned ? t("note.toast.pinned") : t("note.toast.unpinned"))
+	}
+
 	async function restore(): Promise<boolean> {
 		let result = await tryCatch(
 			updateNote(
@@ -713,6 +788,7 @@ function useNoteItemOperations({
 	return {
 		editNote,
 		deleteNote,
+		togglePin,
 		restore,
 		deletePermanently,
 	}

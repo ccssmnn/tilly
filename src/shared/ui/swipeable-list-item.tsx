@@ -18,7 +18,7 @@ type SwipeAction = {
 	icon: React.ComponentType<{ className?: string }>
 	label: string
 	color: "destructive" | "primary" | "success" | "warning"
-	onAction: () => void | Promise<void>
+	onAction: () => void | Promise<unknown>
 }
 
 type SwipeableListItemProps = {
@@ -240,22 +240,26 @@ function SwipeableContent({
 				{children}
 			</motion.div>
 
+			{/* rightActions are revealed when swiping right, so they sit on the left */}
 			{rightActions && (
 				<ActionsGroup
-					side="right"
+					side="left"
 					swipeAmount={swipeAmountSpring}
 					swipeProgress={swipeProgress}
 					primaryAction={rightActions.primary}
 					secondaryAction={rightActions.secondary}
+					onReset={() => swipeAmount.set(0)}
 				/>
 			)}
 
+			{/* leftAction is revealed when swiping left, so it sits on the right */}
 			{leftAction && (
 				<SingleActionGroup
-					side="left"
+					side="right"
 					swipeAmount={swipeAmountSpring}
 					swipeProgress={swipeProgress}
 					action={leftAction}
+					onReset={() => swipeAmount.set(0)}
 				/>
 			)}
 		</motion.div>
@@ -268,12 +272,14 @@ function ActionsGroup({
 	side,
 	primaryAction,
 	secondaryAction,
+	onReset,
 }: {
 	swipeAmount: MotionValue<number>
 	swipeProgress: MotionValue<number>
 	side: "left" | "right"
 	primaryAction: SwipeAction
 	secondaryAction?: SwipeAction
+	onReset: () => void
 }) {
 	return (
 		<motion.div
@@ -289,6 +295,7 @@ function ActionsGroup({
 					side={side}
 					action={secondaryAction}
 					primary={false}
+					onReset={onReset}
 				/>
 			)}
 			<Action
@@ -296,6 +303,7 @@ function ActionsGroup({
 				side={side}
 				action={primaryAction}
 				primary
+				onReset={onReset}
 			/>
 		</motion.div>
 	)
@@ -306,11 +314,13 @@ function SingleActionGroup({
 	swipeProgress,
 	side,
 	action,
+	onReset,
 }: {
 	swipeAmount: MotionValue<number>
 	swipeProgress: MotionValue<number>
 	side: "left" | "right"
 	action: SwipeAction
+	onReset: () => void
 }) {
 	return (
 		<motion.div
@@ -325,6 +335,7 @@ function SingleActionGroup({
 				side={side}
 				action={action}
 				primary
+				onReset={onReset}
 			/>
 		</motion.div>
 	)
@@ -335,11 +346,13 @@ function Action({
 	side,
 	action,
 	primary,
+	onReset,
 }: {
 	swipeProgress: MotionValue<number>
 	side: "left" | "right"
 	action: SwipeAction
 	primary: boolean
+	onReset: () => void
 }) {
 	let ref = useRef<HTMLDivElement>(null)
 	let actionWidth = useRef(0)
@@ -403,6 +416,11 @@ function Action({
 
 	let Icon = action.icon
 
+	function handleClick() {
+		action.onAction()
+		onReset()
+	}
+
 	return (
 		<motion.div
 			ref={ref}
@@ -413,7 +431,11 @@ function Action({
 			)}
 			style={{ x }}
 		>
-			<div className="flex h-full w-1/4 items-center justify-center">
+			<button
+				type="button"
+				onClick={handleClick}
+				className="flex h-full w-1/4 items-center justify-center"
+			>
 				<motion.span
 					className="flex flex-col items-center gap-1 text-xs text-white"
 					style={{
@@ -426,7 +448,7 @@ function Action({
 					<Icon className="size-6" />
 					{action.label}
 				</motion.span>
-			</div>
+			</button>
 		</motion.div>
 	)
 }
