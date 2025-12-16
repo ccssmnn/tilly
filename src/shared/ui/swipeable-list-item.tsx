@@ -3,12 +3,11 @@ import {
 	clamp,
 	motion,
 	useMotionValue,
-	useMotionValueEvent,
 	useSpring,
 	useTransform,
 	type MotionValue,
 } from "motion/react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "#app/lib/utils"
 
 export { SwipeableListItem }
@@ -32,17 +31,15 @@ type SwipeableListItemProps = {
 	className?: string
 }
 
-let SPRING_OPTIONS = {
-	stiffness: 900,
-	damping: 80,
-}
-
 let COLOR_MAP = {
 	destructive: "bg-destructive",
 	primary: "bg-primary",
 	success: "bg-success",
 	warning: "bg-warning",
 } as const
+
+let BUTTON_SIZE = 56
+let BUTTON_GAP = 8
 
 function SwipeableListItem({
 	children,
@@ -88,11 +85,9 @@ function SwipeableContent({
 	let fullSwipeSnapPosition = useRef<"left" | "right" | null>(null)
 
 	let swipeAmount = useMotionValue(0)
-	let swipeAmountSpring = useSpring(swipeAmount, SPRING_OPTIONS)
-	let swipeProgress = useTransform(swipeAmount, value => {
-		let itemWidth = swipeItemWidth.current
-		if (!itemWidth) return 0
-		return value / itemWidth
+	let swipeAmountSpring = useSpring(swipeAmount, {
+		stiffness: 400,
+		damping: 40,
 	})
 
 	useEffect(() => {
@@ -109,7 +104,7 @@ function SwipeableContent({
 			if (!rightActions && swipeDelta > 0) swipeDelta = 0
 			if (!leftAction && swipeDelta < 0) swipeDelta = 0
 
-			let fullSwipeThreshold = itemWidth * 0.8
+			let fullSwipeThreshold = itemWidth * 0.6
 			let isSwipingBeyondThreshold = Math.abs(swipeDelta) > fullSwipeThreshold
 			let isSwipingLeft = swipeDelta < 0
 
@@ -145,13 +140,19 @@ function SwipeableContent({
 			let currentOffset = swipeAmount.get()
 			let targetOffset = 0
 
-			let snapThreshold = itemWidth * 0.25
+			// Calculate snap position based on number of actions
+			let rightActionCount = rightActions ? (rightActions.secondary ? 2 : 1) : 0
+			let rightSnapWidth =
+				rightActionCount * BUTTON_SIZE + (rightActionCount + 1) * BUTTON_GAP
+			let leftSnapWidth = leftAction ? BUTTON_SIZE + 2 * BUTTON_GAP : 0
+
+			let snapThreshold = itemWidth * 0.15
 
 			if (Math.abs(currentOffset) > snapThreshold) {
 				if (currentOffset > 0 && rightActions) {
-					targetOffset = itemWidth * 0.5
+					targetOffset = rightSnapWidth
 				} else if (currentOffset < 0 && leftAction) {
-					targetOffset = itemWidth * -0.5
+					targetOffset = -leftSnapWidth
 				}
 			}
 
@@ -165,17 +166,16 @@ function SwipeableContent({
 						[
 							swipeContainerRef.current!,
 							{
-								scaleY: 1.05,
-								scaleX: 0.95,
-								y: -24,
+								scaleY: 1.02,
+								scaleX: 0.98,
 								pointerEvents: "none",
 							},
 							{ duration: 0.1, ease: "easeOut" },
 						],
 						[
 							swipeContainerRef.current!,
-							{ scaleY: 1, scaleX: 1, y: 0, pointerEvents: "auto" },
-							{ duration: 0.6, type: "spring" },
+							{ scaleY: 1, scaleX: 1, pointerEvents: "auto" },
+							{ duration: 0.4, type: "spring" },
 						],
 					])
 
@@ -183,9 +183,9 @@ function SwipeableContent({
 				}
 
 				targetOffset = 0
-				animate(swipeAmount, targetOffset, { duration: 0.5, delay: 0.3 })
+				animate(swipeAmount, targetOffset, { duration: 0.3, delay: 0.1 })
 			} else {
-				swipeAmount.set(targetOffset)
+				animate(swipeAmount, targetOffset, { duration: 0.2 })
 			}
 
 			setIsSwiping(false)
@@ -207,18 +207,13 @@ function SwipeableContent({
 			if (!newWidth) return
 
 			swipeItemWidth.current = newWidth
-
-			let currentProgress = swipeProgress.get()
-			let newOffset = currentProgress * newWidth
-
-			swipeAmount.jump(newOffset)
-			swipeAmountSpring.jump(newOffset)
+			swipeAmount.jump(0)
 		}
 
 		handleResize()
 		window.addEventListener("resize", handleResize)
 		return () => window.removeEventListener("resize", handleResize)
-	}, [swipeAmount, swipeAmountSpring, swipeProgress])
+	}, [swipeAmount])
 
 	return (
 		<motion.div
@@ -245,10 +240,9 @@ function SwipeableContent({
 				<ActionsGroup
 					side="left"
 					swipeAmount={swipeAmountSpring}
-					swipeProgress={swipeProgress}
 					primaryAction={rightActions.primary}
 					secondaryAction={rightActions.secondary}
-					onReset={() => swipeAmount.set(0)}
+					onReset={() => animate(swipeAmount, 0, { duration: 0.2 })}
 				/>
 			)}
 
@@ -257,9 +251,8 @@ function SwipeableContent({
 				<SingleActionGroup
 					side="right"
 					swipeAmount={swipeAmountSpring}
-					swipeProgress={swipeProgress}
 					action={leftAction}
-					onReset={() => swipeAmount.set(0)}
+					onReset={() => animate(swipeAmount, 0, { duration: 0.2 })}
 				/>
 			)}
 		</motion.div>
@@ -268,41 +261,46 @@ function SwipeableContent({
 
 function ActionsGroup({
 	swipeAmount,
-	swipeProgress,
 	side,
 	primaryAction,
 	secondaryAction,
 	onReset,
 }: {
 	swipeAmount: MotionValue<number>
-	swipeProgress: MotionValue<number>
 	side: "left" | "right"
 	primaryAction: SwipeAction
 	secondaryAction?: SwipeAction
 	onReset: () => void
 }) {
+	// Scale in secondary action as swipe progresses
+	let secondaryScale = useTransform(swipeAmount, value => {
+		let absValue = Math.abs(value)
+		let threshold = BUTTON_SIZE + BUTTON_GAP * 2
+		if (absValue < threshold) return 0
+		let progress = (absValue - threshold) / (BUTTON_SIZE + BUTTON_GAP)
+		return clamp(0, 1, progress)
+	})
+
 	return (
 		<motion.div
 			className={cn(
-				"absolute inset-y-0 flex h-full w-full select-none",
-				side === "right" ? "left-full" : "right-full",
+				"absolute inset-y-0 z-0 flex items-center gap-2 px-2 select-none",
+				side === "right" ? "left-full flex-row-reverse" : "right-full",
 			)}
 			style={{ x: swipeAmount }}
 		>
+			{/* Secondary action (inner) */}
 			{secondaryAction && (
-				<Action
-					swipeProgress={swipeProgress}
-					side={side}
-					action={secondaryAction}
-					primary={false}
-					onReset={onReset}
-				/>
+				<motion.div style={{ scale: secondaryScale }}>
+					<ActionButton action={secondaryAction} onReset={onReset} />
+				</motion.div>
 			)}
-			<Action
-				swipeProgress={swipeProgress}
-				side={side}
+			{/* Primary action (outer, stretches) */}
+			<ActionButton
 				action={primaryAction}
-				primary
+				swipeAmount={swipeAmount}
+				isPrimary
+				hasSecondary={!!secondaryAction}
 				onReset={onReset}
 			/>
 		</motion.div>
@@ -311,13 +309,11 @@ function ActionsGroup({
 
 function SingleActionGroup({
 	swipeAmount,
-	swipeProgress,
 	side,
 	action,
 	onReset,
 }: {
 	swipeAmount: MotionValue<number>
-	swipeProgress: MotionValue<number>
 	side: "left" | "right"
 	action: SwipeAction
 	onReset: () => void
@@ -325,96 +321,59 @@ function SingleActionGroup({
 	return (
 		<motion.div
 			className={cn(
-				"absolute inset-y-0 flex h-full w-full select-none",
-				side === "right" ? "left-full" : "right-full",
+				"absolute inset-y-0 z-0 flex items-center px-2 select-none",
+				side === "right" ? "left-full flex-row-reverse" : "right-full",
 			)}
 			style={{ x: swipeAmount }}
 		>
-			<Action
-				swipeProgress={swipeProgress}
-				side={side}
+			<ActionButton
 				action={action}
-				primary
+				swipeAmount={swipeAmount}
+				isPrimary
+				hasSecondary={false}
 				onReset={onReset}
 			/>
 		</motion.div>
 	)
 }
 
-function Action({
-	swipeProgress,
-	side,
+function ActionButton({
 	action,
-	primary,
+	swipeAmount,
+	isPrimary = false,
+	hasSecondary = false,
 	onReset,
 }: {
-	swipeProgress: MotionValue<number>
-	side: "left" | "right"
 	action: SwipeAction
-	primary: boolean
+	swipeAmount?: MotionValue<number>
+	isPrimary?: boolean
+	hasSecondary?: boolean
 	onReset: () => void
 }) {
-	let ref = useRef<HTMLDivElement>(null)
-	let actionWidth = useRef(0)
+	let Icon = action.icon
+	let fallbackMotion = useMotionValue(0)
+	let activeSwipeAmount = swipeAmount ?? fallbackMotion
 
-	let calculateX = useCallback(
-		(progress: number) => {
-			let width = actionWidth.current
-			if (!primary) return 0
-
-			let absProgress = Math.abs(progress)
-			if (absProgress >= 0.8) return 0
-
-			return ((progress * width) / 2) * -1
-		},
-		[primary],
-	)
-
-	let x = useSpring(0, SPRING_OPTIONS)
-	useMotionValueEvent(swipeProgress, "change", newProgress => {
-		let updatedX = calculateX(newProgress)
-		x.set(updatedX)
+	// Primary button stretches when swiping far
+	let stretchThreshold = hasSecondary
+		? BUTTON_SIZE * 2 + BUTTON_GAP * 3
+		: BUTTON_SIZE + BUTTON_GAP * 2
+	let buttonWidth = useTransform(activeSwipeAmount, value => {
+		if (!isPrimary) return BUTTON_SIZE
+		let absValue = Math.abs(value)
+		if (absValue < stretchThreshold) return BUTTON_SIZE
+		return BUTTON_SIZE + (absValue - stretchThreshold)
 	})
 
-	useEffect(() => {
-		function updateWidth() {
-			let width = ref.current?.getBoundingClientRect().width
-			if (!width) return
-
-			actionWidth.current = width
-
-			let newX = calculateX(swipeProgress.get())
-			x.jump(newX)
-		}
-
-		updateWidth()
-		window.addEventListener("resize", updateWidth)
-		return () => window.removeEventListener("resize", updateWidth)
-	}, [swipeProgress, x, calculateX])
-
-	let finalStateOpacity = primary ? 1 : 0
-	let _contentOpacity = useTransform(
-		swipeProgress,
-		[-1, -0.8, -0.5, -0.25, 0.25, 0.5, 0.8, 1],
-		[finalStateOpacity, 1, 1, 0, 0, 1, 1, finalStateOpacity],
-	)
-	let contentOpacity = useSpring(_contentOpacity, SPRING_OPTIONS)
-
-	let _contentX = useTransform(
-		swipeProgress,
-		[-1, -0.8, -0.5, 0.5, 0.8, 1],
-		[0, 16, 0, 0, -16, 0],
-	)
-	let contentX = useSpring(_contentX, SPRING_OPTIONS)
-
-	let _contentScale = useTransform(
-		swipeProgress,
-		[-1, -0.8, 0, 0.8, 1],
-		[1, 0.8, 1, 0.8, 1],
-	)
-	let contentScale = useSpring(_contentScale, SPRING_OPTIONS)
-
-	let Icon = action.icon
+	// Scale in animation for primary
+	let scale = useTransform(activeSwipeAmount, value => {
+		if (!isPrimary) return 1
+		let absValue = Math.abs(value)
+		let threshold = BUTTON_GAP
+		if (absValue < threshold) return 0
+		let progress = (absValue - threshold) / BUTTON_SIZE
+		return clamp(0, 1, progress)
+	})
 
 	function handleClick() {
 		action.onAction()
@@ -422,33 +381,26 @@ function Action({
 	}
 
 	return (
-		<motion.div
-			ref={ref}
-			className={cn(
-				"absolute inset-0 flex",
-				side === "right" ? "justify-start" : "justify-end",
-				COLOR_MAP[action.color],
-			)}
-			style={{ x }}
+		<motion.button
+			type="button"
+			onClick={handleClick}
+			className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
+			style={{ scale }}
 		>
-			<button
-				type="button"
-				onClick={handleClick}
-				className="flex h-full w-1/4 items-center justify-center"
+			<motion.div
+				className={cn(
+					"flex items-center justify-center rounded-full",
+					COLOR_MAP[action.color],
+				)}
+				style={{
+					width: buttonWidth,
+					height: BUTTON_SIZE,
+					borderRadius: BUTTON_SIZE / 2,
+				}}
 			>
-				<motion.span
-					className="flex flex-col items-center gap-1 text-xs text-white"
-					style={{
-						x: contentX,
-						opacity: contentOpacity,
-						scale: contentScale,
-						transformOrigin: side === "right" ? "right" : "left",
-					}}
-				>
-					<Icon className="size-6" />
-					{action.label}
-				</motion.span>
-			</button>
-		</motion.div>
+				<Icon className="size-6" />
+			</motion.div>
+			<span className="text-muted-foreground text-[11px]">{action.label}</span>
+		</motion.button>
 	)
 }

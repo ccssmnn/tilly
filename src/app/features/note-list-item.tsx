@@ -289,12 +289,7 @@ function NoteItemContainer({
 	)
 
 	return (
-		<div
-			className={cn(
-				className,
-				"hover:bg-muted has-active:bg-accent -mx-3 rounded-md px-3",
-			)}
-		>
+		<div className={cn(className, "hover:bg-muted -mx-3 rounded-md px-3")}>
 			<DropdownMenuTrigger
 				id={`note-${note.$jazz.id}`}
 				className={baseClassName}
