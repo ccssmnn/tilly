@@ -22,6 +22,7 @@ type SwipeAction = {
 
 type SwipeableListItemProps = {
 	children: React.ReactNode
+	itemKey?: string
 	leftAction?: SwipeAction
 	rightActions?: {
 		primary: SwipeAction
@@ -43,6 +44,7 @@ let BUTTON_GAP = 8
 
 function SwipeableListItem({
 	children,
+	itemKey,
 	leftAction,
 	rightActions,
 	disabled,
@@ -60,6 +62,7 @@ function SwipeableListItem({
 
 	return (
 		<SwipeableContent
+			key={itemKey}
 			leftAction={leftAction}
 			rightActions={rightActions}
 			className={className}
@@ -89,6 +92,13 @@ function SwipeableContent({
 		stiffness: 400,
 		damping: 40,
 	})
+
+	// Reset swipe state on mount (handles virtualized list item reuse)
+	useEffect(() => {
+		swipeAmount.jump(0)
+		swipeAmountSpring.jump(0)
+		fullSwipeSnapPosition.current = null
+	}, [swipeAmount, swipeAmountSpring])
 
 	useEffect(() => {
 		function handlePointerMove(info: PointerEvent) {
@@ -289,12 +299,6 @@ function ActionsGroup({
 			)}
 			style={{ x: swipeAmount }}
 		>
-			{/* Secondary action (inner) */}
-			{secondaryAction && (
-				<motion.div style={{ scale: secondaryScale }}>
-					<ActionButton action={secondaryAction} onReset={onReset} />
-				</motion.div>
-			)}
 			{/* Primary action (outer, stretches) */}
 			<ActionButton
 				action={primaryAction}
@@ -303,6 +307,12 @@ function ActionsGroup({
 				hasSecondary={!!secondaryAction}
 				onReset={onReset}
 			/>
+			{/* Secondary action (inner) */}
+			{secondaryAction && (
+				<motion.div style={{ scale: secondaryScale }}>
+					<ActionButton action={secondaryAction} onReset={onReset} />
+				</motion.div>
+			)}
 		</motion.div>
 	)
 }

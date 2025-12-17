@@ -157,7 +157,7 @@ function NoteListItem(props: {
 
 	if (props.note.deletedAt) {
 		return (
-			<SwipeableListItem {...deletedSwipeActions}>
+			<SwipeableListItem itemKey={props.note.$jazz.id} {...deletedSwipeActions}>
 				<RestoreNoteDropdown
 					open={openDialog === "restore"}
 					onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
@@ -199,7 +199,7 @@ function NoteListItem(props: {
 	}
 
 	return (
-		<SwipeableListItem {...activeSwipeActions}>
+		<SwipeableListItem itemKey={props.note.$jazz.id} {...activeSwipeActions}>
 			<ActionsDropdown
 				open={openDialog === "actions"}
 				onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
