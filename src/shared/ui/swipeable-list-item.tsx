@@ -282,38 +282,114 @@ function ActionsGroup({
 	secondaryAction?: SwipeAction
 	onReset: () => void
 }) {
-	// Scale in secondary action as swipe progresses
-	let secondaryScale = useTransform(swipeAmount, value => {
+	// side="left" shows when swiping right (positive), side="right" shows when swiping left (negative)
+	let isLeft = side === "left"
+
+	// Primary scales in first - only for correct swipe direction
+	let primaryScale = useTransform(swipeAmount, value => {
+		// Only animate for the correct swipe direction
+		if (isLeft && value <= 0) return 0
+		if (!isLeft && value >= 0) return 0
 		let absValue = Math.abs(value)
-		let threshold = BUTTON_SIZE + BUTTON_GAP * 2
-		if (absValue < threshold) return 0
-		let progress = (absValue - threshold) / (BUTTON_SIZE + BUTTON_GAP)
+		if (absValue < BUTTON_GAP) return 0
+		let progress = (absValue - BUTTON_GAP) / BUTTON_SIZE
 		return clamp(0, 1, progress)
 	})
 
+	// Secondary scales in after primary is fully visible
+	let secondaryThreshold = BUTTON_SIZE + BUTTON_GAP * 2
+	let secondaryScale = useTransform(swipeAmount, value => {
+		if (isLeft && value <= 0) return 0
+		if (!isLeft && value >= 0) return 0
+		let absValue = Math.abs(value)
+		if (absValue < secondaryThreshold) return 0
+		let progress = (absValue - secondaryThreshold) / BUTTON_SIZE
+		return clamp(0, 1, progress)
+	})
+
+	// Primary stretches only after secondary is fully visible (if present)
+	let stretchThreshold = secondaryAction
+		? BUTTON_SIZE * 2 + BUTTON_GAP * 3
+		: BUTTON_SIZE + BUTTON_GAP * 2
+	let primaryWidth = useTransform(swipeAmount, value => {
+		if (isLeft && value <= 0) return BUTTON_SIZE
+		if (!isLeft && value >= 0) return BUTTON_SIZE
+		let absValue = Math.abs(value)
+		if (absValue < stretchThreshold) return BUTTON_SIZE
+		return BUTTON_SIZE + (absValue - stretchThreshold)
+	})
+
 	return (
-		<motion.div
+		<div
 			className={cn(
 				"absolute inset-y-0 z-0 flex items-center gap-2 px-2 select-none",
-				side === "right" ? "left-full flex-row-reverse" : "right-full",
+				isLeft ? "left-0" : "right-0",
+				isLeft ? "" : "flex-row-reverse",
 			)}
-			style={{ x: swipeAmount }}
 		>
 			{/* Primary action (outer, stretches) */}
-			<ActionButton
-				action={primaryAction}
-				swipeAmount={swipeAmount}
-				isPrimary
-				hasSecondary={!!secondaryAction}
-				onReset={onReset}
-			/>
+			<motion.button
+				type="button"
+				onClick={() => {
+					primaryAction.onAction()
+					onReset()
+				}}
+				className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
+				style={{
+					scale: primaryScale,
+					transformOrigin: isLeft ? "left center" : "right center",
+				}}
+			>
+				<motion.div
+					className={cn(
+						"flex items-center justify-center rounded-full",
+						COLOR_MAP[primaryAction.color],
+					)}
+					style={{
+						width: primaryWidth,
+						height: BUTTON_SIZE,
+						borderRadius: BUTTON_SIZE / 2,
+					}}
+				>
+					<primaryAction.icon className="size-6" />
+				</motion.div>
+				<span className="text-muted-foreground text-[11px]">
+					{primaryAction.label}
+				</span>
+			</motion.button>
 			{/* Secondary action (inner) */}
 			{secondaryAction && (
-				<motion.div style={{ scale: secondaryScale }}>
-					<ActionButton action={secondaryAction} onReset={onReset} />
-				</motion.div>
+				<motion.button
+					type="button"
+					onClick={() => {
+						secondaryAction.onAction()
+						onReset()
+					}}
+					className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
+					style={{
+						scale: secondaryScale,
+						transformOrigin: isLeft ? "left center" : "right center",
+					}}
+				>
+					<div
+						className={cn(
+							"flex items-center justify-center rounded-full",
+							COLOR_MAP[secondaryAction.color],
+						)}
+						style={{
+							width: BUTTON_SIZE,
+							height: BUTTON_SIZE,
+							borderRadius: BUTTON_SIZE / 2,
+						}}
+					>
+						<secondaryAction.icon className="size-6" />
+					</div>
+					<span className="text-muted-foreground text-[11px]">
+						{secondaryAction.label}
+					</span>
+				</motion.button>
 			)}
-		</motion.div>
+		</div>
 	)
 }
 
@@ -328,6 +404,30 @@ function SingleActionGroup({
 	action: SwipeAction
 	onReset: () => void
 }) {
+	// side="left" shows when swiping right (positive), side="right" shows when swiping left (negative)
+	let isLeft = side === "left"
+
+	let scale = useTransform(swipeAmount, value => {
+		// Only animate for the correct swipe direction
+		if (isLeft && value <= 0) return 0
+		if (!isLeft && value >= 0) return 0
+		let absValue = Math.abs(value)
+		if (absValue < BUTTON_GAP) return 0
+		let progress = (absValue - BUTTON_GAP) / BUTTON_SIZE
+		return clamp(0, 1, progress)
+	})
+
+	let stretchThreshold = BUTTON_SIZE + BUTTON_GAP * 2
+	let buttonWidth = useTransform(swipeAmount, value => {
+		if (isLeft && value <= 0) return BUTTON_SIZE
+		if (!isLeft && value >= 0) return BUTTON_SIZE
+		let absValue = Math.abs(value)
+		if (absValue < stretchThreshold) return BUTTON_SIZE
+		return BUTTON_SIZE + (absValue - stretchThreshold)
+	})
+
+	let origin = side === "left" ? "left center" : "right center"
+
 	return (
 		<motion.div
 			className={cn(
@@ -336,81 +436,32 @@ function SingleActionGroup({
 			)}
 			style={{ x: swipeAmount }}
 		>
-			<ActionButton
-				action={action}
-				swipeAmount={swipeAmount}
-				isPrimary
-				hasSecondary={false}
-				onReset={onReset}
-			/>
-		</motion.div>
-	)
-}
-
-function ActionButton({
-	action,
-	swipeAmount,
-	isPrimary = false,
-	hasSecondary = false,
-	onReset,
-}: {
-	action: SwipeAction
-	swipeAmount?: MotionValue<number>
-	isPrimary?: boolean
-	hasSecondary?: boolean
-	onReset: () => void
-}) {
-	let Icon = action.icon
-	let fallbackMotion = useMotionValue(0)
-	let activeSwipeAmount = swipeAmount ?? fallbackMotion
-
-	// Primary button stretches when swiping far
-	let stretchThreshold = hasSecondary
-		? BUTTON_SIZE * 2 + BUTTON_GAP * 3
-		: BUTTON_SIZE + BUTTON_GAP * 2
-	let buttonWidth = useTransform(activeSwipeAmount, value => {
-		if (!isPrimary) return BUTTON_SIZE
-		let absValue = Math.abs(value)
-		if (absValue < stretchThreshold) return BUTTON_SIZE
-		return BUTTON_SIZE + (absValue - stretchThreshold)
-	})
-
-	// Scale in animation for primary
-	let scale = useTransform(activeSwipeAmount, value => {
-		if (!isPrimary) return 1
-		let absValue = Math.abs(value)
-		let threshold = BUTTON_GAP
-		if (absValue < threshold) return 0
-		let progress = (absValue - threshold) / BUTTON_SIZE
-		return clamp(0, 1, progress)
-	})
-
-	function handleClick() {
-		action.onAction()
-		onReset()
-	}
-
-	return (
-		<motion.button
-			type="button"
-			onClick={handleClick}
-			className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
-			style={{ scale }}
-		>
-			<motion.div
-				className={cn(
-					"flex items-center justify-center rounded-full",
-					COLOR_MAP[action.color],
-				)}
-				style={{
-					width: buttonWidth,
-					height: BUTTON_SIZE,
-					borderRadius: BUTTON_SIZE / 2,
+			<motion.button
+				type="button"
+				onClick={() => {
+					action.onAction()
+					onReset()
 				}}
+				className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
+				style={{ scale, transformOrigin: origin }}
 			>
-				<Icon className="size-6" />
-			</motion.div>
-			<span className="text-muted-foreground text-[11px]">{action.label}</span>
-		</motion.button>
+				<motion.div
+					className={cn(
+						"flex items-center justify-center rounded-full",
+						COLOR_MAP[action.color],
+					)}
+					style={{
+						width: buttonWidth,
+						height: BUTTON_SIZE,
+						borderRadius: BUTTON_SIZE / 2,
+					}}
+				>
+					<action.icon className="size-6" />
+				</motion.div>
+				<span className="text-muted-foreground text-[11px]">
+					{action.label}
+				</span>
+			</motion.button>
+		</motion.div>
 	)
 }
