@@ -38,7 +38,7 @@ let COLOR_MAP = {
 	warning: "bg-warning",
 } as const
 
-let BUTTON_HEIGHT = 44
+let BUTTON_HEIGHT = 56
 let BUTTON_GAP = 6
 let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
 
@@ -536,7 +536,7 @@ let SingleActionGroup = forwardRef<
 			{/* Hidden label for measuring */}
 			<span
 				ref={labelRef}
-				className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
+				className="pointer-events-none invisible absolute text-xs leading-tight whitespace-nowrap"
 			>
 				{action.label}
 			</span>
@@ -566,7 +566,7 @@ let SingleActionGroup = forwardRef<
 				>
 					<action.icon className="size-5" />
 				</motion.div>
-				<span className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap">
+				<span className="text-muted-foreground text-xs leading-tight whitespace-nowrap">
 					{action.label}
 				</span>
 			</motion.button>
