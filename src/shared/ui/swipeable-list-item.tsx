@@ -38,7 +38,7 @@ let COLOR_MAP = {
 	warning: "bg-warning",
 } as const
 
-let BUTTON_HEIGHT = 56
+let BUTTON_HEIGHT = 52
 let BUTTON_GAP = 6
 let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
 
