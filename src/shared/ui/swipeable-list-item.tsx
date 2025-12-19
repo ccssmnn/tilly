@@ -3,7 +3,6 @@ import {
 	clamp,
 	motion,
 	useMotionValue,
-	useSpring,
 	useTransform,
 	type MotionValue,
 } from "motion/react"
@@ -41,6 +40,7 @@ let COLOR_MAP = {
 
 let BUTTON_HEIGHT = 44
 let BUTTON_GAP = 6
+let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
 
 function SwipeableListItem({
 	children,
@@ -92,17 +92,12 @@ function SwipeableContent({
 	let didSwipeRef = useRef(false)
 
 	let swipeAmount = useMotionValue(0)
-	let swipeAmountSpring = useSpring(swipeAmount, {
-		stiffness: 400,
-		damping: 40,
-	})
 
 	// Reset swipe state on mount (handles virtualized list item reuse)
 	useEffect(() => {
 		swipeAmount.jump(0)
-		swipeAmountSpring.jump(0)
 		fullSwipeSnapPosition.current = null
-	}, [swipeAmount, swipeAmountSpring])
+	}, [swipeAmount])
 
 	useEffect(() => {
 		function handlePointerMove(info: PointerEvent) {
@@ -224,9 +219,9 @@ function SwipeableContent({
 				}
 
 				targetOffset = 0
-				animate(swipeAmount, targetOffset, { duration: 0.3, delay: 0.1 })
+				animate(swipeAmount, targetOffset, { ...SPRING_CONFIG, delay: 0.1 })
 			} else {
-				animate(swipeAmount, targetOffset, { duration: 0.2 })
+				animate(swipeAmount, targetOffset, SPRING_CONFIG)
 			}
 
 			swipeState.current = null
@@ -279,7 +274,7 @@ function SwipeableContent({
 			<motion.div
 				ref={swipeItemRef}
 				className="bg-background relative px-3 md:px-0"
-				style={{ x: swipeAmountSpring }}
+				style={{ x: swipeAmount }}
 			>
 				{children}
 			</motion.div>
@@ -289,10 +284,10 @@ function SwipeableContent({
 				<ActionsGroup
 					ref={rightActionsRef}
 					side="left"
-					swipeAmount={swipeAmountSpring}
+					swipeAmount={swipeAmount}
 					primaryAction={rightActions.primary}
 					secondaryAction={rightActions.secondary}
-					onReset={() => animate(swipeAmount, 0, { duration: 0.2 })}
+					onReset={() => animate(swipeAmount, 0, SPRING_CONFIG)}
 				/>
 			)}
 
@@ -301,9 +296,9 @@ function SwipeableContent({
 				<SingleActionGroup
 					ref={leftActionsRef}
 					side="right"
-					swipeAmount={swipeAmountSpring}
+					swipeAmount={swipeAmount}
 					action={leftAction}
-					onReset={() => animate(swipeAmount, 0, { duration: 0.2 })}
+					onReset={() => animate(swipeAmount, 0, SPRING_CONFIG)}
 				/>
 			)}
 		</motion.div>
