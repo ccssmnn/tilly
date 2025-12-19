@@ -6,7 +6,7 @@ import {
 	useTransform,
 	type MotionValue,
 } from "motion/react"
-import { forwardRef, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "#app/lib/utils"
 
 export { SwipeableListItem }
@@ -302,19 +302,21 @@ function SwipeableContent({
 	)
 }
 
-let ActionsGroup = forwardRef<
-	HTMLDivElement,
-	{
-		swipeAmount: MotionValue<number>
-		side: "left" | "right"
-		primaryAction: SwipeAction
-		secondaryAction?: SwipeAction
-		onReset: () => void
-	}
->(function ActionsGroup(
-	{ swipeAmount, side, primaryAction, secondaryAction, onReset },
+function ActionsGroup({
+	swipeAmount,
+	side,
+	primaryAction,
+	secondaryAction,
+	onReset,
 	ref,
-) {
+}: {
+	swipeAmount: MotionValue<number>
+	side: "left" | "right"
+	primaryAction: SwipeAction
+	secondaryAction?: SwipeAction
+	onReset: () => void
+	ref: React.Ref<HTMLDivElement>
+}) {
 	let isLeft = side === "left"
 
 	let primaryLabelRef = useRef<HTMLSpanElement>(null)
@@ -469,17 +471,21 @@ let ActionsGroup = forwardRef<
 			)}
 		</div>
 	)
-})
+}
 
-let SingleActionGroup = forwardRef<
-	HTMLDivElement,
-	{
-		swipeAmount: MotionValue<number>
-		side: "left" | "right"
-		action: SwipeAction
-		onReset: () => void
-	}
->(function SingleActionGroup({ swipeAmount, side, action, onReset }, ref) {
+function SingleActionGroup({
+	swipeAmount,
+	side,
+	action,
+	onReset,
+	ref,
+}: {
+	swipeAmount: MotionValue<number>
+	side: "left" | "right"
+	action: SwipeAction
+	onReset: () => void
+	ref: React.Ref<HTMLDivElement>
+}) {
 	let isLeft = side === "left"
 
 	let labelRef = useRef<HTMLSpanElement>(null)
@@ -569,4 +575,4 @@ let SingleActionGroup = forwardRef<
 			</motion.button>
 		</div>
 	)
-})
+}
