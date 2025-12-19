@@ -78,8 +78,6 @@ function SwipeableContent({
 	rightActions,
 	className,
 }: Omit<SwipeableListItemProps, "disabled">) {
-	let [isSwiping, setIsSwiping] = useState(false)
-
 	let swipeItemRef = useRef<HTMLDivElement>(null)
 	let swipeContainerRef = useRef<HTMLDivElement>(null)
 	let rightActionsRef = useRef<HTMLDivElement>(null)
@@ -89,7 +87,8 @@ function SwipeableContent({
 	let swipeStartY = useRef(0)
 	let swipeStartOffset = useRef(0)
 	let fullSwipeSnapPosition = useRef<"left" | "right" | null>(null)
-	let swipeDirection = useRef<"horizontal" | "vertical" | null>(null)
+	// "pending" = pointer down, waiting for direction; "horizontal" = swiping; null = idle
+	let swipeState = useRef<"pending" | "horizontal" | null>(null)
 	let didSwipeRef = useRef(false)
 
 	let swipeAmount = useMotionValue(0)
@@ -107,7 +106,7 @@ function SwipeableContent({
 
 	useEffect(() => {
 		function handlePointerMove(info: PointerEvent) {
-			if (!isSwiping) return
+			if (!swipeState.current) return
 
 			let itemWidth = swipeItemWidth.current
 			if (!itemWidth) return
@@ -116,7 +115,7 @@ function SwipeableContent({
 			let deltaY = info.clientY - swipeStartY.current
 
 			// Determine swipe direction on first significant movement
-			if (!swipeDirection.current) {
+			if (swipeState.current === "pending") {
 				let absX = Math.abs(deltaX)
 				let absY = Math.abs(deltaY)
 				let threshold = 10
@@ -124,15 +123,12 @@ function SwipeableContent({
 				if (absX < threshold && absY < threshold) return
 
 				if (absY > absX) {
-					// Vertical scroll - cancel swipe entirely
-					swipeDirection.current = "vertical"
-					setIsSwiping(false)
+					// Vertical scroll - cancel and let browser handle it
+					swipeState.current = null
 					return
 				}
-				swipeDirection.current = "horizontal"
+				swipeState.current = "horizontal"
 			}
-
-			if (swipeDirection.current === "vertical") return
 
 			let swipeDelta = deltaX + swipeStartOffset.current
 
@@ -168,7 +164,7 @@ function SwipeableContent({
 		}
 
 		function handlePointerUp() {
-			if (!isSwiping) return
+			if (!swipeState.current) return
 
 			let itemWidth = swipeItemWidth.current
 			if (!itemWidth) return
@@ -177,10 +173,7 @@ function SwipeableContent({
 			let targetOffset = 0
 
 			// Mark as swiped if we moved horizontally at all
-			if (
-				swipeDirection.current === "horizontal" &&
-				Math.abs(currentOffset) > 5
-			) {
+			if (swipeState.current === "horizontal" && Math.abs(currentOffset) > 5) {
 				didSwipeRef.current = true
 				// Reset didSwipe after a short delay to allow click prevention
 				setTimeout(() => (didSwipeRef.current = false), 100)
@@ -236,8 +229,7 @@ function SwipeableContent({
 				animate(swipeAmount, targetOffset, { duration: 0.2 })
 			}
 
-			setIsSwiping(false)
-			swipeDirection.current = null
+			swipeState.current = null
 			fullSwipeSnapPosition.current = null
 		}
 
@@ -248,7 +240,7 @@ function SwipeableContent({
 			document.removeEventListener("pointermove", handlePointerMove)
 			document.removeEventListener("pointerup", handlePointerUp)
 		}
-	}, [swipeAmount, isSwiping, leftAction, rightActions])
+	}, [swipeAmount, leftAction, rightActions])
 
 	useEffect(() => {
 		function handleResize() {
@@ -271,7 +263,7 @@ function SwipeableContent({
 			style={{ touchAction: "pan-y" }}
 			onPointerDown={info => {
 				if (info.pointerType !== "touch") return
-				setIsSwiping(true)
+				swipeState.current = "pending"
 				swipeStartX.current = info.clientX
 				swipeStartY.current = info.clientY
 				swipeStartOffset.current = swipeAmount.get()
