@@ -66,7 +66,7 @@ function Navigation({ dueReminderCount }: { dueReminderCount: number }) {
 		<>
 			<nav
 				className={cn(
-					"bg-background/50 border-border absolute inset-x-3 z-1 transform rounded-4xl border shadow-lg backdrop-blur-xl duration-300",
+					"bg-background/50 border-border fixed inset-x-3 z-1 transform rounded-4xl border shadow-lg backdrop-blur-xl duration-300",
 					"md:top-4 md:bottom-auto md:left-1/2 md:w-fit md:-translate-x-1/2",
 					isInputFocused
 						? "bottom-0 max-md:translate-y-full max-md:opacity-0"

@@ -1,7 +1,7 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
 import { co } from "jazz-tools"
 import { UserAccount } from "#shared/schema/user"
-import { ScrollReset } from "#app/components/scroll-reset"
+
 import { ErrorUI } from "#app/components/error-ui"
 import { Button } from "#shared/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "#shared/ui/card"
@@ -21,23 +21,18 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootComponent() {
 	return (
-		<>
-			<main
-				id="scroll-area"
-				className="max-h-full overflow-y-scroll"
-				style={{
-					paddingTop: "max(1.5rem, env(safe-area-inset-top))",
-					paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",
-					paddingRight: "max(0.75rem, env(safe-area-inset-right))",
-					paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
-				}}
-			>
-				<div className="container mx-auto max-w-4xl">
-					<Outlet />
-				</div>
-			</main>
-			<ScrollReset containerId="scroll-area" />
-		</>
+		<main
+			style={{
+				paddingTop: "env(safe-area-inset-top)",
+				paddingBottom: "env(safe-area-inset-bottom)",
+				paddingRight: "env(safe-area-inset-right)",
+				paddingLeft: "env(safe-area-inset-left)",
+			}}
+		>
+			<div className="container mx-auto max-w-4xl px-3 py-6">
+				<Outlet />
+			</div>
+		</main>
 	)
 }
 

@@ -65,7 +65,7 @@ function SwipeableListItem({
 			key={itemKey}
 			leftAction={leftAction}
 			rightActions={rightActions}
-			className={className}
+			className={cn("-mx-3 md:mx-0", className)}
 		>
 			{children}
 		</SwipeableContent>
@@ -239,7 +239,7 @@ function SwipeableContent({
 		>
 			<motion.div
 				ref={swipeItemRef}
-				className="bg-background relative z-10"
+				className="bg-background relative px-3 md:px-0"
 				style={{ x: swipeAmountSpring }}
 			>
 				{children}
@@ -426,15 +426,14 @@ function SingleActionGroup({
 		return BUTTON_SIZE + (absValue - stretchThreshold)
 	})
 
-	let origin = side === "left" ? "left center" : "right center"
+	let origin = isLeft ? "left center" : "right center"
 
 	return (
-		<motion.div
+		<div
 			className={cn(
 				"absolute inset-y-0 z-0 flex items-center px-2 select-none",
-				side === "right" ? "left-full flex-row-reverse" : "right-full",
+				isLeft ? "left-0" : "right-0",
 			)}
-			style={{ x: swipeAmount }}
 		>
 			<motion.button
 				type="button"
@@ -462,6 +461,6 @@ function SingleActionGroup({
 					{action.label}
 				</span>
 			</motion.button>
-		</motion.div>
+		</div>
 	)
 }

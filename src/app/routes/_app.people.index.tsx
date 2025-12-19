@@ -1,5 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
-import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
+import {
+	defaultRangeExtractor,
+	useWindowVirtualizer,
+} from "@tanstack/react-virtual"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import {
@@ -131,10 +134,8 @@ function PeopleScreen() {
 		virtualItems.push({ type: "spacer" })
 	}
 
-	// eslint-disable-next-line react-hooks/incompatible-library
-	let virtualizer = useVirtualizer({
+	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
-		getScrollElement: () => document.getElementById("scroll-area"),
 		rangeExtractor: range => {
 			return [0, 1, ...defaultRangeExtractor(range).filter(index => index > 1)]
 		},

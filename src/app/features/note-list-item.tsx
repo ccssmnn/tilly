@@ -289,7 +289,7 @@ function NoteItemContainer({
 	)
 
 	return (
-		<div className={cn(className, "hover:bg-muted -mx-3 rounded-md px-3")}>
+		<div className={cn(className, "hover:bg-muted rounded-md")}>
 			<DropdownMenuTrigger
 				id={`note-${note.$jazz.id}`}
 				className={baseClassName}
@@ -335,9 +335,7 @@ function ExpandCollapseButton({
 	showPerson: boolean
 }) {
 	return (
-		<div
-			className={cn("-mx-3 px-3 pb-4 text-right", showPerson && "ml-[76px]")}
-		>
+		<div className={cn("pb-4 text-right", showPerson && "ml-[76px]")}>
 			<button
 				onClick={toggleExpanded}
 				className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
@@ -838,7 +836,7 @@ function NoteImageGrid({
 			<div
 				className={cn(
 					"grid grid-flow-col gap-1 pb-4",
-					showPerson && "-mx-3 ml-[76px] pr-3",
+					showPerson && "ml-[76px]",
 					imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
 					imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
 				)}

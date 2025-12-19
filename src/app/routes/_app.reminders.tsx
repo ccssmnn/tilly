@@ -26,7 +26,10 @@ import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
-import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
+import {
+	defaultRangeExtractor,
+	useWindowVirtualizer,
+} from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
 import { ListFilterButton } from "#app/features/list-filter-button"
 import type { PersonWithSummary } from "#app/features/list-utilities"
@@ -138,10 +141,8 @@ function Reminders() {
 		}
 	}
 
-	// eslint-disable-next-line react-hooks/incompatible-library
-	let virtualizer = useVirtualizer({
+	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
-		getScrollElement: () => document.getElementById("scroll-area"),
 		rangeExtractor: range => {
 			return [0, 1, ...defaultRangeExtractor(range).filter(i => i > 1)]
 		},
