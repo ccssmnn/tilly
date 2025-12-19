@@ -139,12 +139,9 @@ function SwipeableContent({
 				let isSwipingBackToCenter = Math.abs(swipeDelta) < fullSwipeThreshold
 				if (isSwipingBackToCenter) {
 					fullSwipeSnapPosition.current = null
-					swipeAmount.set(swipeDelta)
-				} else {
-					let snapPosition =
-						fullSwipeSnapPosition.current === "left" ? -itemWidth : itemWidth
-					swipeAmount.set(snapPosition)
+					animate(swipeAmount, swipeDelta, SPRING_CONFIG)
 				}
+				// Once snapped to full swipe, hold position until release
 				return
 			}
 
@@ -152,7 +149,7 @@ function SwipeableContent({
 				let snapDirection: "left" | "right" = isSwipingLeft ? "left" : "right"
 				let snapPosition = isSwipingLeft ? -itemWidth : itemWidth
 				fullSwipeSnapPosition.current = snapDirection
-				swipeAmount.set(snapPosition)
+				animate(swipeAmount, snapPosition, SPRING_CONFIG)
 			} else {
 				swipeAmount.set(clamp(-itemWidth, itemWidth, swipeDelta))
 			}
