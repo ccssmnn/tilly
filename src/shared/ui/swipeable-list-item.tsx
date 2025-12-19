@@ -39,7 +39,7 @@ let COLOR_MAP = {
 	warning: "bg-warning",
 } as const
 
-let BUTTON_HEIGHT = 36
+let BUTTON_HEIGHT = 44
 let BUTTON_GAP = 6
 
 function SwipeableListItem({
@@ -86,8 +86,11 @@ function SwipeableContent({
 	let leftActionsRef = useRef<HTMLDivElement>(null)
 	let swipeItemWidth = useRef(0)
 	let swipeStartX = useRef(0)
+	let swipeStartY = useRef(0)
 	let swipeStartOffset = useRef(0)
 	let fullSwipeSnapPosition = useRef<"left" | "right" | null>(null)
+	let swipeDirection = useRef<"horizontal" | "vertical" | null>(null)
+	let didSwipeRef = useRef(false)
 
 	let swipeAmount = useMotionValue(0)
 	let swipeAmountSpring = useSpring(swipeAmount, {
@@ -109,8 +112,29 @@ function SwipeableContent({
 			let itemWidth = swipeItemWidth.current
 			if (!itemWidth) return
 
-			let swipeDelta =
-				info.clientX - swipeStartX.current + swipeStartOffset.current
+			let deltaX = info.clientX - swipeStartX.current
+			let deltaY = info.clientY - swipeStartY.current
+
+			// Determine swipe direction on first significant movement
+			if (!swipeDirection.current) {
+				let absX = Math.abs(deltaX)
+				let absY = Math.abs(deltaY)
+				let threshold = 10
+
+				if (absX < threshold && absY < threshold) return
+
+				if (absY > absX) {
+					// Vertical scroll - cancel swipe entirely
+					swipeDirection.current = "vertical"
+					setIsSwiping(false)
+					return
+				}
+				swipeDirection.current = "horizontal"
+			}
+
+			if (swipeDirection.current === "vertical") return
+
+			let swipeDelta = deltaX + swipeStartOffset.current
 
 			// Constrain swipe direction based on available actions
 			if (!rightActions && swipeDelta > 0) swipeDelta = 0
@@ -151,6 +175,16 @@ function SwipeableContent({
 
 			let currentOffset = swipeAmount.get()
 			let targetOffset = 0
+
+			// Mark as swiped if we moved horizontally at all
+			if (
+				swipeDirection.current === "horizontal" &&
+				Math.abs(currentOffset) > 5
+			) {
+				didSwipeRef.current = true
+				// Reset didSwipe after a short delay to allow click prevention
+				setTimeout(() => (didSwipeRef.current = false), 100)
+			}
 
 			// Use base width from data attribute (excludes stretch)
 			let rightSnapWidth = rightActionsRef.current
@@ -203,6 +237,7 @@ function SwipeableContent({
 			}
 
 			setIsSwiping(false)
+			swipeDirection.current = null
 			fullSwipeSnapPosition.current = null
 		}
 
@@ -238,7 +273,15 @@ function SwipeableContent({
 				if (info.pointerType !== "touch") return
 				setIsSwiping(true)
 				swipeStartX.current = info.clientX
+				swipeStartY.current = info.clientY
 				swipeStartOffset.current = swipeAmount.get()
+			}}
+			onClickCapture={e => {
+				// Prevent click if we just finished a swipe
+				if (didSwipeRef.current) {
+					e.preventDefault()
+					e.stopPropagation()
+				}
 			}}
 		>
 			<motion.div

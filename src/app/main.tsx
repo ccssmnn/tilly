@@ -103,6 +103,7 @@ let router = createRouter({
 	routeTree,
 	defaultGcTime: 0,
 	defaultPreload: "viewport",
+	scrollRestoration: true,
 	context: { me: undefined! },
 })
 
