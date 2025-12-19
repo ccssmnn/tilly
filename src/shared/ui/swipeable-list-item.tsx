@@ -7,7 +7,7 @@ import {
 	useTransform,
 	type MotionValue,
 } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { forwardRef, useEffect, useRef, useState } from "react"
 import { cn } from "#app/lib/utils"
 
 export { SwipeableListItem }
@@ -39,8 +39,8 @@ let COLOR_MAP = {
 	warning: "bg-warning",
 } as const
 
-let BUTTON_SIZE = 56
-let BUTTON_GAP = 8
+let BUTTON_HEIGHT = 36
+let BUTTON_GAP = 6
 
 function SwipeableListItem({
 	children,
@@ -82,6 +82,8 @@ function SwipeableContent({
 
 	let swipeItemRef = useRef<HTMLDivElement>(null)
 	let swipeContainerRef = useRef<HTMLDivElement>(null)
+	let rightActionsRef = useRef<HTMLDivElement>(null)
+	let leftActionsRef = useRef<HTMLDivElement>(null)
 	let swipeItemWidth = useRef(0)
 	let swipeStartX = useRef(0)
 	let swipeStartOffset = useRef(0)
@@ -150,11 +152,13 @@ function SwipeableContent({
 			let currentOffset = swipeAmount.get()
 			let targetOffset = 0
 
-			// Calculate snap position based on number of actions
-			let rightActionCount = rightActions ? (rightActions.secondary ? 2 : 1) : 0
-			let rightSnapWidth =
-				rightActionCount * BUTTON_SIZE + (rightActionCount + 1) * BUTTON_GAP
-			let leftSnapWidth = leftAction ? BUTTON_SIZE + 2 * BUTTON_GAP : 0
+			// Use base width from data attribute (excludes stretch)
+			let rightSnapWidth = rightActionsRef.current
+				? Number(rightActionsRef.current.dataset.baseWidth || 0) + BUTTON_GAP
+				: 0
+			let leftSnapWidth = leftActionsRef.current
+				? Number(leftActionsRef.current.dataset.baseWidth || 0) + BUTTON_GAP
+				: 0
 
 			let snapThreshold = itemWidth * 0.15
 
@@ -248,6 +252,7 @@ function SwipeableContent({
 			{/* rightActions are revealed when swiping right, so they sit on the left */}
 			{rightActions && (
 				<ActionsGroup
+					ref={rightActionsRef}
 					side="left"
 					swipeAmount={swipeAmountSpring}
 					primaryAction={rightActions.primary}
@@ -259,6 +264,7 @@ function SwipeableContent({
 			{/* leftAction is revealed when swiping left, so it sits on the right */}
 			{leftAction && (
 				<SingleActionGroup
+					ref={leftActionsRef}
 					side="right"
 					swipeAmount={swipeAmountSpring}
 					action={leftAction}
@@ -269,64 +275,108 @@ function SwipeableContent({
 	)
 }
 
-function ActionsGroup({
-	swipeAmount,
-	side,
-	primaryAction,
-	secondaryAction,
-	onReset,
-}: {
-	swipeAmount: MotionValue<number>
-	side: "left" | "right"
-	primaryAction: SwipeAction
-	secondaryAction?: SwipeAction
-	onReset: () => void
-}) {
-	// side="left" shows when swiping right (positive), side="right" shows when swiping left (negative)
+let ActionsGroup = forwardRef<
+	HTMLDivElement,
+	{
+		swipeAmount: MotionValue<number>
+		side: "left" | "right"
+		primaryAction: SwipeAction
+		secondaryAction?: SwipeAction
+		onReset: () => void
+	}
+>(function ActionsGroup(
+	{ swipeAmount, side, primaryAction, secondaryAction, onReset },
+	ref,
+) {
 	let isLeft = side === "left"
 
-	// Primary scales in first - only for correct swipe direction
+	let primaryLabelRef = useRef<HTMLSpanElement>(null)
+	let secondaryLabelRef = useRef<HTMLSpanElement>(null)
+	let [primaryLabelWidth, setPrimaryLabelWidth] = useState(BUTTON_HEIGHT)
+	let [secondaryLabelWidth, setSecondaryLabelWidth] = useState(BUTTON_HEIGHT)
+
+	let containerRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (primaryLabelRef.current) {
+			let width = primaryLabelRef.current.offsetWidth
+			setPrimaryLabelWidth(Math.max(BUTTON_HEIGHT, width))
+		}
+		if (secondaryLabelRef.current) {
+			let width = secondaryLabelRef.current.offsetWidth
+			setSecondaryLabelWidth(Math.max(BUTTON_HEIGHT, width))
+		}
+	}, [primaryAction.label, secondaryAction?.label])
+
+	// Store base width (unstretched) in data attribute for snap calculation
+	let baseWidth =
+		primaryLabelWidth +
+		(secondaryAction ? secondaryLabelWidth + BUTTON_GAP : 0) +
+		BUTTON_GAP * 2
+	useEffect(() => {
+		if (containerRef.current) {
+			containerRef.current.dataset.baseWidth = String(baseWidth)
+		}
+	}, [baseWidth])
+
 	let primaryScale = useTransform(swipeAmount, value => {
-		// Only animate for the correct swipe direction
 		if (isLeft && value <= 0) return 0
 		if (!isLeft && value >= 0) return 0
 		let absValue = Math.abs(value)
 		if (absValue < BUTTON_GAP) return 0
-		let progress = (absValue - BUTTON_GAP) / BUTTON_SIZE
-		return clamp(0, 1, progress)
+		return clamp(0, 1, (absValue - BUTTON_GAP) / primaryLabelWidth)
 	})
 
-	// Secondary scales in after primary is fully visible
-	let secondaryThreshold = BUTTON_SIZE + BUTTON_GAP * 2
+	let secondaryThreshold = primaryLabelWidth + BUTTON_GAP * 2
 	let secondaryScale = useTransform(swipeAmount, value => {
 		if (isLeft && value <= 0) return 0
 		if (!isLeft && value >= 0) return 0
 		let absValue = Math.abs(value)
 		if (absValue < secondaryThreshold) return 0
-		let progress = (absValue - secondaryThreshold) / BUTTON_SIZE
-		return clamp(0, 1, progress)
+		return clamp(0, 1, (absValue - secondaryThreshold) / secondaryLabelWidth)
 	})
 
 	// Primary stretches only after secondary is fully visible (if present)
 	let stretchThreshold = secondaryAction
-		? BUTTON_SIZE * 2 + BUTTON_GAP * 3
-		: BUTTON_SIZE + BUTTON_GAP * 2
+		? primaryLabelWidth + secondaryLabelWidth + BUTTON_GAP * 3
+		: primaryLabelWidth + BUTTON_GAP * 2
 	let primaryWidth = useTransform(swipeAmount, value => {
-		if (isLeft && value <= 0) return BUTTON_SIZE
-		if (!isLeft && value >= 0) return BUTTON_SIZE
+		if (isLeft && value <= 0) return primaryLabelWidth
+		if (!isLeft && value >= 0) return primaryLabelWidth
 		let absValue = Math.abs(value)
-		if (absValue < stretchThreshold) return BUTTON_SIZE
-		return BUTTON_SIZE + (absValue - stretchThreshold)
+		if (absValue < stretchThreshold) return primaryLabelWidth
+		return primaryLabelWidth + (absValue - stretchThreshold)
 	})
 
 	return (
 		<div
+			ref={(node: HTMLDivElement | null) => {
+				containerRef.current = node
+				if (typeof ref === "function") ref(node)
+				else if (ref) ref.current = node
+			}}
 			className={cn(
-				"absolute inset-y-0 z-0 flex items-center gap-2 px-2 select-none",
+				"absolute inset-y-0 flex items-center gap-1.5 px-1.5 select-none",
 				isLeft ? "left-0" : "right-0",
 				isLeft ? "" : "flex-row-reverse",
 			)}
 		>
+			{/* Hidden labels for measuring */}
+			<span
+				ref={primaryLabelRef}
+				className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
+			>
+				{primaryAction.label}
+			</span>
+			{secondaryAction && (
+				<span
+					ref={secondaryLabelRef}
+					className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
+				>
+					{secondaryAction.label}
+				</span>
+			)}
+
 			{/* Primary action (outer, stretches) */}
 			<motion.button
 				type="button"
@@ -334,7 +384,7 @@ function ActionsGroup({
 					primaryAction.onAction()
 					onReset()
 				}}
-				className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
+				className="flex flex-col items-center justify-center gap-0.5 active:opacity-80"
 				style={{
 					scale: primaryScale,
 					transformOrigin: isLeft ? "left center" : "right center",
@@ -342,21 +392,22 @@ function ActionsGroup({
 			>
 				<motion.div
 					className={cn(
-						"flex items-center justify-center rounded-full",
+						"flex items-center justify-center text-white",
 						COLOR_MAP[primaryAction.color],
 					)}
 					style={{
 						width: primaryWidth,
-						height: BUTTON_SIZE,
-						borderRadius: BUTTON_SIZE / 2,
+						height: BUTTON_HEIGHT,
+						borderRadius: BUTTON_HEIGHT / 2,
 					}}
 				>
-					<primaryAction.icon className="size-6" />
+					<primaryAction.icon className="size-5" />
 				</motion.div>
-				<span className="text-muted-foreground text-[11px]">
+				<span className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap">
 					{primaryAction.label}
 				</span>
 			</motion.button>
+
 			{/* Secondary action (inner) */}
 			{secondaryAction && (
 				<motion.button
@@ -365,7 +416,7 @@ function ActionsGroup({
 						secondaryAction.onAction()
 						onReset()
 					}}
-					className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
+					className="flex flex-col items-center justify-center gap-0.5 active:opacity-80"
 					style={{
 						scale: secondaryScale,
 						transformOrigin: isLeft ? "left center" : "right center",
@@ -373,94 +424,122 @@ function ActionsGroup({
 				>
 					<div
 						className={cn(
-							"flex items-center justify-center rounded-full",
+							"flex items-center justify-center text-white",
 							COLOR_MAP[secondaryAction.color],
 						)}
 						style={{
-							width: BUTTON_SIZE,
-							height: BUTTON_SIZE,
-							borderRadius: BUTTON_SIZE / 2,
+							width: secondaryLabelWidth,
+							height: BUTTON_HEIGHT,
+							borderRadius: BUTTON_HEIGHT / 2,
 						}}
 					>
-						<secondaryAction.icon className="size-6" />
+						<secondaryAction.icon className="size-5" />
 					</div>
-					<span className="text-muted-foreground text-[11px]">
+					<span className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap">
 						{secondaryAction.label}
 					</span>
 				</motion.button>
 			)}
 		</div>
 	)
-}
+})
 
-function SingleActionGroup({
-	swipeAmount,
-	side,
-	action,
-	onReset,
-}: {
-	swipeAmount: MotionValue<number>
-	side: "left" | "right"
-	action: SwipeAction
-	onReset: () => void
-}) {
-	// side="left" shows when swiping right (positive), side="right" shows when swiping left (negative)
+let SingleActionGroup = forwardRef<
+	HTMLDivElement,
+	{
+		swipeAmount: MotionValue<number>
+		side: "left" | "right"
+		action: SwipeAction
+		onReset: () => void
+	}
+>(function SingleActionGroup({ swipeAmount, side, action, onReset }, ref) {
 	let isLeft = side === "left"
 
+	let labelRef = useRef<HTMLSpanElement>(null)
+	let containerRef = useRef<HTMLDivElement>(null)
+	let [labelWidth, setLabelWidth] = useState(BUTTON_HEIGHT)
+
+	useEffect(() => {
+		if (labelRef.current) {
+			let width = labelRef.current.offsetWidth
+			setLabelWidth(Math.max(BUTTON_HEIGHT, width))
+		}
+	}, [action.label])
+
+	// Store base width (unstretched) in data attribute for snap calculation
+	let baseWidth = labelWidth + BUTTON_GAP * 2
+	useEffect(() => {
+		if (containerRef.current) {
+			containerRef.current.dataset.baseWidth = String(baseWidth)
+		}
+	}, [baseWidth])
+
 	let scale = useTransform(swipeAmount, value => {
-		// Only animate for the correct swipe direction
 		if (isLeft && value <= 0) return 0
 		if (!isLeft && value >= 0) return 0
 		let absValue = Math.abs(value)
 		if (absValue < BUTTON_GAP) return 0
-		let progress = (absValue - BUTTON_GAP) / BUTTON_SIZE
-		return clamp(0, 1, progress)
+		return clamp(0, 1, (absValue - BUTTON_GAP) / labelWidth)
 	})
 
-	let stretchThreshold = BUTTON_SIZE + BUTTON_GAP * 2
+	let stretchThreshold = labelWidth + BUTTON_GAP * 2
 	let buttonWidth = useTransform(swipeAmount, value => {
-		if (isLeft && value <= 0) return BUTTON_SIZE
-		if (!isLeft && value >= 0) return BUTTON_SIZE
+		if (isLeft && value <= 0) return labelWidth
+		if (!isLeft && value >= 0) return labelWidth
 		let absValue = Math.abs(value)
-		if (absValue < stretchThreshold) return BUTTON_SIZE
-		return BUTTON_SIZE + (absValue - stretchThreshold)
+		if (absValue < stretchThreshold) return labelWidth
+		return labelWidth + (absValue - stretchThreshold)
 	})
-
-	let origin = isLeft ? "left center" : "right center"
 
 	return (
 		<div
+			ref={(node: HTMLDivElement | null) => {
+				containerRef.current = node
+				if (typeof ref === "function") ref(node)
+				else if (ref) ref.current = node
+			}}
 			className={cn(
-				"absolute inset-y-0 z-0 flex items-center px-2 select-none",
+				"absolute inset-y-0 flex items-center px-1.5 select-none",
 				isLeft ? "left-0" : "right-0",
 			)}
 		>
+			{/* Hidden label for measuring */}
+			<span
+				ref={labelRef}
+				className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
+			>
+				{action.label}
+			</span>
+
 			<motion.button
 				type="button"
 				onClick={() => {
 					action.onAction()
 					onReset()
 				}}
-				className="flex flex-col items-center justify-center gap-1 text-white active:opacity-80"
-				style={{ scale, transformOrigin: origin }}
+				className="flex flex-col items-center justify-center gap-0.5 active:opacity-80"
+				style={{
+					scale,
+					transformOrigin: isLeft ? "left center" : "right center",
+				}}
 			>
 				<motion.div
 					className={cn(
-						"flex items-center justify-center rounded-full",
+						"flex items-center justify-center text-white",
 						COLOR_MAP[action.color],
 					)}
 					style={{
 						width: buttonWidth,
-						height: BUTTON_SIZE,
-						borderRadius: BUTTON_SIZE / 2,
+						height: BUTTON_HEIGHT,
+						borderRadius: BUTTON_HEIGHT / 2,
 					}}
 				>
-					<action.icon className="size-6" />
+					<action.icon className="size-5" />
 				</motion.div>
-				<span className="text-muted-foreground text-[11px]">
+				<span className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap">
 					{action.label}
 				</span>
 			</motion.button>
 		</div>
 	)
-}
+})
