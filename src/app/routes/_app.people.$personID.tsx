@@ -296,7 +296,11 @@ function NotesList({
 			))}
 
 			{hasMoreNotes && !didSearch && (
-				<Accordion type="single" collapsible className="w-full">
+				<Accordion
+					type="single"
+					collapsible
+					className="-mx-3 w-[calc(100%+1.5rem)] px-3 md:mx-0 md:w-full md:px-0"
+				>
 					{notes.deleted.length > 0 && (
 						<AccordionItem value="deleted">
 							<AccordionTrigger>
@@ -412,7 +416,11 @@ function RemindersList({
 			))}
 
 			{hasMoreReminders && !didSearch && (
-				<Accordion type="single" collapsible className="w-full">
+				<Accordion
+					type="single"
+					collapsible
+					className="-mx-3 w-[calc(100%+1.5rem)] px-3 md:mx-0 md:w-full md:px-0"
+				>
 					{reminders.done.length > 0 && (
 						<AccordionItem value="done">
 							<AccordionTrigger>
