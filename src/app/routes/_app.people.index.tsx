@@ -1,4 +1,8 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import {
+	createFileRoute,
+	notFound,
+	useElementScrollRestoration,
+} from "@tanstack/react-router"
 import {
 	defaultRangeExtractor,
 	useWindowVirtualizer,
@@ -134,6 +138,10 @@ function PeopleScreen() {
 		virtualItems.push({ type: "spacer" })
 	}
 
+	let scrollEntry = useElementScrollRestoration({
+		getElement: () => window,
+	})
+
 	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
 		rangeExtractor: range => {
@@ -141,6 +149,7 @@ function PeopleScreen() {
 		},
 		estimateSize: () => 112,
 		overscan: 5,
+		initialOffset: scrollEntry?.scrollY,
 		measureElement: (element, _entry, instance) => {
 			let direction = instance.scrollDirection
 			if (direction === "forward" || direction === null) {

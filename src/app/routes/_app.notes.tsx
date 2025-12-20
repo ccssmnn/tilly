@@ -1,4 +1,8 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import {
+	createFileRoute,
+	notFound,
+	useElementScrollRestoration,
+} from "@tanstack/react-router"
 import { useNotes, type NotesLoadedAccount } from "#app/features/note-hooks"
 import {
 	defaultRangeExtractor,
@@ -97,6 +101,10 @@ function NotesScreen() {
 		virtualItems.push({ type: "spacer" })
 	}
 
+	let scrollEntry = useElementScrollRestoration({
+		getElement: () => window,
+	})
+
 	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
 		rangeExtractor: range => {
@@ -105,6 +113,7 @@ function NotesScreen() {
 		},
 		estimateSize: () => 112,
 		overscan: 5,
+		initialOffset: scrollEntry?.scrollY,
 		measureElement: (element, _entry, instance) => {
 			let direction = instance.scrollDirection
 			if (direction === "forward" || direction === null) {

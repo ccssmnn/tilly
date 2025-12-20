@@ -1,4 +1,8 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import {
+	createFileRoute,
+	notFound,
+	useElementScrollRestoration,
+} from "@tanstack/react-router"
 import { UserAccount } from "#shared/schema/user"
 import {
 	useReminders,
@@ -141,6 +145,10 @@ function Reminders() {
 		}
 	}
 
+	let scrollEntry = useElementScrollRestoration({
+		getElement: () => window,
+	})
+
 	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
 		rangeExtractor: range => {
@@ -148,6 +156,7 @@ function Reminders() {
 		},
 		estimateSize: () => 100,
 		overscan: 5,
+		initialOffset: scrollEntry?.scrollY,
 		measureElement: (element, _entry, instance) => {
 			let direction = instance.scrollDirection
 			if (direction === "forward" || direction === null) {
