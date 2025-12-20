@@ -709,7 +709,32 @@ function useNoteItemOperations({
 			return
 		}
 
-		toast.success(t("note.toast.deleted"))
+		toast.success(t("note.toast.deleted"), {
+			action: {
+				label: t("common.undo"),
+				onClick: async () => {
+					let undoResult = await tryCatch(
+						updateNote(
+							{ deletedAt: undefined },
+							{
+								personId: person.$jazz.id,
+								noteId: note.$jazz.id,
+								worker: loadedMe,
+							},
+						),
+					)
+					if (undoResult.ok) {
+						toast.success(t("note.toast.restored"))
+					} else {
+						toast.error(
+							typeof undoResult.error === "string"
+								? undoResult.error
+								: undoResult.error.message,
+						)
+					}
+				},
+			},
+		})
 	}
 
 	async function togglePin() {

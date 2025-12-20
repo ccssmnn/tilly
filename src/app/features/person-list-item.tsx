@@ -480,7 +480,25 @@ function usePersonItemOperations({
 			return
 		}
 
-		toast.success(t("person.toast.deleted", { name: person.name }))
+		toast.success(t("person.toast.deleted", { name: person.name }), {
+			action: {
+				label: t("common.undo"),
+				onClick: async () => {
+					let undoResult = await tryCatch(
+						updatePerson(person.$jazz.id, { deletedAt: undefined }, loadedMe),
+					)
+					if (undoResult.ok) {
+						toast.success(t("person.toast.restored", { name: person.name }))
+					} else {
+						toast.error(
+							typeof undoResult.error === "string"
+								? undoResult.error
+								: undoResult.error.message,
+						)
+					}
+				},
+			},
+		})
 	}
 
 	async function restore(): Promise<boolean> {
