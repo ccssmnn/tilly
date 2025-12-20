@@ -482,9 +482,10 @@ function handlePointerMove(
 	if (refs.swipeState.current === "pending") {
 		let absX = Math.abs(deltaX)
 		let absY = Math.abs(deltaY)
-		if (absX < 10 && absY < 10) return
-		if (absY > absX) {
+		if (absX < 15 && absY < 15) return
+		if (absX < absY * 2) {
 			;(refs.swipeState as React.RefObject<string | null>).current = null
+			animate(values.swipeAmount, refs.swipeStartOffset.current!, SPRING_CONFIG)
 			return
 		}
 		;(
