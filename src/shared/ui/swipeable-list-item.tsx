@@ -41,6 +41,8 @@ let COLOR_MAP = {
 let BUTTON_HEIGHT = 52
 let BUTTON_GAP = 6
 let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
+let FULL_SWIPE_THRESHOLD = 0.5
+let RESISTANCE_FACTOR = 0.3
 
 function SwipeableListItem({
 	children,
@@ -92,6 +94,7 @@ function SwipeableContent({
 	let didSwipeRef = useRef(false)
 
 	let swipeAmount = useMotionValue(0)
+	let isFullSwipe = useMotionValue(false)
 
 	// Reset swipe state on mount (handles virtualized list item reuse)
 	useEffect(() => {
@@ -131,28 +134,35 @@ function SwipeableContent({
 			if (!rightActions && swipeDelta > 0) swipeDelta = 0
 			if (!leftAction && swipeDelta < 0) swipeDelta = 0
 
-			let fullSwipeThreshold = itemWidth * 0.6
+			let fullSwipeThreshold = itemWidth * FULL_SWIPE_THRESHOLD
 			let isSwipingBeyondThreshold = Math.abs(swipeDelta) > fullSwipeThreshold
 			let isSwipingLeft = swipeDelta < 0
 
-			if (fullSwipeSnapPosition.current) {
-				let isSwipingBackToCenter = Math.abs(swipeDelta) < fullSwipeThreshold
-				if (isSwipingBackToCenter) {
-					fullSwipeSnapPosition.current = null
-					animate(swipeAmount, swipeDelta, SPRING_CONFIG)
+			// Track full swipe state
+			if (isSwipingBeyondThreshold) {
+				if (!fullSwipeSnapPosition.current) {
+					fullSwipeSnapPosition.current = isSwipingLeft ? "left" : "right"
+					isFullSwipe.set(true)
 				}
-				// Once snapped to full swipe, hold position until release
-				return
+			} else {
+				if (fullSwipeSnapPosition.current) {
+					fullSwipeSnapPosition.current = null
+					isFullSwipe.set(false)
+				}
 			}
 
+			// Always follow drag, but with resistance after threshold
+			let position: number
 			if (isSwipingBeyondThreshold) {
-				let snapDirection: "left" | "right" = isSwipingLeft ? "left" : "right"
-				let snapPosition = isSwipingLeft ? -itemWidth : itemWidth
-				fullSwipeSnapPosition.current = snapDirection
-				animate(swipeAmount, snapPosition, SPRING_CONFIG)
+				// Apply resistance: slow down movement beyond threshold
+				let thresholdPos = fullSwipeThreshold * Math.sign(swipeDelta)
+				let overshoot = Math.abs(swipeDelta) - fullSwipeThreshold
+				let resistedOvershoot = overshoot * RESISTANCE_FACTOR
+				position = thresholdPos + resistedOvershoot * Math.sign(swipeDelta)
 			} else {
-				swipeAmount.set(clamp(-itemWidth, itemWidth, swipeDelta))
+				position = swipeDelta
 			}
+			swipeAmount.set(clamp(-itemWidth, itemWidth, position))
 		}
 
 		function handlePointerUp() {
@@ -223,6 +233,7 @@ function SwipeableContent({
 
 			swipeState.current = null
 			fullSwipeSnapPosition.current = null
+			isFullSwipe.set(false)
 		}
 
 		document.addEventListener("pointermove", handlePointerMove)
@@ -232,7 +243,7 @@ function SwipeableContent({
 			document.removeEventListener("pointermove", handlePointerMove)
 			document.removeEventListener("pointerup", handlePointerUp)
 		}
-	}, [swipeAmount, leftAction, rightActions])
+	}, [swipeAmount, isFullSwipe, leftAction, rightActions])
 
 	useEffect(() => {
 		function handleResize() {
@@ -282,6 +293,7 @@ function SwipeableContent({
 					ref={rightActionsRef}
 					side="left"
 					swipeAmount={swipeAmount}
+					isFullSwipe={isFullSwipe}
 					primaryAction={rightActions.primary}
 					secondaryAction={rightActions.secondary}
 					onReset={() => animate(swipeAmount, 0, SPRING_CONFIG)}
@@ -294,6 +306,7 @@ function SwipeableContent({
 					ref={leftActionsRef}
 					side="right"
 					swipeAmount={swipeAmount}
+					isFullSwipe={isFullSwipe}
 					action={leftAction}
 					onReset={() => animate(swipeAmount, 0, SPRING_CONFIG)}
 				/>
@@ -304,6 +317,7 @@ function SwipeableContent({
 
 function ActionsGroup({
 	swipeAmount,
+	isFullSwipe,
 	side,
 	primaryAction,
 	secondaryAction,
@@ -311,6 +325,7 @@ function ActionsGroup({
 	ref,
 }: {
 	swipeAmount: MotionValue<number>
+	isFullSwipe: MotionValue<boolean>
 	side: "left" | "right"
 	primaryAction: SwipeAction
 	secondaryAction?: SwipeAction
@@ -430,7 +445,7 @@ function ActionsGroup({
 						borderRadius: BUTTON_HEIGHT / 2,
 					}}
 				>
-					<primaryAction.icon className="size-5" />
+					<WigglingIcon icon={primaryAction.icon} isFullSwipe={isFullSwipe} />
 				</motion.div>
 				<span className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap">
 					{primaryAction.label}
@@ -475,12 +490,14 @@ function ActionsGroup({
 
 function SingleActionGroup({
 	swipeAmount,
+	isFullSwipe,
 	side,
 	action,
 	onReset,
 	ref,
 }: {
 	swipeAmount: MotionValue<number>
+	isFullSwipe: MotionValue<boolean>
 	side: "left" | "right"
 	action: SwipeAction
 	onReset: () => void
@@ -567,12 +584,59 @@ function SingleActionGroup({
 						borderRadius: BUTTON_HEIGHT / 2,
 					}}
 				>
-					<action.icon className="size-5" />
+					<WigglingIcon icon={action.icon} isFullSwipe={isFullSwipe} />
 				</motion.div>
 				<span className="text-muted-foreground text-xs leading-tight whitespace-nowrap">
 					{action.label}
 				</span>
 			</motion.button>
 		</div>
+	)
+}
+
+function WigglingIcon({
+	icon: Icon,
+	isFullSwipe,
+}: {
+	icon: React.ComponentType<{ className?: string }>
+	isFullSwipe: MotionValue<boolean>
+}) {
+	let rotation = useMotionValue(0)
+	let animationRef = useRef<ReturnType<typeof animate> | null>(null)
+
+	useEffect(() => {
+		function startWiggle() {
+			if (animationRef.current) return
+			let wiggle = () => {
+				animationRef.current = animate(rotation, [0, -12, 12, -12, 12, 0], {
+					duration: 0.4,
+					ease: "easeInOut",
+					onComplete: () => {
+						if (animationRef.current) wiggle()
+					},
+				})
+			}
+			wiggle()
+		}
+
+		function stopWiggle() {
+			animationRef.current?.stop()
+			animationRef.current = null
+			rotation.set(0)
+		}
+
+		return isFullSwipe.on("change", shouldWiggle => {
+			if (shouldWiggle) {
+				startWiggle()
+			} else {
+				stopWiggle()
+			}
+		})
+	}, [isFullSwipe, rotation])
+
+	return (
+		<motion.span className="inline-flex" style={{ rotate: rotation }}>
+			<Icon className="size-5" />
+		</motion.span>
 	)
 }
