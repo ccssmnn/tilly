@@ -107,7 +107,7 @@ function SwipeableContent({
 		fullSwipeSnapPosition.current = null
 	}, [swipeAmount])
 
-	useEffect(() => {
+	let getSwipeHandlers = () => {
 		let refs: SwipeRefs = {
 			swipeItemWidth,
 			swipeStartX,
@@ -121,18 +121,12 @@ function SwipeableContent({
 			leftActionsRef,
 		}
 		let values: SwipeValues = { swipeAmount, isFullSwipe }
-
-		let onMove = (e: PointerEvent) =>
-			handlePointerMove(e, refs, values, leftAction, rightActions)
-		let onUp = () => handlePointerUp(refs, values, leftAction, rightActions)
-
-		document.addEventListener("pointermove", onMove)
-		document.addEventListener("pointerup", onUp)
-		return () => {
-			document.removeEventListener("pointermove", onMove)
-			document.removeEventListener("pointerup", onUp)
+		return {
+			onMove: (e: PointerEvent) =>
+				handlePointerMove(e, refs, values, leftAction, rightActions),
+			onEnd: () => handlePointerUp(refs, values, leftAction, rightActions),
 		}
-	}, [swipeAmount, isFullSwipe, leftAction, rightActions])
+	}
 
 	useEffect(() => {
 		function handleResize() {
@@ -157,6 +151,23 @@ function SwipeableContent({
 				swipeStartX.current = e.clientX
 				swipeStartY.current = e.clientY
 				swipeStartOffset.current = swipeAmount.get()
+
+				let el = e.currentTarget
+				let { onMove, onEnd } = getSwipeHandlers()
+
+				el.setPointerCapture(e.pointerId)
+				el.addEventListener("pointermove", onMove)
+				el.addEventListener("pointerup", onEnd)
+				el.addEventListener("pointercancel", onEnd)
+				el.addEventListener(
+					"lostpointercapture",
+					() => {
+						el.removeEventListener("pointermove", onMove)
+						el.removeEventListener("pointerup", onEnd)
+						el.removeEventListener("pointercancel", onEnd)
+					},
+					{ once: true },
+				)
 			}}
 			onClickCapture={e => {
 				if (didSwipeRef.current) {
