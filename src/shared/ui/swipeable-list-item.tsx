@@ -31,11 +31,18 @@ type SwipeableListItemProps = {
 	className?: string
 }
 
-let COLOR_MAP = {
+let BG_COLOR_MAP = {
 	destructive: "bg-destructive",
 	primary: "bg-primary",
 	success: "bg-success",
 	warning: "bg-warning",
+} as const
+
+let TEXT_COLOR_MAP = {
+	destructive: "text-destructive",
+	primary: "text-primary",
+	success: "text-success",
+	warning: "text-warning",
 } as const
 
 let BUTTON_HEIGHT = 52
@@ -285,19 +292,11 @@ function ActionsGroup({
 					transformOrigin: isLeft ? "left center" : "right center",
 				}}
 			>
-				<motion.div
-					className={cn(
-						"flex items-center justify-center text-white",
-						COLOR_MAP[primaryAction.color],
-					)}
-					style={{
-						width: primaryButtonWidth,
-						height: BUTTON_HEIGHT,
-						borderRadius: BUTTON_HEIGHT / 2,
-					}}
-				>
-					<WigglingIcon icon={primaryAction.icon} isFullSwipe={isFullSwipe} />
-				</motion.div>
+				<ActionButton
+					action={primaryAction}
+					width={primaryButtonWidth}
+					isFullSwipe={isFullSwipe}
+				/>
 				<span className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap">
 					{primaryAction.label}
 				</span>
@@ -318,8 +317,8 @@ function ActionsGroup({
 				>
 					<div
 						className={cn(
-							"flex items-center justify-center text-white",
-							COLOR_MAP[secondaryAction.color],
+							"bg-secondary flex items-center justify-center",
+							TEXT_COLOR_MAP[secondaryAction.color],
 						)}
 						style={{
 							width: secondaryLabelWidth,
@@ -338,47 +337,39 @@ function ActionsGroup({
 	)
 }
 
-function WigglingIcon({
-	icon: Icon,
+function ActionButton({
+	action,
+	width,
 	isFullSwipe,
 }: {
-	icon: React.ComponentType<{ className?: string }>
+	action: SwipeAction
+	width: MotionValue<number>
 	isFullSwipe: MotionValue<boolean>
 }) {
-	let rotation = useMotionValue(0)
-	let animationRef = useRef<ReturnType<typeof animate> | null>(null)
+	let [isFull, setIsFull] = useState(false)
 
 	useEffect(() => {
-		function startWiggle() {
-			if (animationRef.current) return
-			let wiggle = () => {
-				animationRef.current = animate(rotation, [0, -12, 12, -12, 12, 0], {
-					duration: 0.4,
-					ease: "easeInOut",
-					onComplete: () => {
-						if (animationRef.current) wiggle()
-					},
-				})
-			}
-			wiggle()
-		}
+		return isFullSwipe.on("change", setIsFull)
+	}, [isFullSwipe])
 
-		function stopWiggle() {
-			animationRef.current?.stop()
-			animationRef.current = null
-			rotation.set(0)
-		}
-
-		return isFullSwipe.on("change", shouldWiggle => {
-			if (shouldWiggle) startWiggle()
-			else stopWiggle()
-		})
-	}, [isFullSwipe, rotation])
+	let Icon = action.icon
 
 	return (
-		<motion.span className="inline-flex" style={{ rotate: rotation }}>
+		<motion.div
+			className={cn(
+				"flex items-center justify-center transition-colors duration-150",
+				isFull
+					? cn(BG_COLOR_MAP[action.color], "text-white")
+					: cn("bg-secondary", TEXT_COLOR_MAP[action.color]),
+			)}
+			style={{
+				width,
+				height: BUTTON_HEIGHT,
+				borderRadius: BUTTON_HEIGHT / 2,
+			}}
+		>
 			<Icon className="size-5" />
-		</motion.span>
+		</motion.div>
 	)
 }
 
