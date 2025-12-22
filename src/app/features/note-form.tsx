@@ -28,25 +28,9 @@ import { Image as JazzImage } from "jazz-tools/react"
 import { Link } from "@tanstack/react-router"
 import { isMac } from "#app/hooks/use-pwa"
 
-function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
-	return z.object({
-		content: z.string().min(1, t("note.form.content.required")),
-		images: z.array(z.instanceof(File)).max(10).optional(),
-		removedImageIds: z.array(z.string()).optional(),
-		pinned: z.boolean(),
-		createdAt: z.string().min(1, t("note.form.createdAt.required")),
-	})
-}
+export { NoteForm }
 
-type NoteFormValues = {
-	content: string
-	images?: File[]
-	removedImageIds?: string[]
-	pinned: boolean
-	createdAt: string
-}
-
-export function NoteForm({
+function NoteForm({
 	defaultValues,
 	note,
 	onCancel,
@@ -365,4 +349,22 @@ function ImagesField({
 			)}
 		</div>
 	)
+}
+
+function createNoteFormSchema(t: ReturnType<typeof useIntl>) {
+	return z.object({
+		content: z.string().min(1, t("note.form.content.required")),
+		images: z.array(z.instanceof(File)).max(10).optional(),
+		removedImageIds: z.array(z.string()).optional(),
+		pinned: z.boolean(),
+		createdAt: z.string().min(1, t("note.form.createdAt.required")),
+	})
+}
+
+type NoteFormValues = {
+	content: string
+	images?: File[]
+	removedImageIds?: string[]
+	pinned: boolean
+	createdAt: string
 }

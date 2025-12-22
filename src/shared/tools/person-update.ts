@@ -5,13 +5,7 @@ import { co, Group, type Loaded, type ResolveQuery } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
 
 export { createUpdatePersonTool, createDeletePersonTool, updatePerson }
-
 export type { PersonData, PersonUpdated }
-
-let rootResolve = {
-	people: { $each: true },
-	inactivePeople: { $each: true },
-} as const satisfies ResolveQuery<typeof UserAccountRoot>
 
 async function updatePerson(
 	personId: string,
@@ -130,25 +124,6 @@ function revokeAllCollaborators(person: co.loaded<typeof Person>): void {
 	}
 }
 
-let errors = {
-	PERSON_NOT_FOUND: "person not found",
-	USER_ACCOUNT_NOT_FOUND: "user account not found",
-} as const
-
-type PersonData = {
-	name: string
-	summary?: string
-	version: number
-}
-
-type PersonUpdated = {
-	_ref: co.loaded<typeof Person>
-	operation: "update"
-	personID: string
-	current: PersonData
-	previous: PersonData
-}
-
 function createUpdatePersonTool(worker: Loaded<typeof UserAccount>) {
 	return tool({
 		description:
@@ -223,4 +198,28 @@ function createDeletePersonTool(worker: Loaded<typeof UserAccount>) {
 			}
 		},
 	})
+}
+
+let rootResolve = {
+	people: { $each: true },
+	inactivePeople: { $each: true },
+} as const satisfies ResolveQuery<typeof UserAccountRoot>
+
+let errors = {
+	PERSON_NOT_FOUND: "person not found",
+	USER_ACCOUNT_NOT_FOUND: "user account not found",
+} as const
+
+type PersonData = {
+	name: string
+	summary?: string
+	version: number
+}
+
+type PersonUpdated = {
+	_ref: co.loaded<typeof Person>
+	operation: "update"
+	personID: string
+	current: PersonData
+	previous: PersonData
 }

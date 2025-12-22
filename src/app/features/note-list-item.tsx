@@ -66,9 +66,6 @@ import {
 
 export { NoteListItem }
 
-let CHAR_LIMIT = 280
-let LINE_LIMIT = 4
-
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
@@ -1091,3 +1088,6 @@ function ImageCarousel({
 		</Dialog>
 	)
 }
+
+let CHAR_LIMIT = 280
+let LINE_LIMIT = 4
