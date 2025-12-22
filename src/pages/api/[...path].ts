@@ -2,7 +2,9 @@ import type { APIRoute } from "astro"
 
 import { Hono } from "hono"
 import { app } from "../../server/main"
-import { effectHandler } from "../../server/effect-app"
+import { createEffectHandler } from "../../server/effect-app"
+
+let effectHandler = createEffectHandler({ prefix: "/api/v1" })
 
 export let ALL: APIRoute = c => {
 	let url = new URL(c.request.url)
