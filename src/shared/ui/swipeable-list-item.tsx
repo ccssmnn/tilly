@@ -9,7 +9,7 @@ import {
 import { useEffect, useRef, useState } from "react"
 import { cn } from "#app/lib/utils"
 
-export { SwipeableListItem }
+export { SwipeableListItem, useSafariSwipeHack }
 export type { SwipeAction, SwipeableListItemProps }
 
 function SwipeableListItem({
@@ -597,3 +597,20 @@ let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
 let FULL_SWIPE_THRESHOLD = 0.5
 let RESISTANCE_FACTOR = 0.3
 let APPEAR_INITIAL_SCALE = 0.3
+
+/**
+ * HACK: iOS Safari doesn't properly deliver touch events to elements until
+ * a capturing touchstart listener exists on the document. Without this,
+ * swipe gestures only work once after page load, then stop working until
+ * a dialog/dropdown is opened (which adds such a listener via Radix UI).
+ *
+ * Call this hook once at the app root level.
+ */
+function useSafariSwipeHack() {
+	useEffect(() => {
+		let noop = () => {}
+		document.addEventListener("touchstart", noop, { capture: true })
+		return () =>
+			document.removeEventListener("touchstart", noop, { capture: true })
+	}, [])
+}
