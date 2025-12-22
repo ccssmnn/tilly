@@ -198,10 +198,12 @@ function PersonListItem({
 
 	if (!hasHover) {
 		return (
-			<SwipeableListItem itemKey={person.$jazz.id} {...activeSwipeActions}>
-				{linkContent}
+			<>
+				<SwipeableListItem itemKey={person.$jazz.id} {...activeSwipeActions}>
+					{linkContent}
+				</SwipeableListItem>
 				{dialogs}
-			</SwipeableListItem>
+			</>
 		)
 	}
 

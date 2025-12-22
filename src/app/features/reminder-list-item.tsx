@@ -264,48 +264,50 @@ function ReminderListItem({
 	}
 
 	return (
-		<SwipeableListItem itemKey={reminder.$jazz.id} {...activeSwipeActions}>
-			<ActionsDropdown
-				open={dialogOpen === "actions"}
-				onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
-				onEditClick={() => setDialogOpen("edit")}
-				onAddNoteClick={() => setDialogOpen("note")}
-				showPerson={showPerson}
-				person={person}
-				operations={operations}
-			>
-				<ReminderItemContainer
-					reminder={reminder}
-					person={person}
+		<>
+			<SwipeableListItem itemKey={reminder.$jazz.id} {...activeSwipeActions}>
+				<ActionsDropdown
+					open={dialogOpen === "actions"}
+					onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
+					onEditClick={() => setDialogOpen("edit")}
+					onAddNoteClick={() => setDialogOpen("note")}
 					showPerson={showPerson}
-					className={dialogOpen ? "bg-accent" : ""}
-					onClick={() => setDialogOpen("actions")}
+					person={person}
+					operations={operations}
 				>
-					<div className="flex items-start gap-3 select-text">
-						<div
-							className={cn(
-								"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
-								isToday(new Date(reminder.dueAtDate)) ||
-									isBefore(new Date(reminder.dueAtDate), new Date())
-									? "text-destructive"
-									: "text-foreground",
+					<ReminderItemContainer
+						reminder={reminder}
+						person={person}
+						showPerson={showPerson}
+						className={dialogOpen ? "bg-accent" : ""}
+						onClick={() => setDialogOpen("actions")}
+					>
+						<div className="flex items-start gap-3 select-text">
+							<div
+								className={cn(
+									"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
+									isToday(new Date(reminder.dueAtDate)) ||
+										isBefore(new Date(reminder.dueAtDate), new Date())
+										? "text-destructive"
+										: "text-foreground",
+								)}
+							>
+								{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
+								{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
+							</div>
+							{showPerson && (
+								<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+									<TextHighlight text={person.name} query={searchQuery} />
+								</p>
 							)}
-						>
-							{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
-							{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
+							{showPerson && <SharedIndicator item={reminder} />}
 						</div>
-						{showPerson && (
-							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-								<TextHighlight text={person.name} query={searchQuery} />
-							</p>
-						)}
-						{showPerson && <SharedIndicator item={reminder} />}
-					</div>
-					<p className="text-md/tight text-left select-text">
-						<TextHighlight text={reminder.text} query={searchQuery} />
-					</p>
-				</ReminderItemContainer>
-			</ActionsDropdown>
+						<p className="text-md/tight text-left select-text">
+							<TextHighlight text={reminder.text} query={searchQuery} />
+						</p>
+					</ReminderItemContainer>
+				</ActionsDropdown>
+			</SwipeableListItem>
 			<EditReminderDialog
 				open={dialogOpen === "edit"}
 				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
@@ -319,7 +321,7 @@ function ReminderListItem({
 				onClose={() => setDialogOpen(undefined)}
 				operations={operations}
 			/>
-		</SwipeableListItem>
+		</>
 	)
 }
 

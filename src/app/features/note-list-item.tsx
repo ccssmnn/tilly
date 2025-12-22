@@ -85,6 +85,9 @@ function NoteListItem(props: {
 		me,
 	})
 
+	let [carouselOpen, setCarouselOpen] = useState(false)
+	let [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
 	let hasDueReminders = props.person.reminders?.$isLoaded
 		? Array.from(props.person.reminders.values())
 				.filter(
@@ -196,7 +199,12 @@ function NoteListItem(props: {
 							showPerson={showPerson}
 						/>
 					)}
-					<NoteImageGrid note={props.note} isDeleted={true} />
+					<NoteImageGridThumbnails
+						note={props.note}
+						isDeleted={true}
+						showPerson={showPerson}
+						onImageClick={() => {}}
+					/>
 				</SwipeableListItem>
 
 				<AlertDialog
@@ -227,61 +235,73 @@ function NoteListItem(props: {
 	}
 
 	return (
-		<SwipeableListItem itemKey={props.note.$jazz.id} {...activeSwipeActions}>
-			<ActionsDropdown
-				open={openDialog === "actions"}
-				onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
-				onEditClick={() => setOpenDialog("edit")}
-				showPerson={showPerson}
-				person={props.person}
-				operations={operations}
-			>
-				<NoteItemContainer
-					note={props.note}
+		<>
+			<SwipeableListItem itemKey={props.note.$jazz.id} {...activeSwipeActions}>
+				<ActionsDropdown
+					open={openDialog === "actions"}
+					onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
+					onEditClick={() => setOpenDialog("edit")}
+					showPerson={showPerson}
 					person={props.person}
-					showPerson={showPerson}
-					hasOverflow={hasOverflow}
-					className={openDialog ? "bg-accent" : ""}
-					onClick={() => setOpenDialog("actions")}
+					operations={operations}
 				>
-					<div className="flex items-center gap-3 select-text">
-						{showPerson && (
-							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-								<TextHighlight
-									text={props.person.name}
-									query={props.searchQuery}
-								/>
-							</p>
-						)}
-						{showPerson && hasDueReminders && (
-							<div className="bg-primary size-2 rounded-full" />
-						)}
-						{showPerson && <SharedIndicator item={props.note} />}
-						<Pinned pinned={props.note.pinned} />
-						<div className="flex-1" />
-						<TimeStamp record={props.note} />
-					</div>
-					<div>
-						<div className="text-left text-wrap select-text">
-							<MarkdownWithHighlight
-								content={displayContent}
-								searchQuery={props.searchQuery}
-							/>
+					<NoteItemContainer
+						note={props.note}
+						person={props.person}
+						showPerson={showPerson}
+						hasOverflow={hasOverflow}
+						className={openDialog ? "bg-accent" : ""}
+						onClick={() => setOpenDialog("actions")}
+					>
+						<div className="flex items-center gap-3 select-text">
+							{showPerson && (
+								<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+									<TextHighlight
+										text={props.person.name}
+										query={props.searchQuery}
+									/>
+								</p>
+							)}
+							{showPerson && hasDueReminders && (
+								<div className="bg-primary size-2 rounded-full" />
+							)}
+							{showPerson && <SharedIndicator item={props.note} />}
+							<Pinned pinned={props.note.pinned} />
+							<div className="flex-1" />
+							<TimeStamp record={props.note} />
 						</div>
-					</div>
-				</NoteItemContainer>
-			</ActionsDropdown>
-			{hasOverflow && (
-				<ExpandCollapseButton
-					isExpanded={isExpanded}
-					toggleExpanded={toggleExpanded}
+						<div>
+							<div className="text-left text-wrap select-text">
+								<MarkdownWithHighlight
+									content={displayContent}
+									searchQuery={props.searchQuery}
+								/>
+							</div>
+						</div>
+					</NoteItemContainer>
+				</ActionsDropdown>
+				{hasOverflow && (
+					<ExpandCollapseButton
+						isExpanded={isExpanded}
+						toggleExpanded={toggleExpanded}
+						showPerson={showPerson}
+					/>
+				)}
+				<NoteImageGridThumbnails
+					note={props.note}
+					isDeleted={false}
 					showPerson={showPerson}
+					onImageClick={index => {
+						setSelectedImageIndex(index)
+						setCarouselOpen(true)
+					}}
 				/>
-			)}
-			<NoteImageGrid
+			</SwipeableListItem>
+			<NoteImageCarousel
 				note={props.note}
-				isDeleted={false}
-				showPerson={showPerson}
+				selectedIndex={selectedImageIndex ?? 0}
+				open={carouselOpen}
+				onClose={() => setCarouselOpen(false)}
 			/>
 			<EditDialog
 				note={props.note}
@@ -290,7 +310,7 @@ function NoteListItem(props: {
 				onOpenChange={() => setOpenDialog(undefined)}
 				operations={operations}
 			/>
-		</SwipeableListItem>
+		</>
 	)
 }
 
@@ -857,18 +877,17 @@ function useExpanded(id: string) {
 	return { isExpanded, toggleExpanded }
 }
 
-function NoteImageGrid({
+function NoteImageGridThumbnails({
 	note,
 	isDeleted,
 	showPerson,
+	onImageClick,
 }: {
 	note: co.loaded<typeof Note>
 	isDeleted: boolean
 	showPerson?: boolean
+	onImageClick: (index: number) => void
 }) {
-	let [carouselOpen, setCarouselOpen] = useState(false)
-	let [selectedImageIndex, setSelectedImageIndex] = useState<number>()
-
 	let imageCount = note.imageCount ?? 0
 
 	let loadedNote = useCoState(Note, note.$jazz.id, {
@@ -885,63 +904,86 @@ function NoteImageGrid({
 			: []
 
 	return (
-		<>
-			<div
-				className={cn(
-					"grid grid-flow-col gap-1 pb-4",
-					showPerson && "ml-[76px]",
-					imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
-					imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
-				)}
-			>
-				{Array.from({ length: Math.min(imageCount, 4) }).map((_, index) => {
-					let image = imageArray.at(index)
-					return (
-						<div
-							key={index}
-							className={cn(
-								"relative cursor-pointer overflow-hidden",
-								isDeleted && "pointer-events-none",
-								imageCount === 3 && index === 0
-									? "col-span-1 row-span-2"
-									: "aspect-4/3 md:aspect-video",
-							)}
-							onClick={() => {
-								if (!isDeleted && image) {
-									setSelectedImageIndex(index)
-									setCarouselOpen(true)
-								}
-							}}
-						>
-							{image ? (
-								<JazzImage
-									imageId={image.$jazz.id}
-									loading="lazy"
-									alt=""
-									className={cn(
-										"size-full rounded-lg object-cover",
-										isDeleted && "grayscale",
-									)}
-								/>
-							) : (
-								<div className="bg-muted size-full animate-pulse rounded-lg" />
-							)}
-							{imageCount > 4 && index === 3 && (
-								<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
-									+{imageCount - 4}
-								</div>
-							)}
-						</div>
-					)
-				})}
-			</div>
-			<ImageCarousel
-				images={imageArray}
-				selectedIndex={selectedImageIndex ?? 0}
-				open={!isDeleted && carouselOpen && imageArray.length > 0}
-				onClose={() => setCarouselOpen(false)}
-			/>
-		</>
+		<div
+			className={cn(
+				"grid grid-flow-col gap-1 pb-4",
+				showPerson && "ml-[76px]",
+				imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
+				imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
+			)}
+		>
+			{Array.from({ length: Math.min(imageCount, 4) }).map((_, index) => {
+				let image = imageArray.at(index)
+				return (
+					<div
+						key={index}
+						className={cn(
+							"relative cursor-pointer overflow-hidden",
+							isDeleted && "pointer-events-none",
+							imageCount === 3 && index === 0
+								? "col-span-1 row-span-2"
+								: "aspect-4/3 md:aspect-video",
+						)}
+						onClick={() => {
+							if (!isDeleted && image) {
+								onImageClick(index)
+							}
+						}}
+					>
+						{image ? (
+							<JazzImage
+								imageId={image.$jazz.id}
+								loading="lazy"
+								alt=""
+								className={cn(
+									"size-full rounded-lg object-cover",
+									isDeleted && "grayscale",
+								)}
+							/>
+						) : (
+							<div className="bg-muted size-full animate-pulse rounded-lg" />
+						)}
+						{imageCount > 4 && index === 3 && (
+							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
+								+{imageCount - 4}
+							</div>
+						)}
+					</div>
+				)
+			})}
+		</div>
+	)
+}
+
+function NoteImageCarousel({
+	note,
+	selectedIndex,
+	open,
+	onClose,
+}: {
+	note: co.loaded<typeof Note>
+	selectedIndex: number
+	open: boolean
+	onClose: () => void
+}) {
+	let loadedNote = useCoState(Note, note.$jazz.id, {
+		resolve: { images: { $each: true } },
+	})
+
+	let imageArray =
+		loadedNote?.$isLoaded && loadedNote.images?.$isLoaded
+			? Array.from(loadedNote.images.values()).filter(
+					(img): img is ImageItem => img?.$isLoaded === true,
+				)
+			: []
+
+	return (
+		<ImageCarousel
+			images={imageArray}
+			selectedIndex={selectedIndex}
+			open={open && imageArray.length > 0}
+			onClose={onClose}
+		/>
 	)
 }
 
@@ -1046,7 +1088,7 @@ function ImageCarousel({
 							transition={{
 								duration: 0.075,
 							}}
-							style={{ touchAction: "pan-y" }}
+							style={{ touchAction: "none" }}
 							className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center"
 						>
 							<JazzImage
