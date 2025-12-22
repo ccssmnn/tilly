@@ -26,6 +26,11 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "#shared/ui/alert-dialog"
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "#shared/ui/hover-card"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
@@ -49,6 +54,7 @@ import { createNote } from "#shared/tools/note-create"
 import { createReminder } from "#shared/tools/reminder-create"
 import { updateNote } from "#shared/tools/note-update"
 import { updateReminder } from "#shared/tools/reminder-update"
+import { useHasHover } from "#app/hooks/use-has-hover"
 
 export { PersonListItem }
 export type { PersonListItemPerson }
@@ -74,6 +80,7 @@ function PersonListItem({
 }: PersonListItemProps) {
 	let me = useAccount(UserAccount)
 	let t = useIntl()
+	let hasHover = useHasHover()
 	let [dialogOpen, setDialogOpen] = useState<"note" | "reminder">()
 	let operations = usePersonItemOperations({ person, me })
 
@@ -117,6 +124,43 @@ function PersonListItem({
 		},
 	}
 
+	let linkContent = (
+		<Link
+			to="/people/$personID"
+			params={{ personID: person.$jazz.id }}
+			className="items-top hover:bg-muted active:bg-accent flex flex-1 gap-3 rounded-lg py-4 transition-colors duration-150"
+			draggable={false}
+			onDragStart={e => e.preventDefault()}
+			onClick={e => {
+				if (isTextSelectionOngoing()) {
+					e.preventDefault()
+				}
+			}}
+		>
+			<PersonItemContainer person={person} noLazy={noLazy}>
+				<PersonItemHeader person={person} searchQuery={searchQuery} />
+				<PersonItemSummary person={person} searchQuery={searchQuery} />
+			</PersonItemContainer>
+		</Link>
+	)
+
+	let dialogs = (
+		<>
+			<AddNoteDialog
+				person={person}
+				open={dialogOpen === "note"}
+				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
+				operations={operations}
+			/>
+			<AddReminderDialog
+				person={person}
+				open={dialogOpen === "reminder"}
+				onOpenChange={open => setDialogOpen(open ? "reminder" : undefined)}
+				operations={operations}
+			/>
+		</>
+	)
+
 	if (person.deletedAt) {
 		return (
 			<SwipeableListItem itemKey={person.$jazz.id} {...deletedSwipeActions}>
@@ -140,38 +184,30 @@ function PersonListItem({
 		)
 	}
 
+	if (!hasHover) {
+		return (
+			<SwipeableListItem itemKey={person.$jazz.id} {...activeSwipeActions}>
+				{linkContent}
+				{dialogs}
+			</SwipeableListItem>
+		)
+	}
+
 	return (
-		<SwipeableListItem itemKey={person.$jazz.id} {...activeSwipeActions}>
-			<Link
-				to="/people/$personID"
-				params={{ personID: person.$jazz.id }}
-				className="items-top hover:bg-muted active:bg-accent flex flex-1 gap-3 rounded-lg py-4 transition-colors duration-150"
-				draggable={false}
-				onDragStart={e => e.preventDefault()}
-				onClick={e => {
-					if (isTextSelectionOngoing()) {
-						e.preventDefault()
-					}
-				}}
-			>
-				<PersonItemContainer person={person} noLazy={noLazy}>
-					<PersonItemHeader person={person} searchQuery={searchQuery} />
-					<PersonItemSummary person={person} searchQuery={searchQuery} />
-				</PersonItemContainer>
-			</Link>
-			<AddNoteDialog
-				person={person}
-				open={dialogOpen === "note"}
-				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
-				operations={operations}
-			/>
-			<AddReminderDialog
-				person={person}
-				open={dialogOpen === "reminder"}
-				onOpenChange={open => setDialogOpen(open ? "reminder" : undefined)}
-				operations={operations}
-			/>
-		</SwipeableListItem>
+		<>
+			<HoverCard>
+				<HoverCardTrigger asChild>{linkContent}</HoverCardTrigger>
+				<HoverCardContent side="bottom" align="center" className="w-auto p-2">
+					<PersonHoverActions
+						person={person}
+						operations={operations}
+						onAddNote={() => setDialogOpen("note")}
+						onAddReminder={() => setDialogOpen("reminder")}
+					/>
+				</HoverCardContent>
+			</HoverCard>
+			{dialogs}
+		</>
 	)
 }
 
@@ -275,6 +311,63 @@ function PersonItemSummary({
 					),
 				)}
 			</p>
+		</div>
+	)
+}
+
+function PersonHoverActions({
+	operations,
+	onAddNote,
+	onAddReminder,
+}: {
+	person: PersonListItemPerson
+	operations: PersonItemOperations
+	onAddNote: () => void
+	onAddReminder: () => void
+}) {
+	let t = useIntl()
+
+	return (
+		<div className="flex flex-col gap-1">
+			<Button
+				variant="ghost"
+				size="sm"
+				className="justify-start gap-2"
+				onClick={e => {
+					e.preventDefault()
+					e.stopPropagation()
+					onAddNote()
+				}}
+			>
+				<FileEarmarkText className="size-4" />
+				{t("person.actions.addNote")}
+			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				className="justify-start gap-2"
+				onClick={e => {
+					e.preventDefault()
+					e.stopPropagation()
+					onAddReminder()
+				}}
+			>
+				<Bell className="size-4" />
+				{t("person.actions.addReminder")}
+			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				className="text-destructive hover:text-destructive justify-start gap-2"
+				onClick={e => {
+					e.preventDefault()
+					e.stopPropagation()
+					operations.deletePerson()
+				}}
+			>
+				<Trash className="size-4" />
+				{t("person.actions.delete")}
+			</Button>
 		</div>
 	)
 }
