@@ -26,32 +26,11 @@ import type { KeyboardEvent } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { isMac } from "#app/hooks/use-pwa"
-
 import { T, useIntl } from "#shared/intl/setup"
 
-function createReminderFormSchema(t: ReturnType<typeof useIntl>) {
-	return z.object({
-		text: z.string().min(1, t("reminder.form.text.required")),
-		dueAtDate: z.string().min(1, t("reminder.form.date.required")),
-		repeat: z
-			.object({
-				interval: z.coerce.number(),
-				unit: z.enum(["day", "week", "month", "year"]),
-			})
-			.optional(),
-	})
-}
+export { ReminderForm }
 
-type ReminderFormValues = {
-	text: string
-	dueAtDate: string
-	repeat?: {
-		interval: number
-		unit: "day" | "week" | "month" | "year"
-	}
-}
-
-export function ReminderForm({
+function ReminderForm({
 	defaultValues,
 	onCancel,
 	onSubmit,
@@ -264,4 +243,26 @@ export function ReminderForm({
 			</form>
 		</Form>
 	)
+}
+
+function createReminderFormSchema(t: ReturnType<typeof useIntl>) {
+	return z.object({
+		text: z.string().min(1, t("reminder.form.text.required")),
+		dueAtDate: z.string().min(1, t("reminder.form.date.required")),
+		repeat: z
+			.object({
+				interval: z.coerce.number(),
+				unit: z.enum(["day", "week", "month", "year"]),
+			})
+			.optional(),
+	})
+}
+
+type ReminderFormValues = {
+	text: string
+	dueAtDate: string
+	repeat?: {
+		interval: number
+		unit: "day" | "week" | "month" | "year"
+	}
 }

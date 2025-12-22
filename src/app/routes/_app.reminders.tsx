@@ -1,4 +1,8 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import {
+	createFileRoute,
+	notFound,
+	useElementScrollRestoration,
+} from "@tanstack/react-router"
 import { UserAccount } from "#shared/schema/user"
 import {
 	useReminders,
@@ -26,7 +30,10 @@ import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
-import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
+import {
+	defaultRangeExtractor,
+	useWindowVirtualizer,
+} from "@tanstack/react-virtual"
 import { cn } from "#app/lib/utils"
 import { ListFilterButton } from "#app/features/list-filter-button"
 import type { PersonWithSummary } from "#app/features/list-utilities"
@@ -138,15 +145,18 @@ function Reminders() {
 		}
 	}
 
-	// eslint-disable-next-line react-hooks/incompatible-library
-	let virtualizer = useVirtualizer({
+	let scrollEntry = useElementScrollRestoration({
+		getElement: () => window,
+	})
+
+	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
-		getScrollElement: () => document.getElementById("scroll-area"),
 		rangeExtractor: range => {
 			return [0, 1, ...defaultRangeExtractor(range).filter(i => i > 1)]
 		},
 		estimateSize: () => 100,
 		overscan: 5,
+		initialOffset: scrollEntry?.scrollY,
 		measureElement: (element, _entry, instance) => {
 			let direction = instance.scrollDirection
 			if (direction === "forward" || direction === null) {

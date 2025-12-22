@@ -1,6 +1,13 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import {
+	createFileRoute,
+	notFound,
+	useElementScrollRestoration,
+} from "@tanstack/react-router"
 import { useNotes, type NotesLoadedAccount } from "#app/features/note-hooks"
-import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual"
+import {
+	defaultRangeExtractor,
+	useWindowVirtualizer,
+} from "@tanstack/react-virtual"
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useDeferredValue, useId, type ReactNode } from "react"
@@ -94,25 +101,26 @@ function NotesScreen() {
 		virtualItems.push({ type: "spacer" })
 	}
 
-	// eslint-disable-next-line react-hooks/incompatible-library
-	let virtualizer = useVirtualizer({
+	let scrollEntry = useElementScrollRestoration({
+		getElement: () => window,
+	})
+
+	let virtualizer = useWindowVirtualizer({
 		count: virtualItems.length,
-		getScrollElement: () => document.getElementById("scroll-area"),
 		rangeExtractor: range => {
 			// NOTE: always render the first two elements (heading and search)
 			return [0, 1, ...defaultRangeExtractor(range).filter(i => i > 1)]
 		},
 		estimateSize: () => 112,
 		overscan: 5,
+		initialOffset: scrollEntry?.scrollY,
 		measureElement: (element, _entry, instance) => {
-			const direction = instance.scrollDirection
+			let direction = instance.scrollDirection
 			if (direction === "forward" || direction === null) {
-				// Allow remeasuring when scrolling down or direction is null
 				return element.getBoundingClientRect().height
 			} else {
-				// When scrolling up, use cached measurement to prevent stuttering
-				const indexKey = Number(element.getAttribute("data-index"))
-				const cachedMeasurement = instance.measurementsCache[indexKey]?.size
+				let indexKey = Number(element.getAttribute("data-index"))
+				let cachedMeasurement = instance.measurementsCache[indexKey]?.size
 				return cachedMeasurement || element.getBoundingClientRect().height
 			}
 		},
@@ -144,7 +152,7 @@ function NotesScreen() {
 							data-index={virtualRow.index}
 							ref={virtualizer.measureElement}
 							className={cn(
-								"absolute top-0 left-0 w-full overflow-hidden",
+								"absolute top-0 left-0 w-full",
 								itemIsNote && nextItemIsNote && "border-border border-b",
 							)}
 							style={{ transform: `translateY(${virtualRow.start}px)` }}

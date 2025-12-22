@@ -32,106 +32,10 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { isMac } from "#app/hooks/use-pwa"
-
 import { T, useIntl } from "#shared/intl/setup"
 
 export { PersonForm, AvatarField }
-
 export type { PersonFormValues, AvatarFieldProps }
-
-function createPersonFormSchema(t: ReturnType<typeof useIntl>) {
-	return z.object({
-		name: z.string().min(1, t("person.form.name.required")),
-		summary: z.string().optional(),
-		avatar: z.instanceof(File).nullable().optional(),
-	})
-}
-
-type PersonFormValues = {
-	name: string
-	summary?: string
-	avatar?: File | null
-}
-
-type AvatarFieldProps = {
-	value: File | null | undefined
-	person?: co.loaded<typeof Person>
-	form: UseFormReturn<PersonFormValues>
-	fileInputRef: React.RefObject<HTMLInputElement | null>
-}
-
-function AvatarField({ value, person, form, fileInputRef }: AvatarFieldProps) {
-	let [preview, setPreview] = useState<string>()
-	let [prevValue, setPrevValue] = useState(value)
-	let nameValue = form.watch("name")
-
-	if (prevValue !== value) {
-		setPrevValue(value)
-		if (value) {
-			let reader = new FileReader()
-			reader.onloadend = () => {
-				setPreview(reader.result as string)
-			}
-			reader.readAsDataURL(value)
-		} else if (value === null) {
-			setPreview(undefined)
-		}
-	}
-
-	return (
-		<FormItem>
-			<FormLabel>
-				<T k="person.form.avatar.label" />
-			</FormLabel>
-			<div className="flex items-center gap-4">
-				<Avatar
-					className="size-20 cursor-pointer"
-					onClick={() => fileInputRef.current?.click()}
-				>
-					{preview ? (
-						<AvatarImage src={preview} />
-					) : person?.avatar ? (
-						<JazzImage
-							imageId={person.avatar.$jazz.id}
-							alt={nameValue}
-							width={80}
-							data-slot="avatar-image"
-							className="aspect-square size-full object-cover shadow-inner"
-						/>
-					) : null}
-					<AvatarFallback key={preview}>
-						{nameValue ? nameValue.slice(0, 1) : "?"}
-					</AvatarFallback>
-				</Avatar>
-				<div className="inline-flex flex-1 flex-wrap gap-2">
-					<FormControl>
-						<Button
-							variant="outline"
-							type="button"
-							onClick={() => fileInputRef.current?.click()}
-						>
-							{preview || person?.avatar ? (
-								<T k="person.form.avatar.change" />
-							) : (
-								<T k="person.form.avatar.upload" />
-							)}
-						</Button>
-					</FormControl>
-					{(person?.avatar || preview) && (
-						<Button
-							type="button"
-							variant="destructive"
-							onClick={() => form.setValue("avatar", null)}
-						>
-							<T k="person.form.avatar.remove" />
-						</Button>
-					)}
-				</div>
-			</div>
-			<FormMessage />
-		</FormItem>
-	)
-}
 
 function PersonForm({
 	person,
@@ -288,6 +192,79 @@ function PersonForm({
 	)
 }
 
+function AvatarField({ value, person, form, fileInputRef }: AvatarFieldProps) {
+	let [preview, setPreview] = useState<string>()
+	let [prevValue, setPrevValue] = useState(value)
+	let nameValue = form.watch("name")
+
+	if (prevValue !== value) {
+		setPrevValue(value)
+		if (value) {
+			let reader = new FileReader()
+			reader.onloadend = () => {
+				setPreview(reader.result as string)
+			}
+			reader.readAsDataURL(value)
+		} else if (value === null) {
+			setPreview(undefined)
+		}
+	}
+
+	return (
+		<FormItem>
+			<FormLabel>
+				<T k="person.form.avatar.label" />
+			</FormLabel>
+			<div className="flex items-center gap-4">
+				<Avatar
+					className="size-20 cursor-pointer"
+					onClick={() => fileInputRef.current?.click()}
+				>
+					{preview ? (
+						<AvatarImage src={preview} />
+					) : person?.avatar ? (
+						<JazzImage
+							imageId={person.avatar.$jazz.id}
+							alt={nameValue}
+							width={80}
+							data-slot="avatar-image"
+							className="aspect-square size-full object-cover shadow-inner"
+						/>
+					) : null}
+					<AvatarFallback key={preview}>
+						{nameValue ? nameValue.slice(0, 1) : "?"}
+					</AvatarFallback>
+				</Avatar>
+				<div className="inline-flex flex-1 flex-wrap gap-2">
+					<FormControl>
+						<Button
+							variant="outline"
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+						>
+							{preview || person?.avatar ? (
+								<T k="person.form.avatar.change" />
+							) : (
+								<T k="person.form.avatar.upload" />
+							)}
+						</Button>
+					</FormControl>
+					{(person?.avatar || preview) && (
+						<Button
+							type="button"
+							variant="destructive"
+							onClick={() => form.setValue("avatar", null)}
+						>
+							<T k="person.form.avatar.remove" />
+						</Button>
+					)}
+				</div>
+			</div>
+			<FormMessage />
+		</FormItem>
+	)
+}
+
 function AvatarCropperDialog({
 	open,
 	onOpenChange,
@@ -420,4 +397,25 @@ async function getCroppedImg(
 		image.onerror = reject
 		image.src = imageSrc
 	})
+}
+
+function createPersonFormSchema(t: ReturnType<typeof useIntl>) {
+	return z.object({
+		name: z.string().min(1, t("person.form.name.required")),
+		summary: z.string().optional(),
+		avatar: z.instanceof(File).nullable().optional(),
+	})
+}
+
+type PersonFormValues = {
+	name: string
+	summary?: string
+	avatar?: File | null
+}
+
+type AvatarFieldProps = {
+	value: File | null | undefined
+	person?: co.loaded<typeof Person>
+	form: UseFormReturn<PersonFormValues>
+	fileInputRef: React.RefObject<HTMLInputElement | null>
 }

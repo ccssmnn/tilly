@@ -50,6 +50,15 @@ import { NoteForm } from "#app/features/note-form"
 import { createNote } from "#shared/tools/note-create"
 import { updateNote } from "#shared/tools/note-update"
 import { TextHighlight } from "#shared/ui/text-highlight"
+import {
+	SwipeableListItem,
+	type SwipeAction,
+} from "#shared/ui/swipeable-list-item"
+import {
+	CheckLg as CheckIcon,
+	ArrowCounterclockwise as RestoreIcon,
+	PencilSquare as EditIcon,
+} from "react-bootstrap-icons"
 
 export { ReminderListItem }
 
@@ -72,7 +81,66 @@ function ReminderListItem({
 	let [dialogOpen, setDialogOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
+	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
+		useState(false)
 	let operations = useReminderItemOperations({ reminder, person, me })
+
+	let deletedSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("reminder.permanentDelete.confirm"),
+			color: "destructive",
+			onAction: () => setConfirmPermanentDeleteOpen(true),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: RestoreIcon,
+				label: t("reminder.restore.button"),
+				color: "success",
+				onAction: () => operations.restore(),
+			} satisfies SwipeAction,
+		},
+	}
+
+	let doneSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("reminder.actions.delete"),
+			color: "destructive",
+			onAction: () => operations.deleteReminder(),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: RestoreIcon,
+				label: t("reminder.done.markUndone"),
+				color: "success",
+				onAction: () => operations.markUndone(),
+			} satisfies SwipeAction,
+		},
+	}
+
+	let activeSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("reminder.actions.delete"),
+			color: "destructive",
+			onAction: () => operations.deleteReminder(),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: CheckIcon,
+				label: t("reminder.actions.markDone"),
+				color: "success",
+				onAction: () => operations.markDone(),
+			} satisfies SwipeAction,
+			secondary: {
+				icon: EditIcon,
+				label: t("reminder.actions.edit"),
+				color: "warning",
+				onAction: () => setDialogOpen("edit"),
+			} satisfies SwipeAction,
+		},
+	}
 
 	if (reminder.deletedAt) {
 		let deletedRelativeTime = formatDistanceToNow(
@@ -88,34 +156,63 @@ function ReminderListItem({
 
 		return (
 			<>
-				<RestoreReminderDropdown
-					open={dialogOpen === "restore"}
-					onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
-					operations={operations}
-				>
-					<ReminderItemContainer
-						reminder={reminder}
-						person={person}
-						showPerson={showPerson}
-						className={dialogOpen === "restore" ? "bg-accent" : ""}
-						onClick={() => setDialogOpen("restore")}
+				<SwipeableListItem itemKey={reminder.$jazz.id} {...deletedSwipeActions}>
+					<RestoreReminderDropdown
+						open={dialogOpen === "restore"}
+						onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
+						operations={operations}
 					>
-						<div className="space-y-1 select-text">
-							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-								<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
-									<Trash />
-									<span>{deletedLabel}</span>
-								</span>
-								{showPerson ? (
-									<span className="text-muted-foreground font-normal">
-										<TextHighlight text={person.name} query={searchQuery} />
+						<ReminderItemContainer
+							reminder={reminder}
+							person={person}
+							showPerson={showPerson}
+							className={dialogOpen === "restore" ? "bg-accent" : ""}
+							onClick={() => setDialogOpen("restore")}
+						>
+							<div className="space-y-1 select-text">
+								<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+									<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
+										<Trash />
+										<span>{deletedLabel}</span>
 									</span>
-								) : null}
+									{showPerson ? (
+										<span className="text-muted-foreground font-normal">
+											<TextHighlight text={person.name} query={searchQuery} />
+										</span>
+									) : null}
+								</div>
+								<ReminderItemText
+									reminder={reminder}
+									searchQuery={searchQuery}
+								/>
 							</div>
-							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
-						</div>
-					</ReminderItemContainer>
-				</RestoreReminderDropdown>
+						</ReminderItemContainer>
+					</RestoreReminderDropdown>
+				</SwipeableListItem>
+
+				<AlertDialog
+					open={confirmPermanentDeleteOpen}
+					onOpenChange={setConfirmPermanentDeleteOpen}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								<T k="reminder.permanentDelete.title" />
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								<T k="reminder.permanentDelete.confirmation" />
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>
+								<T k="reminder.permanentDelete.cancel" />
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => operations.deletePermanently()}>
+								<T k="reminder.permanentDelete.confirm" />
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			</>
 		)
 	}
@@ -133,7 +230,7 @@ function ReminderListItem({
 		})
 
 		return (
-			<>
+			<SwipeableListItem itemKey={reminder.$jazz.id} {...doneSwipeActions}>
 				<DoneReminderDropdown
 					open={dialogOpen === "done"}
 					onOpenChange={open => setDialogOpen(open ? "done" : undefined)}
@@ -162,53 +259,55 @@ function ReminderListItem({
 						</div>
 					</ReminderItemContainer>
 				</DoneReminderDropdown>
-			</>
+			</SwipeableListItem>
 		)
 	}
 
 	return (
 		<>
-			<ActionsDropdown
-				open={dialogOpen === "actions"}
-				onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
-				onEditClick={() => setDialogOpen("edit")}
-				onAddNoteClick={() => setDialogOpen("note")}
-				showPerson={showPerson}
-				person={person}
-				operations={operations}
-			>
-				<ReminderItemContainer
-					reminder={reminder}
-					person={person}
+			<SwipeableListItem itemKey={reminder.$jazz.id} {...activeSwipeActions}>
+				<ActionsDropdown
+					open={dialogOpen === "actions"}
+					onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
+					onEditClick={() => setDialogOpen("edit")}
+					onAddNoteClick={() => setDialogOpen("note")}
 					showPerson={showPerson}
-					className={dialogOpen ? "bg-accent" : ""}
-					onClick={() => setDialogOpen("actions")}
+					person={person}
+					operations={operations}
 				>
-					<div className="flex items-start gap-3 select-text">
-						<div
-							className={cn(
-								"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
-								isToday(new Date(reminder.dueAtDate)) ||
-									isBefore(new Date(reminder.dueAtDate), new Date())
-									? "text-destructive"
-									: "text-foreground",
+					<ReminderItemContainer
+						reminder={reminder}
+						person={person}
+						showPerson={showPerson}
+						className={dialogOpen ? "bg-accent" : ""}
+						onClick={() => setDialogOpen("actions")}
+					>
+						<div className="flex items-start gap-3 select-text">
+							<div
+								className={cn(
+									"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
+									isToday(new Date(reminder.dueAtDate)) ||
+										isBefore(new Date(reminder.dueAtDate), new Date())
+										? "text-destructive"
+										: "text-foreground",
+								)}
+							>
+								{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
+								{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
+							</div>
+							{showPerson && (
+								<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+									<TextHighlight text={person.name} query={searchQuery} />
+								</p>
 							)}
-						>
-							{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
-							{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
+							{showPerson && <SharedIndicator item={reminder} />}
 						</div>
-						{showPerson && (
-							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-								<TextHighlight text={person.name} query={searchQuery} />
-							</p>
-						)}
-						{showPerson && <SharedIndicator item={reminder} />}
-					</div>
-					<p className="text-md/tight text-left select-text">
-						<TextHighlight text={reminder.text} query={searchQuery} />
-					</p>
-				</ReminderItemContainer>
-			</ActionsDropdown>
+						<p className="text-md/tight text-left select-text">
+							<TextHighlight text={reminder.text} query={searchQuery} />
+						</p>
+					</ReminderItemContainer>
+				</ActionsDropdown>
+			</SwipeableListItem>
 			<EditReminderDialog
 				open={dialogOpen === "edit"}
 				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
@@ -242,50 +341,48 @@ function ReminderItemContainer({
 	onClick: (e: React.MouseEvent) => void
 }) {
 	let baseClassName = cn(
-		"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-4 text-left",
+		"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
 		className,
 	)
 
 	return (
-		<div className="-mx-3">
-			<DropdownMenuTrigger
-				id={`reminder-${reminder.$jazz.id}`}
-				className={baseClassName}
-				onPointerDown={e => {
-					if (e.pointerType === "touch") {
-						e.preventDefault()
-					}
-				}}
-				onClick={e => {
-					if (isTextSelectionOngoing()) return
-					onClick(e)
-				}}
-			>
-				{showPerson ? (
-					<div className="relative size-16">
-						<Avatar
-							className={cn("size-full", reminder.deletedAt && "grayscale")}
-						>
-							{person.avatar ? (
-								<JazzImage
-									imageId={person.avatar.$jazz.id}
-									alt={person.name}
-									width={64}
-									data-slot="avatar-image"
-									className="aspect-square size-full object-cover shadow-inner"
-								/>
-							) : (
-								<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-							)}
-						</Avatar>
-						{!reminder.deletedAt && reminder.done ? (
-							<span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-emerald-400" />
-						) : null}
-					</div>
-				) : null}
-				<div className="min-w-0 flex-1 space-y-1">{children}</div>
-			</DropdownMenuTrigger>
-		</div>
+		<DropdownMenuTrigger
+			id={`reminder-${reminder.$jazz.id}`}
+			className={baseClassName}
+			onPointerDown={e => {
+				if (e.pointerType === "touch") {
+					e.preventDefault()
+				}
+			}}
+			onClick={e => {
+				if (isTextSelectionOngoing()) return
+				onClick(e)
+			}}
+		>
+			{showPerson ? (
+				<div className="relative size-16">
+					<Avatar
+						className={cn("size-full", reminder.deletedAt && "grayscale")}
+					>
+						{person.avatar ? (
+							<JazzImage
+								imageId={person.avatar.$jazz.id}
+								alt={person.name}
+								width={64}
+								data-slot="avatar-image"
+								className="aspect-square size-full object-cover shadow-inner"
+							/>
+						) : (
+							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+						)}
+					</Avatar>
+					{!reminder.deletedAt && reminder.done ? (
+						<span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-emerald-400" />
+					) : null}
+				</div>
+			) : null}
+			<div className="min-w-0 flex-1 space-y-1">{children}</div>
+		</DropdownMenuTrigger>
 	)
 }
 

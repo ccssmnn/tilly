@@ -55,10 +55,16 @@ import { TextHighlight } from "#shared/ui/text-highlight"
 import { Button } from "#shared/ui/button"
 import { motion, AnimatePresence } from "motion/react"
 import { SharedIndicator } from "#app/features/person-shared-indicator"
-export { NoteListItem }
+import {
+	SwipeableListItem,
+	type SwipeAction,
+} from "#shared/ui/swipeable-list-item"
+import {
+	Pin,
+	ArrowCounterclockwise as RestoreIcon,
+} from "react-bootstrap-icons"
 
-let CHAR_LIMIT = 280
-let LINE_LIMIT = 4
+export { NoteListItem }
 
 function NoteListItem(props: {
 	note: co.loaded<typeof Note>
@@ -67,7 +73,10 @@ function NoteListItem(props: {
 	showPerson?: boolean
 }) {
 	let me = useAccount(UserAccount)
+	let t = useIntl()
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
+	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
+		useState(false)
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
 	let operations = useNoteItemOperations({
@@ -75,6 +84,9 @@ function NoteListItem(props: {
 		person: props.person,
 		me,
 	})
+
+	let [carouselOpen, setCarouselOpen] = useState(false)
+	let [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
 	let hasDueReminders = props.person.reminders?.$isLoaded
 		? Array.from(props.person.reminders.values())
@@ -103,12 +115,134 @@ function NoteListItem(props: {
 		}
 	}
 
+	let deletedSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("note.permanentDelete.confirm"),
+			color: "destructive",
+			onAction: () => setConfirmPermanentDeleteOpen(true),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: RestoreIcon,
+				label: t("note.restore.button"),
+				color: "success",
+				onAction: () => operations.restore(),
+			} satisfies SwipeAction,
+		},
+	}
+
+	let activeSwipeActions = {
+		leftAction: {
+			icon: Trash,
+			label: t("note.actions.delete"),
+			color: "destructive",
+			onAction: () => operations.deleteNote(),
+		} satisfies SwipeAction,
+		rightActions: {
+			primary: {
+				icon: Pin,
+				label: props.note.pinned
+					? t("note.actions.unpin")
+					: t("note.actions.pin"),
+				color: "primary",
+				onAction: () => operations.togglePin(),
+			} satisfies SwipeAction,
+			secondary: {
+				icon: PencilSquare,
+				label: t("note.actions.edit"),
+				color: "warning",
+				onAction: () => setOpenDialog("edit"),
+			} satisfies SwipeAction,
+		},
+	}
+
 	if (props.note.deletedAt) {
 		return (
 			<>
-				<RestoreNoteDropdown
-					open={openDialog === "restore"}
-					onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
+				<SwipeableListItem
+					itemKey={props.note.$jazz.id}
+					{...deletedSwipeActions}
+				>
+					<RestoreNoteDropdown
+						open={openDialog === "restore"}
+						onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
+						operations={operations}
+					>
+						<NoteItemContainer
+							note={props.note}
+							person={props.person}
+							showPerson={showPerson}
+							hasOverflow={hasOverflow}
+							className={openDialog ? "bg-accent" : ""}
+							onClick={() => setOpenDialog("restore")}
+						>
+							<div className="flex items-center gap-3 select-text">
+								<span className="text-destructive">
+									<T k="note.status.deleted" />
+								</span>
+							</div>
+							<div>
+								<div className="text-muted-foreground text-left text-wrap select-text">
+									<MarkdownWithHighlight
+										content={displayContent}
+										searchQuery={props.searchQuery}
+									/>
+								</div>
+							</div>
+						</NoteItemContainer>
+					</RestoreNoteDropdown>
+					{hasOverflow && (
+						<ExpandCollapseButton
+							isExpanded={isExpanded}
+							toggleExpanded={toggleExpanded}
+							showPerson={showPerson}
+						/>
+					)}
+					<NoteImageGridThumbnails
+						note={props.note}
+						isDeleted={true}
+						showPerson={showPerson}
+						onImageClick={() => {}}
+					/>
+				</SwipeableListItem>
+
+				<AlertDialog
+					open={confirmPermanentDeleteOpen}
+					onOpenChange={setConfirmPermanentDeleteOpen}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								<T k="note.permanentDelete.title" />
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								<T k="note.permanentDelete.confirmation" />
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>
+								<T k="note.permanentDelete.cancel" />
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => operations.deletePermanently()}>
+								<T k="note.permanentDelete.confirm" />
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			</>
+		)
+	}
+
+	return (
+		<>
+			<SwipeableListItem itemKey={props.note.$jazz.id} {...activeSwipeActions}>
+				<ActionsDropdown
+					open={openDialog === "actions"}
+					onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
+					onEditClick={() => setOpenDialog("edit")}
+					showPerson={showPerson}
+					person={props.person}
 					operations={operations}
 				>
 					<NoteItemContainer
@@ -117,15 +251,27 @@ function NoteListItem(props: {
 						showPerson={showPerson}
 						hasOverflow={hasOverflow}
 						className={openDialog ? "bg-accent" : ""}
-						onClick={() => setOpenDialog("restore")}
+						onClick={() => setOpenDialog("actions")}
 					>
 						<div className="flex items-center gap-3 select-text">
-							<span className="text-destructive">
-								<T k="note.status.deleted" />
-							</span>
+							{showPerson && (
+								<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+									<TextHighlight
+										text={props.person.name}
+										query={props.searchQuery}
+									/>
+								</p>
+							)}
+							{showPerson && hasDueReminders && (
+								<div className="bg-primary size-2 rounded-full" />
+							)}
+							{showPerson && <SharedIndicator item={props.note} />}
+							<Pinned pinned={props.note.pinned} />
+							<div className="flex-1" />
+							<TimeStamp record={props.note} />
 						</div>
 						<div>
-							<div className="text-muted-foreground text-left text-wrap select-text">
+							<div className="text-left text-wrap select-text">
 								<MarkdownWithHighlight
 									content={displayContent}
 									searchQuery={props.searchQuery}
@@ -133,7 +279,7 @@ function NoteListItem(props: {
 							</div>
 						</div>
 					</NoteItemContainer>
-				</RestoreNoteDropdown>
+				</ActionsDropdown>
 				{hasOverflow && (
 					<ExpandCollapseButton
 						isExpanded={isExpanded}
@@ -141,67 +287,21 @@ function NoteListItem(props: {
 						showPerson={showPerson}
 					/>
 				)}
-				<NoteImageGrid note={props.note} isDeleted={true} />
-			</>
-		)
-	}
-
-	return (
-		<>
-			<ActionsDropdown
-				open={openDialog === "actions"}
-				onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
-				onEditClick={() => setOpenDialog("edit")}
-				showPerson={showPerson}
-				person={props.person}
-				operations={operations}
-			>
-				<NoteItemContainer
+				<NoteImageGridThumbnails
 					note={props.note}
-					person={props.person}
+					isDeleted={false}
 					showPerson={showPerson}
-					hasOverflow={hasOverflow}
-					className={openDialog ? "bg-accent" : ""}
-					onClick={() => setOpenDialog("actions")}
-				>
-					<div className="flex items-center gap-3 select-text">
-						{showPerson && (
-							<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-								<TextHighlight
-									text={props.person.name}
-									query={props.searchQuery}
-								/>
-							</p>
-						)}
-						{showPerson && hasDueReminders && (
-							<div className="bg-primary size-2 rounded-full" />
-						)}
-						{showPerson && <SharedIndicator item={props.note} />}
-						<Pinned pinned={props.note.pinned} />
-						<div className="flex-1" />
-						<TimeStamp record={props.note} />
-					</div>
-					<div>
-						<div className="text-left text-wrap select-text">
-							<MarkdownWithHighlight
-								content={displayContent}
-								searchQuery={props.searchQuery}
-							/>
-						</div>
-					</div>
-				</NoteItemContainer>
-			</ActionsDropdown>
-			{hasOverflow && (
-				<ExpandCollapseButton
-					isExpanded={isExpanded}
-					toggleExpanded={toggleExpanded}
-					showPerson={showPerson}
+					onImageClick={index => {
+						setSelectedImageIndex(index)
+						setCarouselOpen(true)
+					}}
 				/>
-			)}
-			<NoteImageGrid
+			</SwipeableListItem>
+			<NoteImageCarousel
 				note={props.note}
-				isDeleted={false}
-				showPerson={showPerson}
+				selectedIndex={selectedImageIndex ?? 0}
+				open={carouselOpen}
+				onClose={() => setCarouselOpen(false)}
 			/>
 			<EditDialog
 				note={props.note}
@@ -237,12 +337,7 @@ function NoteItemContainer({
 	)
 
 	return (
-		<div
-			className={cn(
-				className,
-				"hover:bg-muted has-active:bg-accent -mx-3 rounded-md px-3",
-			)}
-		>
+		<div className={cn(className, "hover:bg-muted rounded-md")}>
 			<DropdownMenuTrigger
 				id={`note-${note.$jazz.id}`}
 				className={baseClassName}
@@ -288,9 +383,7 @@ function ExpandCollapseButton({
 	showPerson: boolean
 }) {
 	return (
-		<div
-			className={cn("-mx-3 px-3 pb-4 text-right", showPerson && "ml-[76px]")}
-		>
+		<div className={cn("pb-4 text-right", showPerson && "ml-[76px]")}>
 			<button
 				onClick={toggleExpanded}
 				className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
@@ -569,6 +662,7 @@ type NoteItemOperations = {
 		removedImageIds?: string[]
 	}) => Promise<{ success: true } | undefined>
 	deleteNote: () => Promise<void>
+	togglePin: () => Promise<void>
 	restore: () => Promise<boolean>
 	deletePermanently: () => Promise<boolean>
 }
@@ -663,7 +757,54 @@ function useNoteItemOperations({
 			return
 		}
 
-		toast.success(t("note.toast.deleted"))
+		toast.success(t("note.toast.deleted"), {
+			action: {
+				label: t("common.undo"),
+				onClick: async () => {
+					let undoResult = await tryCatch(
+						updateNote(
+							{ deletedAt: undefined },
+							{
+								personId: person.$jazz.id,
+								noteId: note.$jazz.id,
+								worker: loadedMe,
+							},
+						),
+					)
+					if (undoResult.ok) {
+						toast.success(t("note.toast.restored"))
+					} else {
+						toast.error(
+							typeof undoResult.error === "string"
+								? undoResult.error
+								: undoResult.error.message,
+						)
+					}
+				},
+			},
+		})
+	}
+
+	async function togglePin() {
+		let newPinned = !note.pinned
+		let result = await tryCatch(
+			updateNote(
+				{ pinned: newPinned },
+				{
+					personId: person.$jazz.id,
+					noteId: note.$jazz.id,
+					worker: loadedMe,
+				},
+			),
+		)
+		if (!result.ok) {
+			toast.error(
+				typeof result.error === "string" ? result.error : result.error.message,
+			)
+			return
+		}
+
+		toast.success(newPinned ? t("note.toast.pinned") : t("note.toast.unpinned"))
 	}
 
 	async function restore(): Promise<boolean> {
@@ -713,6 +854,7 @@ function useNoteItemOperations({
 	return {
 		editNote,
 		deleteNote,
+		togglePin,
 		restore,
 		deletePermanently,
 	}
@@ -735,18 +877,17 @@ function useExpanded(id: string) {
 	return { isExpanded, toggleExpanded }
 }
 
-function NoteImageGrid({
+function NoteImageGridThumbnails({
 	note,
 	isDeleted,
 	showPerson,
+	onImageClick,
 }: {
 	note: co.loaded<typeof Note>
 	isDeleted: boolean
 	showPerson?: boolean
+	onImageClick: (index: number) => void
 }) {
-	let [carouselOpen, setCarouselOpen] = useState(false)
-	let [selectedImageIndex, setSelectedImageIndex] = useState<number>()
-
 	let imageCount = note.imageCount ?? 0
 
 	let loadedNote = useCoState(Note, note.$jazz.id, {
@@ -763,63 +904,86 @@ function NoteImageGrid({
 			: []
 
 	return (
-		<>
-			<div
-				className={cn(
-					"grid grid-flow-col gap-1 pb-4",
-					showPerson && "-mx-3 ml-[76px] pr-3",
-					imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
-					imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
-				)}
-			>
-				{Array.from({ length: Math.min(imageCount, 4) }).map((_, index) => {
-					let image = imageArray.at(index)
-					return (
-						<div
-							key={index}
-							className={cn(
-								"relative cursor-pointer overflow-hidden",
-								isDeleted && "pointer-events-none",
-								imageCount === 3 && index === 0
-									? "col-span-1 row-span-2"
-									: "aspect-4/3 md:aspect-video",
-							)}
-							onClick={() => {
-								if (!isDeleted && image) {
-									setSelectedImageIndex(index)
-									setCarouselOpen(true)
-								}
-							}}
-						>
-							{image ? (
-								<JazzImage
-									imageId={image.$jazz.id}
-									loading="lazy"
-									alt=""
-									className={cn(
-										"size-full rounded-lg object-cover",
-										isDeleted && "grayscale",
-									)}
-								/>
-							) : (
-								<div className="bg-muted size-full animate-pulse rounded-lg" />
-							)}
-							{imageCount > 4 && index === 3 && (
-								<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
-									+{imageCount - 4}
-								</div>
-							)}
-						</div>
-					)
-				})}
-			</div>
-			<ImageCarousel
-				images={imageArray}
-				selectedIndex={selectedImageIndex ?? 0}
-				open={!isDeleted && carouselOpen && imageArray.length > 0}
-				onClose={() => setCarouselOpen(false)}
-			/>
-		</>
+		<div
+			className={cn(
+				"grid grid-flow-col gap-1 pb-4",
+				showPerson && "ml-[76px]",
+				imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
+				imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
+			)}
+		>
+			{Array.from({ length: Math.min(imageCount, 4) }).map((_, index) => {
+				let image = imageArray.at(index)
+				return (
+					<div
+						key={index}
+						className={cn(
+							"relative cursor-pointer overflow-hidden",
+							isDeleted && "pointer-events-none",
+							imageCount === 3 && index === 0
+								? "col-span-1 row-span-2"
+								: "aspect-4/3 md:aspect-video",
+						)}
+						onClick={() => {
+							if (!isDeleted && image) {
+								onImageClick(index)
+							}
+						}}
+					>
+						{image ? (
+							<JazzImage
+								imageId={image.$jazz.id}
+								loading="lazy"
+								alt=""
+								className={cn(
+									"size-full rounded-lg object-cover",
+									isDeleted && "grayscale",
+								)}
+							/>
+						) : (
+							<div className="bg-muted size-full animate-pulse rounded-lg" />
+						)}
+						{imageCount > 4 && index === 3 && (
+							<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 text-2xl font-bold text-white">
+								+{imageCount - 4}
+							</div>
+						)}
+					</div>
+				)
+			})}
+		</div>
+	)
+}
+
+function NoteImageCarousel({
+	note,
+	selectedIndex,
+	open,
+	onClose,
+}: {
+	note: co.loaded<typeof Note>
+	selectedIndex: number
+	open: boolean
+	onClose: () => void
+}) {
+	let loadedNote = useCoState(Note, note.$jazz.id, {
+		resolve: { images: { $each: true } },
+	})
+
+	let imageArray =
+		loadedNote?.$isLoaded && loadedNote.images?.$isLoaded
+			? Array.from(loadedNote.images.values()).filter(
+					(img): img is ImageItem => img?.$isLoaded === true,
+				)
+			: []
+
+	return (
+		<ImageCarousel
+			images={imageArray}
+			selectedIndex={selectedIndex}
+			open={open && imageArray.length > 0}
+			onClose={onClose}
+		/>
 	)
 }
 
@@ -924,7 +1088,7 @@ function ImageCarousel({
 							transition={{
 								duration: 0.075,
 							}}
-							style={{ touchAction: "pan-y" }}
+							style={{ touchAction: "none" }}
 							className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center"
 						>
 							<JazzImage
@@ -966,3 +1130,6 @@ function ImageCarousel({
 		</Dialog>
 	)
 }
+
+let CHAR_LIMIT = 280
+let LINE_LIMIT = 4

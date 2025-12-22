@@ -91,6 +91,8 @@ const baseRemindersMessages = messages({
 	"reminder.toast.updateUndone": "Reminder update undone",
 	"reminder.toast.deleted":
 		"Reminder deleted - will be permanently deleted in 30 days",
+	"reminder.toast.added": "Reminder added",
+	"reminder.toast.removed": "Reminder removed",
 })
 
 const deRemindersMessages = translate(baseRemindersMessages, {
@@ -186,4 +188,6 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 		"Aktualisierung der Erinnerung rückgängig gemacht",
 	"reminder.toast.deleted":
 		"Erinnerung gelöscht – wird in 30 Tagen endgültig gelöscht",
+	"reminder.toast.added": "Erinnerung hinzugefügt",
+	"reminder.toast.removed": "Erinnerung entfernt",
 })

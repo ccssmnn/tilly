@@ -9,6 +9,7 @@ import {
 	useCleanupEmptyGroups,
 	useCleanupInaccessiblePeople,
 } from "#app/hooks/use-cleanups"
+import { useSafariSwipeHack } from "#shared/ui/swipeable-list-item"
 
 export const Route = createFileRoute("/_app")({
 	beforeLoad: ({ context }) => {
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/_app")({
 })
 
 function AppComponent() {
+	useSafariSwipeHack()
 	useCleanupInactiveLists()
 	useCleanupEmptyGroups()
 	useCleanupInaccessiblePeople()
