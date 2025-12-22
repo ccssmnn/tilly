@@ -12,45 +12,6 @@ import { cn } from "#app/lib/utils"
 export { SwipeableListItem }
 export type { SwipeAction, SwipeableListItemProps }
 
-type SwipeAction = {
-	icon: React.ComponentType<{ className?: string }>
-	label: string
-	color: "destructive" | "primary" | "success" | "warning"
-	onAction: () => void | Promise<unknown>
-}
-
-type SwipeableListItemProps = {
-	children: React.ReactNode
-	itemKey?: string
-	leftAction?: SwipeAction
-	rightActions?: {
-		primary: SwipeAction
-		secondary?: SwipeAction
-	}
-	disabled?: boolean
-	className?: string
-}
-
-let BG_COLOR_MAP = {
-	destructive: "bg-destructive",
-	primary: "bg-primary",
-	success: "bg-success",
-	warning: "bg-warning",
-} as const
-
-let TEXT_COLOR_MAP = {
-	destructive: "text-destructive",
-	primary: "text-primary",
-	success: "text-success",
-	warning: "text-warning",
-} as const
-
-let BUTTON_HEIGHT = 52
-let BUTTON_GAP = 6
-let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
-let FULL_SWIPE_THRESHOLD = 0.5
-let RESISTANCE_FACTOR = 0.3
-
 function SwipeableListItem({
 	children,
 	itemKey,
@@ -395,8 +356,6 @@ function HiddenLabel({
 	)
 }
 
-// --- Hooks ---
-
 function useLabelWidth(label: string | undefined) {
 	let measureRef = useRef<HTMLSpanElement>(null)
 	let [width, setWidth] = useState(BUTTON_HEIGHT)
@@ -409,8 +368,6 @@ function useLabelWidth(label: string | undefined) {
 
 	return { measureRef, width }
 }
-
-let APPEAR_INITIAL_SCALE = 0.3
 
 function useAppearTransform(
 	swipeAmount: MotionValue<number>,
@@ -448,26 +405,6 @@ function useStretchTransform(
 		if (absValue < threshold) return baseWidth
 		return baseWidth + (absValue - threshold)
 	})
-}
-
-// --- Pointer handlers ---
-
-type SwipeRefs = {
-	swipeItemWidth: React.RefObject<number>
-	swipeStartX: React.RefObject<number>
-	swipeStartY: React.RefObject<number>
-	swipeStartOffset: React.RefObject<number>
-	fullSwipeSnapPosition: React.RefObject<"left" | "right" | null>
-	swipeState: React.RefObject<"pending" | "horizontal" | null>
-	didSwipeRef: React.RefObject<boolean>
-	swipeContainerRef: React.RefObject<HTMLDivElement | null>
-	rightActionsRef: React.RefObject<HTMLDivElement | null>
-	leftActionsRef: React.RefObject<HTMLDivElement | null>
-}
-
-type SwipeValues = {
-	swipeAmount: MotionValue<number>
-	isFullSwipe: MotionValue<boolean>
 }
 
 function handlePointerMove(
@@ -602,3 +539,61 @@ function handlePointerUp(
 	).current = null
 	values.isFullSwipe.set(false)
 }
+
+type SwipeAction = {
+	icon: React.ComponentType<{ className?: string }>
+	label: string
+	color: "destructive" | "primary" | "success" | "warning"
+	onAction: () => void | Promise<unknown>
+}
+
+type SwipeableListItemProps = {
+	children: React.ReactNode
+	itemKey?: string
+	leftAction?: SwipeAction
+	rightActions?: {
+		primary: SwipeAction
+		secondary?: SwipeAction
+	}
+	disabled?: boolean
+	className?: string
+}
+
+type SwipeRefs = {
+	swipeItemWidth: React.RefObject<number>
+	swipeStartX: React.RefObject<number>
+	swipeStartY: React.RefObject<number>
+	swipeStartOffset: React.RefObject<number>
+	fullSwipeSnapPosition: React.RefObject<"left" | "right" | null>
+	swipeState: React.RefObject<"pending" | "horizontal" | null>
+	didSwipeRef: React.RefObject<boolean>
+	swipeContainerRef: React.RefObject<HTMLDivElement | null>
+	rightActionsRef: React.RefObject<HTMLDivElement | null>
+	leftActionsRef: React.RefObject<HTMLDivElement | null>
+}
+
+type SwipeValues = {
+	swipeAmount: MotionValue<number>
+	isFullSwipe: MotionValue<boolean>
+}
+
+let BG_COLOR_MAP = {
+	destructive: "bg-destructive",
+	primary: "bg-primary",
+	success: "bg-success",
+	warning: "bg-warning",
+} as const
+
+let TEXT_COLOR_MAP = {
+	destructive: "text-destructive",
+	primary: "text-primary",
+	success: "text-success",
+	warning: "text-warning",
+} as const
+
+let BUTTON_HEIGHT = 52
+let BUTTON_GAP = 6
+let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
+let FULL_SWIPE_THRESHOLD = 0.5
+let RESISTANCE_FACTOR = 0.3
+let APPEAR_INITIAL_SCALE = 0.3

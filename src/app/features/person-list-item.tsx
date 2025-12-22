@@ -59,20 +59,6 @@ import { useHasHover } from "#app/hooks/use-has-hover"
 export { PersonListItem }
 export type { PersonListItemPerson }
 
-type PersonListItemPerson = co.loaded<
-	typeof Person,
-	{
-		avatar: true
-		reminders: { $each: true }
-	}
->
-
-type PersonListItemProps = {
-	person: PersonListItemPerson
-	searchQuery?: string
-	noLazy?: boolean
-}
-
 function PersonListItem({
 	person,
 	searchQuery,
@@ -149,13 +135,11 @@ function PersonListItem({
 	let dialogs = (
 		<>
 			<AddNoteDialog
-				person={person}
 				open={dialogOpen === "note"}
 				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
 				operations={operations}
 			/>
 			<AddReminderDialog
-				person={person}
 				open={dialogOpen === "reminder"}
 				onOpenChange={open => setDialogOpen(open ? "reminder" : undefined)}
 				operations={operations}
@@ -227,7 +211,6 @@ function PersonListItem({
 				<HoverCardTrigger asChild>{linkContent}</HoverCardTrigger>
 				<HoverCardContent side="bottom" align="center" className="w-auto p-2">
 					<PersonHoverActions
-						person={person}
 						operations={operations}
 						onAddNote={() => setDialogOpen("note")}
 						onAddReminder={() => setDialogOpen("reminder")}
@@ -348,7 +331,6 @@ function PersonHoverActions({
 	onAddNote,
 	onAddReminder,
 }: {
-	person: PersonListItemPerson
 	operations: PersonItemOperations
 	onAddNote: () => void
 	onAddReminder: () => void
@@ -548,26 +530,82 @@ function RestorePersonDialog({
 	)
 }
 
-type NoteFormInput = {
-	content: string
-	pinned: boolean
-	createdAt: string
+function AddNoteDialog({
+	open,
+	onOpenChange,
+	operations,
+}: {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	operations: PersonItemOperations
+}) {
+	async function handleAddNote(data: NoteFormInput) {
+		let result = await operations.addNote(data)
+		if (result?.success) {
+			onOpenChange(false)
+		}
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							<T k="addNote.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="addNote.description" />
+						</DialogDescription>
+					</DialogHeader>
+				}
+			>
+				<NoteForm
+					onSubmit={handleAddNote}
+					onCancel={() => onOpenChange(false)}
+				/>
+			</DialogContent>
+		</Dialog>
+	)
 }
 
-type ReminderFormInput = {
-	text: string
-	dueAtDate: string
-	repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
-}
+function AddReminderDialog({
+	open,
+	onOpenChange,
+	operations,
+}: {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	operations: PersonItemOperations
+}) {
+	async function handleAddReminder(data: ReminderFormInput) {
+		let result = await operations.addReminder(data)
+		if (result?.success) {
+			onOpenChange(false)
+		}
+	}
 
-type PersonItemOperations = {
-	deletePerson: () => Promise<void>
-	restore: () => Promise<boolean>
-	deletePermanently: () => Promise<boolean>
-	addNote: (data: NoteFormInput) => Promise<{ success: true } | undefined>
-	addReminder: (
-		data: ReminderFormInput,
-	) => Promise<{ success: true } | undefined>
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent
+				titleSlot={
+					<DialogHeader>
+						<DialogTitle>
+							<T k="addReminder.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="addReminder.description" />
+						</DialogDescription>
+					</DialogHeader>
+				}
+			>
+				<ReminderForm
+					onSubmit={handleAddReminder}
+					onCancel={() => onOpenChange(false)}
+				/>
+			</DialogContent>
+		</Dialog>
+	)
 }
 
 function usePersonItemOperations({
@@ -769,84 +807,38 @@ function usePersonItemOperations({
 	}
 }
 
-function AddNoteDialog({
-	person: _person,
-	open,
-	onOpenChange,
-	operations,
-}: {
-	person: PersonListItemPerson
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	operations: PersonItemOperations
-}) {
-	async function handleAddNote(data: NoteFormInput) {
-		let result = await operations.addNote(data)
-		if (result?.success) {
-			onOpenChange(false)
-		}
+type PersonListItemPerson = co.loaded<
+	typeof Person,
+	{
+		avatar: true
+		reminders: { $each: true }
 	}
+>
 
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="addNote.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="addNote.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<NoteForm
-					onSubmit={handleAddNote}
-					onCancel={() => onOpenChange(false)}
-				/>
-			</DialogContent>
-		</Dialog>
-	)
+type PersonListItemProps = {
+	person: PersonListItemPerson
+	searchQuery?: string
+	noLazy?: boolean
 }
 
-function AddReminderDialog({
-	person: _person,
-	open,
-	onOpenChange,
-	operations,
-}: {
-	person: PersonListItemPerson
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	operations: PersonItemOperations
-}) {
-	async function handleAddReminder(data: ReminderFormInput) {
-		let result = await operations.addReminder(data)
-		if (result?.success) {
-			onOpenChange(false)
-		}
-	}
+type NoteFormInput = {
+	content: string
+	pinned: boolean
+	createdAt: string
+}
 
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="addReminder.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="addReminder.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
-				<ReminderForm
-					onSubmit={handleAddReminder}
-					onCancel={() => onOpenChange(false)}
-				/>
-			</DialogContent>
-		</Dialog>
-	)
+type ReminderFormInput = {
+	text: string
+	dueAtDate: string
+	repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
+}
+
+type PersonItemOperations = {
+	deletePerson: () => Promise<void>
+	restore: () => Promise<boolean>
+	deletePermanently: () => Promise<boolean>
+	addNote: (data: NoteFormInput) => Promise<{ success: true } | undefined>
+	addReminder: (
+		data: ReminderFormInput,
+	) => Promise<{ success: true } | undefined>
 }
