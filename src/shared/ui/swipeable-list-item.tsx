@@ -240,7 +240,7 @@ function ActionsGroup({
 		}
 	}, [baseWidth])
 
-	let primaryScale = useScaleTransform(
+	let primary = useAppearTransform(
 		swipeAmount,
 		isLeft,
 		BUTTON_GAP,
@@ -248,7 +248,7 @@ function ActionsGroup({
 	)
 
 	let secondaryThreshold = primaryLabelWidth + BUTTON_GAP * 2
-	let secondaryScale = useScaleTransform(
+	let secondary = useAppearTransform(
 		swipeAmount,
 		isLeft,
 		secondaryThreshold,
@@ -293,8 +293,8 @@ function ActionsGroup({
 				}}
 				className="flex flex-col items-center justify-center gap-0.5 active:opacity-80"
 				style={{
-					scale: primaryScale,
-					transformOrigin: isLeft ? "left center" : "right center",
+					scale: primary.scale,
+					opacity: primary.opacity,
 				}}
 			>
 				<ActionButton
@@ -316,8 +316,8 @@ function ActionsGroup({
 					}}
 					className="flex flex-col items-center justify-center gap-0.5 active:opacity-80"
 					style={{
-						scale: secondaryScale,
-						transformOrigin: isLeft ? "left center" : "right center",
+						scale: secondary.scale,
+						opacity: secondary.opacity,
 					}}
 				>
 					<div
@@ -410,19 +410,29 @@ function useLabelWidth(label: string | undefined) {
 	return { measureRef, width }
 }
 
-function useScaleTransform(
+let APPEAR_INITIAL_SCALE = 0.3
+
+function useAppearTransform(
 	swipeAmount: MotionValue<number>,
 	isLeft: boolean,
 	threshold: number,
 	targetWidth: number,
 ) {
-	return useTransform(swipeAmount, value => {
+	let minSpace = threshold + targetWidth * APPEAR_INITIAL_SCALE
+	let animationRange = targetWidth * (1 - APPEAR_INITIAL_SCALE)
+	let progress = useTransform(swipeAmount, value => {
 		if (isLeft && value <= 0) return 0
 		if (!isLeft && value >= 0) return 0
 		let absValue = Math.abs(value)
-		if (absValue < threshold) return 0
-		return clamp(0, 1, (absValue - threshold) / targetWidth)
+		if (absValue < minSpace) return 0
+		return clamp(0, 1, (absValue - minSpace) / animationRange)
 	})
+	let scale = useTransform(
+		progress,
+		p => APPEAR_INITIAL_SCALE + p * (1 - APPEAR_INITIAL_SCALE),
+	)
+	let opacity = useTransform(progress, p => p)
+	return { scale, opacity }
 }
 
 function useStretchTransform(
