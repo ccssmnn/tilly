@@ -6,7 +6,7 @@ import {
 	useTransform,
 	type MotionValue,
 } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { cn } from "#app/lib/utils"
 
 export { SwipeableListItem, useSafariSwipeHack }
@@ -57,6 +57,9 @@ function SwipeableContent({
 	let swipeAmount = useMotionValue(0)
 	let isFullSwipe = useMotionValue(false)
 
+	let id = useId()
+	let closeSwipe = () => animate(swipeAmount, 0, SPRING_CONFIG)
+
 	useEffect(() => {
 		swipeAmount.jump(0)
 		fullSwipeSnapPosition.current = null
@@ -79,7 +82,13 @@ function SwipeableContent({
 		return {
 			onMove: (e: PointerEvent) =>
 				handlePointerMove(e, refs, values, leftAction, rightActions),
-			onEnd: () => handlePointerUp(refs, values, leftAction, rightActions),
+			onEnd: () => {
+				let isOpen = handlePointerUp(refs, values, leftAction, rightActions)
+				if (isOpen) {
+					activeSwipeId = id
+					closeActiveSwipe = closeSwipe
+				}
+			},
 		}
 	}
 
@@ -102,6 +111,11 @@ function SwipeableContent({
 			style={{ touchAction: "pan-y" }}
 			onPointerDown={e => {
 				if (e.pointerType !== "touch") return
+
+				if (activeSwipeId !== id) {
+					closeActiveSwipe()
+				}
+
 				swipeState.current = "pending"
 				swipeStartX.current = e.clientX
 				swipeStartY.current = e.clientY
@@ -475,11 +489,11 @@ function handlePointerUp(
 	values: SwipeValues,
 	leftAction: SwipeAction | undefined,
 	rightActions: SwipeableListItemProps["rightActions"],
-) {
-	if (!refs.swipeState.current) return
+): boolean {
+	if (!refs.swipeState.current) return false
 
 	let itemWidth = refs.swipeItemWidth.current
-	if (!itemWidth) return
+	if (!itemWidth) return false
 
 	let currentOffset = values.swipeAmount.get()
 	let targetOffset = 0
@@ -538,6 +552,8 @@ function handlePointerUp(
 		refs.fullSwipeSnapPosition as React.RefObject<"left" | "right" | null>
 	).current = null
 	values.isFullSwipe.set(false)
+
+	return targetOffset !== 0
 }
 
 type SwipeAction = {
@@ -597,6 +613,9 @@ let SPRING_CONFIG = { type: "spring", stiffness: 500, damping: 35 } as const
 let FULL_SWIPE_THRESHOLD = 0.5
 let RESISTANCE_FACTOR = 0.3
 let APPEAR_INITIAL_SCALE = 0.3
+
+let activeSwipeId: string | null = null
+let closeActiveSwipe = () => {}
 
 /**
  * HACK: iOS Safari doesn't properly deliver touch events to elements until
