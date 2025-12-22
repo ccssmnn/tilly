@@ -14,6 +14,7 @@ import { Context, Data, Effect, Layer, Option } from "effect"
 export {
 	ClerkClient,
 	ClerkClientLive,
+	CurrentAuth,
 	CurrentUser,
 	authMiddleware,
 	requireAuth,
@@ -34,9 +35,14 @@ class ClerkClient extends Context.Tag("ClerkClient")<
 	ClerkClientType
 >() {}
 
+class CurrentAuth extends Context.Tag("CurrentAuth")<
+	CurrentAuth,
+	Option.Option<CurrentUserData>
+>() {}
+
 class CurrentUser extends Context.Tag("CurrentUser")<
 	CurrentUser,
-	Option.Option<CurrentUserData>
+	CurrentUserData
 >() {}
 
 let ClerkClientLive = Layer.succeed(
@@ -60,30 +66,25 @@ let authMiddleware = HttpMiddleware.make(app =>
 		})
 
 		let auth = authResult.toAuth()
+		let currentAuth = auth?.userId
+			? Option.some({ userId: auth.userId })
+			: Option.none()
 
-		if (auth?.userId) {
-			return yield* Effect.provideService(
-				app,
-				CurrentUser,
-				Option.some({ userId: auth.userId }),
-			)
-		}
-
-		return yield* Effect.provideService(app, CurrentUser, Option.none())
+		return yield* Effect.provideService(app, CurrentAuth, currentAuth)
 	}),
 )
 
 let requireAuth = HttpMiddleware.make(app =>
 	Effect.gen(function* () {
-		let user = yield* CurrentUser
+		let auth = yield* CurrentAuth
 
-		if (Option.isNone(user)) {
+		if (Option.isNone(auth)) {
 			return yield* HttpServerResponse.json(
 				{ error: "Authentication required" },
 				{ status: 401 },
 			)
 		}
 
-		return yield* app
+		return yield* Effect.provideService(app, CurrentUser, auth.value)
 	}),
 )

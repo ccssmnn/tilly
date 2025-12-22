@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { HttpApp, HttpRouter, HttpServerResponse } from "@effect/platform"
-import { Effect, Option } from "effect"
+import { Effect } from "effect"
 import {
 	authMiddleware,
 	ClerkClientLive,
@@ -18,8 +18,7 @@ let authenticatedRoutes = HttpRouter.empty.pipe(
 	HttpRouter.get(
 		"/me",
 		Effect.gen(function* () {
-			let userOpt = yield* CurrentUser
-			let user = Option.getOrThrow(userOpt)
+			let user = yield* CurrentUser
 			return yield* HttpServerResponse.json({ userId: user.userId })
 		}),
 	),
