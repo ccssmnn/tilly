@@ -59,13 +59,7 @@ function SwipeableListItem({
 	disabled,
 	className,
 }: SwipeableListItemProps) {
-	let [isTouchDevice] = useState(() =>
-		typeof window !== "undefined"
-			? window.matchMedia("(pointer: coarse)").matches
-			: false,
-	)
-
-	if (!isTouchDevice || disabled || (!leftAction && !rightActions)) {
+	if (disabled || (!leftAction && !rightActions)) {
 		return <div className={className}>{children}</div>
 	}
 
@@ -74,7 +68,7 @@ function SwipeableListItem({
 			key={itemKey}
 			leftAction={leftAction}
 			rightActions={rightActions}
-			className={cn("-mx-3 md:mx-0", className)}
+			className={cn("@media(pointer:fine):mx-0 -mx-3 md:mx-0", className)}
 		>
 			{children}
 		</SwipeableContent>
