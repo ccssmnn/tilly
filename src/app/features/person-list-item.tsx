@@ -82,6 +82,8 @@ function PersonListItem({
 	let t = useIntl()
 	let hasHover = useHasHover()
 	let [dialogOpen, setDialogOpen] = useState<"note" | "reminder">()
+	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
+		useState(false)
 	let operations = usePersonItemOperations({ person, me })
 
 	let deletedSwipeActions = {
@@ -89,7 +91,7 @@ function PersonListItem({
 			icon: Trash,
 			label: t("person.permanentDelete.button"),
 			color: "destructive",
-			onAction: () => operations.deletePermanently(),
+			onAction: () => setConfirmPermanentDeleteOpen(true),
 		} satisfies SwipeAction,
 		rightActions: {
 			primary: {
@@ -163,24 +165,50 @@ function PersonListItem({
 
 	if (person.deletedAt) {
 		return (
-			<SwipeableListItem itemKey={person.$jazz.id} {...deletedSwipeActions}>
-				<RestorePersonDialog person={person}>
-					<div className="items-top hover:bg-muted active:bg-accent flex flex-1 cursor-pointer gap-3 rounded-lg py-4 transition-colors duration-150">
-						<PersonItemContainer
-							person={person}
-							className="grayscale"
-							noLazy={noLazy}
-						>
-							<PersonItemHeader
+			<>
+				<SwipeableListItem itemKey={person.$jazz.id} {...deletedSwipeActions}>
+					<RestorePersonDialog person={person}>
+						<div className="items-top hover:bg-muted active:bg-accent flex flex-1 cursor-pointer gap-3 rounded-lg py-4 transition-colors duration-150">
+							<PersonItemContainer
 								person={person}
-								nameColor="text-destructive line-clamp-1 font-semibold"
-								searchQuery={searchQuery}
-							/>
-							<PersonItemSummary person={person} searchQuery={searchQuery} />
-						</PersonItemContainer>
-					</div>
-				</RestorePersonDialog>
-			</SwipeableListItem>
+								className="grayscale"
+								noLazy={noLazy}
+							>
+								<PersonItemHeader
+									person={person}
+									nameColor="text-destructive line-clamp-1 font-semibold"
+									searchQuery={searchQuery}
+								/>
+								<PersonItemSummary person={person} searchQuery={searchQuery} />
+							</PersonItemContainer>
+						</div>
+					</RestorePersonDialog>
+				</SwipeableListItem>
+
+				<AlertDialog
+					open={confirmPermanentDeleteOpen}
+					onOpenChange={setConfirmPermanentDeleteOpen}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								<T k="person.permanentDelete.title" />
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								<T k="person.permanentDelete.confirmation" />
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>
+								<T k="common.cancel" />
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => operations.deletePermanently()}>
+								<T k="person.permanentDelete.button" />
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			</>
 		)
 	}
 

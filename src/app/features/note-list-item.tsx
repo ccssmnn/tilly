@@ -78,6 +78,8 @@ function NoteListItem(props: {
 	let me = useAccount(UserAccount)
 	let t = useIntl()
 	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
+	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
+		useState(false)
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
 	let showPerson = props.showPerson ?? true
 	let operations = useNoteItemOperations({
@@ -118,7 +120,7 @@ function NoteListItem(props: {
 			icon: Trash,
 			label: t("note.permanentDelete.confirm"),
 			color: "destructive",
-			onAction: () => operations.deletePermanently(),
+			onAction: () => setConfirmPermanentDeleteOpen(true),
 		} satisfies SwipeAction,
 		rightActions: {
 			primary: {
@@ -157,44 +159,73 @@ function NoteListItem(props: {
 
 	if (props.note.deletedAt) {
 		return (
-			<SwipeableListItem itemKey={props.note.$jazz.id} {...deletedSwipeActions}>
-				<RestoreNoteDropdown
-					open={openDialog === "restore"}
-					onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
-					operations={operations}
+			<>
+				<SwipeableListItem
+					itemKey={props.note.$jazz.id}
+					{...deletedSwipeActions}
 				>
-					<NoteItemContainer
-						note={props.note}
-						person={props.person}
-						showPerson={showPerson}
-						hasOverflow={hasOverflow}
-						className={openDialog ? "bg-accent" : ""}
-						onClick={() => setOpenDialog("restore")}
+					<RestoreNoteDropdown
+						open={openDialog === "restore"}
+						onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
+						operations={operations}
 					>
-						<div className="flex items-center gap-3 select-text">
-							<span className="text-destructive">
-								<T k="note.status.deleted" />
-							</span>
-						</div>
-						<div>
-							<div className="text-muted-foreground text-left text-wrap select-text">
-								<MarkdownWithHighlight
-									content={displayContent}
-									searchQuery={props.searchQuery}
-								/>
+						<NoteItemContainer
+							note={props.note}
+							person={props.person}
+							showPerson={showPerson}
+							hasOverflow={hasOverflow}
+							className={openDialog ? "bg-accent" : ""}
+							onClick={() => setOpenDialog("restore")}
+						>
+							<div className="flex items-center gap-3 select-text">
+								<span className="text-destructive">
+									<T k="note.status.deleted" />
+								</span>
 							</div>
-						</div>
-					</NoteItemContainer>
-				</RestoreNoteDropdown>
-				{hasOverflow && (
-					<ExpandCollapseButton
-						isExpanded={isExpanded}
-						toggleExpanded={toggleExpanded}
-						showPerson={showPerson}
-					/>
-				)}
-				<NoteImageGrid note={props.note} isDeleted={true} />
-			</SwipeableListItem>
+							<div>
+								<div className="text-muted-foreground text-left text-wrap select-text">
+									<MarkdownWithHighlight
+										content={displayContent}
+										searchQuery={props.searchQuery}
+									/>
+								</div>
+							</div>
+						</NoteItemContainer>
+					</RestoreNoteDropdown>
+					{hasOverflow && (
+						<ExpandCollapseButton
+							isExpanded={isExpanded}
+							toggleExpanded={toggleExpanded}
+							showPerson={showPerson}
+						/>
+					)}
+					<NoteImageGrid note={props.note} isDeleted={true} />
+				</SwipeableListItem>
+
+				<AlertDialog
+					open={confirmPermanentDeleteOpen}
+					onOpenChange={setConfirmPermanentDeleteOpen}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								<T k="note.permanentDelete.title" />
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								<T k="note.permanentDelete.confirmation" />
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>
+								<T k="note.permanentDelete.cancel" />
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => operations.deletePermanently()}>
+								<T k="note.permanentDelete.confirm" />
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			</>
 		)
 	}
 

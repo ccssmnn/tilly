@@ -81,6 +81,8 @@ function ReminderListItem({
 	let [dialogOpen, setDialogOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
+	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
+		useState(false)
 	let operations = useReminderItemOperations({ reminder, person, me })
 
 	let deletedSwipeActions = {
@@ -88,7 +90,7 @@ function ReminderListItem({
 			icon: Trash,
 			label: t("reminder.permanentDelete.confirm"),
 			color: "destructive",
-			onAction: () => operations.deletePermanently(),
+			onAction: () => setConfirmPermanentDeleteOpen(true),
 		} satisfies SwipeAction,
 		rightActions: {
 			primary: {
@@ -153,36 +155,65 @@ function ReminderListItem({
 		})
 
 		return (
-			<SwipeableListItem itemKey={reminder.$jazz.id} {...deletedSwipeActions}>
-				<RestoreReminderDropdown
-					open={dialogOpen === "restore"}
-					onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
-					operations={operations}
-				>
-					<ReminderItemContainer
-						reminder={reminder}
-						person={person}
-						showPerson={showPerson}
-						className={dialogOpen === "restore" ? "bg-accent" : ""}
-						onClick={() => setDialogOpen("restore")}
+			<>
+				<SwipeableListItem itemKey={reminder.$jazz.id} {...deletedSwipeActions}>
+					<RestoreReminderDropdown
+						open={dialogOpen === "restore"}
+						onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
+						operations={operations}
 					>
-						<div className="space-y-1 select-text">
-							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-								<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
-									<Trash />
-									<span>{deletedLabel}</span>
-								</span>
-								{showPerson ? (
-									<span className="text-muted-foreground font-normal">
-										<TextHighlight text={person.name} query={searchQuery} />
+						<ReminderItemContainer
+							reminder={reminder}
+							person={person}
+							showPerson={showPerson}
+							className={dialogOpen === "restore" ? "bg-accent" : ""}
+							onClick={() => setDialogOpen("restore")}
+						>
+							<div className="space-y-1 select-text">
+								<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+									<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
+										<Trash />
+										<span>{deletedLabel}</span>
 									</span>
-								) : null}
+									{showPerson ? (
+										<span className="text-muted-foreground font-normal">
+											<TextHighlight text={person.name} query={searchQuery} />
+										</span>
+									) : null}
+								</div>
+								<ReminderItemText
+									reminder={reminder}
+									searchQuery={searchQuery}
+								/>
 							</div>
-							<ReminderItemText reminder={reminder} searchQuery={searchQuery} />
-						</div>
-					</ReminderItemContainer>
-				</RestoreReminderDropdown>
-			</SwipeableListItem>
+						</ReminderItemContainer>
+					</RestoreReminderDropdown>
+				</SwipeableListItem>
+
+				<AlertDialog
+					open={confirmPermanentDeleteOpen}
+					onOpenChange={setConfirmPermanentDeleteOpen}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								<T k="reminder.permanentDelete.title" />
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								<T k="reminder.permanentDelete.confirmation" />
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>
+								<T k="reminder.permanentDelete.cancel" />
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => operations.deletePermanently()}>
+								<T k="reminder.permanentDelete.confirm" />
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			</>
 		)
 	}
 
