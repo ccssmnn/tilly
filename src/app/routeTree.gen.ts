@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TourRouteImport } from './routes/tour'
+import { Route as SwipeTestRouteImport } from './routes/swipe-test'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
@@ -23,6 +24,11 @@ import { Route as AppPeoplePersonIDRouteImport } from './routes/_app.people.$per
 const TourRoute = TourRouteImport.update({
   id: '/tour',
   path: '/tour',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SwipeTestRoute = SwipeTestRouteImport.update({
+  id: '/swipe-test',
+  path: '/swipe-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -72,6 +78,7 @@ const AppPeoplePersonIDRoute = AppPeoplePersonIDRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/swipe-test': typeof SwipeTestRoute
   '/tour': typeof TourRoute
   '/assistant': typeof AppAssistantRoute
   '/invite': typeof AppInviteRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/swipe-test': typeof SwipeTestRoute
   '/tour': typeof TourRoute
   '/assistant': typeof AppAssistantRoute
   '/invite': typeof AppInviteRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/swipe-test': typeof SwipeTestRoute
   '/tour': typeof TourRoute
   '/_app/assistant': typeof AppAssistantRoute
   '/_app/invite': typeof AppInviteRoute
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/swipe-test'
     | '/tour'
     | '/assistant'
     | '/invite'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/swipe-test'
     | '/tour'
     | '/assistant'
     | '/invite'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/swipe-test'
     | '/tour'
     | '/_app/assistant'
     | '/_app/invite'
@@ -145,6 +157,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  SwipeTestRoute: typeof SwipeTestRoute
   TourRoute: typeof TourRoute
 }
 
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/tour'
       fullPath: '/tour'
       preLoaderRoute: typeof TourRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/swipe-test': {
+      id: '/swipe-test'
+      path: '/swipe-test'
+      fullPath: '/swipe-test'
+      preLoaderRoute: typeof SwipeTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -248,6 +268,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  SwipeTestRoute: SwipeTestRoute,
   TourRoute: TourRoute,
 }
 export const routeTree = rootRouteImport
