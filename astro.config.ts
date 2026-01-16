@@ -46,7 +46,6 @@ export default defineConfig({
 				globPatterns: [
 					"_astro/**/*",
 					"app/**/*.{css,html,ico,js,json,png,svg,txt,webp,woff2}",
-					"registerSW.js",
 					"favicon.ico",
 				],
 				globIgnores: ["**/images/**", "**/videos/**"],

@@ -12,6 +12,17 @@ export let onRequest = defineMiddleware(async (context, next) => {
 		return context.redirect(`/${locale}/`, 301)
 	}
 
+	// Redirect /app/* to /app/ for SPA routing (prerendered page)
+	if (
+		context.request.method === "GET" &&
+		context.url.pathname.startsWith("/app") &&
+		context.url.pathname !== "/app" &&
+		context.url.pathname !== "/app/" &&
+		!context.url.pathname.includes(".")
+	) {
+		return context.redirect("/app/", 302)
+	}
+
 	let response = await next()
 
 	if (response.status === 404) {

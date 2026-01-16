@@ -123,6 +123,18 @@ const baseSettingsMessages = messages({
 	"settings.pwa.hideInstall.description":
 		"Hide the install button from the navigation menu",
 
+	// App section
+	"settings.app.title": "App",
+	"settings.app.description": "Check for updates and manage app settings.",
+	"settings.app.checkForUpdates": "Check for Updates",
+	"settings.app.checking": "Checking...",
+	"settings.app.checkedForUpdates": "Checked for updates",
+	"settings.app.noUpdates": "No updates available",
+
+	// PWA offline toast
+	"pwa.offlineReady.title": "Ready to work offline",
+	"pwa.offlineReady.description": "App has been cached for offline use",
+
 	// PWA installation dialogs
 	"pwa.install.title": "Install Tilly",
 	"pwa.install.addToHomeScreen.chrome":
@@ -467,6 +479,20 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.pwa.hideInstall.label": "Installationsknopf ausblenden",
 	"settings.pwa.hideInstall.description":
 		"Blendet den Installationsknopf aus dem Navigationsmenü aus",
+
+	// App section
+	"settings.app.title": "App",
+	"settings.app.description":
+		"Nach Updates suchen und App-Einstellungen verwalten.",
+	"settings.app.checkForUpdates": "Nach Updates suchen",
+	"settings.app.checking": "Suche...",
+	"settings.app.checkedForUpdates": "Nach Updates gesucht",
+	"settings.app.noUpdates": "Keine Updates verfügbar",
+
+	// PWA offline toast
+	"pwa.offlineReady.title": "Bereit für Offline-Nutzung",
+	"pwa.offlineReady.description":
+		"App wurde für Offline-Nutzung zwischengespeichert",
 
 	// PWA installation dialogs
 	"pwa.install.title": "Tilly installieren",

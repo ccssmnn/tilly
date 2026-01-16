@@ -23,3 +23,4 @@ scripts/mock-data.de.json
 
 worktree-*
 .env*.local
+.reference

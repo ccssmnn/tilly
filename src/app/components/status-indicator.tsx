@@ -19,7 +19,7 @@ import {
 	DialogHeader,
 } from "#shared/ui/dialog"
 import { TypographyP } from "#shared/ui/typography"
-import { useServiceWorkerUpdate } from "#app/hooks/use-service-worker-update"
+import { usePWA } from "#app/lib/pwa"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { useIsMobile } from "#app/hooks/use-mobile"
 import { T, useIntl } from "#shared/intl/setup"
@@ -29,7 +29,7 @@ import { Alert, AlertTitle } from "#shared/ui/alert"
 export { StatusIndicator }
 
 function StatusIndicator() {
-	let { updateAvailable } = useServiceWorkerUpdate()
+	let { needRefresh } = usePWA()
 	let isOnline = useOnlineStatus()
 	let { isLoaded, isSignedIn } = useAuth()
 
@@ -37,7 +37,7 @@ function StatusIndicator() {
 		return <OfflineIndicator />
 	}
 
-	if (updateAvailable) {
+	if (needRefresh) {
 		return <UpdateIndicator />
 	}
 
@@ -108,12 +108,13 @@ function OfflineIndicator() {
 function UpdateIndicator() {
 	let t = useIntl()
 	let isMobile = useIsMobile()
-	let { applyUpdate } = useServiceWorkerUpdate()
+	let { updateServiceWorker } = usePWA()
 	let [isApplyingUpdate, setIsApplyingUpdate] = useState(false)
 
-	let handleApplyUpdate = async () => {
+	async function handleApplyUpdate() {
 		setIsApplyingUpdate(true)
-		await applyUpdate()
+		await updateServiceWorker()
+		window.location.reload()
 	}
 
 	return (

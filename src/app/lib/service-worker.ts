@@ -2,11 +2,7 @@ import { useUser } from "@clerk/clerk-react"
 import { tryCatch } from "#shared/lib/trycatch"
 import { useCallback, useEffect } from "react"
 
-export { useServiceWorker, getServiceWorkerRegistration }
-
-function useServiceWorker() {
-	useSyncUserIdToServiceWorker()
-}
+export { useSyncUserIdToServiceWorker, getServiceWorkerRegistration }
 
 async function getServiceWorkerRegistration() {
 	if (!("serviceWorker" in navigator)) {

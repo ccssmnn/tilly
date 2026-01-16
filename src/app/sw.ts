@@ -1,8 +1,11 @@
 /// <reference lib="webworker" />
 
-import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching"
+import {
+	cleanupOutdatedCaches,
+	createHandlerBoundToURL,
+	precacheAndRoute,
+} from "workbox-precaching"
 import { registerRoute, NavigationRoute } from "workbox-routing"
-import { NetworkFirst } from "workbox-strategies"
 
 declare let self: ServiceWorkerGlobalScope & {
 	__WB_MANIFEST: Array<{ url: string; revision?: string }>
@@ -28,14 +31,11 @@ let sw = self
 let USER_CACHE = "tilly-user-v1"
 
 cleanupOutdatedCaches()
-precacheAndRoute(self.__WB_MANIFEST, {
-	ignoreURLParametersMatching: [/.*/], // Ignore all URL parameters when matching
-})
+precacheAndRoute(self.__WB_MANIFEST)
 
-// Cache the app shell for offline navigation
-// NetworkFirst: try network, fall back to cache (enables offline launch)
+// Serve precached /app for all /app/* navigations (offline-first SPA)
 registerRoute(
-	new NavigationRoute(new NetworkFirst({ cacheName: "tilly-app-shell-v1" }), {
+	new NavigationRoute(createHandlerBoundToURL("/app"), {
 		allowlist: [/^\/app(\/|$)/],
 	}),
 )

@@ -4,7 +4,7 @@ import "#app/index.css"
 import { SplashScreen } from "#app/components/splash-screen"
 import { PUBLIC_PLAUSIBLE_DOMAIN } from "astro:env/client"
 
-export let prerender = false
+export const prerender = true
 
 let isProduction = import.meta.env.PROD
 let requestUrl = new URL(Astro.request.url)
@@ -61,7 +61,7 @@ let metaDescription =
 				/>
 			)
 		}
-		<script is:inline src="/registerSW.js"></script>
+
 	</head>
 	<body
 		class="selection:bg-primary selection:text-primary-foreground select-none bg-background text-foreground *:border-border overscroll-y-none"

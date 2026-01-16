@@ -42,6 +42,7 @@ import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
 import { NotificationSettings } from "#app/features/notification-settings"
 import { SettingsSection } from "#app/components/settings-section"
 import { isMobileDevice, useIsPWAInstalled } from "#app/hooks/use-pwa"
+import { usePWA } from "#app/lib/pwa"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { PWAInstallDialog } from "#app/components/pwa-install-dialog"
 import { Progress } from "#shared/ui/progress"
@@ -110,6 +111,7 @@ function SettingsScreen() {
 				<LanguageSection />
 				<NotificationSettings me={currentMe} />
 				{!isPWAInstalled && <PWASection />}
+				<AppSection />
 				<DataSection />
 				<AboutSection />
 			</div>
@@ -586,6 +588,42 @@ function PWASection() {
 				onInstallComplete={() => setShowInstallDialog(false)}
 			/>
 		</>
+	)
+}
+
+function AppSection() {
+	let t = useIntl()
+	let { checkForUpdates } = usePWA()
+	let [isChecking, setIsChecking] = useState(false)
+
+	async function handleCheckForUpdates() {
+		setIsChecking(true)
+		await checkForUpdates()
+		setIsChecking(false)
+		toast.info(t("settings.app.checkedForUpdates"))
+	}
+
+	return (
+		<SettingsSection
+			title={t("settings.app.title")}
+			description={t("settings.app.description")}
+		>
+			<div className="space-y-6">
+				<div>
+					<Button
+						variant="outline"
+						onClick={handleCheckForUpdates}
+						disabled={isChecking}
+					>
+						{isChecking ? (
+							<T k="settings.app.checking" />
+						) : (
+							<T k="settings.app.checkForUpdates" />
+						)}
+					</Button>
+				</div>
+			</div>
+		</SettingsSection>
 	)
 }
 

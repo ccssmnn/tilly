@@ -9,7 +9,8 @@ import { UserAccount } from "#shared/schema/user"
 import { routeTree } from "#app/routeTree.gen"
 import { IntlProvider } from "#shared/intl/setup"
 import { messagesDe } from "#shared/intl/messages"
-import { useServiceWorker } from "#app/lib/service-worker"
+import { useSyncUserIdToServiceWorker } from "#app/lib/service-worker"
+import { PWAContext, usePWAProvider } from "#app/lib/pwa"
 import { SplashScreen } from "./components/splash-screen"
 import { Toaster } from "#shared/ui/sonner"
 import { MainErrorBoundary } from "#app/components/main-error-boundary"
@@ -28,20 +29,23 @@ export function PWA() {
 }
 
 function JazzWithClerk() {
-	useServiceWorker()
+	let pwaValue = usePWAProvider()
+	useSyncUserIdToServiceWorker()
 	let clerk = useClerk()
 	let syncConfig = buildSyncConfig()
 
 	return (
-		<JazzReactProviderWithClerk
-			clerk={clerk}
-			AccountSchema={UserAccount}
-			sync={syncConfig}
-			fallback={<SplashScreen />}
-		>
-			<RouterWithJazz />
-			<Toaster richColors />
-		</JazzReactProviderWithClerk>
+		<PWAContext.Provider value={pwaValue}>
+			<JazzReactProviderWithClerk
+				clerk={clerk}
+				AccountSchema={UserAccount}
+				sync={syncConfig}
+				fallback={<SplashScreen />}
+			>
+				<RouterWithJazz />
+				<Toaster richColors />
+			</JazzReactProviderWithClerk>
+		</PWAContext.Provider>
 	)
 }
 
