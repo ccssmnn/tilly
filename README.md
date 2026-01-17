@@ -95,7 +95,7 @@ Report suspected vulnerabilities privately by emailing [assmann@hey.com](mailto:
 
 ## License
 
-O'Saasy License - Do whatever you want except offering a competing SaaS.
+MIT License - See LICENSE file for details.
 
 ## Status
 
