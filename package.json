@@ -60,6 +60,7 @@
 		"@astrojs/react": "^4.4.2",
 		"@astrojs/ts-plugin": "^1.10.6",
 		"@astrojs/vercel": "^9.0.2",
+		"@clack/prompts": "^0.11.0",
 		"@eslint/js": "^9.39.1",
 		"@fontsource/inter": "^5.2.8",
 		"@resvg/resvg-js": "^2.6.2",

@@ -49,6 +49,7 @@
         "@astrojs/react": "^4.4.2",
         "@astrojs/ts-plugin": "^1.10.6",
         "@astrojs/vercel": "^9.0.2",
+        "@clack/prompts": "^0.11.0",
         "@eslint/js": "^9.39.1",
         "@fontsource/inter": "^5.2.8",
         "@resvg/resvg-js": "^2.6.2",
@@ -358,6 +359,10 @@
     "@capsizecss/unpack": ["@capsizecss/unpack@4.0.0", "", { "dependencies": { "fontkitten": "^1.0.0" } }, "sha512-VERIM64vtTP1C4mxQ5thVT9fK0apjPFobqybMtA1UdUujWka24ERHbRHFGmpbbhp73MhV+KSsHQH9C6uOTdEQA=="],
 
     "@ccssmnn/intl": ["@ccssmnn/intl@0.1.1", "", { "dependencies": { "messageformat": "4.0.0-13" }, "peerDependencies": { "react": "^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-bS+Pj92IxrRxFSA1rto94LpxwqdfPWKuTHjTdyvQrBBfL0AL8qQM/+PHJDvtMQ6udBdW7gGtDZE+UMrzu9ckdw=="],
+
+    "@clack/core": ["@clack/core@0.5.0", "", { "dependencies": { "picocolors": "^1.0.0", "sisteransi": "^1.0.5" } }, "sha512-p3y0FIOwaYRUPRcMO7+dlmLh8PSRcrjuTndsiA0WAFbWES0mLZlrjVoBRZ9DzkPFJZG6KGkJmoEAY0ZcVWTkow=="],
+
+    "@clack/prompts": ["@clack/prompts@0.11.0", "", { "dependencies": { "@clack/core": "0.5.0", "picocolors": "^1.0.0", "sisteransi": "^1.0.5" } }, "sha512-pMN5FcrEw9hUkZA4f+zLlzivQSeQf5dRGJjSUbvVYDLvpKCdQx5OaknvKzgbtXOizhP+SJJJjqEbOe55uKKfAw=="],
 
     "@clerk/backend": ["@clerk/backend@2.23.0", "", { "dependencies": { "@clerk/shared": "^3.35.0", "@clerk/types": "^4.101.0", "cookie": "1.0.2", "standardwebhooks": "^1.0.0", "tslib": "2.8.1" } }, "sha512-2wqdnYMtBdmqTOSyl8aEVaUezcDlizOY4hnXIRQ1A6ss1QjYiZJofjhpFJgC9SxNA29Nb9szkOsXQ7eI+gLY9g=="],
 
