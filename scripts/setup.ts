@@ -24,6 +24,9 @@ async function main() {
 
 	p.log.step("Generating secrets...")
 
+	p.log.info(`VAPID keys: Required for push notifications (reminders)
+CRON_SECRET: Protects the push notification cron endpoint`)
+
 	let vapidKeys = generateVapidKeys()
 	let cronSecret = generateRandomString(32)
 
@@ -31,19 +34,25 @@ async function main() {
 
 	p.log.step("Creating Jazz worker account...")
 
+	p.log.info(
+		`Jazz worker: Server-side account for loading user data in cron jobs and API routes`,
+	)
+
 	let jazzWorker = createJazzWorkerAccount()
 
 	p.log.success(`Created worker account: ${jazzWorker.accountId}`)
 
 	p.log.step("Setting up Clerk...")
 
-	p.log.info(`
+	p.log
+		.info(`Clerk handles user authentication (login, signup, session management).
+
 To get Clerk credentials:
 1. Go to https://clerk.com
 2. Create account and new application
 3. Go to API Keys in dashboard
 4. Copy publishable key and secret key
-`)
+5. Get accounts URL from "Account Portal" settings`)
 
 	let clerkPublishableKey = await p.text({
 		message: "PUBLIC_CLERK_PUBLISHABLE_KEY",
@@ -60,20 +69,20 @@ To get Clerk credentials:
 	if (p.isCancel(clerkSecretKey)) return cancel()
 
 	let clerkAccountsUrl = await p.text({
-		message: "PUBLIC_CLERK_ACCOUNTS_URL (user management URL, optional)",
+		message: "PUBLIC_CLERK_ACCOUNTS_URL (user management URL)",
 		placeholder: "https://accounts.your-app.clerk.dev",
-		initialValue: "",
+		validate: v => (!v ? "Required" : undefined),
 	})
 	if (p.isCancel(clerkAccountsUrl)) return cancel()
 
 	p.log.step("Setting up Google AI...")
 
-	p.log.info(`
-To get Google Gemini API key:
+	p.log.info(`Google Gemini powers the AI chat assistant.
+
+To get the API key:
 1. Go to https://aistudio.google.com/apikey
 2. Create a new API key
-3. Copy the key
-`)
+3. Copy the key`)
 
 	let googleAiKey = await p.text({
 		message: "GOOGLE_AI_API_KEY",
@@ -84,32 +93,44 @@ To get Google Gemini API key:
 
 	p.log.step("Optional settings...")
 
+	p.log.info(`WEEKLY_BUDGET: Dollar limit per user per week for AI usage`)
+
 	let weeklyBudget = await p.text({
-		message: "WEEKLY_BUDGET (in dollars, for AI usage limits)",
+		message: "WEEKLY_BUDGET (in dollars)",
 		placeholder: "1.00",
 		initialValue: "1.00",
 	})
 	if (p.isCancel(weeklyBudget)) return cancel()
 
-	let envContent = `GOOGLE_AI_API_KEY=${googleAiKey}
+	let envContent = `# AI chat assistant
+GOOGLE_AI_API_KEY=${googleAiKey}
+
+# Authentication
 CLERK_SECRET_KEY=${clerkSecretKey}
 PUBLIC_CLERK_PUBLISHABLE_KEY=${clerkPublishableKey}
-PUBLIC_CLERK_ACCOUNTS_URL=${clerkAccountsUrl || ""}
+PUBLIC_CLERK_ACCOUNTS_URL=${clerkAccountsUrl}
+
+# Real-time sync
 PUBLIC_JAZZ_SYNC_SERVER=ws://localhost:4200
+PUBLIC_JAZZ_WORKER_ACCOUNT=${jazzWorker.accountId}
+JAZZ_WORKER_SECRET=${jazzWorker.accountSecret}
+
+# Push notifications
 PUBLIC_VAPID_KEY=${vapidKeys.publicKey}
 VAPID_PRIVATE_KEY=${vapidKeys.privateKey}
 CRON_SECRET=${cronSecret}
 
-PUBLIC_JAZZ_WORKER_ACCOUNT=${jazzWorker.accountId}
-JAZZ_WORKER_SECRET=${jazzWorker.accountSecret}
-
+# AI usage limits
 WEEKLY_BUDGET=${weeklyBudget}
-PUBLIC_ENABLE_PAYWALL=false
-
 INPUT_TOKEN_COST_PER_MILLION=0.10
 CACHED_INPUT_TOKEN_COST_PER_MILLION=0.025
 OUTPUT_TOKEN_COST_PER_MILLION=0.40
 MAX_REQUEST_TOKENS=32000
+
+# Paywall (false = all users get Plus features, useful for self-hosting)
+PUBLIC_ENABLE_PAYWALL=false
+
+# Analytics (optional, leave empty to disable)
 PUBLIC_PLAUSIBLE_DOMAIN=
 `
 
@@ -146,7 +167,7 @@ function createJazzWorkerAccount(): JazzWorkerCredentials {
 			{ encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
 		)
 		let parsed = JSON.parse(output.trim())
-		return { accountId: parsed.accountId, accountSecret: parsed.accountSecret }
+		return { accountId: parsed.accountID, accountSecret: parsed.agentSecret }
 	} catch {
 		p.log.error("Failed to create Jazz worker account.")
 		p.log.info(
