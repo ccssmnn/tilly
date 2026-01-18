@@ -1,11 +1,11 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { createGateway } from "@ai-sdk/gateway"
 import {
 	convertToModelMessages,
 	stepCountIs,
 	streamText,
 	type TextStreamPart,
 } from "ai"
-import { GOOGLE_AI_API_KEY } from "astro:env/server"
+import { AI_GATEWAY_API_KEY } from "astro:env/server"
 import { format, toZonedTime } from "date-fns-tz"
 import { Hono } from "hono"
 import { streamSSE } from "hono/streaming"
@@ -291,8 +291,6 @@ async function generateAIResponse(params: {
 	logger("Starting generation")
 
 	try {
-		let google = createGoogleGenerativeAI({ apiKey: GOOGLE_AI_API_KEY })
-
 		let allTools = {
 			...clientTools,
 			...createServerTools(params.userWorker),
@@ -304,8 +302,10 @@ async function generateAIResponse(params: {
 			`About to call streamText, abortController.signal.aborted: ${abortController.signal.aborted}`,
 		)
 
+		let gw = createGateway({ apiKey: AI_GATEWAY_API_KEY })
+
 		let result = streamText({
-			model: google("gemini-2.5-flash"),
+			model: gw("google/gemini-3-flash"),
 			messages: params.modelMessages,
 			system: makeStaticSystemPrompt(),
 			tools: allTools,

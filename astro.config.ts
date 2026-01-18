@@ -58,7 +58,7 @@ export default defineConfig({
 	],
 	env: {
 		schema: {
-			GOOGLE_AI_API_KEY: envField.string({
+			AI_GATEWAY_API_KEY: envField.string({
 				context: "server",
 				access: "secret",
 			}),
