@@ -72,6 +72,7 @@ export default [
 			"build/",
 			"node_modules/",
 			"*.config.{js,mjs,ts}",
+			"vercel.ts",
 			".vercel/",
 			".astro/",
 		],

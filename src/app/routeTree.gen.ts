@@ -79,7 +79,7 @@ export interface FileRoutesByFullPath {
   '/reminders': typeof AppRemindersRoute
   '/settings': typeof AppSettingsRoute
   '/people/$personID': typeof AppPeoplePersonIDRoute
-  '/people': typeof AppPeopleIndexRoute
+  '/people/': typeof AppPeopleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -116,7 +116,7 @@ export interface FileRouteTypes {
     | '/reminders'
     | '/settings'
     | '/people/$personID'
-    | '/people'
+    | '/people/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,7 +160,7 @@ declare module '@tanstack/react-router' {
     '/_app': {
       id: '/_app'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -209,7 +209,7 @@ declare module '@tanstack/react-router' {
     '/_app/people/': {
       id: '/_app/people/'
       path: '/people'
-      fullPath: '/people'
+      fullPath: '/people/'
       preLoaderRoute: typeof AppPeopleIndexRouteImport
       parentRoute: typeof AppRoute
     }

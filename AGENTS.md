@@ -160,20 +160,22 @@ let updateReminderTool = tool({
 
 ## Useful Commands
 
+**Always use `bun` as the package manager, never npm/pnpm.**
+
 ### Development
 
 ```bash
-pnpm check          # TypeScript compilation check
-pnpm build          # Build for production
-# NOTE: Never start dev server - use pnpm check for validation
+bun check          # TypeScript compilation check
+bun build          # Build for production
+# NOTE: Never start dev server - use bun check for validation
 ```
 
 ### Code Quality
 
 ```bash
 # Run these after making changes to ensure code correctness
-pnpm check          # Always run after code changes
-# IMPORTANT: Never use pnpm dev - only use pnpm check for validation
+bun check          # Always run after code changes
+# IMPORTANT: Never use bun dev - only use bun check for validation
 ```
 
 ## Project Structure Notes
@@ -227,7 +229,7 @@ ogImage: "/blog/post-slug/og.png" # Optional, falls back to /og.png
 
 ```bash
 # Generate blog-specific OG image
-pnpm tsx scripts/og.tsx \
+bun scripts/og.tsx \
   --heading="Your Title" \
   --tagline="Your Tagline" \
   --out=public/blog/your-slug/og.png

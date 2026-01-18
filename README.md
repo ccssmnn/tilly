@@ -32,20 +32,26 @@ There are other apps already. Tilly is my take on simplicity and joy of use. And
 ```bash
 git clone https://github.com/ccssmnn/tilly.git
 cd tilly
-pnpm install
-cp .env.example .env # (see setup section)
-pnpm dev
+bun install
+bunx jazz-run sync              # start local sync server (keep running)
+bun scripts/setup.ts            # interactive setup (in another terminal)
+bun dev
 ```
 
 ## Setup
 
-Copy `.env.example` to `.env` and add:
+The setup script (`bun scripts/setup.ts`) auto-generates most credentials and prompts for external services:
+
+**Auto-generated:**
+
+- VAPID keys (push notifications)
+- CRON_SECRET
+- Jazz worker account (against local sync server)
+
+**You need to provide:**
 
 - **Clerk keys** - Authentication (create free account at clerk.com)
-- **Jazz sync server** - Client-side encrypted sync storage (get key from jazz.tools)
-- **Google Gemini API key** - For Tilly Chat assistant
-- **VAPID keys** - Push notifications (generate with `npx web-push generate-vapid-keys`)
-- **Cron secret** - Random string for scheduled jobs
+- **Google Gemini API key** - For Tilly Chat assistant (get from aistudio.google.com)
 
 ## Architecture
 
@@ -71,9 +77,10 @@ Tilly is a **React PWA** built with:
 ## Development
 
 ```bash
-pnpm dev          # Start dev server
-pnpm build        # Build for production
-pnpm check        # TypeScript compilation check
+bunx jazz-run sync   # Start local sync server (keep running)
+bun dev              # Start dev server (in another terminal)
+bun build            # Build for production
+bun check            # TypeScript compilation check
 ```
 
 ## Self-Hosting
