@@ -17,7 +17,7 @@ import {
 	EmptyTitle,
 } from "#shared/ui/empty"
 import { Assistant, UserAccount } from "#shared/schema/user"
-import { co, type ResolveQuery } from "jazz-tools"
+import { co, z as zz, type ResolveQuery } from "jazz-tools"
 import { useAccount } from "jazz-tools/react"
 import {
 	Send,
@@ -531,7 +531,7 @@ function ClearChatButton({
 				onClick={() => {
 					assistant?.$jazz.set(
 						"stringifiedMessages",
-						co.list(z.string()).create([]),
+						co.list(zz.string()).create([]),
 					)
 				}}
 				className="text-muted-foreground hover:text-foreground"

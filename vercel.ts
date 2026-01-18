@@ -1,4 +1,5 @@
-import { routes, type VercelConfig } from "@vercel/config/v1"
+import { routes } from "@vercel/config/v1"
+import type { VercelConfig } from "@vercel/config/v1"
 
 export let config: VercelConfig = {
 	framework: "astro",
