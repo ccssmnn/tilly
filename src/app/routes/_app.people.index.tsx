@@ -23,7 +23,7 @@ import { usePeople } from "#app/features/person-hooks"
 import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
-import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
+import { TypographyH1 } from "#shared/ui/typography"
 import { Plus, X, Search, PeopleFill } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { NewPerson } from "#app/features/new-person"
@@ -82,20 +82,29 @@ function PeopleScreen() {
 	let allPeople = filterVisiblePeople(currentMe.root?.people)
 	let inactivePeople = filterVisiblePeople(currentMe.root?.inactivePeople)
 
-	let { peopleSearchQuery, setPeopleSearchQuery } = useAppStore()
+	let {
+		peopleSearchQuery,
+		setPeopleSearchQuery,
+		peopleListFilter,
+		peopleStatusFilter,
+		peopleSortMode,
+	} = useAppStore()
 	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)
 
 	let people = usePeople<LoadedPerson[], LoadedPerson>(
 		allPeople,
 		deferredSearchQuery,
 		inactivePeople,
+		{
+			listFilter: peopleListFilter,
+			statusFilter: peopleStatusFilter,
+			sortMode: peopleSortMode,
+		},
 	)
 
-	let didSearch = deferredSearchQuery !== ""
-	let hasMatches = people.active.length > 0 || people.deleted.length > 0
-	let hasPeople = allPeople.length > 0
-	let hasDeleted = people.deleted.length > 0
-	let hasActive = people.active.length > 0
+	let didSearch = deferredSearchQuery !== "" || peopleListFilter !== null
+	let hasPeople = allPeople.length > 0 || (inactivePeople?.length ?? 0) > 0
+	let hasResults = people.length > 0
 
 	let virtualItems: Array<VirtualItem> = []
 	virtualItems.push({ type: "heading" })
@@ -106,11 +115,11 @@ function PeopleScreen() {
 
 	if (!hasPeople) {
 		virtualItems.push({ type: "no-people" })
-	} else if (didSearch && !hasMatches) {
+	} else if (didSearch && !hasResults) {
 		virtualItems.push({ type: "no-results", searchQuery: deferredSearchQuery })
 	} else {
-		if (hasActive) {
-			people.active.forEach((person, index) => {
+		if (hasResults) {
+			people.forEach((person, index) => {
 				virtualItems.push({
 					type: "person",
 					person,
@@ -119,20 +128,6 @@ function PeopleScreen() {
 			})
 		} else {
 			virtualItems.push({ type: "no-active" })
-		}
-
-		if (hasDeleted) {
-			virtualItems.push({
-				type: "deleted-heading",
-				count: people.deleted.length,
-			})
-			people.deleted.forEach((person, index) => {
-				virtualItems.push({
-					type: "person",
-					person,
-					noLazy: index < eagerCount,
-				})
-			})
 		}
 
 		virtualItems.push({ type: "spacer" })
@@ -214,7 +209,6 @@ type VirtualItem =
 	| { type: "no-results"; searchQuery: string }
 	| { type: "no-people" }
 	| { type: "no-active" }
-	| { type: "deleted-heading"; count: number }
 	| { type: "spacer" }
 
 function renderVirtualItem(
@@ -236,7 +230,6 @@ function renderVirtualItem(
 					setPeopleSearchQuery={options.setPeopleSearchQuery}
 					navigate={options.navigate}
 					allPeople={options.allPeople}
-					searchQuery={options.searchQuery}
 				/>
 			)
 
@@ -268,9 +261,6 @@ function renderVirtualItem(
 				/>
 			)
 
-		case "deleted-heading":
-			return <DeletedHeading count={item.count} />
-
 		case "spacer":
 			return <Spacer />
 
@@ -296,17 +286,33 @@ function PeopleControls({
 	setPeopleSearchQuery,
 	navigate,
 	allPeople,
-	searchQuery,
 }: {
 	setPeopleSearchQuery: (query: string) => void
 	navigate: ReturnType<typeof Route.useNavigate>
 	allPeople: LoadedPerson[]
-	searchQuery: string
 }) {
-	let { peopleSearchQuery } = useAppStore()
+	let {
+		peopleSearchQuery,
+		peopleListFilter,
+		setPeopleListFilter,
+		peopleStatusFilter,
+		setPeopleStatusFilter,
+		peopleSortMode,
+		setPeopleSortMode,
+	} = useAppStore()
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
 	let searchInputId = useId()
+
+	let statusOptions = [
+		{ value: "active", label: t("filter.status.active") },
+		{ value: "deleted", label: t("filter.status.deleted") },
+	]
+
+	let sortOptions = [
+		{ value: "recent", label: t("filter.sort.recent") },
+		{ value: "alphabetical", label: t("filter.sort.alphabetical") },
+	]
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
@@ -339,8 +345,18 @@ function PeopleControls({
 			) : null}
 			<ListFilterButton
 				people={allPeople}
-				searchQuery={searchQuery}
-				setSearchQuery={setPeopleSearchQuery}
+				listFilter={peopleListFilter}
+				onListFilterChange={setPeopleListFilter}
+				statusOptions={statusOptions}
+				statusFilter={peopleStatusFilter}
+				onStatusFilterChange={filter =>
+					setPeopleStatusFilter(filter as "active" | "deleted")
+				}
+				sortOptions={sortOptions}
+				sortMode={peopleSortMode}
+				onSortChange={mode =>
+					setPeopleSortMode(mode as "recent" | "alphabetical")
+				}
 			/>
 			<NewPerson
 				onSuccess={personId => {
@@ -445,14 +461,6 @@ function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 				</EmptyHeader>
 			</Empty>
 		</div>
-	)
-}
-
-function DeletedHeading({ count }: { count: number }) {
-	return (
-		<TypographyH2 className="text-xl first:mt-10">
-			<T k="people.deleted.heading" params={{ count }} />
-		</TypographyH2>
 	)
 }
 

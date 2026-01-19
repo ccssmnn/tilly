@@ -15,40 +15,54 @@ export {
 	extractSearchWithoutFilter,
 }
 
+type PeopleFilterOptions = {
+	listFilter: string | null
+	statusFilter: "active" | "deleted"
+	sortMode: "recent" | "alphabetical"
+}
+
 function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
 	allPeople: A,
 	searchQuery: string,
 	inactivePeople?: A,
-): { active: P[]; deleted: P[] } {
+	options?: PeopleFilterOptions,
+): P[] {
 	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])].filter(
 		p => !isPermanentlyDeleted(p),
 	)
 
 	let searchLower = searchQuery.toLowerCase().trim()
-
-	let listFilter = extractListFilterFromQuery(searchLower)
-	let searchWithoutFilter = searchLower.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
+	let listFilter = options?.listFilter ?? null
+	let statusFilter = options?.statusFilter ?? "active"
+	let sortMode = options?.sortMode ?? "recent"
 
 	let filteredPeople = allCombinedPeople.filter(person => {
 		let matchesSearch =
-			!searchWithoutFilter ||
-			person.name.toLowerCase().includes(searchWithoutFilter) ||
-			person.summary?.toLowerCase().includes(searchWithoutFilter)
+			!searchLower ||
+			person.name.toLowerCase().includes(searchLower) ||
+			person.summary?.toLowerCase().includes(searchLower)
 
-		let matchesFilter = !listFilter || hasHashtag(person, listFilter)
+		let matchesListFilter = !listFilter || hasHashtag(person, listFilter)
 
-		return matchesSearch && matchesFilter
+		let matchesStatusFilter =
+			statusFilter === "active"
+				? !isDeleted(person)
+				: isDeleted(person) && !isPermanentlyDeleted(person)
+
+		return matchesSearch && matchesListFilter && matchesStatusFilter
 	})
 
-	let active = filteredPeople.filter(person => !isDeleted(person))
-	let deleted = filteredPeople.filter(
-		person => isDeleted(person) && !isPermanentlyDeleted(person),
-	)
+	if (sortMode === "alphabetical") {
+		filteredPeople.sort((a, b) => a.name.localeCompare(b.name))
+	} else {
+		if (statusFilter === "deleted") {
+			sortByDeletedAt(filteredPeople)
+		} else {
+			sortByUpdatedAt(filteredPeople)
+		}
+	}
 
-	sortByUpdatedAt(active)
-	sortByDeletedAt(deleted)
-
-	return { active, deleted }
+	return filteredPeople
 }
 
 function extractListFilterFromQuery(query: string): string | null {

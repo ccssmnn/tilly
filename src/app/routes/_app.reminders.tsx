@@ -11,7 +11,7 @@ import {
 import { useAccount } from "jazz-tools/react"
 import { type ResolveQuery } from "jazz-tools"
 import { ReminderListItem } from "#app/features/reminder-list-item"
-import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
+import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import {
@@ -69,10 +69,22 @@ function Reminders() {
 
 	let currentMe = subscribedMe.$isLoaded ? subscribedMe : data
 
-	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
+	let {
+		remindersSearchQuery,
+		setRemindersSearchQuery,
+		remindersListFilter,
+		remindersStatusFilter,
+	} = useAppStore()
 	let searchQuery = useDeferredValue(remindersSearchQuery)
 
-	let reminders = useReminders(searchQuery, data as RemindersLoadedAccount)
+	let { reminders, total } = useReminders(
+		searchQuery,
+		data as RemindersLoadedAccount,
+		{
+			listFilter: remindersListFilter,
+			statusFilter: remindersStatusFilter,
+		},
+	)
 
 	let allPeople = Array.from(
 		(data as RemindersLoadedAccount).root.people.values(),
@@ -80,65 +92,32 @@ function Reminders() {
 		(p): p is Extract<typeof p, { $isLoaded: true }> => p?.$isLoaded === true,
 	)
 
-	let didSearch = !!searchQuery
-	let hasMatches =
-		reminders.open.length > 0 ||
-		reminders.done.length > 0 ||
-		reminders.deleted.length > 0
+	let didSearch = !!searchQuery || remindersListFilter !== null
+	let hasResults = reminders.length > 0
 
 	let virtualItems: Array<VirtualItem> = []
 	virtualItems.push({ type: "heading" })
 
-	if (reminders.total > 0) {
+	if (total > 0) {
 		virtualItems.push({ type: "search" })
 	} else {
 		virtualItems.push({ type: "no-reminders" })
 	}
 
-	if (reminders.total > 0) {
-		if (didSearch && !hasMatches) {
+	if (total > 0) {
+		if (didSearch && !hasResults) {
 			virtualItems.push({ type: "no-results", searchQuery })
 		} else {
-			if (reminders.open.length > 0) {
-				reminders.open.forEach(({ reminder, person }) => {
+			if (hasResults) {
+				reminders.forEach(({ reminder, person }) => {
 					virtualItems.push({
 						type: "reminder",
 						reminder,
 						person,
 					})
 				})
-			} else if (!didSearch) {
+			} else if (remindersStatusFilter === "active") {
 				virtualItems.push({ type: "all-caught-up" })
-			}
-
-			if (reminders.done.length > 0) {
-				virtualItems.push({
-					type: "section-heading",
-					section: "done",
-					count: reminders.done.length,
-				})
-				reminders.done.forEach(({ reminder, person }) => {
-					virtualItems.push({
-						type: "reminder",
-						reminder,
-						person,
-					})
-				})
-			}
-
-			if (reminders.deleted.length > 0) {
-				virtualItems.push({
-					type: "section-heading",
-					section: "deleted",
-					count: reminders.deleted.length,
-				})
-				reminders.deleted.forEach(({ reminder, person }) => {
-					virtualItems.push({
-						type: "reminder",
-						reminder,
-						person,
-					})
-				})
 			}
 
 			virtualItems.push({ type: "spacer" })
@@ -224,11 +203,6 @@ type VirtualItem =
 			reminder: co.loaded<typeof Reminder>
 			person: co.loaded<typeof Person>
 	  }
-	| {
-			type: "section-heading"
-			section: "done" | "deleted"
-			count: number
-	  }
 	| { type: "no-results"; searchQuery: string }
 	| { type: "no-reminders" }
 	| { type: "all-caught-up" }
@@ -248,13 +222,7 @@ function renderVirtualItem(
 			return <HeadingSection />
 
 		case "search":
-			return (
-				<SearchSection
-					allPeople={options.allPeople}
-					searchQuery={options.searchQuery}
-					setSearchQuery={options.setSearchQuery}
-				/>
-			)
+			return <SearchSection allPeople={options.allPeople} />
 
 		case "reminder":
 			return (
@@ -265,9 +233,6 @@ function renderVirtualItem(
 					searchQuery={options.searchQuery}
 				/>
 			)
-
-		case "section-heading":
-			return <SectionHeading section={item.section} count={item.count} />
 
 		case "no-results":
 			return <NoSearchResultsState searchQuery={item.searchQuery} />
@@ -299,19 +264,24 @@ function HeadingSection() {
 	)
 }
 
-function SearchSection({
-	allPeople,
-	searchQuery,
-	setSearchQuery,
-}: {
-	allPeople: PersonWithSummary[]
-	searchQuery: string
-	setSearchQuery: (query: string) => void
-}) {
-	let { remindersSearchQuery, setRemindersSearchQuery } = useAppStore()
+function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
+	let {
+		remindersSearchQuery,
+		setRemindersSearchQuery,
+		remindersListFilter,
+		setRemindersListFilter,
+		remindersStatusFilter,
+		setRemindersStatusFilter,
+	} = useAppStore()
 	let autoFocusRef = useAutoFocusInput() as RefObject<HTMLInputElement>
 	let t = useIntl()
 	let searchInputId = useId()
+
+	let statusOptions = [
+		{ value: "active", label: t("filter.status.active") },
+		{ value: "done", label: t("filter.status.done") },
+		{ value: "deleted", label: t("filter.status.deleted") },
+	]
 
 	return (
 		<div className="mt-6 mb-3 flex items-center justify-end gap-3">
@@ -342,8 +312,13 @@ function SearchSection({
 			) : null}
 			<ListFilterButton
 				people={allPeople}
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
+				listFilter={remindersListFilter}
+				onListFilterChange={setRemindersListFilter}
+				statusOptions={statusOptions}
+				statusFilter={remindersStatusFilter}
+				onStatusFilterChange={filter =>
+					setRemindersStatusFilter(filter as "active" | "done" | "deleted")
+				}
 			/>
 			<NewReminder>
 				<Button>
@@ -354,23 +329,6 @@ function SearchSection({
 				</Button>
 			</NewReminder>
 		</div>
-	)
-}
-
-function SectionHeading({
-	section,
-	count,
-}: {
-	section: "done" | "deleted"
-	count: number
-}) {
-	let key: "reminders.done.heading" | "reminders.deleted.heading" =
-		section === "done" ? "reminders.done.heading" : "reminders.deleted.heading"
-
-	return (
-		<TypographyH2 className="text-xl first:mt-10">
-			<T k={key} params={{ count }} />
-		</TypographyH2>
 	)
 }
 

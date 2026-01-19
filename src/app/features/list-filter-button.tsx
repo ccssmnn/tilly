@@ -1,35 +1,54 @@
 import { Button } from "#shared/ui/button"
 import {
 	DropdownMenu,
-	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
-import { Collection, CollectionFill, Plus } from "react-bootstrap-icons"
-import {
-	useAvailableLists,
-	setListFilterInQuery,
-	extractListFilterFromQuery,
-	type PersonWithSummary,
-} from "./list-utilities"
+import { Collection, Sliders, Plus } from "react-bootstrap-icons"
+import { useAvailableLists, type PersonWithSummary } from "./list-utilities"
 import { EditListDialog } from "./edit-list-dialog"
 import { NewListDialog } from "./new-list-dialog"
 import { useIntl, T } from "#shared/intl"
 import { useState } from "react"
 
 export { ListFilterButton }
+export type { StatusOption, SortOption }
+
+type StatusOption = {
+	value: string
+	label: string
+}
+
+type SortOption = {
+	value: string
+	label: string
+}
 
 function ListFilterButton({
 	people,
-	searchQuery,
-	setSearchQuery,
+	listFilter,
+	onListFilterChange,
+	statusOptions,
+	statusFilter,
+	onStatusFilterChange,
+	sortOptions,
+	sortMode,
+	onSortChange,
 }: {
 	people: PersonWithSummary[]
-	searchQuery: string
-	setSearchQuery: (query: string) => void
+	listFilter: string | null
+	onListFilterChange: (filter: string | null) => void
+	statusOptions: StatusOption[]
+	statusFilter: string
+	onStatusFilterChange: (filter: string) => void
+	sortOptions?: SortOption[]
+	sortMode?: string
+	onSortChange?: (mode: string) => void
 }) {
 	let t = useIntl()
 	let availableLists = useAvailableLists(people)
@@ -38,13 +57,10 @@ function ListFilterButton({
 	let [editingHashtag, setEditingHashtag] = useState("")
 	let [newListOpen, setNewListOpen] = useState(false)
 
-	let currentFilter = extractListFilterFromQuery(searchQuery)
-
-	function selectList(tag: string) {
-		let isActive = tag === currentFilter
-		let newQuery = setListFilterInQuery(searchQuery, isActive ? null : tag)
-		setSearchQuery(newQuery)
-	}
+	let hasNonDefaultFilters =
+		listFilter !== null ||
+		statusFilter !== "active" ||
+		(sortMode !== undefined && sortMode !== "recent")
 
 	function editList(tag: string) {
 		setEditingHashtag(tag)
@@ -55,34 +71,80 @@ function ListFilterButton({
 		<>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="secondary" onClick={() => setDropdownOpen(true)}>
-						{currentFilter ? <CollectionFill /> : <Collection />}
+					<Button
+						variant={hasNonDefaultFilters ? "secondary" : "outline"}
+						onClick={() => setDropdownOpen(true)}
+					>
+						{hasNonDefaultFilters ? <Sliders /> : <Collection />}
 						<span className="sr-only md:not-sr-only">
 							<T k="person.listFilter.lists" />
 						</span>
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
+					{/* Status section */}
+					<DropdownMenuLabel>
+						<T k="filter.status" />
+					</DropdownMenuLabel>
+					<DropdownMenuRadioGroup
+						value={statusFilter}
+						onValueChange={onStatusFilterChange}
+					>
+						{statusOptions.map(option => (
+							<DropdownMenuRadioItem key={option.value} value={option.value}>
+								{option.label}
+							</DropdownMenuRadioItem>
+						))}
+					</DropdownMenuRadioGroup>
+
+					{/* Sort section (only if sortOptions provided) */}
+					{sortOptions && sortMode !== undefined && onSortChange && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuLabel>
+								<T k="filter.sort" />
+							</DropdownMenuLabel>
+							<DropdownMenuRadioGroup
+								value={sortMode}
+								onValueChange={onSortChange}
+							>
+								{sortOptions.map(option => (
+									<DropdownMenuRadioItem
+										key={option.value}
+										value={option.value}
+									>
+										{option.label}
+									</DropdownMenuRadioItem>
+								))}
+							</DropdownMenuRadioGroup>
+						</>
+					)}
+
+					{/* Lists section */}
+					<DropdownMenuSeparator />
 					<DropdownMenuLabel>
 						<T k="person.listFilter.lists" />
 					</DropdownMenuLabel>
-					{currentFilter && (
-						<DropdownMenuItem onClick={() => editList(currentFilter)}>
+					{listFilter && (
+						<DropdownMenuItem onClick={() => editList(listFilter)}>
 							{t("person.listFilter.editList", {
-								listName: currentFilter,
+								listName: listFilter,
 							})}
 						</DropdownMenuItem>
 					)}
-					<DropdownMenuSeparator />
-					{availableLists.map(list => (
-						<DropdownMenuCheckboxItem
-							key={list.tag}
-							checked={list.tag === currentFilter}
-							onClick={() => selectList(list.tag)}
-						>
-							{list.tag}
-						</DropdownMenuCheckboxItem>
-					))}
+					<DropdownMenuRadioGroup
+						value={listFilter ?? ""}
+						onValueChange={value => onListFilterChange(value || null)}
+					>
+						<DropdownMenuRadioItem value="">
+							{t("filter.lists.all")}
+						</DropdownMenuRadioItem>
+						{availableLists.map(list => (
+							<DropdownMenuRadioItem key={list.tag} value={list.tag}>
+								{list.tag}
+							</DropdownMenuRadioItem>
+						))}
+					</DropdownMenuRadioGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={() => setNewListOpen(true)}>
 						<T k="person.listFilter.createNewList" />
@@ -101,8 +163,7 @@ function ListFilterButton({
 				onOpenChange={setNewListOpen}
 				people={people}
 				onListCreated={hashtag => {
-					let newQuery = setListFilterInQuery(searchQuery, hashtag)
-					setSearchQuery(newQuery)
+					onListFilterChange(hashtag)
 				}}
 			/>
 		</>

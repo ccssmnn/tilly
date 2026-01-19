@@ -6,6 +6,11 @@ import { format } from "date-fns"
 import type { PersistStorage } from "zustand/middleware"
 import { tryCatch } from "#shared/lib/trycatch"
 
+type PeopleSortMode = "recent" | "alphabetical"
+type PeopleStatusFilter = "active" | "deleted"
+type RemindersStatusFilter = "active" | "done" | "deleted"
+type NotesStatusFilter = "active" | "deleted"
+
 interface AppState {
 	peopleSearchQuery: string
 	setPeopleSearchQuery: (query: string) => void
@@ -24,6 +29,18 @@ interface AppState {
 
 	notesListFilter: string | null
 	setNotesListFilter: (filter: string | null) => void
+
+	peopleSortMode: PeopleSortMode
+	setPeopleSortMode: (mode: PeopleSortMode) => void
+
+	peopleStatusFilter: PeopleStatusFilter
+	setPeopleStatusFilter: (filter: PeopleStatusFilter) => void
+
+	remindersStatusFilter: RemindersStatusFilter
+	setRemindersStatusFilter: (filter: RemindersStatusFilter) => void
+
+	notesStatusFilter: NotesStatusFilter
+	setNotesStatusFilter: (filter: NotesStatusFilter) => void
 
 	pwaInstallHintDismissed: boolean
 	setPWAInstallHintDismissed: (dismissed: boolean) => void
@@ -45,6 +62,10 @@ let storeStateSchema = z.object({
 	peopleListFilter: z.string().nullable(),
 	remindersListFilter: z.string().nullable(),
 	notesListFilter: z.string().nullable(),
+	peopleSortMode: z.enum(["recent", "alphabetical"]),
+	peopleStatusFilter: z.enum(["active", "deleted"]),
+	remindersStatusFilter: z.enum(["active", "done", "deleted"]),
+	notesStatusFilter: z.enum(["active", "deleted"]),
 })
 
 type PersistedState = Pick<
@@ -56,6 +77,10 @@ type PersistedState = Pick<
 	| "peopleListFilter"
 	| "remindersListFilter"
 	| "notesListFilter"
+	| "peopleSortMode"
+	| "peopleStatusFilter"
+	| "remindersStatusFilter"
+	| "notesStatusFilter"
 >
 
 let initialPersistedState: PersistedState = {
@@ -66,6 +91,10 @@ let initialPersistedState: PersistedState = {
 	peopleListFilter: null,
 	remindersListFilter: null,
 	notesListFilter: null,
+	peopleSortMode: "recent",
+	peopleStatusFilter: "active",
+	remindersStatusFilter: "active",
+	notesStatusFilter: "active",
 }
 
 type StorageValue<T> = {
@@ -188,6 +217,22 @@ export let useAppStore = create<AppState>()(
 			setNotesListFilter: (filter: string | null) =>
 				set({ notesListFilter: filter }),
 
+			peopleSortMode: "recent",
+			setPeopleSortMode: (mode: PeopleSortMode) =>
+				set({ peopleSortMode: mode }),
+
+			peopleStatusFilter: "active",
+			setPeopleStatusFilter: (filter: PeopleStatusFilter) =>
+				set({ peopleStatusFilter: filter }),
+
+			remindersStatusFilter: "active",
+			setRemindersStatusFilter: (filter: RemindersStatusFilter) =>
+				set({ remindersStatusFilter: filter }),
+
+			notesStatusFilter: "active",
+			setNotesStatusFilter: (filter: NotesStatusFilter) =>
+				set({ notesStatusFilter: filter }),
+
 			pwaInstallHintDismissed: false,
 			setPWAInstallHintDismissed: (dismissed: boolean) =>
 				set({ pwaInstallHintDismissed: dismissed }),
@@ -212,6 +257,10 @@ export let useAppStore = create<AppState>()(
 				peopleListFilter: state.peopleListFilter,
 				remindersListFilter: state.remindersListFilter,
 				notesListFilter: state.notesListFilter,
+				peopleSortMode: state.peopleSortMode,
+				peopleStatusFilter: state.peopleStatusFilter,
+				remindersStatusFilter: state.remindersStatusFilter,
+				notesStatusFilter: state.notesStatusFilter,
 			}),
 			onRehydrateStorage: () => state => {
 				if (!state) return
@@ -220,12 +269,16 @@ export let useAppStore = create<AppState>()(
 				let isNewDay = state.lastAccessDate !== today
 
 				if (isNewDay) {
-					// Reset search queries for new day
+					// Reset search queries and filters for new day
 					useAppStore.setState({
 						peopleSearchQuery: "",
 						remindersSearchQuery: "",
 						notesSearchQuery: "",
 						lastAccessDate: today,
+						peopleSortMode: "recent",
+						peopleStatusFilter: "active",
+						remindersStatusFilter: "active",
+						notesStatusFilter: "active",
 					})
 				}
 			},

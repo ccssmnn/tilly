@@ -1,5 +1,6 @@
 import {
 	Person,
+	Note,
 	isDeleted,
 	isPermanentlyDeleted,
 	UserAccount,
@@ -16,6 +17,12 @@ export {
 	extractSearchWithoutFilter,
 	type NotesLoadedAccount,
 	type PersonNotesLoadedPerson,
+	type NotePair,
+}
+
+type NotePair = {
+	note: co.loaded<typeof Note>
+	person: co.loaded<typeof Person>
 }
 
 let notesResolve = {
@@ -83,7 +90,16 @@ function usePersonNotes(
 	return { active, deleted }
 }
 
-function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
+type NotesFilterOptions = {
+	listFilter: string | null
+	statusFilter: "active" | "deleted"
+}
+
+function useNotes(
+	searchQuery: string,
+	defaultAccount?: NotesLoadedAccount,
+	options?: NotesFilterOptions,
+): { notes: NotePair[]; total: number } {
 	let account = useAccount(UserAccount, {
 		resolve: notesResolve,
 	})
@@ -94,7 +110,7 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 			.filter(p => p.$isLoaded)
 			.filter(p => !isDeleted(p) && !isPermanentlyDeleted(p)) ?? []
 
-	let allNotePairs = []
+	let allNotePairs: NotePair[] = []
 
 	for (let person of people) {
 		for (let note of person.notes.values()) {
@@ -111,53 +127,50 @@ function useNotes(searchQuery: string, defaultAccount?: NotesLoadedAccount) {
 	}
 
 	let searchLower = searchQuery.toLowerCase()
-	let listFilter = extractListFilterFromQuery(searchLower)
-	let searchWithoutFilter = searchLower.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
+	let listFilter = options?.listFilter ?? null
+	let statusFilter = options?.statusFilter ?? "active"
 
 	let filteredPairs = allNotePairs.filter(({ note, person }) => {
 		let matchesSearch =
-			!searchWithoutFilter ||
-			note.content.toLowerCase().includes(searchWithoutFilter) ||
-			person.name.toLowerCase().includes(searchWithoutFilter)
+			!searchLower ||
+			note.content.toLowerCase().includes(searchLower) ||
+			person.name.toLowerCase().includes(searchLower)
 
-		let matchesFilter = !listFilter || hasHashtag(person, listFilter)
+		let matchesListFilter = !listFilter || hasHashtag(person, listFilter)
 
-		return matchesSearch && matchesFilter
+		let noteIsDeleted = isDeleted(note) && !isPermanentlyDeleted(note)
+		let noteIsActive = !isDeleted(note)
+
+		let matchesStatusFilter =
+			statusFilter === "active" ? noteIsActive : noteIsDeleted
+
+		return matchesSearch && matchesListFilter && matchesStatusFilter
 	})
 
-	let active = []
-	let deleted = []
-
-	for (let { note, person } of filteredPairs) {
-		if (isDeleted(note) && !isPermanentlyDeleted(note)) {
-			deleted.push({ note, person })
-		} else if (!isDeleted(note)) {
-			active.push({ note, person })
-		}
+	// Sort based on status
+	if (statusFilter === "active") {
+		filteredPairs.sort((a, b) => {
+			let aTime = (
+				a.note.createdAt || new Date(a.note.$jazz.createdAt)
+			).getTime()
+			let bTime = (
+				b.note.createdAt || new Date(b.note.$jazz.createdAt)
+			).getTime()
+			return bTime - aTime
+		})
+	} else {
+		filteredPairs.sort((a, b) => {
+			let aTime =
+				a.note.deletedAt?.getTime() ??
+				(a.note.createdAt || new Date(a.note.$jazz.createdAt)).getTime()
+			let bTime =
+				b.note.deletedAt?.getTime() ??
+				(b.note.createdAt || new Date(b.note.$jazz.createdAt)).getTime()
+			return bTime - aTime
+		})
 	}
 
-	active.sort((a, b) => {
-		let aTime = (a.note.createdAt || new Date(a.note.$jazz.createdAt)).getTime()
-		let bTime = (b.note.createdAt || new Date(b.note.$jazz.createdAt)).getTime()
-		return bTime - aTime
-	})
-
-	deleted.sort((a, b) => {
-		let aTime =
-			a.note.deletedAt?.getTime() ??
-			(a.note.createdAt || new Date(a.note.$jazz.createdAt)).getTime()
-		let bTime =
-			b.note.deletedAt?.getTime() ??
-			(b.note.createdAt || new Date(b.note.$jazz.createdAt)).getTime()
-		return bTime - aTime
-	})
-
-	return { active, deleted, total: allNotePairs.length }
-}
-
-function extractListFilterFromQuery(query: string): string | null {
-	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	return match ? match[1].toLowerCase() : null
+	return { notes: filteredPairs, total: allNotePairs.length }
 }
 
 function extractSearchWithoutFilter(query: string): string {
