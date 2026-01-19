@@ -6,8 +6,6 @@ let baseServerMessages = messages({
 	"server.push.test-title": "Test Notification",
 	"server.push.test-body":
 		"This is a test push notification. Your device is configured correctly! 🚀",
-	"server.push.dueReminders.title":
-		".input {$count :number} .match $count one {{You have one reminder due today}} * {{You have {$count} reminders due today}}",
 	"server.push.dueReminders.titleTemplate":
 		"You have {count} reminders due today",
 	"server.push.dueReminders.body":
@@ -26,8 +24,6 @@ let deServerMessages = translate(baseServerMessages, {
 	"server.push.test-title": "Test-Benachrichtigung",
 	"server.push.test-body":
 		"Das ist eine Test-Push-Benachrichtigung. Dein Gerät ist korrekt konfiguriert!",
-	"server.push.dueReminders.title":
-		".input {$count :number} .match $count one {{Du hast eine Erinnerung Heute}} * {{Du hast {$count} Erinnerungen heute}}",
 	"server.push.dueReminders.titleTemplate":
 		"Du hast {count} Erinnerungen heute",
 	"server.push.dueReminders.body":

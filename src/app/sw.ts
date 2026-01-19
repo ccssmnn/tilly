@@ -204,6 +204,17 @@ function parseMessageEventData(value: unknown): MessageEventData | null {
 	if (typeValue === "CLEAR_USER_ID") {
 		return { type: "CLEAR_USER_ID" }
 	}
+	if (typeValue === "SET_REMINDERS") {
+		let userIdValue = Reflect.get(value, "userId")
+		let remindersValue = Reflect.get(value, "reminders")
+		if (typeof userIdValue === "string" && Array.isArray(remindersValue)) {
+			return {
+				type: "SET_REMINDERS",
+				userId: userIdValue,
+				reminders: remindersValue,
+			}
+		}
+	}
 	return null
 }
 
