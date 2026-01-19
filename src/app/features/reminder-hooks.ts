@@ -151,11 +151,16 @@ function useReminders(
 	return { reminders: filteredPairs, total: allReminderPairs.length }
 }
 
+type PersonRemindersFilterOptions = {
+	statusFilter: "active" | "done" | "deleted"
+}
+
 function usePersonReminders(
 	personId: string,
 	searchQuery: string,
 	defaultPerson?: PersonRemindersLoadedPerson,
-) {
+	options?: PersonRemindersFilterOptions,
+): co.loaded<typeof Reminder>[] {
 	let person = useCoState(Person, personId, {
 		resolve: personRemindersResolve,
 	})
@@ -169,21 +174,37 @@ function usePersonReminders(
 		) ?? []),
 	]
 
-	let filteredReminders = searchQuery
-		? allReminders.filter(reminder =>
-				reminder.text.toLowerCase().includes(searchQuery.toLowerCase()),
-			)
-		: allReminders
+	let searchLower = searchQuery.toLowerCase()
+	let statusFilter = options?.statusFilter ?? "active"
 
-	let open = filteredReminders.filter(r => !r.done && !isDeleted(r))
-	let done = filteredReminders.filter(r => r.done && !isDeleted(r))
-	let deleted = filteredReminders.filter(r => isDeleted(r))
+	let filteredReminders = allReminders.filter(reminder => {
+		let matchesSearch =
+			!searchLower || reminder.text.toLowerCase().includes(searchLower)
 
-	sortByDueAt(open)
-	sortByUpdatedAt(done)
-	sortByDeletedAt(deleted)
+		let reminderIsDeleted =
+			isDeleted(reminder) && !isPermanentlyDeleted(reminder)
+		let reminderIsDone = reminder.done && !reminderIsDeleted
+		let reminderIsActive = !reminder.done && !reminderIsDeleted
 
-	return { open, done, deleted }
+		let matchesStatusFilter =
+			statusFilter === "active"
+				? reminderIsActive
+				: statusFilter === "done"
+					? reminderIsDone
+					: reminderIsDeleted
+
+		return matchesSearch && matchesStatusFilter
+	})
+
+	if (statusFilter === "active") {
+		sortByDueAt(filteredReminders)
+	} else if (statusFilter === "done") {
+		sortByUpdatedAt(filteredReminders)
+	} else {
+		sortByDeletedAt(filteredReminders)
+	}
+
+	return filteredReminders
 }
 
 function extractSearchWithoutFilter(query: string): string {

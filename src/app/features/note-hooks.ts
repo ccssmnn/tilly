@@ -48,11 +48,16 @@ type PersonNotesLoadedPerson = co.loaded<
 	typeof personNotesResolve
 >
 
+type PersonNotesFilterOptions = {
+	statusFilter: "active" | "deleted"
+}
+
 function usePersonNotes(
 	personId: string,
 	searchQuery: string,
 	defaultPerson?: PersonNotesLoadedPerson,
-) {
+	options?: PersonNotesFilterOptions,
+): co.loaded<typeof Note>[] {
 	let person = useCoState(Person, personId, {
 		resolve: personNotesResolve,
 	})
@@ -65,29 +70,33 @@ function usePersonNotes(
 			[]),
 	]
 
-	let filteredNotes = searchQuery
-		? allNotes.filter(note =>
-				note.content.toLowerCase().includes(searchQuery.toLowerCase()),
-			)
-		: allNotes
+	let searchLower = searchQuery.toLowerCase()
+	let statusFilter = options?.statusFilter ?? "active"
 
-	let active = []
-	let deleted = []
+	let filteredNotes = allNotes.filter(note => {
+		let matchesSearch =
+			!searchLower || note.content.toLowerCase().includes(searchLower)
 
-	for (let note of filteredNotes) {
-		if (isDeleted(note) && !isPermanentlyDeleted(note)) {
-			deleted.push(note)
-		} else if (!isDeleted(note)) {
-			active.push(note)
-		}
+		let noteIsDeleted = isDeleted(note) && !isPermanentlyDeleted(note)
+		let noteIsActive = !isDeleted(note)
+
+		let matchesStatusFilter =
+			statusFilter === "active" ? noteIsActive : noteIsDeleted
+
+		return matchesSearch && matchesStatusFilter
+	})
+
+	if (statusFilter === "active") {
+		sortByCreatedAt(filteredNotes)
+		filteredNotes = [
+			...filteredNotes.filter(n => n.pinned),
+			...filteredNotes.filter(n => !n.pinned),
+		]
+	} else {
+		sortByDeletedAt(filteredNotes)
 	}
 
-	sortByCreatedAt(active)
-	active = [...active.filter(n => n.pinned), ...active.filter(n => !n.pinned)]
-
-	sortByDeletedAt(deleted)
-
-	return { active, deleted }
+	return filteredNotes
 }
 
 type NotesFilterOptions = {
