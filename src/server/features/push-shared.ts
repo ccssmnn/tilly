@@ -13,14 +13,12 @@ export {
 	createNotificationPayload,
 	markNotificationSettingsAsDelivered,
 	settingsQuery,
-	peopleQuery,
 	getIntl,
 }
 export type {
 	PushDevice,
 	NotificationPayload,
 	LoadedUserAccountSettings,
-	LoadedUserAccountWithPeople,
 	LoadedNotificationSettings,
 }
 
@@ -46,30 +44,15 @@ type NotificationPayload = {
 	badge: string
 	url?: string
 	userId?: string
-	count?: number
 }
 
 let settingsQuery = {
 	root: { notificationSettings: true },
 } satisfies ResolveQuery<typeof UserAccount>
 
-let peopleQuery = {
-	root: {
-		people: {
-			$each: {
-				reminders: { $each: true },
-			},
-		},
-	},
-} satisfies ResolveQuery<typeof UserAccount>
-
 type LoadedUserAccountSettings = co.loaded<
 	typeof UserAccount,
 	typeof settingsQuery
->
-type LoadedUserAccountWithPeople = co.loaded<
-	typeof UserAccount,
-	typeof peopleQuery
 >
 type LoadedNotificationSettings = NonNullable<
 	LoadedUserAccountSettings["root"]["notificationSettings"]
@@ -93,7 +76,6 @@ function createNotificationPayload(
 		badge: "/favicon.ico",
 		url: "/app/reminders",
 		userId,
-		count: reminderCount,
 	}
 }
 

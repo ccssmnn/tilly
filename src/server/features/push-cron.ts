@@ -2,7 +2,6 @@ import { CRON_SECRET, CLERK_SECRET_KEY } from "astro:env/server"
 import { PUBLIC_CLERK_PUBLISHABLE_KEY } from "astro:env/client"
 import { createClerkClient } from "@clerk/backend"
 import type { User } from "@clerk/backend"
-import { isDeleted } from "#shared/schema/user"
 import { initUserWorker } from "../lib/utils"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toZonedTime, format, fromZonedTime } from "date-fns-tz"
@@ -13,14 +12,12 @@ import {
 	sendNotificationToDevice,
 	markNotificationSettingsAsDelivered,
 	settingsQuery,
-	peopleQuery,
 	getIntl,
 } from "./push-shared"
 import type {
 	PushDevice,
 	NotificationPayload,
 	LoadedNotificationSettings,
-	LoadedUserAccountWithPeople,
 	LoadedUserAccountSettings,
 } from "./push-shared"
 
@@ -33,7 +30,6 @@ let cronDeliveryApp = new Hono().get(
 		console.log("🔔 Starting notification delivery cron job")
 		let deliveryResults: Array<{
 			userID: string
-			notificationCount: number
 			success: boolean
 		}> = []
 		let processingPromises: Promise<void>[] = []
@@ -44,7 +40,6 @@ let cronDeliveryApp = new Hono().get(
 
 			let userPromise = loadNotificationSettings(user)
 				.then(data => shouldReceiveNotification(data))
-				.then(data => hasDueNotifications(data))
 				.then(data => getDevices(data))
 				.then(userWithDevices => processDevicesPipeline(userWithDevices))
 				.then(results => {
@@ -169,46 +164,10 @@ async function shouldReceiveNotification<
 	return data
 }
 
-async function hasDueNotifications(
-	data: NotificationProcessingContext,
-): Promise<DueNotificationContext> {
-	let { user, notificationSettings, worker, currentUtc } = data
-
-	let userAccountWithPeople = await worker.$jazz.ensureLoaded({
-		resolve: peopleQuery,
-	})
-
-	let dueReminderCount = getDueReminderCount(
-		userAccountWithPeople,
-		notificationSettings,
-		currentUtc,
-	)
-
-	console.log(
-		`✅ User ${user.id}: Checked due reminders (${dueReminderCount} found)`,
-	)
-
-	return {
-		user,
-		notificationSettings,
-		worker,
-		currentUtc,
-		dueReminderCount,
-	}
-}
-
 async function getDevices(
-	data: DueNotificationContext,
+	data: NotificationProcessingContext,
 ): Promise<DeviceNotificationContext> {
 	let { user, notificationSettings } = data
-
-	if (data.dueReminderCount === 0) {
-		console.log(`✅ User ${user.id}: No due reminders to notify about`)
-		return {
-			...data,
-			devices: [],
-		}
-	}
 
 	let enabledDevices = getEnabledDevices(notificationSettings)
 	if (enabledDevices.length === 0) {
@@ -220,7 +179,7 @@ async function getDevices(
 	}
 
 	console.log(
-		`✅ User ${data.user.id}: Ready to send notification for ${data.dueReminderCount} due reminders to ${enabledDevices.length} devices`,
+		`✅ User ${user.id}: Ready to send wake notification to ${enabledDevices.length} devices`,
 	)
 
 	return {
@@ -232,14 +191,8 @@ async function getDevices(
 async function processDevicesPipeline(
 	userWithDevices: DeviceNotificationContext,
 ) {
-	let {
-		user,
-		devices,
-		dueReminderCount,
-		notificationSettings,
-		worker,
-		currentUtc,
-	} = userWithDevices
+	let { user, devices, notificationSettings, worker, currentUtc } =
+		userWithDevices
 
 	if (devices.length === 0) {
 		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
@@ -247,20 +200,10 @@ async function processDevicesPipeline(
 		console.log(
 			`✅ User ${user.id}: Marked as delivered (skipped - no action needed)`,
 		)
-		return [
-			{
-				userID: user.id,
-				notificationCount: 0,
-				success: true,
-			},
-		]
+		return [{ userID: user.id, success: true }]
 	}
 
-	let payload = createLocalizedNotificationPayload(
-		dueReminderCount,
-		user.id,
-		worker,
-	)
+	let payload = createLocalizedNotificationPayload(user.id, worker)
 
 	let devicePromises = devices.map((device: PushDevice) =>
 		sendNotificationToDevice(device, payload),
@@ -299,13 +242,7 @@ async function processDevicesPipeline(
 
 	console.log(`✅ User ${user.id}: Completed notification delivery`)
 
-	return [
-		{
-			userID: user.id,
-			notificationCount: dueReminderCount,
-			success: userSuccess,
-		},
-	]
+	return [{ userID: user.id, success: userSuccess }]
 }
 
 function isPastNotificationTime(
@@ -351,32 +288,6 @@ function wasDeliveredToday(
 	return notifications.lastDeliveredAt >= todayNotificationUtc
 }
 
-function getDueReminderCount(
-	userAccount: LoadedUserAccountWithPeople,
-	notificationSettings: LoadedNotificationSettings,
-	currentUtc: Date,
-): number {
-	let userTimezone = notificationSettings.timezone || "UTC"
-	let userLocalTime = toZonedTime(currentUtc, userTimezone)
-	let userLocalDateStr = format(userLocalTime, "yyyy-MM-dd")
-
-	let people = userAccount.root.people
-	let dueReminderCount = 0
-	for (let person of people.values()) {
-		if (!person?.reminders || isDeleted(person)) continue
-		for (let reminder of person.reminders.values()) {
-			if (!reminder || reminder.done || isDeleted(reminder)) continue
-			let dueDate = new Date(reminder.dueAtDate)
-			let dueDateInUserTimezone = toZonedTime(dueDate, userTimezone)
-			let dueDateStr = format(dueDateInUserTimezone, "yyyy-MM-dd")
-			if (dueDateStr <= userLocalDateStr) {
-				dueReminderCount++
-			}
-		}
-	}
-	return dueReminderCount
-}
-
 async function waitForConcurrencyLimit(
 	promises: Promise<void>[],
 	maxConcurrency: number,
@@ -391,21 +302,19 @@ function removeFromList<T>(list: T[], item: T) {
 	if (index > -1) list.splice(index, 1)
 }
 
-// Create localized notification payload based on user's language preference
+// Create localized notification payload with {count} placeholder for SW interpolation
 function createLocalizedNotificationPayload(
-	reminderCount: number,
 	userId: string,
 	worker: LoadedUserAccountSettings,
 ): NotificationPayload {
 	let t = getIntl(worker)
 	return {
-		title: t("server.push.dueReminders.title", { count: reminderCount }),
+		title: t("server.push.dueReminders.titleTemplate"),
 		body: t("server.push.dueReminders.body"),
 		icon: "/favicon.ico",
 		badge: "/favicon.ico",
 		url: "/app/reminders",
 		userId,
-		count: reminderCount,
 	}
 }
 
@@ -416,10 +325,6 @@ type NotificationProcessingContext = {
 	currentUtc: Date
 }
 
-type DueNotificationContext = NotificationProcessingContext & {
-	dueReminderCount: number
-}
-
-type DeviceNotificationContext = DueNotificationContext & {
+type DeviceNotificationContext = NotificationProcessingContext & {
 	devices: PushDevice[]
 }

@@ -2,7 +2,11 @@ import { useUser } from "@clerk/clerk-react"
 import { tryCatch } from "#shared/lib/trycatch"
 import { useCallback, useEffect } from "react"
 
-export { useSyncUserIdToServiceWorker, getServiceWorkerRegistration }
+export {
+	useSyncUserIdToServiceWorker,
+	getServiceWorkerRegistration,
+	syncRemindersToServiceWorker,
+}
 
 async function getServiceWorkerRegistration() {
 	if (!("serviceWorker" in navigator)) {
@@ -46,6 +50,18 @@ function clearUserIdInServiceWorker() {
 	console.log("[App] Cleared user ID in service worker")
 }
 
+function syncRemindersToServiceWorker(
+	userId: string,
+	reminders: ReminderData[],
+) {
+	if (!navigator.serviceWorker?.controller) return
+	navigator.serviceWorker.controller.postMessage({
+		type: "SET_REMINDERS",
+		userId,
+		reminders,
+	})
+}
+
 function useSyncUserIdToServiceWorker() {
 	let { user, isLoaded } = useUser()
 
@@ -82,3 +98,5 @@ function useSyncUserIdToServiceWorker() {
 			)
 	}, [syncUserId])
 }
+
+type ReminderData = { id: string; dueAtDate: string }

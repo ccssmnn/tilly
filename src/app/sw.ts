@@ -11,10 +11,13 @@ declare let self: ServiceWorkerGlobalScope & {
 	__WB_MANIFEST: Array<{ url: string; revision?: string }>
 }
 
+type ReminderData = { id: string; dueAtDate: string }
+
 type MessageEventData =
 	| { type: "SKIP_WAITING" }
 	| { type: "SET_USER_ID"; userId: string }
 	| { type: "CLEAR_USER_ID" }
+	| { type: "SET_REMINDERS"; userId: string; reminders: ReminderData[] }
 
 type NotificationPayload = {
 	title: string
@@ -29,6 +32,7 @@ type NotificationPayload = {
 
 let sw = self
 let USER_CACHE = "tilly-user-v1"
+let REMINDERS_CACHE = "tilly-reminders-v1"
 
 cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
@@ -56,6 +60,11 @@ sw.addEventListener("message", event => {
 
 	if (data.type === "CLEAR_USER_ID") {
 		event.waitUntil(clearUserIdFromCache())
+		return
+	}
+
+	if (data.type === "SET_REMINDERS") {
+		event.waitUntil(setRemindersInCache(data.userId, data.reminders))
 	}
 })
 
@@ -91,10 +100,7 @@ async function validateAuthAndShowNotification(
 	}
 
 	if (!notificationData.userId) {
-		console.log(
-			"[SW] No userId in payload but user is signed in, showing notification",
-		)
-		await showNotification(notificationData)
+		console.log("[SW] No userId in payload, suppressing notification")
 		return
 	}
 
@@ -115,29 +121,39 @@ async function validateAuthAndShowNotification(
 		return
 	}
 
-	await showNotification(notificationData)
+	let reminders = await getRemindersFromCache(currentUserId)
+	let count = reminders ? getDueReminderCount(reminders) : 0
+
+	if (count === 0) {
+		console.log("[SW] No due reminders, suppressing notification")
+		return
+	}
+
+	await showNotification(notificationData, count)
 }
 
 async function showNotification(
 	notificationData: NotificationPayload,
+	count: number,
 ): Promise<void> {
-	await sw.registration.showNotification(notificationData.title, {
-		body: notificationData.body,
+	let title = notificationData.title.replace("{count}", String(count))
+	let body = notificationData.body.replace("{count}", String(count))
+
+	await sw.registration.showNotification(title, {
+		body,
 		icon: notificationData.icon,
 		badge: notificationData.badge,
 		tag: notificationData.tag,
 		requireInteraction: false,
-		data: notificationData,
+		data: { ...notificationData, count },
 	})
 
-	if (notificationData.count) {
-		let setAppBadge = Reflect.get(sw.registration, "setAppBadge")
-		if (typeof setAppBadge === "function") {
-			try {
-				await setAppBadge.call(sw.registration, notificationData.count)
-			} catch (error) {
-				console.log("[SW] Unable to set app badge:", error)
-			}
+	let setAppBadge = Reflect.get(sw.registration, "setAppBadge")
+	if (typeof setAppBadge === "function") {
+		try {
+			await setAppBadge.call(sw.registration, count)
+		} catch (error) {
+			console.log("[SW] Unable to set app badge:", error)
 		}
 	}
 }
@@ -312,6 +328,44 @@ async function clearUserIdFromCache(): Promise<void> {
 	} catch (error) {
 		console.log("[SW] Error clearing user ID from cache:", error)
 	}
+}
+
+async function setRemindersInCache(
+	userId: string,
+	reminders: ReminderData[],
+): Promise<void> {
+	try {
+		let cache = await caches.open(REMINDERS_CACHE)
+		let data = JSON.stringify({ [userId]: reminders })
+		await cache.put("reminders", new Response(data))
+	} catch (error) {
+		console.log("[SW] Error caching reminders:", error)
+	}
+}
+
+async function getRemindersFromCache(
+	userId: string,
+): Promise<ReminderData[] | null> {
+	try {
+		let cache = await caches.open(REMINDERS_CACHE)
+		let response = await cache.match("reminders")
+		if (!response) return null
+		let data = await response.json()
+		return data[userId] || null
+	} catch (error) {
+		console.log("[SW] Error loading reminders from cache:", error)
+		return null
+	}
+}
+
+function getDueReminderCount(reminders: ReminderData[]): number {
+	let today = new Date()
+	let todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+	let count = 0
+	for (let r of reminders) {
+		if (r.dueAtDate <= todayStr) count++
+	}
+	return count
 }
 
 async function isUserOnPage(targetUrl?: string): Promise<boolean> {
