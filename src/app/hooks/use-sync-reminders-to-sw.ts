@@ -1,3 +1,13 @@
+/**
+ * Syncs active reminders to the service worker for push notification decisions.
+ *
+ * The SW uses cached reminders (keyed by userId) as the source of truth for
+ * whether a user is signed in. This eliminates separate userId caching because:
+ * - Push payloads always include userId
+ * - When userId in payload matches reminders cache key → user is signed in
+ * - When no match → cache is stale (user signed out), notification suppressed
+ */
+
 import { useAccount } from "jazz-tools/react"
 import { useUser } from "@clerk/clerk-react"
 import { useEffect, useMemo } from "react"

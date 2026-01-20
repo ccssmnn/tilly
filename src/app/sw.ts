@@ -1,5 +1,20 @@
 /// <reference lib="webworker" />
 
+/**
+ * Push notification auth strategy:
+ *
+ * We use the cached reminders (keyed by userId) as the source of truth for
+ * whether a user is signed in. This eliminates the need for separate userId
+ * caching because:
+ *
+ * 1. Push payloads always include userId - if missing, we suppress anyway
+ * 2. Reminders are synced with userId via SET_REMINDERS message
+ * 3. When user signs out, reminders sync stops → cache becomes stale
+ * 4. On push, we check if payload.userId matches reminders cache key
+ *    - Match + has due reminders → show notification
+ *    - No match → clear stale cache, suppress notification
+ */
+
 import {
 	cleanupOutdatedCaches,
 	createHandlerBoundToURL,
@@ -15,8 +30,6 @@ type ReminderData = { id: string; dueAtDate: string }
 
 type MessageEventData =
 	| { type: "SKIP_WAITING" }
-	| { type: "SET_USER_ID"; userId: string }
-	| { type: "CLEAR_USER_ID" }
 	| { type: "SET_REMINDERS"; userId: string; reminders: ReminderData[] }
 
 type NotificationPayload = {
@@ -31,7 +44,6 @@ type NotificationPayload = {
 }
 
 let sw = self
-let USER_CACHE = "tilly-user-v1"
 let REMINDERS_CACHE = "tilly-reminders-v1"
 
 cleanupOutdatedCaches()
@@ -50,16 +62,6 @@ sw.addEventListener("message", event => {
 
 	if (data.type === "SKIP_WAITING") {
 		sw.skipWaiting()
-		return
-	}
-
-	if (data.type === "SET_USER_ID") {
-		event.waitUntil(setUserIdInCache(data.userId))
-		return
-	}
-
-	if (data.type === "CLEAR_USER_ID") {
-		event.waitUntil(clearUserIdFromCache())
 		return
 	}
 
@@ -92,24 +94,22 @@ sw.addEventListener("notificationclick", event => {
 async function validateAuthAndShowNotification(
 	notificationData: NotificationPayload,
 ): Promise<void> {
-	let currentUserId = await getUserIdFromCache()
-
-	if (!currentUserId) {
-		console.log("[SW] No user ID stored, suppressing notification")
-		return
-	}
-
-	if (!notificationData.userId) {
+	let payloadUserId = notificationData.userId
+	if (!payloadUserId) {
 		console.log("[SW] No userId in payload, suppressing notification")
 		return
 	}
 
-	if (currentUserId !== notificationData.userId) {
-		console.log(
-			"[SW] User ID mismatch, suppressing notification",
-			currentUserId,
-			notificationData.userId,
-		)
+	// getRemindersFromCache returns null + clears cache if userId doesn't match
+	let reminders = await getRemindersFromCache(payloadUserId)
+	if (!reminders) {
+		console.log("[SW] No reminders for user, suppressing notification")
+		return
+	}
+
+	let count = getDueReminderCount(reminders)
+	if (count === 0) {
+		console.log("[SW] No due reminders, suppressing notification")
 		return
 	}
 
@@ -118,14 +118,6 @@ async function validateAuthAndShowNotification(
 			"[SW] User already on target page, suppressing notification",
 			notificationData.url,
 		)
-		return
-	}
-
-	let reminders = await getRemindersFromCache(currentUserId)
-	let count = reminders ? getDueReminderCount(reminders) : 0
-
-	if (count === 0) {
-		console.log("[SW] No due reminders, suppressing notification")
 		return
 	}
 
@@ -194,15 +186,6 @@ function parseMessageEventData(value: unknown): MessageEventData | null {
 	let typeValue = Reflect.get(value, "type")
 	if (typeValue === "SKIP_WAITING") {
 		return { type: "SKIP_WAITING" }
-	}
-	if (typeValue === "SET_USER_ID") {
-		let userIdValue = Reflect.get(value, "userId")
-		if (typeof userIdValue === "string") {
-			return { type: "SET_USER_ID", userId: userIdValue }
-		}
-	}
-	if (typeValue === "CLEAR_USER_ID") {
-		return { type: "CLEAR_USER_ID" }
 	}
 	if (typeValue === "SET_REMINDERS") {
 		let userIdValue = Reflect.get(value, "userId")
@@ -309,36 +292,6 @@ function toNotificationPayload(value: unknown): NotificationPayload | null {
 
 function isWindowClient(client: Client): client is WindowClient {
 	return typeof Reflect.get(client, "focus") === "function"
-}
-
-async function getUserIdFromCache(): Promise<string | null> {
-	try {
-		let cache = await caches.open(USER_CACHE)
-		let response = await cache.match("user-id")
-		if (!response) return null
-		return await response.text()
-	} catch (error) {
-		console.log("[SW] Error loading user ID from cache:", error)
-		return null
-	}
-}
-
-async function setUserIdInCache(userId: string): Promise<void> {
-	try {
-		let cache = await caches.open(USER_CACHE)
-		await cache.put("user-id", new Response(userId))
-	} catch (error) {
-		console.log("[SW] Error caching user ID:", error)
-	}
-}
-
-async function clearUserIdFromCache(): Promise<void> {
-	try {
-		let cache = await caches.open(USER_CACHE)
-		await cache.delete("user-id")
-	} catch (error) {
-		console.log("[SW] Error clearing user ID from cache:", error)
-	}
 }
 
 async function setRemindersInCache(
