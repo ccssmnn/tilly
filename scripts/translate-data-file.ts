@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { createGateway } from "@ai-sdk/gateway"
 import { generateObject } from "ai"
 import { readFile, writeFile } from "fs/promises"
 import { z } from "zod"
@@ -75,9 +75,7 @@ async function translateInBatches(
 	entries: TranslatableEntry[],
 	targetLanguage: string,
 ): Promise<Map<string, string>> {
-	let google = createGoogleGenerativeAI({
-		apiKey: process.env.GOOGLE_AI_API_KEY,
-	})
+	let gateway = createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY })
 	let translations = new Map<string, string>()
 
 	let batches = createBatches(entries, 50)
@@ -94,7 +92,7 @@ async function translateInBatches(
 		}
 
 		let result = await generateObject({
-			model: google("gemini-2.0-flash-exp"),
+			model: gateway("google/gemini-2.0-flash"),
 			schema: z.object({
 				translations: z.object(schemaProperties),
 			}),
