@@ -309,7 +309,8 @@ function createLocalizedNotificationPayload(
 ): NotificationPayload {
 	let t = getIntl(worker)
 	return {
-		title: t("server.push.dueReminders.titleTemplate"),
+		titleOne: t("server.push.dueReminders.titleOne"),
+		titleMany: t("server.push.dueReminders.titleMany"),
 		body: t("server.push.dueReminders.body"),
 		icon: "/favicon.ico",
 		badge: "/favicon.ico",

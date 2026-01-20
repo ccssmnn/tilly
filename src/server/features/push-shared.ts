@@ -10,7 +10,6 @@ import { messagesEn, messagesDe } from "#shared/intl/messages"
 export {
 	getEnabledDevices,
 	sendNotificationToDevice,
-	createNotificationPayload,
 	markNotificationSettingsAsDelivered,
 	settingsQuery,
 	getIntl,
@@ -38,7 +37,9 @@ type PushDevice = {
 }
 
 type NotificationPayload = {
-	title: string
+	title?: string
+	titleOne?: string
+	titleMany?: string
 	body: string
 	icon: string
 	badge: string
@@ -63,20 +64,6 @@ function getEnabledDevices(
 ): PushDevice[] {
 	let devices = notificationSettings.pushDevices.filter(d => d.isEnabled) || []
 	return devices
-}
-
-function createNotificationPayload(
-	reminderCount: number,
-	userId?: string,
-): NotificationPayload {
-	return {
-		title: `You have ${reminderCount} ${reminderCount === 1 ? "reminder" : "reminders"} due today`,
-		body: "A few moments to reach out could brighten someone's day ✨",
-		icon: "/favicon.ico",
-		badge: "/favicon.ico",
-		url: "/app/reminders",
-		userId,
-	}
 }
 
 async function sendNotificationToDevice(

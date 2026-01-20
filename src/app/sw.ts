@@ -33,7 +33,9 @@ type MessageEventData =
 	| { type: "SET_REMINDERS"; userId: string; reminders: ReminderData[] }
 
 type NotificationPayload = {
-	title: string
+	title?: string
+	titleOne?: string
+	titleMany?: string
 	body: string
 	icon: string
 	badge: string
@@ -128,7 +130,11 @@ async function showNotification(
 	notificationData: NotificationPayload,
 	count: number,
 ): Promise<void> {
-	let title = notificationData.title.replace("{count}", String(count))
+	let titleTemplate =
+		count === 1
+			? (notificationData.titleOne ?? notificationData.title ?? "")
+			: (notificationData.titleMany ?? notificationData.title ?? "")
+	let title = titleTemplate.replace("{count}", String(count))
 	let body = notificationData.body.replace("{count}", String(count))
 
 	await sw.registration.showNotification(title, {
