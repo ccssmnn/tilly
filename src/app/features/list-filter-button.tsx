@@ -9,7 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
-import { Collection, Sliders, Plus } from "react-bootstrap-icons"
+import { Sliders, Plus } from "react-bootstrap-icons"
 import { useAvailableLists, type PersonWithSummary } from "./list-utilities"
 import { EditListDialog } from "./edit-list-dialog"
 import { NewListDialog } from "./new-list-dialog"

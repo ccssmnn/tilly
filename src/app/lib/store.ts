@@ -279,6 +279,9 @@ export let useAppStore = create<AppState>()(
 						peopleStatusFilter: "active",
 						remindersStatusFilter: "active",
 						notesStatusFilter: "active",
+						peopleListFilter: null,
+						remindersListFilter: null,
+						notesListFilter: null,
 					})
 				}
 			},

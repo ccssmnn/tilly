@@ -1,6 +1,6 @@
 import * as React from "react"
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
-import { Check, ChevronRight, Circle } from "react-bootstrap-icons"
+import { Check, ChevronRight } from "react-bootstrap-icons"
 
 import { cn } from "#app/lib/utils"
 
