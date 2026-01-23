@@ -118,7 +118,7 @@ const basePeopleMessages = messages({
 	"person.newList.description": "Create a list to organize people.",
 
 	// List filter bar
-	"person.listFilter.lists": "Lists",
+	"person.listFilter.lists": "Filters",
 	"person.listFilter.createNewList": "New List",
 	"person.listFilter.editList": "Edit {$listName}",
 	"person.listFilter.clearFilter": "Clear Filter",
@@ -302,7 +302,7 @@ const dePeopleMessages = translate(basePeopleMessages, {
 		"Erstelle eine Liste, um Personen zu organisieren.",
 
 	// List filter bar
-	"person.listFilter.lists": "Listen",
+	"person.listFilter.lists": "Filter",
 	"person.listFilter.createNewList": "Neue Liste",
 	"person.listFilter.editList": "{$listName} bearbeiten",
 	"person.listFilter.clearFilter": "Filter löschen",

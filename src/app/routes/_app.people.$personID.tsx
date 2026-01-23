@@ -188,6 +188,30 @@ function PersonScreen() {
 							</span>
 						</Button>
 					) : null}
+					<StatusFilterButton
+						statusOptions={
+							tab === "notes"
+								? [
+										{ value: "active", label: t("filter.status.active") },
+										{ value: "deleted", label: t("filter.status.deleted") },
+									]
+								: [
+										{ value: "active", label: t("filter.status.active") },
+										{ value: "done", label: t("filter.status.done") },
+										{ value: "deleted", label: t("filter.status.deleted") },
+									]
+						}
+						statusFilter={
+							tab === "notes" ? notesStatusFilter : remindersStatusFilter
+						}
+						onStatusFilterChange={filter =>
+							tab === "notes"
+								? setNotesStatusFilter(filter as "active" | "deleted")
+								: setRemindersStatusFilter(
+										filter as "active" | "done" | "deleted",
+									)
+						}
+					/>
 				</div>
 				<Tabs value={tab}>
 					<div className="mb-6 flex items-center justify-between gap-3">
@@ -244,45 +268,20 @@ function PersonScreen() {
 						/>
 					</div>
 					<TabsContent value="notes">
-						<div className="mb-4 flex justify-end">
-							<StatusFilterButton
-								statusOptions={[
-									{ value: "active", label: t("filter.status.active") },
-									{ value: "deleted", label: t("filter.status.deleted") },
-								]}
-								statusFilter={notesStatusFilter}
-								onStatusFilterChange={filter =>
-									setNotesStatusFilter(filter as "active" | "deleted")
-								}
-							/>
-						</div>
 						<NotesList
 							notes={notes}
 							person={person}
 							searchQuery={deferredSearchQuery}
+							statusFilter={notesStatusFilter}
 						/>
 					</TabsContent>
 					<TabsContent value="reminders">
-						<div className="mb-4 flex justify-end">
-							<StatusFilterButton
-								statusOptions={[
-									{ value: "active", label: t("filter.status.active") },
-									{ value: "done", label: t("filter.status.done") },
-									{ value: "deleted", label: t("filter.status.deleted") },
-								]}
-								statusFilter={remindersStatusFilter}
-								onStatusFilterChange={filter =>
-									setRemindersStatusFilter(
-										filter as "active" | "done" | "deleted",
-									)
-								}
-							/>
-						</div>
 						<RemindersList
 							reminders={reminders}
 							person={person}
 							me={me}
 							searchQuery={deferredSearchQuery}
+							statusFilter={remindersStatusFilter}
 						/>
 					</TabsContent>
 				</Tabs>
@@ -295,13 +294,34 @@ function NotesList({
 	notes,
 	person,
 	searchQuery,
+	statusFilter,
 }: {
 	notes: Array<co.loaded<typeof Note>>
 	person: co.loaded<typeof Person, typeof resolve>
 	searchQuery: string
+	statusFilter: "active" | "deleted"
 }) {
 	if (notes.length === 0) {
 		if (!searchQuery) {
+			if (statusFilter === "deleted") {
+				return (
+					<div className="flex flex-col items-center justify-center py-12">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<FileEarmarkText />
+								</EmptyMedia>
+								<EmptyTitle>
+									<T k="notes.empty.noDeleted" />
+								</EmptyTitle>
+								<EmptyDescription>
+									<T k="notes.empty.noDeleted.description" />
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				)
+			}
 			return <NoteTour onSuccess={() => {}} personId={person.$jazz.id} />
 		}
 
@@ -384,14 +404,54 @@ function RemindersList({
 	person,
 	me,
 	searchQuery,
+	statusFilter,
 }: {
 	reminders: Array<co.loaded<typeof Reminder>>
 	person: co.loaded<typeof Person, typeof resolve>
 	me: co.loaded<typeof UserAccount>
 	searchQuery: string
+	statusFilter: "active" | "done" | "deleted"
 }) {
 	if (reminders.length === 0) {
 		if (!searchQuery) {
+			if (statusFilter === "deleted") {
+				return (
+					<div className="flex flex-col items-center justify-center py-12">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<Bell />
+								</EmptyMedia>
+								<EmptyTitle>
+									<T k="reminders.empty.noDeleted" />
+								</EmptyTitle>
+								<EmptyDescription>
+									<T k="reminders.empty.noDeleted.description" />
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				)
+			}
+			if (statusFilter === "done") {
+				return (
+					<div className="flex flex-col items-center justify-center py-12">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<Bell />
+								</EmptyMedia>
+								<EmptyTitle>
+									<T k="reminders.empty.noDone" />
+								</EmptyTitle>
+								<EmptyDescription>
+									<T k="reminders.empty.noDone.description" />
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				)
+			}
 			return <ReminderTour onSuccess={() => {}} personId={person.$jazz.id} />
 		}
 

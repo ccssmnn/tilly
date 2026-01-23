@@ -32,6 +32,11 @@ const baseRemindersMessages = messages({
 	"reminders.empty.suggestion.withSearch": "Try adjusting your search terms",
 	"reminders.empty.suggestion.noSearch":
 		"Reminders help you stay connected and remember to reach out.",
+	"reminders.empty.noDeleted": "No Deleted Reminders",
+	"reminders.empty.noDeleted.description":
+		"Deleted reminders will appear here.",
+	"reminders.empty.noDone": "No Done Reminders",
+	"reminders.empty.noDone.description": "Completed reminders will appear here.",
 	"reminders.add.title": "Reminder",
 	"reminders.add.description":
 		"Set a reminder to follow up, check in, or remember something important about them.",
@@ -127,6 +132,12 @@ const deRemindersMessages = translate(baseRemindersMessages, {
 	"reminders.empty.suggestion.withSearch": "Passe deine Suchbegriffe an",
 	"reminders.empty.suggestion.noSearch":
 		"Erinnerungen helfen dir, in Kontakt zu bleiben und daran zu denken, dich zu melden.",
+	"reminders.empty.noDeleted": "Keine gelöschten Erinnerungen",
+	"reminders.empty.noDeleted.description":
+		"Gelöschte Erinnerungen werden hier angezeigt.",
+	"reminders.empty.noDone": "Keine erledigten Erinnerungen",
+	"reminders.empty.noDone.description":
+		"Abgeschlossene Erinnerungen werden hier angezeigt.",
 	"reminders.add.title": "Erinnerung",
 	"reminders.add.description":
 		"Lege eine Erinnerung fest – zum Melden, Nachfragen oder um etwas Wichtiges nicht zu vergessen.",

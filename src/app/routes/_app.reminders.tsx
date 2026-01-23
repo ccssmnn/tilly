@@ -304,7 +304,7 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 			</div>
 			{remindersSearchQuery !== "" ? (
 				<Button variant="outline" onClick={() => setRemindersSearchQuery("")}>
-					<X className="size-4" />
+					<X />
 					<span className="sr-only md:not-sr-only">
 						<T k="common.clear" />
 					</span>

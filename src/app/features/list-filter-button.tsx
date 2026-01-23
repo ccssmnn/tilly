@@ -75,8 +75,8 @@ function ListFilterButton({
 						variant={hasNonDefaultFilters ? "secondary" : "outline"}
 						onClick={() => setDropdownOpen(true)}
 					>
-						{hasNonDefaultFilters ? <Sliders /> : <Collection />}
-						<span className="sr-only md:not-sr-only">
+						<Sliders />
+						<span className="sr-only">
 							<T k="person.listFilter.lists" />
 						</span>
 					</Button>
