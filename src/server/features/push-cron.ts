@@ -4,7 +4,7 @@ import { createClerkClient } from "@clerk/backend"
 import type { User } from "@clerk/backend"
 import { initUserWorker } from "../lib/utils"
 import { tryCatch } from "#shared/lib/trycatch"
-import { toZonedTime, format, fromZonedTime } from "date-fns-tz"
+import { toZonedTime, format } from "date-fns-tz"
 import { Hono } from "hono"
 import { bearerAuth } from "hono/bearer-auth"
 import {
@@ -245,48 +245,7 @@ async function processDevicesPipeline(
 	return [{ userID: user.id, success: userSuccess }]
 }
 
-function isPastNotificationTime(
-	notificationSettings: LoadedNotificationSettings,
-	currentUtc: Date,
-): boolean {
-	let userTimezone = notificationSettings.timezone || "UTC"
-	let userNotificationTime = notificationSettings.notificationTime || "12:00"
-
-	let userLocalTime = toZonedTime(currentUtc, userTimezone)
-	let userLocalTimeStr = format(userLocalTime, "HH:mm")
-
-	return userLocalTimeStr >= userNotificationTime
-}
-
-function wasDeliveredToday(
-	notifications: LoadedNotificationSettings,
-	currentUtc: Date,
-): boolean {
-	if (!notifications.lastDeliveredAt) return false
-
-	let userTimezone = notifications.timezone || "UTC"
-	let userNotificationTime = notifications.notificationTime || "12:00"
-	let userLocalTime = toZonedTime(currentUtc, userTimezone)
-	let userLocalDate = format(userLocalTime, "yyyy-MM-dd")
-
-	let lastDeliveredUserTime = toZonedTime(
-		notifications.lastDeliveredAt,
-		userTimezone,
-	)
-	let lastDeliveredDate = format(lastDeliveredUserTime, "yyyy-MM-dd")
-
-	if (lastDeliveredDate !== userLocalDate) return false
-
-	let todayNotificationDateTime = new Date(
-		`${userLocalDate}T${userNotificationTime}:00`,
-	)
-	let todayNotificationUtc = fromZonedTime(
-		todayNotificationDateTime,
-		userTimezone,
-	)
-
-	return notifications.lastDeliveredAt >= todayNotificationUtc
-}
+import { isPastNotificationTime, wasDeliveredToday } from "./push-cron-utils"
 
 async function waitForConcurrencyLimit(
 	promises: Promise<void>[],

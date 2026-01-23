@@ -1,60 +1,37 @@
 import { describe, test, expect } from "vitest"
+import { countDueReminders, interpolateCount } from "./sw-utils"
 
-// Extract pure functions for testing (matches sw.ts logic)
-type ReminderData = { id: string; dueAtDate: string }
-
-function getDueReminderCount(
-	reminders: ReminderData[],
-	todayStr: string,
-): number {
-	let count = 0
-	for (let r of reminders) {
-		if (r.dueAtDate <= todayStr) count++
-	}
-	return count
-}
-
-function interpolateCount(text: string, count: number): string {
-	return text.replace("{count}", String(count))
-}
-
-describe("getDueReminderCount", () => {
+describe("countDueReminders", () => {
 	test("returns 0 for empty reminders", () => {
-		expect(getDueReminderCount([], "2025-01-15")).toBe(0)
+		expect(countDueReminders([], "2025-01-15")).toBe(0)
 	})
 
 	test("counts reminders due today", () => {
-		let reminders: ReminderData[] = [
-			{ id: "1", dueAtDate: "2025-01-15" },
-			{ id: "2", dueAtDate: "2025-01-16" },
-		]
-		expect(getDueReminderCount(reminders, "2025-01-15")).toBe(1)
+		let reminders = [{ dueAtDate: "2025-01-15" }, { dueAtDate: "2025-01-16" }]
+		expect(countDueReminders(reminders, "2025-01-15")).toBe(1)
 	})
 
 	test("counts reminders due in the past", () => {
-		let reminders: ReminderData[] = [
-			{ id: "1", dueAtDate: "2025-01-10" },
-			{ id: "2", dueAtDate: "2025-01-14" },
-			{ id: "3", dueAtDate: "2025-01-15" },
+		let reminders = [
+			{ dueAtDate: "2025-01-10" },
+			{ dueAtDate: "2025-01-14" },
+			{ dueAtDate: "2025-01-15" },
 		]
-		expect(getDueReminderCount(reminders, "2025-01-15")).toBe(3)
+		expect(countDueReminders(reminders, "2025-01-15")).toBe(3)
 	})
 
 	test("excludes future reminders", () => {
-		let reminders: ReminderData[] = [
-			{ id: "1", dueAtDate: "2025-01-16" },
-			{ id: "2", dueAtDate: "2025-02-01" },
-		]
-		expect(getDueReminderCount(reminders, "2025-01-15")).toBe(0)
+		let reminders = [{ dueAtDate: "2025-01-16" }, { dueAtDate: "2025-02-01" }]
+		expect(countDueReminders(reminders, "2025-01-15")).toBe(0)
 	})
 
 	test("handles year boundary", () => {
-		let reminders: ReminderData[] = [
-			{ id: "1", dueAtDate: "2024-12-31" },
-			{ id: "2", dueAtDate: "2025-01-01" },
-			{ id: "3", dueAtDate: "2025-01-02" },
+		let reminders = [
+			{ dueAtDate: "2024-12-31" },
+			{ dueAtDate: "2025-01-01" },
+			{ dueAtDate: "2025-01-02" },
 		]
-		expect(getDueReminderCount(reminders, "2025-01-01")).toBe(2)
+		expect(countDueReminders(reminders, "2025-01-01")).toBe(2)
 	})
 })
 
