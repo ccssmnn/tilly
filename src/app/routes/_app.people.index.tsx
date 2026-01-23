@@ -24,7 +24,7 @@ import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
 import { TypographyH1 } from "#shared/ui/typography"
-import { Plus, X, Search, PeopleFill } from "react-bootstrap-icons"
+import { Plus, X, Search, PeopleFill, Trash } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { NewPerson } from "#app/features/new-person"
 import { PersonTour } from "#app/features/person-tour"
@@ -115,6 +115,8 @@ function PeopleScreen() {
 
 	if (!hasPeople) {
 		virtualItems.push({ type: "no-people" })
+	} else if (peopleStatusFilter === "deleted" && !hasResults) {
+		virtualItems.push({ type: "no-deleted" })
 	} else if (didSearch && !hasResults) {
 		virtualItems.push({ type: "no-results", searchQuery: deferredSearchQuery })
 	} else {
@@ -209,6 +211,7 @@ type VirtualItem =
 	| { type: "no-results"; searchQuery: string }
 	| { type: "no-people" }
 	| { type: "no-active" }
+	| { type: "no-deleted" }
 	| { type: "spacer" }
 
 function renderVirtualItem(
@@ -260,6 +263,9 @@ function renderVirtualItem(
 					setPeopleSearchQuery={options.setPeopleSearchQuery}
 				/>
 			)
+
+		case "no-deleted":
+			return <NoDeletedPeopleState />
 
 		case "spacer":
 			return <Spacer />
@@ -436,6 +442,26 @@ function NoActivePeopleState({
 						</Button>
 					</NewPerson>
 				</EmptyContent>
+			</Empty>
+		</div>
+	)
+}
+
+function NoDeletedPeopleState() {
+	return (
+		<div className="flex flex-col items-center justify-center py-12">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon" className="bg-destructive/10">
+						<Trash className="text-destructive" />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="people.empty.noDeleted" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="people.empty.noDeleted.description" />
+					</EmptyDescription>
+				</EmptyHeader>
 			</Empty>
 		</div>
 	)

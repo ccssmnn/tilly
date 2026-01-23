@@ -21,7 +21,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-import { X, Search, Plus } from "react-bootstrap-icons"
+import { X, Search, Plus, Trash } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -80,7 +80,9 @@ function NotesScreen() {
 		virtualItems.push({ type: "search" })
 	}
 
-	if (total === 0 || (!didSearch && !hasResults)) {
+	if (notesStatusFilter === "deleted" && !hasResults) {
+		virtualItems.push({ type: "no-deleted" })
+	} else if (total === 0 || (!didSearch && !hasResults)) {
 		virtualItems.push({ type: "no-notes" })
 	} else if (didSearch && !hasResults) {
 		virtualItems.push({ type: "no-results", searchQuery })
@@ -170,6 +172,7 @@ type VirtualItem =
 	  }
 	| { type: "no-results"; searchQuery: string }
 	| { type: "no-notes" }
+	| { type: "no-deleted" }
 	| { type: "spacer" }
 
 function renderVirtualItem(
@@ -198,6 +201,9 @@ function renderVirtualItem(
 
 		case "no-notes":
 			return <NoNotesState />
+
+		case "no-deleted":
+			return <NoDeletedNotesState />
 
 		case "spacer":
 			return <Spacer />
@@ -291,6 +297,26 @@ function NoNotesState() {
 	return (
 		<div className="flex flex-col items-center justify-center gap-8 text-center">
 			<NoteTour />
+		</div>
+	)
+}
+
+function NoDeletedNotesState() {
+	return (
+		<div className="container mx-auto max-w-6xl px-3 py-6">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon" className="bg-destructive/10">
+						<Trash className="text-destructive" />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="notes.empty.noDeleted" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="notes.empty.noDeleted.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		</div>
 	)
 }

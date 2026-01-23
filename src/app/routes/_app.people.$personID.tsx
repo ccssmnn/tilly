@@ -22,6 +22,8 @@ import {
 	ShieldSlash,
 	Collection,
 	Sliders,
+	Trash,
+	Check,
 } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
@@ -308,8 +310,8 @@ function NotesList({
 					<div className="flex flex-col items-center justify-center py-12">
 						<Empty>
 							<EmptyHeader>
-								<EmptyMedia variant="icon">
-									<FileEarmarkText />
+								<EmptyMedia variant="icon" className="bg-destructive/10">
+									<Trash className="text-destructive" />
 								</EmptyMedia>
 								<EmptyTitle>
 									<T k="notes.empty.noDeleted" />
@@ -419,8 +421,8 @@ function RemindersList({
 					<div className="flex flex-col items-center justify-center py-12">
 						<Empty>
 							<EmptyHeader>
-								<EmptyMedia variant="icon">
-									<Bell />
+								<EmptyMedia variant="icon" className="bg-destructive/10">
+									<Trash className="text-destructive" />
 								</EmptyMedia>
 								<EmptyTitle>
 									<T k="reminders.empty.noDeleted" />
@@ -439,7 +441,7 @@ function RemindersList({
 						<Empty>
 							<EmptyHeader>
 								<EmptyMedia variant="icon">
-									<Bell />
+									<Check className="text-muted-foreground" />
 								</EmptyMedia>
 								<EmptyTitle>
 									<T k="reminders.empty.noDone" />

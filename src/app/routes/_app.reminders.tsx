@@ -21,7 +21,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-import { Plus, X, Search, Bell } from "react-bootstrap-icons"
+import { Plus, X, Search, Bell, Trash, Check } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useDeferredValue, useId, type ReactNode, type RefObject } from "react"
 import { NewReminder } from "#app/features/new-reminder"
@@ -105,7 +105,11 @@ function Reminders() {
 	}
 
 	if (total > 0) {
-		if (didSearch && !hasResults) {
+		if (remindersStatusFilter === "deleted" && !hasResults) {
+			virtualItems.push({ type: "no-deleted" })
+		} else if (remindersStatusFilter === "done" && !hasResults) {
+			virtualItems.push({ type: "no-done" })
+		} else if (didSearch && !hasResults) {
 			virtualItems.push({ type: "no-results", searchQuery })
 		} else {
 			if (hasResults) {
@@ -206,6 +210,8 @@ type VirtualItem =
 	| { type: "no-results"; searchQuery: string }
 	| { type: "no-reminders" }
 	| { type: "all-caught-up" }
+	| { type: "no-done" }
+	| { type: "no-deleted" }
 	| { type: "spacer" }
 
 function renderVirtualItem(
@@ -242,6 +248,12 @@ function renderVirtualItem(
 
 		case "all-caught-up":
 			return <AllCaughtUpState />
+
+		case "no-done":
+			return <NoDoneRemindersState />
+
+		case "no-deleted":
+			return <NoDeletedRemindersState />
 
 		case "spacer":
 			return <Spacer />
@@ -376,6 +388,46 @@ function AllCaughtUpState() {
 					</EmptyTitle>
 					<EmptyDescription>
 						<T k="reminders.allCaughtUp.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		</div>
+	)
+}
+
+function NoDoneRemindersState() {
+	return (
+		<div className="container mx-auto max-w-6xl px-3 py-6">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Check className="text-muted-foreground" />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="reminders.empty.noDone" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="reminders.empty.noDone.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		</div>
+	)
+}
+
+function NoDeletedRemindersState() {
+	return (
+		<div className="container mx-auto max-w-6xl px-3 py-6">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon" className="bg-destructive/10">
+						<Trash className="text-destructive" />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="reminders.empty.noDeleted" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="reminders.empty.noDeleted.description" />
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>

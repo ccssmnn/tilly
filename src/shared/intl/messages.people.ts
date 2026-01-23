@@ -20,6 +20,8 @@ const basePeopleMessages = messages({
 	"people.deleted.count":
 		".input {$count :number} .match $count one {{{$count} deleted person}} * {{{$count} deleted people}}",
 	"people.deleted.heading": "Deleted ({$count :number})",
+	"people.empty.noDeleted": "No Deleted People",
+	"people.empty.noDeleted.description": "Deleted people will appear here.",
 
 	// Person detail and form messages
 	"person.new.title": "New Person",
@@ -118,7 +120,7 @@ const basePeopleMessages = messages({
 	"person.newList.description": "Create a list to organize people.",
 
 	// List filter bar
-	"person.listFilter.lists": "Filters",
+	"person.listFilter.lists": "Lists",
 	"person.listFilter.createNewList": "New List",
 	"person.listFilter.editList": "Edit {$listName}",
 	"person.listFilter.clearFilter": "Clear Filter",
@@ -200,6 +202,9 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"people.deleted.count":
 		".input {$count :number} .match $count one {{{$count} gelöschte Person}} * {{{$count} gelöschte Personen}}",
 	"people.deleted.heading": "Gelöscht ({$count :number})",
+	"people.empty.noDeleted": "Keine gelöschten Personen",
+	"people.empty.noDeleted.description":
+		"Gelöschte Personen werden hier angezeigt.",
 
 	// Person detail and form messages
 	"person.new.title": "Neue Person",
@@ -302,7 +307,7 @@ const dePeopleMessages = translate(basePeopleMessages, {
 		"Erstelle eine Liste, um Personen zu organisieren.",
 
 	// List filter bar
-	"person.listFilter.lists": "Filter",
+	"person.listFilter.lists": "Listen",
 	"person.listFilter.createNewList": "Neue Liste",
 	"person.listFilter.editList": "{$listName} bearbeiten",
 	"person.listFilter.clearFilter": "Filter löschen",
