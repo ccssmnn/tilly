@@ -82,6 +82,9 @@ export function UploadButton({ userID }: { userID: string }) {
 		for (let personData of jsonData.people) {
 			try {
 				let group = Group.create()
+				// Skip items that were permanently deleted in the export
+				if (personData.permanentlyDeletedAt) continue
+
 				let person = Person.create(
 					{
 						version: 1,
@@ -90,7 +93,6 @@ export function UploadButton({ userID }: { userID: string }) {
 						notes: co.list(Note).create([], group),
 						reminders: co.list(Reminder).create([], group),
 						deletedAt: personData.deletedAt,
-						permanentlyDeletedAt: personData.permanentlyDeletedAt,
 						createdAt: personData.createdAt ?? new Date(),
 						updatedAt: personData.updatedAt ?? new Date(),
 					},
@@ -126,13 +128,15 @@ export function UploadButton({ userID }: { userID: string }) {
 
 				if (personData.notes) {
 					for (let noteData of personData.notes) {
+						// Skip items that were permanently deleted in the export
+						if (noteData.permanentlyDeletedAt) continue
+
 						let note = Note.create(
 							{
 								version: 1,
 								content: noteData.content,
 								pinned: noteData.pinned || false,
 								deletedAt: noteData.deletedAt,
-								permanentlyDeletedAt: noteData.permanentlyDeletedAt,
 								createdAt: noteData.createdAt ?? new Date(),
 								updatedAt: noteData.updatedAt ?? new Date(),
 							},
@@ -177,6 +181,9 @@ export function UploadButton({ userID }: { userID: string }) {
 
 				if (personData.reminders) {
 					for (let reminderData of personData.reminders) {
+						// Skip items that were permanently deleted in the export
+						if (reminderData.permanentlyDeletedAt) continue
+
 						let reminder = Reminder.create(
 							{
 								version: 1,
@@ -185,7 +192,6 @@ export function UploadButton({ userID }: { userID: string }) {
 								repeat: reminderData.repeat,
 								done: reminderData.done || false,
 								deletedAt: reminderData.deletedAt,
-								permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
 								createdAt: reminderData.createdAt ?? new Date(),
 								updatedAt: reminderData.updatedAt ?? new Date(),
 							},
