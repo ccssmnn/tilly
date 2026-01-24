@@ -30,7 +30,12 @@ type ReminderData = { id: string; dueAtDate: string }
 
 type MessageEventData =
 	| { type: "SKIP_WAITING" }
-	| { type: "SET_REMINDERS"; userId: string; reminders: ReminderData[] }
+	| {
+			type: "SET_REMINDERS"
+			userId: string
+			reminders: ReminderData[]
+			todayStr: string
+	  }
 
 type NotificationPayload = {
 	title?: string
@@ -69,7 +74,9 @@ sw.addEventListener("message", event => {
 	}
 
 	if (data.type === "SET_REMINDERS") {
-		event.waitUntil(setRemindersInCache(data.userId, data.reminders))
+		event.waitUntil(
+			setRemindersInCache(data.userId, data.reminders, data.todayStr),
+		)
 	}
 })
 
@@ -116,13 +123,13 @@ async function validateAuthAndShowNotification(
 	}
 
 	// getRemindersFromCache returns null + clears cache if userId doesn't match
-	let reminders = await getRemindersFromCache(payloadUserId)
-	if (!reminders) {
+	let cached = await getRemindersFromCache(payloadUserId)
+	if (!cached) {
 		console.log("[SW] No reminders for user, suppressing notification")
 		return
 	}
 
-	let count = getDueReminderCount(reminders)
+	let count = getDueReminderCount(cached.reminders, cached.todayStr)
 	if (count === 0) {
 		console.log("[SW] No due reminders, suppressing notification")
 		return
@@ -211,11 +218,17 @@ function parseMessageEventData(value: unknown): MessageEventData | null {
 	if (typeValue === "SET_REMINDERS") {
 		let userIdValue = Reflect.get(value, "userId")
 		let remindersValue = Reflect.get(value, "reminders")
-		if (typeof userIdValue === "string" && Array.isArray(remindersValue)) {
+		let todayStrValue = Reflect.get(value, "todayStr")
+		if (
+			typeof userIdValue === "string" &&
+			Array.isArray(remindersValue) &&
+			typeof todayStrValue === "string"
+		) {
 			return {
 				type: "SET_REMINDERS",
 				userId: userIdValue,
 				reminders: remindersValue,
+				todayStr: todayStrValue,
 			}
 		}
 	}
@@ -322,15 +335,17 @@ function isWindowClient(client: Client): client is WindowClient {
 async function setRemindersInCache(
 	userId: string,
 	reminders: ReminderData[],
+	todayStr: string,
 ): Promise<void> {
 	console.log("[SW] setRemindersInCache called", {
 		userId,
 		reminderCount: reminders.length,
 		reminders,
+		todayStr,
 	})
 	try {
 		let cache = await caches.open(REMINDERS_CACHE)
-		let data = JSON.stringify({ [userId]: reminders })
+		let data = JSON.stringify({ [userId]: { reminders, todayStr } })
 		await cache.put("reminders", new Response(data))
 		console.log("[SW] Reminders cached successfully")
 	} catch (error) {
@@ -340,7 +355,7 @@ async function setRemindersInCache(
 
 async function getRemindersFromCache(
 	userId: string,
-): Promise<ReminderData[] | null> {
+): Promise<{ reminders: ReminderData[]; todayStr: string } | null> {
 	console.log("[SW] getRemindersFromCache called", { userId })
 	try {
 		let cache = await caches.open(REMINDERS_CACHE)
@@ -360,9 +375,10 @@ async function getRemindersFromCache(
 	}
 }
 
-function getDueReminderCount(reminders: ReminderData[]): number {
-	let today = new Date()
-	let todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+function getDueReminderCount(
+	reminders: ReminderData[],
+	todayStr: string,
+): number {
 	console.log("[SW] getDueReminderCount", { todayStr, reminders })
 	let count = 0
 	for (let r of reminders) {

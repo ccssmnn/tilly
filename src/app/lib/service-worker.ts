@@ -22,12 +22,14 @@ async function getServiceWorkerRegistration() {
 function syncRemindersToServiceWorker(
 	userId: string,
 	reminders: ReminderData[],
+	todayStr: string,
 ) {
 	if (!navigator.serviceWorker?.controller) return
 	navigator.serviceWorker.controller.postMessage({
 		type: "SET_REMINDERS",
 		userId,
 		reminders,
+		todayStr,
 	})
 }
 

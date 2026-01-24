@@ -18,6 +18,7 @@ export { useSyncRemindersToServiceWorker }
 
 let remindersQuery = {
 	root: {
+		notificationSettings: true,
 		people: {
 			$each: {
 				reminders: { $each: true },
@@ -44,6 +45,11 @@ function useSyncRemindersToServiceWorker() {
 		return JSON.stringify(reminders)
 	}, [me])
 
+	let timezone = me.$isLoaded
+		? me.root.notificationSettings?.timezone ||
+			Intl.DateTimeFormat().resolvedOptions().timeZone
+		: Intl.DateTimeFormat().resolvedOptions().timeZone
+
 	useEffect(() => {
 		console.log("[useSyncReminders] effect", {
 			userId: user?.id,
@@ -55,7 +61,14 @@ function useSyncRemindersToServiceWorker() {
 			id: string
 			dueAtDate: string
 		}[]
-		console.log("[useSyncReminders] syncing", { userId: user.id, reminders })
-		syncRemindersToServiceWorker(user.id, reminders)
-	}, [user?.id, remindersKey])
+		let todayStr = new Date()
+			.toLocaleDateString("sv-SE", { timeZone: timezone })
+			.slice(0, 10)
+		console.log("[useSyncReminders] syncing", {
+			userId: user.id,
+			reminders,
+			todayStr,
+		})
+		syncRemindersToServiceWorker(user.id, reminders, todayStr)
+	}, [user?.id, remindersKey, timezone])
 }
