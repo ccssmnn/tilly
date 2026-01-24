@@ -1,7 +1,6 @@
 import {
 	isDueToday,
 	isDeleted,
-	isPermanentlyDeleted,
 	Person as PersonSchema,
 	sortByUpdatedAt,
 	UserAccount,
@@ -24,12 +23,7 @@ function getDueReminders(people: Person[]) {
 	let reminders = []
 	for (let person of people) {
 		for (let reminder of person.reminders.values()) {
-			if (
-				!reminder.done &&
-				!isDeleted(reminder) &&
-				!isPermanentlyDeleted(reminder) &&
-				isDueToday(reminder)
-			) {
+			if (!reminder.done && !isDeleted(reminder) && isDueToday(reminder)) {
 				reminders.push({ reminder, person })
 			}
 		}

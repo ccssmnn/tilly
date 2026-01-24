@@ -1,6 +1,5 @@
 import {
 	isDeleted,
-	isPermanentlyDeleted,
 	sortByDueAt,
 	sortByUpdatedAt,
 	sortByDeletedAt,
@@ -20,7 +19,6 @@ type ReminderLike = {
 	done: boolean
 	dueAtDate: string
 	deletedAt?: Date
-	permanentlyDeletedAt?: Date
 	updatedAt?: Date
 	createdAt?: Date
 	$jazz: { lastUpdatedAt: number; createdAt: number }
@@ -57,8 +55,7 @@ function filterReminders<
 
 		let matchesListFilter = !listFilter || hasHashtag(person, listFilter)
 
-		let reminderIsDeleted =
-			isDeleted(reminder) && !isPermanentlyDeleted(reminder)
+		let reminderIsDeleted = isDeleted(reminder)
 		let reminderIsDone = reminder.done && !reminderIsDeleted
 		let reminderIsActive = !reminder.done && !reminderIsDeleted
 
@@ -124,8 +121,7 @@ function filterPersonReminders<R extends ReminderLike>(
 		let matchesSearch =
 			!searchLower || reminder.text.toLowerCase().includes(searchLower)
 
-		let reminderIsDeleted =
-			isDeleted(reminder) && !isPermanentlyDeleted(reminder)
+		let reminderIsDeleted = isDeleted(reminder)
 		let reminderIsDone = reminder.done && !reminderIsDeleted
 		let reminderIsActive = !reminder.done && !reminderIsDeleted
 

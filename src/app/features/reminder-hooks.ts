@@ -1,10 +1,4 @@
-import {
-	Person,
-	Reminder,
-	isDeleted,
-	isPermanentlyDeleted,
-	UserAccount,
-} from "#shared/schema/user"
+import { Person, Reminder, isDeleted, UserAccount } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
 import {
@@ -66,19 +60,18 @@ function useReminders(
 	let people =
 		loadedAccount?.root.people
 			.filter(p => p.$isLoaded)
-			.filter(p => !isDeleted(p) && !isPermanentlyDeleted(p)) ?? []
+			.filter(p => !isDeleted(p)) ?? []
 
 	let allReminderPairs: ReminderPair[] = []
 
 	for (let person of people) {
 		for (let reminder of person.reminders.values()) {
-			if (isPermanentlyDeleted(reminder)) continue
 			allReminderPairs.push({ reminder, person })
 		}
 
 		if (person.inactiveReminders?.$isLoaded) {
 			for (let reminder of person.inactiveReminders.values()) {
-				if (!reminder || isPermanentlyDeleted(reminder)) continue
+				if (!reminder) continue
 				allReminderPairs.push({ reminder, person })
 			}
 		}
@@ -100,10 +93,8 @@ function usePersonReminders(
 	let loadedPerson = person.$isLoaded ? person : defaultPerson
 
 	let allReminders = [
-		...(loadedPerson?.reminders?.filter(r => !isPermanentlyDeleted(r)) ?? []),
-		...(loadedPerson?.inactiveReminders?.filter(
-			r => !isPermanentlyDeleted(r),
-		) ?? []),
+		...(loadedPerson?.reminders ?? []),
+		...(loadedPerson?.inactiveReminders ?? []),
 	]
 
 	return filterPersonReminders(allReminders, searchQuery, options)

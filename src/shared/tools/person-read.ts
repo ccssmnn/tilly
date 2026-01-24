@@ -1,12 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
 import { co, type Loaded } from "jazz-tools"
-import {
-	Person,
-	UserAccount,
-	isDeleted,
-	isPermanentlyDeleted,
-} from "#shared/schema/user"
+import { Person, UserAccount, isDeleted } from "#shared/schema/user"
 
 export { createListPeopleTool, createGetPersonDetailsTool }
 
@@ -44,7 +39,6 @@ function createListPeopleTool(worker: Loaded<typeof UserAccount>) {
 
 			let allPeople = peopleToSearch
 				.filter(person => person != null)
-				.filter(person => !isPermanentlyDeleted(person))
 				.filter(person => input.includeDeleted || !isDeleted(person))
 
 			let people
@@ -127,7 +121,6 @@ function createGetPersonDetailsTool(worker: Loaded<typeof UserAccount>) {
 			let filteredNotes =
 				fullPerson.notes?.filter(n => {
 					if (!n) return false
-					if (isPermanentlyDeleted(n)) return false
 					if (!input.includeDeletedNotes && isDeleted(n)) return false
 					return true
 				}) || []
@@ -135,7 +128,6 @@ function createGetPersonDetailsTool(worker: Loaded<typeof UserAccount>) {
 			let filteredReminders =
 				fullPerson.reminders?.filter(r => {
 					if (!r) return false
-					if (isPermanentlyDeleted(r)) return false
 					if (!input.includeDeletedReminders && isDeleted(r)) return false
 					if (!input.includeDeletedReminders && r.done) return false
 					return true

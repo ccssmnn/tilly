@@ -1,12 +1,6 @@
 import { tool } from "ai"
 import { z } from "zod"
-import {
-	UserAccount,
-	Person,
-	Reminder,
-	isDeleted,
-	isPermanentlyDeleted,
-} from "#shared/schema/user"
+import { UserAccount, Person, Reminder, isDeleted } from "#shared/schema/user"
 import { tryCatch } from "#shared/lib/trycatch"
 import type { co, ResolveQuery, Loaded } from "jazz-tools"
 
@@ -40,12 +34,11 @@ async function listReminders(options: {
 	}> = []
 
 	for (let person of worker.root.people.values()) {
-		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
+		if (isDeleted(person)) continue
 
 		// Check active reminders
 		if (person.reminders) {
 			for (let reminder of person.reminders.values()) {
-				if (isPermanentlyDeleted(reminder)) continue
 				if (!options.includeDone && reminder.done) continue
 				if (!options.includeDeleted && isDeleted(reminder)) continue
 
@@ -59,7 +52,6 @@ async function listReminders(options: {
 			(options.includeDone || options.includeDeleted)
 		) {
 			for (let reminder of person.inactiveReminders.values()) {
-				if (isPermanentlyDeleted(reminder)) continue
 				if (!options.includeDone && reminder.done) continue
 				if (!options.includeDeleted && isDeleted(reminder)) continue
 

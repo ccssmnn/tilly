@@ -1,13 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
 import { co, type Loaded } from "jazz-tools"
-import {
-	UserAccount,
-	Person,
-	Note,
-	isDeleted,
-	isPermanentlyDeleted,
-} from "#shared/schema/user"
+import { UserAccount, Person, Note, isDeleted } from "#shared/schema/user"
 import { tryCatch } from "#shared/lib/trycatch"
 
 export { createListNotesTool }
@@ -34,13 +28,12 @@ async function listNotes(
 
 	for (let person of user.root.people.values()) {
 		if (!person) continue
-		if (isPermanentlyDeleted(person) || isDeleted(person)) continue
+		if (isDeleted(person)) continue
 
 		// Check active notes
 		if (person.notes) {
 			for (let note of person.notes.values()) {
 				if (!note) continue
-				if (isPermanentlyDeleted(note)) continue
 				if (!options.includeDeleted && isDeleted(note)) continue
 				notePairs.push({ note, person })
 			}
@@ -50,7 +43,6 @@ async function listNotes(
 		if (person.inactiveNotes && options.includeDeleted) {
 			for (let note of person.inactiveNotes.values()) {
 				if (!note) continue
-				if (isPermanentlyDeleted(note)) continue
 				notePairs.push({ note, person })
 			}
 		}
