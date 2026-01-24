@@ -13,7 +13,7 @@ import {
 	markNotificationSettingsAsDelivered,
 	removeDeviceByEndpoint,
 	settingsQuery,
-	getIntl,
+	getLocalizedMessages,
 } from "./push-shared"
 import type {
 	PushDevice,
@@ -257,15 +257,16 @@ function removeFromList<T>(list: T[], item: T) {
 }
 
 // Create localized notification payload with {count} placeholder for SW interpolation
+// Note: We access raw message strings directly (not via t()) to preserve {count} placeholder
 function createLocalizedNotificationPayload(
 	userId: string,
 	worker: LoadedUserAccountSettings,
 ): NotificationPayload {
-	let t = getIntl(worker)
+	let messages = getLocalizedMessages(worker)
 	return {
-		titleOne: t("server.push.dueReminders.titleOne"),
-		titleMany: t("server.push.dueReminders.titleMany"),
-		body: t("server.push.dueReminders.body"),
+		titleOne: messages["server.push.dueReminders.titleOne"],
+		titleMany: messages["server.push.dueReminders.titleMany"],
+		body: messages["server.push.dueReminders.body"],
 		icon: "/favicon.ico",
 		badge: "/favicon.ico",
 		url: "/app/reminders",

@@ -6,6 +6,10 @@ import type { co, ResolveQuery } from "jazz-tools"
 import webpush from "web-push"
 import { createIntl } from "@ccssmnn/intl"
 import { messagesEn, messagesDe } from "#shared/intl/messages"
+import {
+	baseServerMessages,
+	deServerMessages,
+} from "#shared/intl/messages.server"
 
 export {
 	getEnabledDevices,
@@ -14,6 +18,7 @@ export {
 	removeDeviceByEndpoint,
 	settingsQuery,
 	getIntl,
+	getLocalizedMessages,
 }
 export type {
 	PushDevice,
@@ -148,4 +153,13 @@ function getIntl(worker: { root: { language?: string } }) {
 	} else {
 		return createIntl(messagesEn, "en")
 	}
+}
+
+/**
+ * Returns raw message strings for the user's language (without interpolation)
+ * Use this when you need to preserve placeholders like {count} for client-side interpolation
+ */
+function getLocalizedMessages(worker: { root: { language?: string } }) {
+	let userLanguage = worker.root.language || "en"
+	return userLanguage === "de" ? deServerMessages : baseServerMessages
 }
