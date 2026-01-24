@@ -21,6 +21,7 @@ import { Input } from "#shared/ui/input"
 import { Person, UserAccount, Note, Reminder } from "#shared/schema/user"
 
 import { tryCatch } from "#shared/lib/trycatch"
+import { permanentlyDeletePerson } from "#shared/lib/delete-covalue"
 import { isMac } from "#app/hooks/use-pwa"
 import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
@@ -669,7 +670,6 @@ async function migrateNestedListsToGroup(
 					content: note.content,
 					pinned: note.pinned,
 					deletedAt: note.deletedAt,
-					permanentlyDeletedAt: note.permanentlyDeletedAt,
 					createdAt: note.createdAt,
 					updatedAt: note.updatedAt,
 				},
@@ -693,7 +693,6 @@ async function migrateNestedListsToGroup(
 					repeat: reminder.repeat,
 					done: reminder.done,
 					deletedAt: reminder.deletedAt,
-					permanentlyDeletedAt: reminder.permanentlyDeletedAt,
 					createdAt: reminder.createdAt,
 					updatedAt: reminder.updatedAt,
 				},
@@ -716,7 +715,6 @@ async function migrateNestedListsToGroup(
 					content: note.content,
 					pinned: note.pinned,
 					deletedAt: note.deletedAt,
-					permanentlyDeletedAt: note.permanentlyDeletedAt,
 					createdAt: note.createdAt,
 					updatedAt: note.updatedAt,
 				},
@@ -740,7 +738,6 @@ async function migrateNestedListsToGroup(
 					repeat: reminder.repeat,
 					done: reminder.done,
 					deletedAt: reminder.deletedAt,
-					permanentlyDeletedAt: reminder.permanentlyDeletedAt,
 					createdAt: reminder.createdAt,
 					updatedAt: reminder.updatedAt,
 				},
@@ -796,7 +793,6 @@ async function migratePersonToGroup(
 				content: note.content,
 				pinned: note.pinned,
 				deletedAt: note.deletedAt,
-				permanentlyDeletedAt: note.permanentlyDeletedAt,
 				createdAt: note.createdAt,
 				updatedAt: note.updatedAt,
 			},
@@ -815,7 +811,6 @@ async function migratePersonToGroup(
 				repeat: reminder.repeat,
 				done: reminder.done,
 				deletedAt: reminder.deletedAt,
-				permanentlyDeletedAt: reminder.permanentlyDeletedAt,
 				createdAt: reminder.createdAt,
 				updatedAt: reminder.updatedAt,
 			},
@@ -834,7 +829,8 @@ async function migratePersonToGroup(
 		account.root.people.$jazz.set(idx, newPerson)
 	}
 
-	person.$jazz.set("permanentlyDeletedAt", now)
+	// Permanently delete the old person after migration
+	await permanentlyDeletePerson(person)
 
 	return { group, person: newPerson }
 }
