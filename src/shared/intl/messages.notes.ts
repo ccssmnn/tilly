@@ -19,6 +19,8 @@ const baseNotesMessages = messages({
 	"notes.empty.suggestion.withSearch": "Try adjusting your search terms",
 	"notes.empty.suggestion.noSearch":
 		"Notes are where you journal what you want to remember about someone.",
+	"notes.empty.noDeleted": "No Deleted Notes",
+	"notes.empty.noDeleted.description": "Deleted notes will appear here.",
 	"notes.deleted.count":
 		".input {$count :number} .match $count one {{{$count} deleted note}} * {{{$count} deleted notes}}",
 	"notes.deleted.heading": "Deleted Notes ({$count :number})",
@@ -102,6 +104,9 @@ const deNotesMessages = translate(baseNotesMessages, {
 	"notes.empty.suggestion.withSearch": "Passe deine Suchbegriffe an",
 	"notes.empty.suggestion.noSearch":
 		"Notizen sind der Ort, an dem du aufschreibst, woran du dich über jemanden erinnern möchtest.",
+	"notes.empty.noDeleted": "Keine gelöschten Notizen",
+	"notes.empty.noDeleted.description":
+		"Gelöschte Notizen werden hier angezeigt.",
 	"notes.deleted.count":
 		".input {$count :number} .match $count one {{{$count} gelöschte Notiz}} * {{{$count} gelöschte Notizen}}",
 	"notes.deleted.heading": "Gelöschte Notizen ({$count :number})",

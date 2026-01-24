@@ -11,7 +11,7 @@ import {
 import { Note, Person, UserAccount } from "#shared/schema/user"
 import { co, type ResolveQuery } from "jazz-tools"
 import { useDeferredValue, useId, type ReactNode } from "react"
-import { TypographyH1, TypographyH2 } from "#shared/ui/typography"
+import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
 import {
@@ -21,7 +21,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-import { X, Search, Plus } from "react-bootstrap-icons"
+import { X, Search, Plus, Trash } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -59,13 +59,16 @@ let resolve = {
 function NotesScreen() {
 	let { me: data } = Route.useLoaderData()
 
-	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
+	let { notesSearchQuery, notesListFilter, notesStatusFilter } = useAppStore()
 	let searchQuery = useDeferredValue(notesSearchQuery)
 
-	let notes = useNotes(searchQuery, data as NotesLoadedAccount)
+	let { notes, total } = useNotes(searchQuery, data as NotesLoadedAccount, {
+		listFilter: notesListFilter,
+		statusFilter: notesStatusFilter,
+	})
 
-	let didSearch = !!searchQuery
-	let hasMatches = notes.active.length > 0 || notes.deleted.length > 0
+	let didSearch = !!searchQuery || notesListFilter !== null
+	let hasResults = notes.length > 0
 
 	let allPeople = data.root.people.filter(p => p?.$isLoaded)
 
@@ -73,30 +76,23 @@ function NotesScreen() {
 
 	virtualItems.push({ type: "heading" })
 
-	if (notes.total > 0) {
+	if (total > 0) {
 		virtualItems.push({ type: "search" })
 	}
 
-	if (notes.total === 0 || (!didSearch && !hasMatches)) {
+	if (notesStatusFilter === "deleted" && !hasResults) {
+		virtualItems.push({ type: "no-deleted" })
+	} else if (total === 0 || (!didSearch && !hasResults)) {
 		virtualItems.push({ type: "no-notes" })
-	} else if (didSearch && !hasMatches) {
+	} else if (didSearch && !hasResults) {
 		virtualItems.push({ type: "no-results", searchQuery })
 	} else {
-		if (notes.active.length === 0) {
-			virtualItems.push({ type: "no-notes" })
+		if (hasResults) {
+			notes.forEach(({ note, person }) => {
+				virtualItems.push({ type: "note", note, person })
+			})
 		} else {
-			notes.active.forEach(({ note, person }) => {
-				virtualItems.push({ type: "note", note, person })
-			})
-		}
-		if (notes.deleted.length > 0) {
-			virtualItems.push({
-				type: "deleted-notes-heading",
-				count: notes.deleted.length,
-			})
-			notes.deleted.forEach(({ note, person }) => {
-				virtualItems.push({ type: "note", note, person })
-			})
+			virtualItems.push({ type: "no-notes" })
 		}
 		virtualItems.push({ type: "spacer" })
 	}
@@ -157,12 +153,7 @@ function NotesScreen() {
 							)}
 							style={{ transform: `translateY(${virtualRow.start}px)` }}
 						>
-							{renderVirtualItem(
-								item,
-								searchQuery,
-								allPeople,
-								setNotesSearchQuery,
-							)}
+							{renderVirtualItem(item, searchQuery, allPeople)}
 						</div>
 					)
 				})}
@@ -181,27 +172,20 @@ type VirtualItem =
 	  }
 	| { type: "no-results"; searchQuery: string }
 	| { type: "no-notes" }
-	| { type: "deleted-notes-heading"; count: number }
+	| { type: "no-deleted" }
 	| { type: "spacer" }
 
 function renderVirtualItem(
 	item: VirtualItem,
 	searchQuery: string,
 	allPeople: PersonWithSummary[],
-	setSearchQuery: (query: string) => void,
 ): ReactNode {
 	switch (item.type) {
 		case "heading":
 			return <HeadingSection />
 
 		case "search":
-			return (
-				<SearchSection
-					allPeople={allPeople}
-					searchQuery={searchQuery}
-					setSearchQuery={setSearchQuery}
-				/>
-			)
+			return <SearchSection allPeople={allPeople} />
 
 		case "note":
 			return (
@@ -218,8 +202,8 @@ function renderVirtualItem(
 		case "no-notes":
 			return <NoNotesState />
 
-		case "deleted-notes-heading":
-			return <DeletedNotesHeading count={item.count} />
+		case "no-deleted":
+			return <NoDeletedNotesState />
 
 		case "spacer":
 			return <Spacer />
@@ -242,19 +226,23 @@ function HeadingSection() {
 	)
 }
 
-function SearchSection({
-	allPeople,
-	searchQuery,
-	setSearchQuery,
-}: {
-	allPeople: PersonWithSummary[]
-	searchQuery: string
-	setSearchQuery: (query: string) => void
-}) {
+function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 	let autoFocusRef = useAutoFocusInput() as React.RefObject<HTMLInputElement>
-	let { notesSearchQuery, setNotesSearchQuery } = useAppStore()
+	let {
+		notesSearchQuery,
+		setNotesSearchQuery,
+		notesListFilter,
+		setNotesListFilter,
+		notesStatusFilter,
+		setNotesStatusFilter,
+	} = useAppStore()
 	let t = useIntl()
 	let searchInputId = useId()
+
+	let statusOptions = [
+		{ value: "active", label: t("filter.status.active") },
+		{ value: "deleted", label: t("filter.status.deleted") },
+	]
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
@@ -285,8 +273,13 @@ function SearchSection({
 			) : null}
 			<ListFilterButton
 				people={allPeople}
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
+				listFilter={notesListFilter}
+				onListFilterChange={setNotesListFilter}
+				statusOptions={statusOptions}
+				statusFilter={notesStatusFilter}
+				onStatusFilterChange={filter =>
+					setNotesStatusFilter(filter as "active" | "deleted")
+				}
 			/>
 			<NewNote>
 				<Button>
@@ -308,6 +301,26 @@ function NoNotesState() {
 	)
 }
 
+function NoDeletedNotesState() {
+	return (
+		<div className="container mx-auto max-w-6xl px-3 py-6">
+			<Empty>
+				<EmptyHeader>
+					<EmptyMedia variant="icon" className="bg-destructive/10">
+						<Trash className="text-destructive" />
+					</EmptyMedia>
+					<EmptyTitle>
+						<T k="notes.empty.noDeleted" />
+					</EmptyTitle>
+					<EmptyDescription>
+						<T k="notes.empty.noDeleted.description" />
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		</div>
+	)
+}
+
 function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 	return (
 		<div className="container mx-auto max-w-6xl px-3 py-6">
@@ -325,14 +338,6 @@ function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 				</EmptyHeader>
 			</Empty>
 		</div>
-	)
-}
-
-function DeletedNotesHeading({ count }: { count: number }) {
-	return (
-		<TypographyH2 className="text-xl first:mt-10">
-			<T k="notes.deleted.heading" params={{ count }} />
-		</TypographyH2>
 	)
 }
 

@@ -161,6 +161,16 @@ const baseUiMessages = messages({
 	"invite.signIn.title": "Sign in to accept invite",
 	"invite.signIn.description":
 		"You've been invited to collaborate. Sign in or create an account to continue.",
+
+	// Filter messages
+	"filter.status": "Status",
+	"filter.status.active": "Active",
+	"filter.status.done": "Done",
+	"filter.status.deleted": "Deleted",
+	"filter.sort": "Sort",
+	"filter.sort.recent": "Recently updated",
+	"filter.sort.alphabetical": "Alphabetical",
+	"filter.lists.all": "All",
 })
 
 const deUiMessages = translate(baseUiMessages, {
@@ -323,4 +333,14 @@ const deUiMessages = translate(baseUiMessages, {
 	"invite.signIn.title": "Anmelden um Einladung anzunehmen",
 	"invite.signIn.description":
 		"Du wurdest zur Zusammenarbeit eingeladen. Melde dich an oder erstelle ein Konto um fortzufahren.",
+
+	// Filter messages
+	"filter.status": "Status",
+	"filter.status.active": "Aktiv",
+	"filter.status.done": "Erledigt",
+	"filter.status.deleted": "Gelöscht",
+	"filter.sort": "Sortierung",
+	"filter.sort.recent": "Zuletzt aktualisiert",
+	"filter.sort.alphabetical": "Alphabetisch",
+	"filter.lists.all": "Alle",
 })

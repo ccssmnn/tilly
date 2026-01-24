@@ -20,6 +20,8 @@ const basePeopleMessages = messages({
 	"people.deleted.count":
 		".input {$count :number} .match $count one {{{$count} deleted person}} * {{{$count} deleted people}}",
 	"people.deleted.heading": "Deleted ({$count :number})",
+	"people.empty.noDeleted": "No Deleted People",
+	"people.empty.noDeleted.description": "Deleted people will appear here.",
 
 	// Person detail and form messages
 	"person.new.title": "New Person",
@@ -200,6 +202,9 @@ const dePeopleMessages = translate(basePeopleMessages, {
 	"people.deleted.count":
 		".input {$count :number} .match $count one {{{$count} gelöschte Person}} * {{{$count} gelöschte Personen}}",
 	"people.deleted.heading": "Gelöscht ({$count :number})",
+	"people.empty.noDeleted": "Keine gelöschten Personen",
+	"people.empty.noDeleted.description":
+		"Gelöschte Personen werden hier angezeigt.",
 
 	// Person detail and form messages
 	"person.new.title": "Neue Person",
