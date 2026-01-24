@@ -45,11 +45,17 @@ function useSyncRemindersToServiceWorker() {
 	}, [me])
 
 	useEffect(() => {
+		console.log("[useSyncReminders] effect", {
+			userId: user?.id,
+			hasRemindersKey: !!remindersKey,
+			remindersKey,
+		})
 		if (!user?.id || !remindersKey) return
 		let reminders = JSON.parse(remindersKey) as {
 			id: string
 			dueAtDate: string
 		}[]
+		console.log("[useSyncReminders] syncing", { userId: user.id, reminders })
 		syncRemindersToServiceWorker(user.id, reminders)
 	}, [user?.id, remindersKey])
 }

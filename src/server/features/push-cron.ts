@@ -11,6 +11,7 @@ import {
 	getEnabledDevices,
 	sendNotificationToDevice,
 	markNotificationSettingsAsDelivered,
+	removeDeviceByEndpoint,
 	settingsQuery,
 	getIntl,
 } from "./push-shared"
@@ -205,35 +206,29 @@ async function processDevicesPipeline(
 
 	let payload = createLocalizedNotificationPayload(user.id, worker)
 
-	let devicePromises = devices.map((device: PushDevice) =>
-		sendNotificationToDevice(device, payload),
-	)
+	let deviceResults: { success: boolean }[] = []
 
-	let results = await Promise.allSettled(devicePromises)
+	for (let device of devices) {
+		let result = await sendNotificationToDevice(device, payload)
 
-	let deviceResults = results.map((result, i) => {
-		let success = result.status === "fulfilled" && result.value?.ok === true
-
-		if (!success) {
-			let error =
-				result.status === "fulfilled"
-					? !result.value.ok
-						? result.value.error
-						: "Device delivery failed"
-					: result.reason?.message || result.reason || "Unknown error"
-
-			console.error(
-				`❌ User ${user.id}: Failed to send to device ${devices[i].endpoint.slice(-10)}:`,
-				error,
-			)
-		} else {
+		if (result.ok) {
 			console.log(
-				`✅ User ${user.id}: Successfully sent to device ${devices[i].endpoint.slice(-10)}`,
+				`✅ User ${user.id}: Successfully sent to device ${device.endpoint.slice(-10)}`,
 			)
-		}
+			deviceResults.push({ success: true })
+		} else {
+			console.error(
+				`❌ User ${user.id}: Failed to send to device ${device.endpoint.slice(-10)}:`,
+				result.error,
+			)
 
-		return { success }
-	})
+			if (result.shouldRemove) {
+				removeDeviceByEndpoint(notificationSettings, device.endpoint)
+			}
+
+			deviceResults.push({ success: false })
+		}
+	}
 
 	let userSuccess = deviceResults.some(r => r.success)
 

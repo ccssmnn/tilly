@@ -43,6 +43,7 @@ type NotificationPayload = {
 	userId?: string
 	url?: string
 	count?: number
+	isTest?: boolean
 }
 
 let sw = self
@@ -73,10 +74,15 @@ sw.addEventListener("message", event => {
 })
 
 sw.addEventListener("push", event => {
+	console.log("[SW] Push event received", {
+		hasData: !!event.data,
+		rawText: event.data?.text?.() ?? null,
+	})
 	let notificationData = mergeNotificationPayload(
 		getDefaultNotificationPayload(),
 		event.data,
 	)
+	console.log("[SW] Parsed notification data:", notificationData)
 	event.waitUntil(validateAuthAndShowNotification(notificationData))
 })
 
@@ -96,6 +102,13 @@ sw.addEventListener("notificationclick", event => {
 async function validateAuthAndShowNotification(
 	notificationData: NotificationPayload,
 ): Promise<void> {
+	// Test notifications always show (use count from payload or default to 1)
+	if (notificationData.isTest) {
+		console.log("[SW] Test notification, skipping validation")
+		await showNotification(notificationData, notificationData.count ?? 1)
+		return
+	}
+
 	let payloadUserId = notificationData.userId
 	if (!payloadUserId) {
 		console.log("[SW] No userId in payload, suppressing notification")
@@ -130,12 +143,14 @@ async function showNotification(
 	notificationData: NotificationPayload,
 	count: number,
 ): Promise<void> {
+	console.log("[SW] showNotification called", { notificationData, count })
 	let titleTemplate =
 		count === 1
 			? (notificationData.titleOne ?? notificationData.title ?? "")
 			: (notificationData.titleMany ?? notificationData.title ?? "")
 	let title = titleTemplate.replace("{count}", String(count))
 	let body = notificationData.body.replace("{count}", String(count))
+	console.log("[SW] Showing notification:", { title, body })
 
 	await sw.registration.showNotification(title, {
 		body,
@@ -232,28 +247,30 @@ function mergeNotificationPayload(
 	}
 
 	if (parsed && typeof parsed === "object") {
-		let keys: Array<keyof NotificationPayload> = [
+		let stringKeys = [
 			"title",
+			"titleOne",
+			"titleMany",
 			"body",
 			"icon",
 			"badge",
 			"tag",
 			"userId",
 			"url",
-			"count",
-		]
-		for (let key of keys) {
+		] as const
+		for (let key of stringKeys) {
 			let value = Reflect.get(parsed, key)
-			if (value === undefined || value === null) continue
-			if (key === "count") {
-				if (typeof value === "number") {
-					result.count = value
-				}
-				continue
-			}
 			if (typeof value === "string") {
 				result[key] = value
 			}
+		}
+		let countValue = Reflect.get(parsed, "count")
+		if (typeof countValue === "number") {
+			result.count = countValue
+		}
+		let isTestValue = Reflect.get(parsed, "isTest")
+		if (typeof isTestValue === "boolean") {
+			result.isTest = isTestValue
 		}
 		return result
 	}
@@ -270,28 +287,30 @@ function mergeNotificationPayload(
 function toNotificationPayload(value: unknown): NotificationPayload | null {
 	if (typeof value !== "object" || value === null) return null
 	let merged = { ...getDefaultNotificationPayload() }
-	let keys: Array<keyof NotificationPayload> = [
+	let stringKeys = [
 		"title",
+		"titleOne",
+		"titleMany",
 		"body",
 		"icon",
 		"badge",
 		"tag",
 		"userId",
 		"url",
-		"count",
-	]
-	for (let key of keys) {
+	] as const
+	for (let key of stringKeys) {
 		let field = Reflect.get(value, key)
-		if (field === undefined || field === null) continue
-		if (key === "count") {
-			if (typeof field === "number") {
-				merged.count = field
-			}
-			continue
-		}
 		if (typeof field === "string") {
 			merged[key] = field
 		}
+	}
+	let countField = Reflect.get(value, "count")
+	if (typeof countField === "number") {
+		merged.count = countField
+	}
+	let isTestField = Reflect.get(value, "isTest")
+	if (typeof isTestField === "boolean") {
+		merged.isTest = isTestField
 	}
 	return merged
 }
@@ -304,10 +323,16 @@ async function setRemindersInCache(
 	userId: string,
 	reminders: ReminderData[],
 ): Promise<void> {
+	console.log("[SW] setRemindersInCache called", {
+		userId,
+		reminderCount: reminders.length,
+		reminders,
+	})
 	try {
 		let cache = await caches.open(REMINDERS_CACHE)
 		let data = JSON.stringify({ [userId]: reminders })
 		await cache.put("reminders", new Response(data))
+		console.log("[SW] Reminders cached successfully")
 	} catch (error) {
 		console.log("[SW] Error caching reminders:", error)
 	}
@@ -316,12 +341,19 @@ async function setRemindersInCache(
 async function getRemindersFromCache(
 	userId: string,
 ): Promise<ReminderData[] | null> {
+	console.log("[SW] getRemindersFromCache called", { userId })
 	try {
 		let cache = await caches.open(REMINDERS_CACHE)
 		let response = await cache.match("reminders")
-		if (!response) return null
+		if (!response) {
+			console.log("[SW] No reminders in cache")
+			return null
+		}
 		let data = await response.json()
-		return data[userId] || null
+		console.log("[SW] Cache data:", data)
+		let result = data[userId] || null
+		console.log("[SW] Reminders for userId:", result)
+		return result
 	} catch (error) {
 		console.log("[SW] Error loading reminders from cache:", error)
 		return null
@@ -331,10 +363,12 @@ async function getRemindersFromCache(
 function getDueReminderCount(reminders: ReminderData[]): number {
 	let today = new Date()
 	let todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+	console.log("[SW] getDueReminderCount", { todayStr, reminders })
 	let count = 0
 	for (let r of reminders) {
 		if (r.dueAtDate <= todayStr) count++
 	}
+	console.log("[SW] Due reminder count:", count)
 	return count
 }
 

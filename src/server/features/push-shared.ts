@@ -11,6 +11,7 @@ export {
 	getEnabledDevices,
 	sendNotificationToDevice,
 	markNotificationSettingsAsDelivered,
+	removeDeviceByEndpoint,
 	settingsQuery,
 	getIntl,
 }
@@ -19,6 +20,7 @@ export type {
 	NotificationPayload,
 	LoadedUserAccountSettings,
 	LoadedNotificationSettings,
+	SendResult,
 }
 
 webpush.setVapidDetails(
@@ -66,11 +68,21 @@ function getEnabledDevices(
 	return devices
 }
 
+type SendResult =
+	| { ok: true }
+	| { ok: false; error: unknown; shouldRemove: boolean }
+
 async function sendNotificationToDevice(
 	device: PushDevice,
 	payload: NotificationPayload,
-) {
-	return await tryCatch(
+): Promise<SendResult> {
+	console.log("[Push] Sending to endpoint:", device.endpoint.slice(-20))
+	console.log(
+		"[Push] Using VAPID public key:",
+		PUBLIC_VAPID_KEY.slice(0, 20) + "...",
+	)
+
+	let result = await tryCatch(
 		webpush.sendNotification(
 			{
 				endpoint: device.endpoint,
@@ -82,6 +94,18 @@ async function sendNotificationToDevice(
 			JSON.stringify(payload),
 		),
 	)
+
+	if (result.ok) {
+		return { ok: true }
+	}
+
+	// 404/410 = subscription expired/unsubscribed
+	// 403 = invalid credentials (stale subscription)
+	let statusCode = (result.error as { statusCode?: number })?.statusCode
+	let shouldRemove =
+		statusCode === 404 || statusCode === 410 || statusCode === 403
+
+	return { ok: false, error: result.error, shouldRemove }
 }
 
 function markNotificationSettingsAsDelivered(
@@ -89,6 +113,18 @@ function markNotificationSettingsAsDelivered(
 	currentUtc: Date,
 ) {
 	notificationSettings.$jazz.set("lastDeliveredAt", currentUtc)
+}
+
+function removeDeviceByEndpoint(
+	notificationSettings: LoadedNotificationSettings,
+	endpoint: string,
+) {
+	let devices = notificationSettings.pushDevices
+	let index = devices.findIndex(d => d.endpoint === endpoint)
+	if (index !== -1) {
+		devices.splice(index, 1)
+		console.log(`🗑️ Removed stale device: ${endpoint.slice(-10)}`)
+	}
 }
 
 /**

@@ -1151,6 +1151,18 @@ async function subscribeToPushNotifications(): Promise<{
 		throw new Error("VAPID public key not configured")
 	}
 
+	console.log(
+		"[Push] Subscribing with VAPID key:",
+		PUBLIC_VAPID_KEY.slice(0, 20) + "...",
+	)
+
+	// Check for existing subscription first
+	let existingSub = await registration.pushManager.getSubscription()
+	if (existingSub) {
+		console.log("[Push] Found existing subscription, unsubscribing first...")
+		await existingSub.unsubscribe()
+	}
+
 	let subscriptionResult = await tryCatch(
 		registration.pushManager.subscribe({
 			userVisibleOnly: true,
@@ -1159,10 +1171,15 @@ async function subscribeToPushNotifications(): Promise<{
 	)
 
 	if (!subscriptionResult.ok) {
+		console.error("[Push] Subscribe failed:", subscriptionResult.error)
 		throw new Error("Failed to subscribe to push notifications")
 	}
 
 	let subscription = subscriptionResult.data
+	console.log("[Push] Subscription created:", {
+		endpoint: subscription.endpoint,
+		expirationTime: subscription.expirationTime,
+	})
 
 	let p256dh = subscription.getKey("p256dh")
 	let auth = subscription.getKey("auth")
