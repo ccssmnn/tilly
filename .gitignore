@@ -18,4 +18,5 @@ scripts/mock-data.json
 scripts/mock-data.de.json
 
 .reference
+.opencode
 sync-db
