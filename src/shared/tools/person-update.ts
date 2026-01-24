@@ -12,7 +12,6 @@ async function updatePerson(
 	updates: Partial<
 		Pick<PersonData, "name" | "summary"> & {
 			deletedAt: Date | undefined
-			permanentlyDeletedAt: Date | undefined
 		}
 	> & {
 		avatarFile?: File | null
@@ -71,20 +70,6 @@ async function updatePerson(
 		}
 	}
 
-	if (updates.permanentlyDeletedAt !== undefined) {
-		revokeAllCollaborators(person)
-		person.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
-		// Remove from inactive
-		if (root.inactivePeople) {
-			let inactiveIdx = Array.from(root.inactivePeople.values()).findIndex(
-				p => p?.$jazz.id === personId,
-			)
-			if (inactiveIdx !== -1) {
-				root.inactivePeople.$jazz.splice(inactiveIdx, 1)
-			}
-		}
-	}
-
 	if (updates.avatarFile !== undefined) {
 		if (updates.avatarFile === null) {
 			person.$jazz.delete("avatar")
@@ -111,16 +96,6 @@ async function updatePerson(
 		},
 		previous,
 		_ref: person,
-	}
-}
-
-function revokeAllCollaborators(person: co.loaded<typeof Person>): void {
-	let group = person.$jazz.owner
-	if (!(group instanceof Group)) return
-	for (let member of group.members) {
-		if (member.role !== "admin") {
-			group.removeMember(member.account)
-		}
 	}
 }
 

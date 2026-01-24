@@ -13,7 +13,6 @@ async function updateNote(
 	updates: Partial<
 		Pick<NoteData, "title" | "content" | "pinned" | "createdAt"> & {
 			deletedAt: Date | string | undefined
-			permanentlyDeletedAt: Date | string | undefined
 		}
 	> & {
 		imageFiles?: File[]
@@ -50,7 +49,6 @@ async function updateNote(
 		content: note.content,
 		pinned: note.pinned,
 		deletedAt: note.deletedAt,
-		permanentlyDeletedAt: note.permanentlyDeletedAt,
 		createdAt: note.createdAt,
 		updatedAt: note.updatedAt,
 		imageCount: note.imageCount,
@@ -145,22 +143,6 @@ async function updateNote(
 		}
 	}
 
-	if (updates.permanentlyDeletedAt !== undefined) {
-		note.$jazz.set(
-			"permanentlyDeletedAt",
-			new Date(updates.permanentlyDeletedAt),
-		)
-		// Remove from inactive
-		if (person.inactiveNotes?.$isLoaded) {
-			let inactiveIdx = Array.from(person.inactiveNotes.values()).findIndex(
-				n => n?.$jazz.id === options.noteId,
-			)
-			if (inactiveIdx !== -1) {
-				person.inactiveNotes.$jazz.splice(inactiveIdx, 1)
-			}
-		}
-	}
-
 	note.$jazz.set("updatedAt", new Date())
 	person.$jazz.set("updatedAt", new Date())
 
@@ -174,7 +156,6 @@ async function updateNote(
 			content: note.content,
 			pinned: note.pinned,
 			deletedAt: note.deletedAt,
-			permanentlyDeletedAt: note.permanentlyDeletedAt,
 			createdAt: note.createdAt,
 			updatedAt: note.updatedAt,
 			imageCount: note.imageCount,

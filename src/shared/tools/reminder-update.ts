@@ -20,7 +20,6 @@ async function updateReminder(
 		}
 		done?: boolean
 		deletedAt?: Date | undefined
-		permanentlyDeletedAt?: Date | undefined
 	},
 	options: {
 		worker: Loaded<typeof UserAccount>
@@ -117,19 +116,6 @@ async function updateReminder(
 			if (activeIdx !== -1) {
 				person.inactiveReminders.$jazz.push(reminder)
 				person.reminders.$jazz.splice(activeIdx, 1)
-			}
-		}
-	}
-
-	if (updates.permanentlyDeletedAt !== undefined) {
-		reminder.$jazz.set("permanentlyDeletedAt", updates.permanentlyDeletedAt)
-		// Remove from inactive
-		if (person.inactiveReminders?.$isLoaded) {
-			let inactiveIdx = Array.from(person.inactiveReminders.values()).findIndex(
-				r => r?.$jazz.id === options.reminderId,
-			)
-			if (inactiveIdx !== -1) {
-				person.inactiveReminders.$jazz.splice(inactiveIdx, 1)
 			}
 		}
 	}
