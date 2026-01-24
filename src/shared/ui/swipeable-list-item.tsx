@@ -199,6 +199,11 @@ function ActionsGroup({
 	let isLeft = side === "left"
 	let containerRef = useRef<HTMLDivElement>(null)
 
+	// Only enable pointer events when swiped open (prevents iOS Safari clicking hidden actions)
+	let pointerEvents = useTransform(swipeAmount, value =>
+		(isLeft && value < -5) || (!isLeft && value > 5) ? "auto" : "none",
+	)
+
 	let { measureRef: primaryMeasureRef, width: primaryLabelWidth } =
 		useLabelWidth(primaryAction.label)
 	let { measureRef: secondaryMeasureRef, width: secondaryLabelWidth } =
@@ -241,7 +246,7 @@ function ActionsGroup({
 	)
 
 	return (
-		<div
+		<motion.div
 			ref={(node: HTMLDivElement | null) => {
 				containerRef.current = node
 				if (typeof ref === "function") ref(node)
@@ -252,6 +257,7 @@ function ActionsGroup({
 				isLeft ? "left-0" : "right-0",
 				isLeft ? "" : "flex-row-reverse",
 			)}
+			style={{ pointerEvents }}
 		>
 			<HiddenLabel ref={primaryMeasureRef}>{primaryAction.label}</HiddenLabel>
 			{secondaryAction && (
@@ -313,7 +319,7 @@ function ActionsGroup({
 					</span>
 				</motion.button>
 			)}
-		</div>
+		</motion.div>
 	)
 }
 
