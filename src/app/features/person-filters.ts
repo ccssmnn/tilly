@@ -1,19 +1,18 @@
 import {
-	Person,
 	isDeleted,
 	isPermanentlyDeleted,
 	sortByUpdatedAt,
 	sortByDeletedAt,
 } from "#shared/schema/user"
 import { hasHashtag } from "#app/features/list-utilities"
-import { co } from "jazz-tools"
 
 export {
-	usePeople,
+	filterPeople,
 	extractListFilterFromQuery,
 	setListFilterInQuery,
 	extractSearchWithoutFilter,
 }
+export type { PeopleFilterOptions }
 
 type PeopleFilterOptions = {
 	listFilter: string | null
@@ -21,10 +20,23 @@ type PeopleFilterOptions = {
 	sortMode: "recent" | "alphabetical"
 }
 
-function usePeople<A extends readonly P[], P extends co.loaded<typeof Person>>(
-	allPeople: A,
+type PersonLike = {
+	name: string
+	summary?: string
+	deletedAt?: Date
+	permanentlyDeletedAt?: Date
+	updatedAt?: Date
+	createdAt?: Date
+	$jazz: {
+		lastUpdatedAt: number
+		createdAt: number
+	}
+}
+
+function filterPeople<P extends PersonLike>(
+	allPeople: readonly P[],
 	searchQuery: string,
-	inactivePeople?: A,
+	inactivePeople?: readonly P[],
 	options?: PeopleFilterOptions,
 ): P[] {
 	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])].filter(

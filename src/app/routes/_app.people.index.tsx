@@ -19,7 +19,7 @@ import {
 } from "#shared/ui/empty"
 import { useAccount } from "jazz-tools/react"
 import { co, type ResolveQuery } from "jazz-tools"
-import { usePeople } from "#app/features/person-hooks"
+import { filterPeople } from "#app/features/person-filters"
 import { useDeferredValue, useId, type ReactNode } from "react"
 import { PersonListItem } from "#app/features/person-list-item"
 import { useAppStore } from "#app/lib/store"
@@ -91,16 +91,11 @@ function PeopleScreen() {
 	} = useAppStore()
 	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)
 
-	let people = usePeople<LoadedPerson[], LoadedPerson>(
-		allPeople,
-		deferredSearchQuery,
-		inactivePeople,
-		{
-			listFilter: peopleListFilter,
-			statusFilter: peopleStatusFilter,
-			sortMode: peopleSortMode,
-		},
-	)
+	let people = filterPeople(allPeople, deferredSearchQuery, inactivePeople, {
+		listFilter: peopleListFilter,
+		statusFilter: peopleStatusFilter,
+		sortMode: peopleSortMode,
+	})
 
 	let didSearch = deferredSearchQuery !== "" || peopleListFilter !== null
 	let hasPeople = allPeople.length > 0 || (inactivePeople?.length ?? 0) > 0
