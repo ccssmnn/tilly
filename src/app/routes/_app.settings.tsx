@@ -65,6 +65,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
 import { useHasPlusAccess } from "#app/features/plus"
+import { permanentlyDeleteAllPeople } from "#shared/lib/delete-covalue"
 
 export const Route = createFileRoute("/_app/settings")({
 	loader: async ({ context }) => {
@@ -702,7 +703,12 @@ function DeleteDataButton({
 	async function onSubmit() {
 		let accountResult = await tryCatch(
 			UserAccount.load(currentMe.$jazz.id, {
-				resolve: { root: { people: true } },
+				resolve: {
+					root: {
+						people: { $each: true },
+						inactivePeople: { $each: true },
+					},
+				},
 			}),
 		)
 		if (!accountResult.ok || !accountResult.data.$isLoaded) {
@@ -716,8 +722,12 @@ function DeleteDataButton({
 			return
 		}
 
-		// Clear all people (and thus their notes/reminders) permanently
+		// Permanently delete all people and their data
+		await permanentlyDeleteAllPeople(account)
+
+		// Clear the lists
 		account.root.$jazz.set("people", co.list(Person).create([]))
+		account.root.$jazz.set("inactivePeople", co.list(Person).create([]))
 
 		// Clear chat history
 		if (account.root.assistant) {
