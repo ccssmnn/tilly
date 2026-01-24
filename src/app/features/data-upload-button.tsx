@@ -28,6 +28,7 @@ import { Person, Note, UserAccount, Reminder } from "#shared/schema/user"
 import { co, Group } from "jazz-tools"
 import { FileDataSchema, type FileData } from "./data-file-schema"
 import { T, useIntl } from "#shared/intl/setup"
+import { permanentlyDeletePerson } from "#shared/lib/delete-covalue"
 
 let uploadFormSchema = z.object({
 	file: z.instanceof(FileList).refine(files => files.length > 0, {
@@ -76,7 +77,10 @@ export function UploadButton({ userID }: { userID: string }) {
 
 		let jsonData: FileData = check.data
 
-		// Replace all existing data
+		// Store old people for deletion after import
+		let oldPeople = Array.from(account.root.people.values()).filter(Boolean)
+
+		// Clear list before importing
 		account.root.people.$jazz.splice(0, account.root.people.length)
 
 		for (let personData of jsonData.people) {
@@ -209,6 +213,15 @@ export function UploadButton({ userID }: { userID: string }) {
 			} catch (error) {
 				console.error(`Error processing person ${personData.name}:`, error)
 				toast.error(t("data.import.personError", { name: personData.name }))
+			}
+		}
+
+		// Delete old people after successful import
+		for (let person of oldPeople) {
+			try {
+				await permanentlyDeletePerson(person)
+			} catch {
+				// May fail if not accessible, skip
 			}
 		}
 
