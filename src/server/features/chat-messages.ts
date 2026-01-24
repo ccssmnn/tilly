@@ -305,7 +305,7 @@ async function generateAIResponse(params: {
 		let gw = createGateway({ apiKey: AI_GATEWAY_API_KEY })
 
 		let result = streamText({
-			model: gw("google/gemini-3-flash"),
+			model: gw("google/gemini-2.5-flash"),
 			messages: params.modelMessages,
 			system: makeStaticSystemPrompt(),
 			tools: allTools,

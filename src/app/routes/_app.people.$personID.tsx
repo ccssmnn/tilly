@@ -20,6 +20,10 @@ import {
 	X,
 	Search,
 	ShieldSlash,
+	Collection,
+	Sliders,
+	Trash,
+	Check,
 } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
@@ -44,18 +48,20 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
+} from "#shared/ui/dropdown-menu"
 import { createReminder } from "#shared/tools/reminder-create"
 import { createNote } from "#shared/tools/note-create"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
 import { cn } from "#app/lib/utils"
 import { useIsMobile } from "#app/hooks/use-mobile"
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "#shared/ui/accordion"
 import { T, useIntl } from "#shared/intl/setup"
 import { NoteTour } from "#app/features/note-tour"
 import { ReminderTour } from "#app/features/reminder-tour"
@@ -98,8 +104,24 @@ function PersonScreen() {
 	let autoFocusRef = useAutoFocusInput()
 	let t = useIntl()
 	let searchInputId = useId()
-	let notes = usePersonNotes(personID, deferredSearchQuery)
-	let reminders = usePersonReminders(personID, deferredSearchQuery)
+
+	let [notesStatusFilter, setNotesStatusFilter] = useState<
+		"active" | "deleted"
+	>("active")
+	let [remindersStatusFilter, setRemindersStatusFilter] = useState<
+		"active" | "done" | "deleted"
+	>("active")
+
+	let notes = usePersonNotes(personID, deferredSearchQuery, undefined, {
+		statusFilter: notesStatusFilter,
+	})
+	let reminders = usePersonReminders(personID, deferredSearchQuery, undefined, {
+		statusFilter: remindersStatusFilter,
+	})
+	// For due reminder indicator, we need to check active reminders
+	let activeReminders = usePersonReminders(personID, "", undefined, {
+		statusFilter: "active",
+	})
 
 	// Handle initial load states from loader
 	if (!data.person) {
@@ -121,7 +143,7 @@ function PersonScreen() {
 	}
 
 	let person = subscribedPerson.$isLoaded ? subscribedPerson : data.person
-	let hasDueReminders = reminders.open.some(reminder => isDueToday(reminder))
+	let hasDueReminders = activeReminders.some(reminder => isDueToday(reminder))
 
 	if (!me) {
 		return (
@@ -168,6 +190,30 @@ function PersonScreen() {
 							</span>
 						</Button>
 					) : null}
+					<StatusFilterButton
+						statusOptions={
+							tab === "notes"
+								? [
+										{ value: "active", label: t("filter.status.active") },
+										{ value: "deleted", label: t("filter.status.deleted") },
+									]
+								: [
+										{ value: "active", label: t("filter.status.active") },
+										{ value: "done", label: t("filter.status.done") },
+										{ value: "deleted", label: t("filter.status.deleted") },
+									]
+						}
+						statusFilter={
+							tab === "notes" ? notesStatusFilter : remindersStatusFilter
+						}
+						onStatusFilterChange={filter =>
+							tab === "notes"
+								? setNotesStatusFilter(filter as "active" | "deleted")
+								: setRemindersStatusFilter(
+										filter as "active" | "done" | "deleted",
+									)
+						}
+					/>
 				</div>
 				<Tabs value={tab}>
 					<div className="mb-6 flex items-center justify-between gap-3">
@@ -185,7 +231,7 @@ function PersonScreen() {
 									<span className={cn(isMobile && tab !== "notes" && "hidden")}>
 										<T
 											k="person.detail.notes.tab"
-											params={{ count: notes.active.length }}
+											params={{ count: notes.length }}
 										/>
 									</span>
 								</Link>
@@ -210,7 +256,7 @@ function PersonScreen() {
 									>
 										<T
 											k="person.detail.reminders.tab"
-											params={{ count: reminders.open.length }}
+											params={{ count: reminders.length }}
 										/>
 									</span>
 								</Link>
@@ -228,6 +274,7 @@ function PersonScreen() {
 							notes={notes}
 							person={person}
 							searchQuery={deferredSearchQuery}
+							statusFilter={notesStatusFilter}
 						/>
 					</TabsContent>
 					<TabsContent value="reminders">
@@ -236,6 +283,7 @@ function PersonScreen() {
 							person={person}
 							me={me}
 							searchQuery={deferredSearchQuery}
+							statusFilter={remindersStatusFilter}
 						/>
 					</TabsContent>
 				</Tabs>
@@ -248,19 +296,34 @@ function NotesList({
 	notes,
 	person,
 	searchQuery,
+	statusFilter,
 }: {
-	notes: {
-		active: Array<co.loaded<typeof Note>>
-		deleted: Array<co.loaded<typeof Note>>
-	}
+	notes: Array<co.loaded<typeof Note>>
 	person: co.loaded<typeof Person, typeof resolve>
 	searchQuery: string
+	statusFilter: "active" | "deleted"
 }) {
-	let didSearch = !!searchQuery
-	let hasMoreNotes = notes.deleted.length > 0
-
-	if (notes.active.length === 0 && notes.deleted.length === 0) {
+	if (notes.length === 0) {
 		if (!searchQuery) {
+			if (statusFilter === "deleted") {
+				return (
+					<div className="flex flex-col items-center justify-center py-12">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon" className="bg-destructive/10">
+									<Trash className="text-destructive" />
+								</EmptyMedia>
+								<EmptyTitle>
+									<T k="notes.empty.noDeleted" />
+								</EmptyTitle>
+								<EmptyDescription>
+									<T k="notes.empty.noDeleted.description" />
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				)
+			}
 			return <NoteTour onSuccess={() => {}} personId={person.$jazz.id} />
 		}
 
@@ -285,7 +348,7 @@ function NotesList({
 
 	return (
 		<>
-			{notes.active.map(entry => (
+			{notes.map(entry => (
 				<NoteListItem
 					key={entry.$jazz.id}
 					note={entry}
@@ -294,61 +357,47 @@ function NotesList({
 					showPerson={false}
 				/>
 			))}
-
-			{hasMoreNotes && !didSearch && (
-				<Accordion
-					type="single"
-					collapsible
-					className="-mx-3 w-[calc(100%+1.5rem)] px-3 md:mx-0 md:w-full md:px-0"
-				>
-					{notes.deleted.length > 0 && (
-						<AccordionItem value="deleted">
-							<AccordionTrigger>
-								<T
-									k="notes.deleted.count"
-									params={{ count: notes.deleted.length }}
-								/>
-							</AccordionTrigger>
-							<AccordionContent>
-								{notes.deleted.map(entry => (
-									<NoteListItem
-										key={entry.$jazz.id}
-										note={entry}
-										person={person}
-										searchQuery={searchQuery}
-										showPerson={false}
-									/>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-					)}
-				</Accordion>
-			)}
-
-			{didSearch && hasMoreNotes && (
-				<>
-					{notes.deleted.length > 0 && (
-						<>
-							<h3 className="text-muted-foreground mt-8 text-sm font-medium">
-								<T
-									k="notes.deleted.heading"
-									params={{ count: notes.deleted.length }}
-								/>
-							</h3>
-							{notes.deleted.map(entry => (
-								<NoteListItem
-									key={entry.$jazz.id}
-									note={entry}
-									person={person}
-									searchQuery={searchQuery}
-									showPerson={false}
-								/>
-							))}
-						</>
-					)}
-				</>
-			)}
 		</>
+	)
+}
+
+function StatusFilterButton({
+	statusOptions,
+	statusFilter,
+	onStatusFilterChange,
+}: {
+	statusOptions: { value: string; label: string }[]
+	statusFilter: string
+	onStatusFilterChange: (filter: string) => void
+}) {
+	let hasNonDefaultFilters = statusFilter !== "active"
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button variant={hasNonDefaultFilters ? "secondary" : "outline"}>
+					{hasNonDefaultFilters ? <Sliders /> : <Collection />}
+					<span className="sr-only md:not-sr-only">
+						<T k="filter.status" />
+					</span>
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				<DropdownMenuLabel>
+					<T k="filter.status" />
+				</DropdownMenuLabel>
+				<DropdownMenuRadioGroup
+					value={statusFilter}
+					onValueChange={onStatusFilterChange}
+				>
+					{statusOptions.map(option => (
+						<DropdownMenuRadioItem key={option.value} value={option.value}>
+							{option.label}
+						</DropdownMenuRadioItem>
+					))}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }
 
@@ -357,26 +406,54 @@ function RemindersList({
 	person,
 	me,
 	searchQuery,
+	statusFilter,
 }: {
-	reminders: {
-		open: Array<co.loaded<typeof Reminder>>
-		done: Array<co.loaded<typeof Reminder>>
-		deleted: Array<co.loaded<typeof Reminder>>
-	}
+	reminders: Array<co.loaded<typeof Reminder>>
 	person: co.loaded<typeof Person, typeof resolve>
 	me: co.loaded<typeof UserAccount>
 	searchQuery: string
+	statusFilter: "active" | "done" | "deleted"
 }) {
-	let didSearch = !!searchQuery
-	let hasMoreReminders =
-		reminders.done.length > 0 || reminders.deleted.length > 0
-
-	if (
-		reminders.open.length === 0 &&
-		reminders.done.length === 0 &&
-		reminders.deleted.length === 0
-	) {
+	if (reminders.length === 0) {
 		if (!searchQuery) {
+			if (statusFilter === "deleted") {
+				return (
+					<div className="flex flex-col items-center justify-center py-12">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon" className="bg-destructive/10">
+									<Trash className="text-destructive" />
+								</EmptyMedia>
+								<EmptyTitle>
+									<T k="reminders.empty.noDeleted" />
+								</EmptyTitle>
+								<EmptyDescription>
+									<T k="reminders.empty.noDeleted.description" />
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				)
+			}
+			if (statusFilter === "done") {
+				return (
+					<div className="flex flex-col items-center justify-center py-12">
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<Check className="text-muted-foreground" />
+								</EmptyMedia>
+								<EmptyTitle>
+									<T k="reminders.empty.noDone" />
+								</EmptyTitle>
+								<EmptyDescription>
+									<T k="reminders.empty.noDone.description" />
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				)
+			}
 			return <ReminderTour onSuccess={() => {}} personId={person.$jazz.id} />
 		}
 
@@ -404,7 +481,7 @@ function RemindersList({
 
 	return (
 		<>
-			{reminders.open.map(reminder => (
+			{reminders.map(reminder => (
 				<ReminderListItem
 					key={reminder.$jazz.id}
 					reminder={reminder}
@@ -414,104 +491,6 @@ function RemindersList({
 					searchQuery={searchQuery}
 				/>
 			))}
-
-			{hasMoreReminders && !didSearch && (
-				<Accordion
-					type="single"
-					collapsible
-					className="-mx-3 w-[calc(100%+1.5rem)] px-3 md:mx-0 md:w-full md:px-0"
-				>
-					{reminders.done.length > 0 && (
-						<AccordionItem value="done">
-							<AccordionTrigger>
-								<T
-									k="reminders.done.count"
-									params={{ count: reminders.done.length }}
-								/>
-							</AccordionTrigger>
-							<AccordionContent>
-								{reminders.done.map(reminder => (
-									<ReminderListItem
-										key={reminder.$jazz.id}
-										reminder={reminder}
-										person={person}
-										me={me}
-										showPerson={false}
-										searchQuery={searchQuery}
-									/>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-					)}
-					{reminders.deleted.length > 0 && (
-						<AccordionItem value="deleted">
-							<AccordionTrigger>
-								<T
-									k="reminders.deleted.count"
-									params={{ count: reminders.deleted.length }}
-								/>
-							</AccordionTrigger>
-							<AccordionContent>
-								{reminders.deleted.map(reminder => (
-									<ReminderListItem
-										key={reminder.$jazz.id}
-										reminder={reminder}
-										person={person}
-										me={me}
-										showPerson={false}
-										searchQuery={searchQuery}
-									/>
-								))}
-							</AccordionContent>
-						</AccordionItem>
-					)}
-				</Accordion>
-			)}
-
-			{didSearch && hasMoreReminders && (
-				<>
-					{reminders.done.length > 0 && (
-						<>
-							<h3 className="text-muted-foreground mt-8 text-sm font-medium">
-								<T
-									k="reminders.done.heading"
-									params={{ count: reminders.done.length }}
-								/>
-							</h3>
-							{reminders.done.map(reminder => (
-								<ReminderListItem
-									key={reminder.$jazz.id}
-									reminder={reminder}
-									person={person}
-									me={me}
-									showPerson={false}
-									searchQuery={searchQuery}
-								/>
-							))}
-						</>
-					)}
-					{reminders.deleted.length > 0 && (
-						<>
-							<h3 className="text-muted-foreground mt-8 text-sm font-medium">
-								<T
-									k="reminders.deleted.heading"
-									params={{ count: reminders.deleted.length }}
-								/>
-							</h3>
-							{reminders.deleted.map(reminder => (
-								<ReminderListItem
-									key={reminder.$jazz.id}
-									reminder={reminder}
-									person={person}
-									me={me}
-									showPerson={false}
-									searchQuery={searchQuery}
-								/>
-							))}
-						</>
-					)}
-				</>
-			)}
 		</>
 	)
 }
