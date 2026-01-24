@@ -495,8 +495,9 @@ function filterVisiblePeople(
 function isVisiblePerson(
 	person: MaybeLoadedPerson | null,
 ): person is LoadedPerson {
-	// Filter out null, permanently deleted, and inaccessible (unauthorized) people
-	return Boolean(person && person.$isLoaded && !person.permanentlyDeletedAt)
+	// Filter out null and inaccessible (unauthorized) people
+	// Note: permanently deleted items no longer exist in the list
+	return Boolean(person && person.$isLoaded)
 }
 
 function Spacer() {
