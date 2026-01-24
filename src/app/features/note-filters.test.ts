@@ -5,7 +5,6 @@ type MockNote = {
 	content: string
 	pinned?: boolean
 	deletedAt?: Date
-	permanentlyDeletedAt?: Date
 	createdAt?: Date
 	$jazz: { createdAt: number; lastUpdatedAt: number }
 }
@@ -163,11 +162,10 @@ describe("filterNotes", () => {
 			expect(result.notes.map(p => p.note.content)).toEqual(["Deleted note"])
 		})
 
-		test("excludes permanently deleted from both", () => {
+		test("separates active and deleted notes", () => {
 			let pairs = [
 				createPair("Active", "Person"),
 				createPair("Deleted", "Person", { deletedAt: new Date() }),
-				createPair("Permanent", "Person", { permanentlyDeletedAt: new Date() }),
 			]
 
 			let activeResult = filterNotes(pairs, "", {
