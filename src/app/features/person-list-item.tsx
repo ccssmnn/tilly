@@ -33,6 +33,7 @@ import {
 } from "#shared/ui/hover-card"
 import { updatePerson } from "#shared/tools/person-update"
 import { tryCatch } from "#shared/lib/trycatch"
+import { permanentlyDeletePerson } from "#shared/lib/delete-covalue"
 import { toast } from "sonner"
 import { useState, type ReactNode } from "react"
 import { differenceInDays } from "date-fns"
@@ -428,9 +429,7 @@ function RestorePersonDialog({
 	async function handlePermanentDelete() {
 		if (!me.$isLoaded) return
 
-		let result = await tryCatch(
-			updatePerson(person.$jazz.id, { permanentlyDeletedAt: new Date() }, me),
-		)
+		let result = await tryCatch(permanentlyDeletePerson(person))
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,
@@ -678,13 +677,7 @@ function usePersonItemOperations({
 	}
 
 	async function deletePermanently(): Promise<boolean> {
-		let result = await tryCatch(
-			updatePerson(
-				person.$jazz.id,
-				{ permanentlyDeletedAt: new Date() },
-				loadedMe,
-			),
-		)
+		let result = await tryCatch(permanentlyDeletePerson(person))
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,

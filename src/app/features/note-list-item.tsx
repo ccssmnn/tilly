@@ -46,6 +46,7 @@ import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
 import { tryCatch } from "#shared/lib/trycatch"
+import { permanentlyDeleteNote } from "#shared/lib/delete-covalue"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
@@ -830,16 +831,7 @@ function useNoteItemOperations({
 	}
 
 	async function deletePermanently(): Promise<boolean> {
-		let result = await tryCatch(
-			updateNote(
-				{ permanentlyDeletedAt: new Date() },
-				{
-					personId: person.$jazz.id,
-					noteId: note.$jazz.id,
-					worker: loadedMe,
-				},
-			),
-		)
+		let result = await tryCatch(permanentlyDeleteNote(note))
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,

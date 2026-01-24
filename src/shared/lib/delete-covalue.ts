@@ -1,15 +1,12 @@
-import { deleteCoValues, type Loaded } from "jazz-tools"
+import { deleteCoValues, type Loaded, type ID, type CoValue } from "jazz-tools"
 import { Note, Person, Reminder, type UserAccount } from "../schema/user"
-
-type LoadedPerson = Loaded<
-	typeof Person,
-	{ notes: { $each: true }; reminders: { $each: true } }
->
 
 /**
  * Permanently deletes a note and all its images
  */
-export async function permanentlyDeleteNote(note: Loaded<typeof Note>) {
+export async function permanentlyDeleteNote(
+	note: Loaded<typeof Note> | { $jazz: { id: ID<CoValue> } },
+) {
 	await deleteCoValues(Note, note.$jazz.id, {
 		resolve: { images: { $each: true } },
 	})
@@ -19,7 +16,7 @@ export async function permanentlyDeleteNote(note: Loaded<typeof Note>) {
  * Permanently deletes a reminder
  */
 export async function permanentlyDeleteReminder(
-	reminder: Loaded<typeof Reminder>,
+	reminder: Loaded<typeof Reminder> | { $jazz: { id: ID<CoValue> } },
 ) {
 	await deleteCoValues(Reminder, reminder.$jazz.id)
 }
@@ -31,32 +28,16 @@ export async function permanentlyDeleteReminder(
  * - All reminders
  * - Inactive notes and reminders lists
  */
-export async function permanentlyDeletePerson(person: LoadedPerson) {
-	// Delete all notes with their images
-	for (let note of person.notes.values()) {
-		if (!note) continue
-		try {
-			await permanentlyDeleteNote(note)
-		} catch {
-			// Note may not be accessible, skip
-		}
-	}
-
-	// Delete all reminders
-	for (let reminder of person.reminders.values()) {
-		if (!reminder) continue
-		try {
-			await permanentlyDeleteReminder(reminder)
-		} catch {
-			// Reminder may not be accessible, skip
-		}
-	}
-
-	// Delete person with avatar and remaining nested data
+export async function permanentlyDeletePerson(
+	person: Loaded<typeof Person> | { $jazz: { id: ID<CoValue> } },
+) {
+	// Delete person with all nested data
 	await deleteCoValues(Person, person.$jazz.id, {
 		resolve: {
 			avatar: true,
+			notes: { $each: { images: { $each: true } } },
 			inactiveNotes: { $each: { images: { $each: true } } },
+			reminders: { $each: true },
 			inactiveReminders: { $each: true },
 		},
 	})
@@ -70,12 +51,8 @@ export async function permanentlyDeleteAllPeople(
 		typeof UserAccount,
 		{
 			root: {
-				people: {
-					$each: { notes: { $each: true }; reminders: { $each: true } }
-				}
-				inactivePeople: {
-					$each: { notes: { $each: true }; reminders: { $each: true } }
-				}
+				people: { $each: true }
+				inactivePeople: { $each: true }
 			}
 		}
 	>,
