@@ -6,22 +6,26 @@ import type { co, ResolveQuery } from "jazz-tools"
 import webpush from "web-push"
 import { createIntl } from "@ccssmnn/intl"
 import { messagesEn, messagesDe } from "#shared/intl/messages"
+import {
+	baseServerMessages,
+	deServerMessages,
+} from "#shared/intl/messages.server"
 
 export {
 	getEnabledDevices,
 	sendNotificationToDevice,
-	createNotificationPayload,
 	markNotificationSettingsAsDelivered,
+	removeDeviceByEndpoint,
 	settingsQuery,
-	peopleQuery,
 	getIntl,
+	getLocalizedMessages,
 }
 export type {
 	PushDevice,
 	NotificationPayload,
 	LoadedUserAccountSettings,
-	LoadedUserAccountWithPeople,
 	LoadedNotificationSettings,
+	SendResult,
 }
 
 webpush.setVapidDetails(
@@ -40,36 +44,23 @@ type PushDevice = {
 }
 
 type NotificationPayload = {
-	title: string
+	title?: string
+	titleOne?: string
+	titleMany?: string
 	body: string
 	icon: string
 	badge: string
 	url?: string
 	userId?: string
-	count?: number
 }
 
 let settingsQuery = {
 	root: { notificationSettings: true },
 } satisfies ResolveQuery<typeof UserAccount>
 
-let peopleQuery = {
-	root: {
-		people: {
-			$each: {
-				reminders: { $each: true },
-			},
-		},
-	},
-} satisfies ResolveQuery<typeof UserAccount>
-
 type LoadedUserAccountSettings = co.loaded<
 	typeof UserAccount,
 	typeof settingsQuery
->
-type LoadedUserAccountWithPeople = co.loaded<
-	typeof UserAccount,
-	typeof peopleQuery
 >
 type LoadedNotificationSettings = NonNullable<
 	LoadedUserAccountSettings["root"]["notificationSettings"]
@@ -82,26 +73,21 @@ function getEnabledDevices(
 	return devices
 }
 
-function createNotificationPayload(
-	reminderCount: number,
-	userId?: string,
-): NotificationPayload {
-	return {
-		title: `You have ${reminderCount} ${reminderCount === 1 ? "reminder" : "reminders"} due today`,
-		body: "A few moments to reach out could brighten someone's day ✨",
-		icon: "/favicon.ico",
-		badge: "/favicon.ico",
-		url: "/app/reminders",
-		userId,
-		count: reminderCount,
-	}
-}
+type SendResult =
+	| { ok: true }
+	| { ok: false; error: unknown; shouldRemove: boolean }
 
 async function sendNotificationToDevice(
 	device: PushDevice,
 	payload: NotificationPayload,
-) {
-	return await tryCatch(
+): Promise<SendResult> {
+	console.log("[Push] Sending to endpoint:", device.endpoint.slice(-20))
+	console.log(
+		"[Push] Using VAPID public key:",
+		PUBLIC_VAPID_KEY.slice(0, 20) + "...",
+	)
+
+	let result = await tryCatch(
 		webpush.sendNotification(
 			{
 				endpoint: device.endpoint,
@@ -113,6 +99,18 @@ async function sendNotificationToDevice(
 			JSON.stringify(payload),
 		),
 	)
+
+	if (result.ok) {
+		return { ok: true }
+	}
+
+	// 404/410 = subscription expired/unsubscribed
+	// 403 = invalid credentials (stale subscription)
+	let statusCode = (result.error as { statusCode?: number })?.statusCode
+	let shouldRemove =
+		statusCode === 404 || statusCode === 410 || statusCode === 403
+
+	return { ok: false, error: result.error, shouldRemove }
 }
 
 function markNotificationSettingsAsDelivered(
@@ -120,6 +118,18 @@ function markNotificationSettingsAsDelivered(
 	currentUtc: Date,
 ) {
 	notificationSettings.$jazz.set("lastDeliveredAt", currentUtc)
+}
+
+function removeDeviceByEndpoint(
+	notificationSettings: LoadedNotificationSettings,
+	endpoint: string,
+) {
+	let devices = notificationSettings.pushDevices
+	let index = devices.findIndex(d => d.endpoint === endpoint)
+	if (index !== -1) {
+		devices.splice(index, 1)
+		console.log(`🗑️ Removed stale device: ${endpoint.slice(-10)}`)
+	}
 }
 
 /**
@@ -143,4 +153,13 @@ function getIntl(worker: { root: { language?: string } }) {
 	} else {
 		return createIntl(messagesEn, "en")
 	}
+}
+
+/**
+ * Returns raw message strings for the user's language (without interpolation)
+ * Use this when you need to preserve placeholders like {count} for client-side interpolation
+ */
+function getLocalizedMessages(worker: { root: { language?: string } }) {
+	let userLanguage = worker.root.language || "en"
+	return userLanguage === "de" ? deServerMessages : baseServerMessages
 }

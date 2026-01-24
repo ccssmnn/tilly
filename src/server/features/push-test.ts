@@ -50,6 +50,7 @@ let testNotificationApp = new Hono().post(
 			badge: "/favicon.ico",
 			url: "/app/settings",
 			userId: c.get("user").id,
+			isTest: true,
 		}
 
 		let sendResult = await sendNotificationToDevice(device, testPayload)

@@ -75,9 +75,7 @@ async function translateInBatches(
 	entries: TranslatableEntry[],
 	targetLanguage: string,
 ): Promise<Map<string, string>> {
-	let gateway = createGateway({
-		apiKey: process.env.AI_GATEWAY_API_KEY,
-	})
+	let gateway = createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY })
 	let translations = new Map<string, string>()
 
 	let batches = createBatches(entries, 50)

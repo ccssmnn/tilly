@@ -9,7 +9,7 @@ import { UserAccount } from "#shared/schema/user"
 import { routeTree } from "#app/routeTree.gen"
 import { IntlProvider } from "#shared/intl/setup"
 import { messagesDe } from "#shared/intl/messages"
-import { useSyncUserIdToServiceWorker } from "#app/lib/service-worker"
+import { useSyncRemindersToServiceWorker } from "#app/hooks/use-sync-reminders-to-sw"
 import { PWAContext, usePWAProvider } from "#app/lib/pwa"
 import { SplashScreen } from "./components/splash-screen"
 import { Toaster } from "#shared/ui/sonner"
@@ -30,7 +30,6 @@ export function PWA() {
 
 function JazzWithClerk() {
 	let pwaValue = usePWAProvider()
-	useSyncUserIdToServiceWorker()
 	let clerk = useClerk()
 	let syncConfig = buildSyncConfig()
 
@@ -50,6 +49,7 @@ function JazzWithClerk() {
 }
 
 function RouterWithJazz() {
+	useSyncRemindersToServiceWorker()
 	let me = useAccount(UserAccount, { resolve: { root: true } })
 
 	// Only show splash screen if account is still loading

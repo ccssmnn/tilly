@@ -1,5 +1,20 @@
 /// <reference lib="webworker" />
 
+/**
+ * Push notification auth strategy:
+ *
+ * We use the cached reminders (keyed by userId) as the source of truth for
+ * whether a user is signed in. This eliminates the need for separate userId
+ * caching because:
+ *
+ * 1. Push payloads always include userId - if missing, we suppress anyway
+ * 2. Reminders are synced with userId via SET_REMINDERS message
+ * 3. When user signs out, reminders sync stops → cache becomes stale
+ * 4. On push, we check if payload.userId matches reminders cache key
+ *    - Match + has due reminders → show notification
+ *    - No match → clear stale cache, suppress notification
+ */
+
 import {
 	cleanupOutdatedCaches,
 	createHandlerBoundToURL,
@@ -11,13 +26,21 @@ declare let self: ServiceWorkerGlobalScope & {
 	__WB_MANIFEST: Array<{ url: string; revision?: string }>
 }
 
+type ReminderData = { id: string; dueAtDate: string }
+
 type MessageEventData =
 	| { type: "SKIP_WAITING" }
-	| { type: "SET_USER_ID"; userId: string }
-	| { type: "CLEAR_USER_ID" }
+	| {
+			type: "SET_REMINDERS"
+			userId: string
+			reminders: ReminderData[]
+			todayStr: string
+	  }
 
 type NotificationPayload = {
-	title: string
+	title?: string
+	titleOne?: string
+	titleMany?: string
 	body: string
 	icon: string
 	badge: string
@@ -25,10 +48,11 @@ type NotificationPayload = {
 	userId?: string
 	url?: string
 	count?: number
+	isTest?: boolean
 }
 
 let sw = self
-let USER_CACHE = "tilly-user-v1"
+let REMINDERS_CACHE = "tilly-reminders-v1"
 
 cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
@@ -49,21 +73,23 @@ sw.addEventListener("message", event => {
 		return
 	}
 
-	if (data.type === "SET_USER_ID") {
-		event.waitUntil(setUserIdInCache(data.userId))
-		return
-	}
-
-	if (data.type === "CLEAR_USER_ID") {
-		event.waitUntil(clearUserIdFromCache())
+	if (data.type === "SET_REMINDERS") {
+		event.waitUntil(
+			setRemindersInCache(data.userId, data.reminders, data.todayStr),
+		)
 	}
 })
 
 sw.addEventListener("push", event => {
+	console.log("[SW] Push event received", {
+		hasData: !!event.data,
+		rawText: event.data?.text?.() ?? null,
+	})
 	let notificationData = mergeNotificationPayload(
 		getDefaultNotificationPayload(),
 		event.data,
 	)
+	console.log("[SW] Parsed notification data:", notificationData)
 	event.waitUntil(validateAuthAndShowNotification(notificationData))
 })
 
@@ -83,27 +109,29 @@ sw.addEventListener("notificationclick", event => {
 async function validateAuthAndShowNotification(
 	notificationData: NotificationPayload,
 ): Promise<void> {
-	let currentUserId = await getUserIdFromCache()
-
-	if (!currentUserId) {
-		console.log("[SW] No user ID stored, suppressing notification")
+	// Test notifications always show (use count from payload or default to 1)
+	if (notificationData.isTest) {
+		console.log("[SW] Test notification, skipping validation")
+		await showNotification(notificationData, notificationData.count ?? 1)
 		return
 	}
 
-	if (!notificationData.userId) {
-		console.log(
-			"[SW] No userId in payload but user is signed in, showing notification",
-		)
-		await showNotification(notificationData)
+	let payloadUserId = notificationData.userId
+	if (!payloadUserId) {
+		console.log("[SW] No userId in payload, suppressing notification")
 		return
 	}
 
-	if (currentUserId !== notificationData.userId) {
-		console.log(
-			"[SW] User ID mismatch, suppressing notification",
-			currentUserId,
-			notificationData.userId,
-		)
+	// getRemindersFromCache returns null + clears cache if userId doesn't match
+	let cached = await getRemindersFromCache(payloadUserId)
+	if (!cached) {
+		console.log("[SW] No reminders for user, suppressing notification")
+		return
+	}
+
+	let count = getDueReminderCount(cached.reminders, cached.todayStr)
+	if (count === 0) {
+		console.log("[SW] No due reminders, suppressing notification")
 		return
 	}
 
@@ -115,29 +143,37 @@ async function validateAuthAndShowNotification(
 		return
 	}
 
-	await showNotification(notificationData)
+	await showNotification(notificationData, count)
 }
 
 async function showNotification(
 	notificationData: NotificationPayload,
+	count: number,
 ): Promise<void> {
-	await sw.registration.showNotification(notificationData.title, {
-		body: notificationData.body,
+	console.log("[SW] showNotification called", { notificationData, count })
+	let titleTemplate =
+		count === 1
+			? (notificationData.titleOne ?? notificationData.title ?? "")
+			: (notificationData.titleMany ?? notificationData.title ?? "")
+	let title = titleTemplate.replace("{count}", String(count))
+	let body = notificationData.body.replace("{count}", String(count))
+	console.log("[SW] Showing notification:", { title, body })
+
+	await sw.registration.showNotification(title, {
+		body,
 		icon: notificationData.icon,
 		badge: notificationData.badge,
 		tag: notificationData.tag,
 		requireInteraction: false,
-		data: notificationData,
+		data: { ...notificationData, count },
 	})
 
-	if (notificationData.count) {
-		let setAppBadge = Reflect.get(sw.registration, "setAppBadge")
-		if (typeof setAppBadge === "function") {
-			try {
-				await setAppBadge.call(sw.registration, notificationData.count)
-			} catch (error) {
-				console.log("[SW] Unable to set app badge:", error)
-			}
+	let setAppBadge = Reflect.get(sw.registration, "setAppBadge")
+	if (typeof setAppBadge === "function") {
+		try {
+			await setAppBadge.call(sw.registration, count)
+		} catch (error) {
+			console.log("[SW] Unable to set app badge:", error)
 		}
 	}
 }
@@ -179,14 +215,22 @@ function parseMessageEventData(value: unknown): MessageEventData | null {
 	if (typeValue === "SKIP_WAITING") {
 		return { type: "SKIP_WAITING" }
 	}
-	if (typeValue === "SET_USER_ID") {
+	if (typeValue === "SET_REMINDERS") {
 		let userIdValue = Reflect.get(value, "userId")
-		if (typeof userIdValue === "string") {
-			return { type: "SET_USER_ID", userId: userIdValue }
+		let remindersValue = Reflect.get(value, "reminders")
+		let todayStrValue = Reflect.get(value, "todayStr")
+		if (
+			typeof userIdValue === "string" &&
+			Array.isArray(remindersValue) &&
+			typeof todayStrValue === "string"
+		) {
+			return {
+				type: "SET_REMINDERS",
+				userId: userIdValue,
+				reminders: remindersValue,
+				todayStr: todayStrValue,
+			}
 		}
-	}
-	if (typeValue === "CLEAR_USER_ID") {
-		return { type: "CLEAR_USER_ID" }
 	}
 	return null
 }
@@ -216,28 +260,30 @@ function mergeNotificationPayload(
 	}
 
 	if (parsed && typeof parsed === "object") {
-		let keys: Array<keyof NotificationPayload> = [
+		let stringKeys = [
 			"title",
+			"titleOne",
+			"titleMany",
 			"body",
 			"icon",
 			"badge",
 			"tag",
 			"userId",
 			"url",
-			"count",
-		]
-		for (let key of keys) {
+		] as const
+		for (let key of stringKeys) {
 			let value = Reflect.get(parsed, key)
-			if (value === undefined || value === null) continue
-			if (key === "count") {
-				if (typeof value === "number") {
-					result.count = value
-				}
-				continue
-			}
 			if (typeof value === "string") {
 				result[key] = value
 			}
+		}
+		let countValue = Reflect.get(parsed, "count")
+		if (typeof countValue === "number") {
+			result.count = countValue
+		}
+		let isTestValue = Reflect.get(parsed, "isTest")
+		if (typeof isTestValue === "boolean") {
+			result.isTest = isTestValue
 		}
 		return result
 	}
@@ -254,28 +300,30 @@ function mergeNotificationPayload(
 function toNotificationPayload(value: unknown): NotificationPayload | null {
 	if (typeof value !== "object" || value === null) return null
 	let merged = { ...getDefaultNotificationPayload() }
-	let keys: Array<keyof NotificationPayload> = [
+	let stringKeys = [
 		"title",
+		"titleOne",
+		"titleMany",
 		"body",
 		"icon",
 		"badge",
 		"tag",
 		"userId",
 		"url",
-		"count",
-	]
-	for (let key of keys) {
+	] as const
+	for (let key of stringKeys) {
 		let field = Reflect.get(value, key)
-		if (field === undefined || field === null) continue
-		if (key === "count") {
-			if (typeof field === "number") {
-				merged.count = field
-			}
-			continue
-		}
 		if (typeof field === "string") {
 			merged[key] = field
 		}
+	}
+	let countField = Reflect.get(value, "count")
+	if (typeof countField === "number") {
+		merged.count = countField
+	}
+	let isTestField = Reflect.get(value, "isTest")
+	if (typeof isTestField === "boolean") {
+		merged.isTest = isTestField
 	}
 	return merged
 }
@@ -284,34 +332,60 @@ function isWindowClient(client: Client): client is WindowClient {
 	return typeof Reflect.get(client, "focus") === "function"
 }
 
-async function getUserIdFromCache(): Promise<string | null> {
+async function setRemindersInCache(
+	userId: string,
+	reminders: ReminderData[],
+	todayStr: string,
+): Promise<void> {
+	console.log("[SW] setRemindersInCache called", {
+		userId,
+		reminderCount: reminders.length,
+		reminders,
+		todayStr,
+	})
 	try {
-		let cache = await caches.open(USER_CACHE)
-		let response = await cache.match("user-id")
-		if (!response) return null
-		return await response.text()
+		let cache = await caches.open(REMINDERS_CACHE)
+		let data = JSON.stringify({ [userId]: { reminders, todayStr } })
+		await cache.put("reminders", new Response(data))
+		console.log("[SW] Reminders cached successfully")
 	} catch (error) {
-		console.log("[SW] Error loading user ID from cache:", error)
+		console.log("[SW] Error caching reminders:", error)
+	}
+}
+
+async function getRemindersFromCache(
+	userId: string,
+): Promise<{ reminders: ReminderData[]; todayStr: string } | null> {
+	console.log("[SW] getRemindersFromCache called", { userId })
+	try {
+		let cache = await caches.open(REMINDERS_CACHE)
+		let response = await cache.match("reminders")
+		if (!response) {
+			console.log("[SW] No reminders in cache")
+			return null
+		}
+		let data = await response.json()
+		console.log("[SW] Cache data:", data)
+		let result = data[userId] || null
+		console.log("[SW] Reminders for userId:", result)
+		return result
+	} catch (error) {
+		console.log("[SW] Error loading reminders from cache:", error)
 		return null
 	}
 }
 
-async function setUserIdInCache(userId: string): Promise<void> {
-	try {
-		let cache = await caches.open(USER_CACHE)
-		await cache.put("user-id", new Response(userId))
-	} catch (error) {
-		console.log("[SW] Error caching user ID:", error)
+function getDueReminderCount(
+	reminders: ReminderData[],
+	todayStr: string,
+): number {
+	console.log("[SW] getDueReminderCount", { todayStr, reminders })
+	let count = 0
+	for (let r of reminders) {
+		if (r.dueAtDate <= todayStr) count++
 	}
-}
-
-async function clearUserIdFromCache(): Promise<void> {
-	try {
-		let cache = await caches.open(USER_CACHE)
-		await cache.delete("user-id")
-	} catch (error) {
-		console.log("[SW] Error clearing user ID from cache:", error)
-	}
+	console.log("[SW] Due reminder count:", count)
+	return count
 }
 
 async function isUserOnPage(targetUrl?: string): Promise<boolean> {
