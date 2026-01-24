@@ -75,21 +75,21 @@ To get Clerk credentials:
 	})
 	if (p.isCancel(clerkAccountsUrl)) return cancel()
 
-	p.log.step("Setting up Google AI...")
+	p.log.step("Setting up Vercel AI Gateway...")
 
-	p.log.info(`Google Gemini powers the AI chat assistant.
+	p.log.info(`Vercel AI Gateway provides unified access to AI models.
 
 To get the API key:
-1. Go to https://aistudio.google.com/apikey
-2. Create a new API key
-3. Copy the key`)
+1. Go to https://vercel.com/dashboard
+2. Navigate to AI Gateway settings
+3. Create or copy your API key`)
 
-	let googleAiKey = await p.text({
-		message: "GOOGLE_AI_API_KEY",
-		placeholder: "AIza...",
+	let vercelAiGatewayKey = await p.text({
+		message: "VERCEL_AI_GATEWAY_API_KEY",
+		placeholder: "vai_...",
 		validate: v => (!v ? "Required" : undefined),
 	})
-	if (p.isCancel(googleAiKey)) return cancel()
+	if (p.isCancel(vercelAiGatewayKey)) return cancel()
 
 	p.log.step("Optional settings...")
 
@@ -103,7 +103,7 @@ To get the API key:
 	if (p.isCancel(weeklyBudget)) return cancel()
 
 	let envContent = `# AI chat assistant
-GOOGLE_AI_API_KEY=${googleAiKey}
+VERCEL_AI_GATEWAY_API_KEY=${vercelAiGatewayKey}
 
 # Authentication
 CLERK_SECRET_KEY=${clerkSecretKey}
