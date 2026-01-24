@@ -8,6 +8,11 @@ import { useEffect, useRef } from "react"
 import { useAccount } from "jazz-tools/react"
 import { Group, type co, type ResolveQuery } from "jazz-tools"
 import { UserAccount, Person, isDeleted } from "#shared/schema/user"
+import {
+	permanentlyDeleteNote,
+	permanentlyDeletePerson,
+	permanentlyDeleteReminder,
+} from "#shared/lib/delete-covalue"
 
 let inactiveListsQuery = {
 	root: {
@@ -19,7 +24,12 @@ let inactiveListsQuery = {
 				inactiveReminders: { $each: true },
 			},
 		},
-		inactivePeople: { $each: true },
+		inactivePeople: {
+			$each: {
+				notes: { $each: true },
+				reminders: { $each: true },
+			},
+		},
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
@@ -47,7 +57,8 @@ function useCleanupInactiveLists(): void {
 
 	useEffect(() => {
 		if (cleanupRan.current || !me.$isLoaded) return
-		cleanupRan.current = cleanupInactiveLists(me)
+		cleanupRan.current = true
+		cleanupInactiveLists(me)
 	}, [me.$isLoaded, me])
 }
 
@@ -90,25 +101,16 @@ function useCleanupInaccessiblePeople(): void {
 	}, [me.$isLoaded, me])
 }
 
-function cleanupInactiveLists(me: LoadedUser): boolean {
+async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 	let { people, inactivePeople } = me.root
-	let didCleanup = false
 
-	// Process people list
-	let peopleToRemove: number[] = []
+	// Process people list - move deleted to inactive
 	let peopleToMove: number[] = []
 	let peopleArray = Array.from(people.values())
 
 	for (let i = 0; i < peopleArray.length; i++) {
 		let person = peopleArray[i]
 		if (!person) continue
-
-		markStaleAsPermanentlyDeleted(person)
-
-		if (person.permanentlyDeletedAt) {
-			peopleToRemove.push(i)
-			continue
-		}
 		if (person.deletedAt) {
 			peopleToMove.push(i)
 		}
@@ -117,60 +119,48 @@ function cleanupInactiveLists(me: LoadedUser): boolean {
 	for (let i = peopleToMove.length - 1; i >= 0; i--) {
 		let person = peopleArray[peopleToMove[i]]
 		if (person && inactivePeople) inactivePeople.$jazz.push(person)
+		people.$jazz.splice(peopleToMove[i], 1)
 	}
 
-	let allPeopleToRemove = [
-		...new Set([...peopleToRemove, ...peopleToMove]),
-	].sort((a, b) => a - b)
-	for (let i = allPeopleToRemove.length - 1; i >= 0; i--) {
-		people.$jazz.splice(allPeopleToRemove[i], 1)
-	}
-
-	didCleanup = peopleToRemove.length > 0 || peopleToMove.length > 0
-
-	// Cleanup stale from inactive people
+	// Delete stale inactive people
 	if (inactivePeople) {
-		let inactivePeopleToRemove: number[] = []
+		let inactivePeopleToDelete: number[] = []
 		let inactivePeopleArray = Array.from(inactivePeople.values())
 
 		for (let i = 0; i < inactivePeopleArray.length; i++) {
 			let person = inactivePeopleArray[i]
 			if (!person) continue
-
-			markStaleAsPermanentlyDeleted(person)
-
-			if (person.permanentlyDeletedAt) {
-				inactivePeopleToRemove.push(i)
+			if (person.deletedAt && isStale(person.deletedAt)) {
+				inactivePeopleToDelete.push(i)
 			}
 		}
 
-		for (let i = inactivePeopleToRemove.length - 1; i >= 0; i--) {
-			inactivePeople.$jazz.splice(inactivePeopleToRemove[i], 1)
+		// Remove from list first, then delete
+		for (let i = inactivePeopleToDelete.length - 1; i >= 0; i--) {
+			let person = inactivePeopleArray[inactivePeopleToDelete[i]]
+			inactivePeople.$jazz.splice(inactivePeopleToDelete[i], 1)
+			if (person) {
+				try {
+					await permanentlyDeletePerson(person)
+				} catch {
+					// May fail if not accessible, skip
+				}
+			}
 		}
-
-		didCleanup = didCleanup || inactivePeopleToRemove.length > 0
 	}
 
 	// Process each person's notes and reminders
 	for (let person of people.values()) {
 		if (!person) continue
 
-		// Process notes
+		// Process notes - move deleted to inactive
 		if (person.notes && person.inactiveNotes) {
-			let notesToRemove: number[] = []
 			let notesToMove: number[] = []
 			let notesArray = Array.from(person.notes.values())
 
 			for (let i = 0; i < notesArray.length; i++) {
 				let note = notesArray[i]
 				if (!note) continue
-
-				markStaleAsPermanentlyDeleted(note)
-
-				if (note.permanentlyDeletedAt) {
-					notesToRemove.push(i)
-					continue
-				}
 				if (note.deletedAt) {
 					notesToMove.push(i)
 				}
@@ -179,58 +169,44 @@ function cleanupInactiveLists(me: LoadedUser): boolean {
 			for (let i = notesToMove.length - 1; i >= 0; i--) {
 				let note = notesArray[notesToMove[i]]
 				if (note) person.inactiveNotes.$jazz.push(note)
+				person.notes.$jazz.splice(notesToMove[i], 1)
 			}
-
-			let allNotesToRemove = [
-				...new Set([...notesToRemove, ...notesToMove]),
-			].sort((a, b) => a - b)
-			for (let i = allNotesToRemove.length - 1; i >= 0; i--) {
-				person.notes.$jazz.splice(allNotesToRemove[i], 1)
-			}
-
-			didCleanup =
-				didCleanup || notesToRemove.length > 0 || notesToMove.length > 0
 		}
 
-		// Cleanup stale from inactive notes
+		// Delete stale inactive notes
 		if (person.inactiveNotes) {
-			let inactiveNotesToRemove: number[] = []
+			let inactiveNotesToDelete: number[] = []
 			let inactiveNotesArray = Array.from(person.inactiveNotes.values())
 
 			for (let i = 0; i < inactiveNotesArray.length; i++) {
 				let note = inactiveNotesArray[i]
 				if (!note) continue
-
-				markStaleAsPermanentlyDeleted(note)
-
-				if (note.permanentlyDeletedAt) {
-					inactiveNotesToRemove.push(i)
+				if (note.deletedAt && isStale(note.deletedAt)) {
+					inactiveNotesToDelete.push(i)
 				}
 			}
 
-			for (let i = inactiveNotesToRemove.length - 1; i >= 0; i--) {
-				person.inactiveNotes.$jazz.splice(inactiveNotesToRemove[i], 1)
+			for (let i = inactiveNotesToDelete.length - 1; i >= 0; i--) {
+				let note = inactiveNotesArray[inactiveNotesToDelete[i]]
+				person.inactiveNotes.$jazz.splice(inactiveNotesToDelete[i], 1)
+				if (note) {
+					try {
+						await permanentlyDeleteNote(note)
+					} catch {
+						// May fail if not accessible, skip
+					}
+				}
 			}
-
-			didCleanup = didCleanup || inactiveNotesToRemove.length > 0
 		}
 
-		// Process reminders
+		// Process reminders - move deleted/done to inactive
 		if (person.reminders && person.inactiveReminders) {
-			let remindersToRemove: number[] = []
 			let remindersToMove: number[] = []
 			let remindersArray = Array.from(person.reminders.values())
 
 			for (let i = 0; i < remindersArray.length; i++) {
 				let reminder = remindersArray[i]
 				if (!reminder) continue
-
-				markStaleAsPermanentlyDeleted(reminder)
-
-				if (reminder.permanentlyDeletedAt) {
-					remindersToRemove.push(i)
-					continue
-				}
 				if (reminder.deletedAt || reminder.done) {
 					remindersToMove.push(i)
 				}
@@ -239,53 +215,35 @@ function cleanupInactiveLists(me: LoadedUser): boolean {
 			for (let i = remindersToMove.length - 1; i >= 0; i--) {
 				let reminder = remindersArray[remindersToMove[i]]
 				if (reminder) person.inactiveReminders.$jazz.push(reminder)
+				person.reminders.$jazz.splice(remindersToMove[i], 1)
 			}
-
-			let allRemindersToRemove = [
-				...new Set([...remindersToRemove, ...remindersToMove]),
-			].sort((a, b) => a - b)
-			for (let i = allRemindersToRemove.length - 1; i >= 0; i--) {
-				person.reminders.$jazz.splice(allRemindersToRemove[i], 1)
-			}
-
-			didCleanup =
-				didCleanup || remindersToRemove.length > 0 || remindersToMove.length > 0
 		}
 
-		// Cleanup stale from inactive reminders
+		// Delete stale inactive reminders
 		if (person.inactiveReminders) {
-			let inactiveRemindersToRemove: number[] = []
+			let inactiveRemindersToDelete: number[] = []
 			let inactiveRemindersArray = Array.from(person.inactiveReminders.values())
 
 			for (let i = 0; i < inactiveRemindersArray.length; i++) {
 				let reminder = inactiveRemindersArray[i]
 				if (!reminder) continue
-
-				markStaleAsPermanentlyDeleted(reminder)
-
-				if (reminder.permanentlyDeletedAt) {
-					inactiveRemindersToRemove.push(i)
+				if (reminder.deletedAt && isStale(reminder.deletedAt)) {
+					inactiveRemindersToDelete.push(i)
 				}
 			}
 
-			for (let i = inactiveRemindersToRemove.length - 1; i >= 0; i--) {
-				person.inactiveReminders.$jazz.splice(inactiveRemindersToRemove[i], 1)
+			for (let i = inactiveRemindersToDelete.length - 1; i >= 0; i--) {
+				let reminder = inactiveRemindersArray[inactiveRemindersToDelete[i]]
+				person.inactiveReminders.$jazz.splice(inactiveRemindersToDelete[i], 1)
+				if (reminder) {
+					try {
+						await permanentlyDeleteReminder(reminder)
+					} catch {
+						// May fail if not accessible, skip
+					}
+				}
 			}
-
-			didCleanup = didCleanup || inactiveRemindersToRemove.length > 0
 		}
-	}
-
-	return didCleanup
-}
-
-function markStaleAsPermanentlyDeleted(item: {
-	deletedAt?: Date
-	permanentlyDeletedAt?: Date
-	$jazz: { set(key: string, value: unknown): void }
-}): void {
-	if (item.deletedAt && !item.permanentlyDeletedAt && isStale(item.deletedAt)) {
-		item.$jazz.set("permanentlyDeletedAt", item.deletedAt)
 	}
 }
 

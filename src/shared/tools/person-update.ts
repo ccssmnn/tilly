@@ -1,7 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
 import { Person, UserAccount, UserAccountRoot } from "#shared/schema/user"
-import { co, Group, type Loaded, type ResolveQuery } from "jazz-tools"
+import { co, type Loaded, type ResolveQuery } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
 
 export { createUpdatePersonTool, createDeletePersonTool, updatePerson }
