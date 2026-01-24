@@ -85,7 +85,7 @@ To get the API key:
 3. Create or copy your API key`)
 
 	let vercelAiGatewayKey = await p.text({
-		message: "VERCEL_AI_GATEWAY_API_KEY",
+		message: "AI_GATEWAY_API_KEY",
 		placeholder: "vai_...",
 		validate: v => (!v ? "Required" : undefined),
 	})
@@ -103,7 +103,7 @@ To get the API key:
 	if (p.isCancel(weeklyBudget)) return cancel()
 
 	let envContent = `# AI chat assistant
-VERCEL_AI_GATEWAY_API_KEY=${vercelAiGatewayKey}
+AI_GATEWAY_API_KEY=${vercelAiGatewayKey}
 
 # Authentication
 CLERK_SECRET_KEY=${clerkSecretKey}
