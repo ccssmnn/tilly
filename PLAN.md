@@ -97,11 +97,11 @@ Detecting if group is shareable: Check if `group.id` starts with `co_z` (Group) 
 
 ## Implementation Order
 
-1. [ ] Update `NotificationSettings` schema to add `language` field
-2. [ ] Update `ServerAccount` schema with `NotificationSettingsRef` and root
-3. [ ] Create `push-register.ts` endpoint
-4. [ ] Create `use-register-notifications.ts` hook with migration logic
-5. [ ] Update `notification-settings.tsx` to trigger registration after device setup
-6. [ ] Refactor `push-cron.ts` to use server list instead of Clerk
+1. [x] Update `NotificationSettings` schema to add `language` field
+2. [x] Update `ServerAccount` schema with `NotificationSettingsRef` and root
+3. [x] Create `push-register.ts` endpoint
+4. [x] Create `use-register-notifications.ts` hook with migration logic
+5. [x] Update `notification-settings.tsx` to trigger registration after device setup
+6. [x] Refactor `push-cron.ts` to use server list instead of Clerk
 7. [ ] Test migration path for existing users
 8. [ ] Test new user flow

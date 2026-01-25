@@ -55,6 +55,7 @@ import { PUBLIC_VAPID_KEY } from "astro:env/client"
 import { getServiceWorkerRegistration } from "#app/lib/service-worker"
 import { tryCatch } from "#shared/lib/trycatch"
 import { isInAppBrowser } from "#app/hooks/use-pwa"
+import { triggerNotificationRegistration } from "#app/lib/notification-registration"
 
 export function NotificationSettings({
 	me,
@@ -972,6 +973,11 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 			endpoint: subscriptionResult.data.endpoint,
 			keys: subscriptionResult.data.keys,
 		})
+
+		// Trigger registration with server after adding device
+		if (notifications?.$jazz.id) {
+			triggerNotificationRegistration(notifications.$jazz.id)
+		}
 
 		toast.success(t("notifications.toast.deviceAdded"))
 		setOpen(false)
