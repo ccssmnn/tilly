@@ -77,17 +77,19 @@ let cronDeliveryApp = new Hono().get(
 				continue
 			}
 
-			// Check if ref is stale
-			if (isStaleRef(ref.lastSyncedAt)) {
-				staleRefIndices.push(refIndex)
-				console.log(`🗑️ Marking stale ref for removal: ${ref.userId}`)
+			let notificationSettings = ref.notificationSettings
+			if (!notificationSettings?.$isLoaded) {
+				console.log(`❌ User ${ref.userId}: Settings not loaded`)
 				refIndex++
 				continue
 			}
 
-			let notificationSettings = ref.notificationSettings
-			if (!notificationSettings?.$isLoaded) {
-				console.log(`❌ User ${ref.userId}: Settings not loaded`)
+			// Check if ref is stale (no app open in 30 days after last sync or latest reminder)
+			if (
+				isStaleRef(ref.lastSyncedAt, notificationSettings.latestReminderDueDate)
+			) {
+				staleRefIndices.push(refIndex)
+				console.log(`🗑️ Marking stale ref for removal: ${ref.userId}`)
 				refIndex++
 				continue
 			}
@@ -222,10 +224,27 @@ async function processNotificationRef(
 	return { userId, success: userSuccess }
 }
 
-function isStaleRef(lastSyncedAt: Date): boolean {
+/**
+ * Check if a notification ref is stale and should be removed.
+ * Stale = 30 days after whichever is later: lastSyncedAt or latestReminderDueDate
+ */
+function isStaleRef(
+	lastSyncedAt: Date,
+	latestReminderDueDate: string | undefined,
+): boolean {
+	let referenceDate = lastSyncedAt
+
+	// If there's a future reminder, use that as reference instead
+	if (latestReminderDueDate) {
+		let reminderDate = new Date(latestReminderDueDate)
+		if (reminderDate > referenceDate) {
+			referenceDate = reminderDate
+		}
+	}
+
 	let staleDate = new Date()
 	staleDate.setDate(staleDate.getDate() - STALE_THRESHOLD_DAYS)
-	return lastSyncedAt < staleDate
+	return referenceDate < staleDate
 }
 
 async function waitForConcurrencyLimit(

@@ -10,7 +10,10 @@ import { tryCatch } from "#shared/lib/trycatch"
 export { useRegisterNotifications }
 
 let notificationSettingsQuery = {
-	root: { notificationSettings: true },
+	root: {
+		notificationSettings: true,
+		people: { $each: { reminders: { $each: true } } },
+	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 type LoadedAccount = co.loaded<
@@ -51,6 +54,12 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	let rootLanguage = me.root.language
 	if (rootLanguage && notificationSettings.language !== rootLanguage) {
 		notificationSettings.$jazz.set("language", rootLanguage)
+	}
+
+	// Compute and sync latestReminderDueDate
+	let latestDueDate = computeLatestReminderDueDate(me)
+	if (latestDueDate !== notificationSettings.latestReminderDueDate) {
+		notificationSettings.$jazz.set("latestReminderDueDate", latestDueDate)
 	}
 
 	// Check if settings are owned by a shareable group
@@ -171,4 +180,28 @@ async function addServerToGroup(
 	}
 
 	group.addMember(serverAccount, "writer")
+}
+
+/**
+ * Find the latest (furthest future) reminder due date across all people.
+ * Returns undefined if no future reminders exist.
+ */
+function computeLatestReminderDueDate(me: LoadedAccount): string | undefined {
+	let today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+	let latestDate: string | undefined
+
+	for (let person of me.root.people.values()) {
+		if (!person || person.deletedAt) continue
+		for (let reminder of person.reminders.values()) {
+			if (!reminder || reminder.deletedAt || reminder.done) continue
+			// Only consider future reminders
+			if (reminder.dueAtDate >= today) {
+				if (!latestDate || reminder.dueAtDate > latestDate) {
+					latestDate = reminder.dueAtDate
+				}
+			}
+		}
+	}
+
+	return latestDate
 }
