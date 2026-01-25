@@ -5,3 +5,7 @@ if (typeof navigator === "undefined") {
 		language: "en-US",
 	}
 }
+
+// Setup Jazz test sync globally (must be called before any test account creation)
+import { setupJazzTestSync } from "jazz-tools/testing"
+await setupJazzTestSync()

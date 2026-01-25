@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest"
-import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing"
+import { createJazzTestAccount } from "jazz-tools/testing"
 import { co, Group } from "jazz-tools"
 import { Person, Note, Reminder, UserAccount } from "#shared/schema/user"
 import {
@@ -13,8 +13,6 @@ describe("permanentlyDeleteNote", () => {
 	let person: co.loaded<typeof Person>
 
 	beforeEach(async () => {
-		await setupJazzTestSync()
-
 		account = await createJazzTestAccount({
 			isCurrentActiveAccount: true,
 			AccountSchema: UserAccount,
@@ -95,8 +93,6 @@ describe("permanentlyDeleteReminder", () => {
 	let person: co.loaded<typeof Person>
 
 	beforeEach(async () => {
-		await setupJazzTestSync()
-
 		account = await createJazzTestAccount({
 			isCurrentActiveAccount: true,
 			AccountSchema: UserAccount,
@@ -153,8 +149,6 @@ describe("permanentlyDeletePerson", () => {
 	let account: co.loaded<typeof UserAccount>
 
 	beforeEach(async () => {
-		await setupJazzTestSync()
-
 		account = await createJazzTestAccount({
 			isCurrentActiveAccount: true,
 			AccountSchema: UserAccount,
@@ -258,8 +252,6 @@ describe("deleted items in lists", () => {
 	let account: co.loaded<typeof UserAccount>
 
 	beforeEach(async () => {
-		await setupJazzTestSync()
-
 		account = await createJazzTestAccount({
 			isCurrentActiveAccount: true,
 			AccountSchema: UserAccount,

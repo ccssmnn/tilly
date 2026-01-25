@@ -9,6 +9,7 @@ export default defineConfig({
 		setupFiles: ["./vitest.setup.ts"],
 		exclude: ["**/node_modules/**", "**/.reference/**"],
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
+		fileParallelism: false,
 		typecheck: {
 			enabled: true,
 			include: ["src/**/*.{test,spec}.{ts,tsx}"],

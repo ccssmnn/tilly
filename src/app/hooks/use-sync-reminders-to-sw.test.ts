@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest"
-import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing"
+import { createJazzTestAccount } from "jazz-tools/testing"
 import { co } from "jazz-tools"
 import { UserAccount, Person, Reminder } from "#shared/schema/user"
 
@@ -28,8 +28,6 @@ describe("extractRemindersForSync", () => {
 	let account: co.loaded<typeof UserAccount>
 
 	beforeEach(async () => {
-		await setupJazzTestSync()
-
 		account = await createJazzTestAccount({
 			isCurrentActiveAccount: true,
 			AccountSchema: UserAccount,
