@@ -40,6 +40,13 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	let notificationSettings = me.root.notificationSettings
 	if (!notificationSettings) return
 
+	// Bail early if server account ID is not configured
+	let serverAccountId = PUBLIC_JAZZ_WORKER_ACCOUNT
+	if (!serverAccountId) {
+		console.error("[Notifications] PUBLIC_JAZZ_WORKER_ACCOUNT not configured")
+		return
+	}
+
 	// Sync language from root to notification settings
 	let rootLanguage = me.root.language
 	if (rootLanguage && notificationSettings.language !== rootLanguage) {
@@ -54,7 +61,7 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	if (!isShareableGroup) {
 		// Need to migrate to a shareable group
 		let migrationResult = await tryCatch(
-			migrateNotificationSettings(me, notificationSettings),
+			migrateNotificationSettings(me, notificationSettings, serverAccountId),
 		)
 		if (!migrationResult.ok) {
 			console.error("[Notifications] Migration failed:", migrationResult.error)
@@ -64,7 +71,6 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	} else {
 		// Ensure server worker is a member
 		let group = owner as Group
-		let serverAccountId = PUBLIC_JAZZ_WORKER_ACCOUNT
 		let serverIsMember = group.members.some(
 			m => m.account?.$jazz.id === serverAccountId,
 		)
@@ -108,6 +114,7 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 async function migrateNotificationSettings(
 	me: LoadedAccount,
 	oldSettings: co.loaded<typeof NotificationSettings>,
+	serverAccountId: string,
 ): Promise<co.loaded<typeof NotificationSettings>> {
 	console.log("[Notifications] Migrating to shareable group")
 
@@ -115,17 +122,27 @@ async function migrateNotificationSettings(
 	let group = Group.create()
 
 	// Add server worker as writer
-	let serverAccountId = PUBLIC_JAZZ_WORKER_ACCOUNT
 	await addServerToGroup(me, group, serverAccountId)
 
 	// Create new notification settings in the new group
+	// Copy pushDevices as plain array (schema expects z.array, not CoList)
+	let devicesCopy = oldSettings.pushDevices.map(device => ({
+		isEnabled: device.isEnabled,
+		deviceName: device.deviceName,
+		endpoint: device.endpoint,
+		keys: {
+			p256dh: device.keys.p256dh,
+			auth: device.keys.auth,
+		},
+	}))
+
 	let newSettings = NotificationSettings.create(
 		{
 			version: 1,
 			timezone: oldSettings.timezone,
 			notificationTime: oldSettings.notificationTime,
 			lastDeliveredAt: oldSettings.lastDeliveredAt,
-			pushDevices: [...oldSettings.pushDevices],
+			pushDevices: devicesCopy,
 			language: oldSettings.language || me.root.language,
 		},
 		{ owner: group },

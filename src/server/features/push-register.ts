@@ -48,7 +48,7 @@ let pushRegisterApp = new Hono().post(
 		if (!root.root.notificationSettingsRefs) {
 			root.root.$jazz.set(
 				"notificationSettingsRefs",
-				co.list(NotificationSettingsRef).create([]),
+				co.list(NotificationSettingsRef).create([], { owner: worker }),
 			)
 		}
 
