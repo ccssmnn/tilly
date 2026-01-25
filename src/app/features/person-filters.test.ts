@@ -5,7 +5,6 @@ type MockPerson = {
 	name: string
 	summary?: string
 	deletedAt?: Date
-	permanentlyDeletedAt?: Date
 	updatedAt?: Date
 	createdAt?: Date
 	$jazz: { lastUpdatedAt: number; createdAt: number }
@@ -196,11 +195,10 @@ describe("filterPeople", () => {
 			expect(result.map(p => p.name)).toEqual(["Bob"])
 		})
 
-		test("excludes permanently deleted from both active and deleted", () => {
+		test("separates active and deleted people", () => {
 			let people = [
 				createPerson("Alice"),
 				createPerson("Bob", { deletedAt: new Date() }),
-				createPerson("Charlie", { permanentlyDeletedAt: new Date() }),
 			]
 
 			let activeResult = filterPeople(people, "", undefined, {

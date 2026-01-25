@@ -28,6 +28,7 @@ import { Person, Note, UserAccount, Reminder } from "#shared/schema/user"
 import { co, Group } from "jazz-tools"
 import { FileDataSchema, type FileData } from "./data-file-schema"
 import { T, useIntl } from "#shared/intl/setup"
+import { permanentlyDeletePerson } from "#shared/lib/delete-covalue"
 
 let uploadFormSchema = z.object({
 	file: z.instanceof(FileList).refine(files => files.length > 0, {
@@ -76,12 +77,18 @@ export function UploadButton({ userID }: { userID: string }) {
 
 		let jsonData: FileData = check.data
 
-		// Replace all existing data
+		// Store old people for deletion after import
+		let oldPeople = Array.from(account.root.people.values()).filter(Boolean)
+
+		// Clear list before importing
 		account.root.people.$jazz.splice(0, account.root.people.length)
 
 		for (let personData of jsonData.people) {
 			try {
 				let group = Group.create()
+				// Skip items that were permanently deleted in the export
+				if (personData.permanentlyDeletedAt) continue
+
 				let person = Person.create(
 					{
 						version: 1,
@@ -90,7 +97,6 @@ export function UploadButton({ userID }: { userID: string }) {
 						notes: co.list(Note).create([], group),
 						reminders: co.list(Reminder).create([], group),
 						deletedAt: personData.deletedAt,
-						permanentlyDeletedAt: personData.permanentlyDeletedAt,
 						createdAt: personData.createdAt ?? new Date(),
 						updatedAt: personData.updatedAt ?? new Date(),
 					},
@@ -126,13 +132,15 @@ export function UploadButton({ userID }: { userID: string }) {
 
 				if (personData.notes) {
 					for (let noteData of personData.notes) {
+						// Skip items that were permanently deleted in the export
+						if (noteData.permanentlyDeletedAt) continue
+
 						let note = Note.create(
 							{
 								version: 1,
 								content: noteData.content,
 								pinned: noteData.pinned || false,
 								deletedAt: noteData.deletedAt,
-								permanentlyDeletedAt: noteData.permanentlyDeletedAt,
 								createdAt: noteData.createdAt ?? new Date(),
 								updatedAt: noteData.updatedAt ?? new Date(),
 							},
@@ -177,6 +185,9 @@ export function UploadButton({ userID }: { userID: string }) {
 
 				if (personData.reminders) {
 					for (let reminderData of personData.reminders) {
+						// Skip items that were permanently deleted in the export
+						if (reminderData.permanentlyDeletedAt) continue
+
 						let reminder = Reminder.create(
 							{
 								version: 1,
@@ -185,7 +196,6 @@ export function UploadButton({ userID }: { userID: string }) {
 								repeat: reminderData.repeat,
 								done: reminderData.done || false,
 								deletedAt: reminderData.deletedAt,
-								permanentlyDeletedAt: reminderData.permanentlyDeletedAt,
 								createdAt: reminderData.createdAt ?? new Date(),
 								updatedAt: reminderData.updatedAt ?? new Date(),
 							},
@@ -203,6 +213,15 @@ export function UploadButton({ userID }: { userID: string }) {
 			} catch (error) {
 				console.error(`Error processing person ${personData.name}:`, error)
 				toast.error(t("data.import.personError", { name: personData.name }))
+			}
+		}
+
+		// Delete old people after successful import
+		for (let person of oldPeople) {
+			try {
+				await permanentlyDeletePerson(person)
+			} catch {
+				// May fail if not accessible, skip
 			}
 		}
 

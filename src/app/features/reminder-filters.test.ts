@@ -9,7 +9,6 @@ type MockReminder = {
 	done: boolean
 	dueAtDate: string
 	deletedAt?: Date
-	permanentlyDeletedAt?: Date
 	updatedAt?: Date
 	createdAt?: Date
 	$jazz: { lastUpdatedAt: number; createdAt: number }
@@ -164,13 +163,9 @@ describe("filterReminders", () => {
 			])
 		})
 
-		test("excludes permanently deleted from deleted filter", () => {
+		test("shows deleted reminders in deleted filter", () => {
 			let pairs = [
 				createPair("Deleted task", "Person", { deletedAt: new Date() }),
-				createPair("Permanently deleted", "Person", {
-					deletedAt: new Date(),
-					permanentlyDeletedAt: new Date(),
-				}),
 			]
 
 			let result = filterReminders(pairs, "", {

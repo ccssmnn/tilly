@@ -5,6 +5,9 @@ pnpm-lock.yaml
 # Reference repos
 .reference/
 
+# OpenCode
+.opencode/
+
 # Generated files
 .astro/
 dist/

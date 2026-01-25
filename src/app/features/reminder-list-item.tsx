@@ -46,6 +46,7 @@ import { useLocale, useIntl, T } from "#shared/intl/setup"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { tryCatch } from "#shared/lib/trycatch"
+import { permanentlyDeleteReminder } from "#shared/lib/delete-covalue"
 import { NoteForm } from "#app/features/note-form"
 import { createNote } from "#shared/tools/note-create"
 import { updateNote } from "#shared/tools/note-update"
@@ -1013,16 +1014,7 @@ function useReminderItemOperations({
 	}
 
 	async function deletePermanently(): Promise<boolean> {
-		let result = await tryCatch(
-			updateReminder(
-				{ permanentlyDeletedAt: new Date() },
-				{
-					worker: me,
-					personId: person.$jazz.id,
-					reminderId: reminder.$jazz.id,
-				},
-			),
-		)
+		let result = await tryCatch(permanentlyDeleteReminder(reminder))
 		if (!result.ok) {
 			toast.error(
 				typeof result.error === "string" ? result.error : result.error.message,

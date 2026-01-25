@@ -1,10 +1,4 @@
-import {
-	Person,
-	Note,
-	isDeleted,
-	isPermanentlyDeleted,
-	UserAccount,
-} from "#shared/schema/user"
+import { Person, Note, isDeleted, UserAccount } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
 import {
@@ -63,19 +57,18 @@ function useNotes(
 	let people =
 		loadedAccount?.root.people
 			.filter(p => p.$isLoaded)
-			.filter(p => !isDeleted(p) && !isPermanentlyDeleted(p)) ?? []
+			.filter(p => !isDeleted(p)) ?? []
 
 	let allNotePairs: NotePair[] = []
 
 	for (let person of people) {
 		for (let note of person.notes.values()) {
-			if (isPermanentlyDeleted(note)) continue
 			allNotePairs.push({ note, person })
 		}
 
 		if (person.inactiveNotes?.$isLoaded) {
 			for (let note of person.inactiveNotes.values()) {
-				if (!note || isPermanentlyDeleted(note)) continue
+				if (!note) continue
 				allNotePairs.push({ note, person })
 			}
 		}
@@ -97,9 +90,8 @@ function usePersonNotes(
 	let loadedPerson = person.$isLoaded ? person : defaultPerson
 
 	let allNotes = [
-		...(loadedPerson?.notes?.filter(n => !isPermanentlyDeleted(n)) ?? []),
-		...(loadedPerson?.inactiveNotes?.filter(n => !isPermanentlyDeleted(n)) ??
-			[]),
+		...(loadedPerson?.notes ?? []),
+		...(loadedPerson?.inactiveNotes ?? []),
 	]
 
 	return filterPersonNotes(allNotes, searchQuery, options)

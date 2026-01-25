@@ -85,7 +85,6 @@ export function ExportButton(props: {
 					summary: person.summary,
 					avatar,
 					deletedAt: person.deletedAt,
-					permanentlyDeletedAt: person.permanentlyDeletedAt,
 					createdAt: person.createdAt,
 					updatedAt: person.updatedAt,
 					notes: await Promise.all(

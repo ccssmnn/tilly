@@ -3,7 +3,6 @@ import { isBefore, isToday } from "date-fns"
 
 export {
 	isDeleted,
-	isPermanentlyDeleted,
 	isDueToday,
 	sortByDueAt,
 	sortByCreatedAt,
@@ -57,7 +56,6 @@ export let Note = co.map({
 	imageCount: z.number().optional(),
 	pinned: z.boolean().optional(),
 	deletedAt: z.date().optional(),
-	permanentlyDeletedAt: z.date().optional(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 })
@@ -74,7 +72,6 @@ export let Reminder = co.map({
 		.optional(),
 	done: z.boolean(),
 	deletedAt: z.date().optional(),
-	permanentlyDeletedAt: z.date().optional(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 })
@@ -89,7 +86,6 @@ export let Person = co.map({
 	reminders: co.list(Reminder),
 	inactiveReminders: co.list(Reminder).optional(),
 	deletedAt: z.date().optional(),
-	permanentlyDeletedAt: z.date().optional(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 })
@@ -216,15 +212,8 @@ async function runMigrationV1(
 	}
 }
 
-function isDeleted(item: {
-	deletedAt?: Date
-	permanentlyDeletedAt?: Date
-}): boolean {
-	return item.permanentlyDeletedAt !== undefined || item.deletedAt !== undefined
-}
-
-function isPermanentlyDeleted(item: { permanentlyDeletedAt?: Date }): boolean {
-	return item.permanentlyDeletedAt !== undefined
+function isDeleted(item: { deletedAt?: Date }): boolean {
+	return item.deletedAt !== undefined
 }
 
 function isDueToday(reminder: { dueAtDate: string }): boolean {

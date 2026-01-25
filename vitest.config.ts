@@ -6,6 +6,7 @@ export default defineConfig({
 	plugins: [react()] as any,
 	test: {
 		globals: true,
+		setupFiles: ["./vitest.setup.ts"],
 		exclude: ["**/node_modules/**", "**/.reference/**"],
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
 		typecheck: {

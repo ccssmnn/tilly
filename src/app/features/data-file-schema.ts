@@ -13,7 +13,7 @@ export const FileNoteSchema = z.object({
 	images: z.array(FileAvatarSchema).optional(),
 	deleted: z.boolean().optional(),
 	deletedAt: z.coerce.date().optional(),
-	permanentlyDeletedAt: z.coerce.date().optional(),
+	permanentlyDeletedAt: z.coerce.date().optional(), // legacy, used to skip during import
 	createdAt: z.coerce.date().optional(),
 	updatedAt: z.coerce.date().optional(),
 })
@@ -31,7 +31,7 @@ export const FileReminderSchema = z.object({
 	done: z.boolean().optional(),
 	deleted: z.boolean().optional(),
 	deletedAt: z.coerce.date().optional(),
-	permanentlyDeletedAt: z.coerce.date().optional(),
+	permanentlyDeletedAt: z.coerce.date().optional(), // legacy, used to skip during import
 	createdAt: z.coerce.date().optional(),
 	updatedAt: z.coerce.date().optional(),
 })
@@ -45,7 +45,7 @@ export const FilePersonSchema = z.object({
 	reminders: z.array(FileReminderSchema).optional(),
 	deleted: z.boolean().optional(),
 	deletedAt: z.coerce.date().optional(),
-	permanentlyDeletedAt: z.coerce.date().optional(),
+	permanentlyDeletedAt: z.coerce.date().optional(), // legacy, used to skip during import
 	createdAt: z.coerce.date().optional(),
 	updatedAt: z.coerce.date().optional(),
 })

@@ -1,6 +1,5 @@
 import {
 	isDeleted,
-	isPermanentlyDeleted,
 	sortByUpdatedAt,
 	sortByDeletedAt,
 } from "#shared/schema/user"
@@ -24,7 +23,6 @@ type PersonLike = {
 	name: string
 	summary?: string
 	deletedAt?: Date
-	permanentlyDeletedAt?: Date
 	updatedAt?: Date
 	createdAt?: Date
 	$jazz: {
@@ -39,9 +37,7 @@ function filterPeople<P extends PersonLike>(
 	inactivePeople?: readonly P[],
 	options?: PeopleFilterOptions,
 ): P[] {
-	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])].filter(
-		p => !isPermanentlyDeleted(p),
-	)
+	let allCombinedPeople = [...allPeople, ...(inactivePeople ?? [])]
 
 	let searchLower = searchQuery.toLowerCase().trim()
 	let listFilter = options?.listFilter ?? null
@@ -57,9 +53,7 @@ function filterPeople<P extends PersonLike>(
 		let matchesListFilter = !listFilter || hasHashtag(person, listFilter)
 
 		let matchesStatusFilter =
-			statusFilter === "active"
-				? !isDeleted(person)
-				: isDeleted(person) && !isPermanentlyDeleted(person)
+			statusFilter === "active" ? !isDeleted(person) : isDeleted(person)
 
 		return matchesSearch && matchesListFilter && matchesStatusFilter
 	})

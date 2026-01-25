@@ -66,7 +66,6 @@ function EditNoteResult({
 						deletedAt: result.previous.deletedAt
 							? new Date(result.previous.deletedAt)
 							: undefined,
-						permanentlyDeletedAt: undefined,
 					},
 					{
 						personId: result.personId,

@@ -1,6 +1,5 @@
 import {
 	isDeleted,
-	isPermanentlyDeleted,
 	sortByDeletedAt,
 	sortByCreatedAt,
 } from "#shared/schema/user"
@@ -18,7 +17,6 @@ type NoteLike = {
 	content: string
 	pinned?: boolean
 	deletedAt?: Date
-	permanentlyDeletedAt?: Date
 	createdAt?: Date
 	$jazz: { createdAt: number; lastUpdatedAt: number }
 }
@@ -54,7 +52,7 @@ function filterNotes<
 
 		let matchesListFilter = !listFilter || hasHashtag(person, listFilter)
 
-		let noteIsDeleted = isDeleted(note) && !isPermanentlyDeleted(note)
+		let noteIsDeleted = isDeleted(note)
 		let noteIsActive = !isDeleted(note)
 
 		let matchesStatusFilter =
@@ -105,7 +103,7 @@ function filterPersonNotes<N extends NoteLike>(
 		let matchesSearch =
 			!searchLower || note.content.toLowerCase().includes(searchLower)
 
-		let noteIsDeleted = isDeleted(note) && !isPermanentlyDeleted(note)
+		let noteIsDeleted = isDeleted(note)
 		let noteIsActive = !isDeleted(note)
 
 		let matchesStatusFilter =
