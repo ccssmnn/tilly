@@ -976,7 +976,12 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 
 		// Trigger registration with server after adding device
 		if (notifications?.$jazz.id) {
-			triggerNotificationRegistration(notifications.$jazz.id)
+			let registrationResult = await triggerNotificationRegistration(
+				notifications.$jazz.id,
+			)
+			if (!registrationResult.ok) {
+				toast.warning(t("notifications.toast.registrationFailed"))
+			}
 		}
 
 		toast.success(t("notifications.toast.deviceAdded"))

@@ -35,7 +35,10 @@ function useRegisterNotifications(): void {
 		if (!me.root.notificationSettings) return
 
 		registrationRan.current = true
-		registerNotificationSettings(me)
+		registerNotificationSettings(me).catch(() => {
+			// Allow retry on next mount if registration fails
+			registrationRan.current = false
+		})
 	}, [me.$isLoaded, me])
 }
 
@@ -133,8 +136,6 @@ async function migrateNotificationSettings(
 	// Add server worker as writer
 	await addServerToGroup(me, group, serverAccountId)
 
-	// Create new notification settings in the new group
-	// Copy pushDevices as plain array (schema expects z.array, not CoList)
 	let devicesCopy = oldSettings.pushDevices.map(device => ({
 		isEnabled: device.isEnabled,
 		deviceName: device.deviceName,
@@ -160,6 +161,9 @@ async function migrateNotificationSettings(
 	// Update root to point to new settings
 	me.root.$jazz.set("notificationSettings", newSettings)
 
+	// Delete old settings to avoid orphaned data
+	oldSettings.$jazz.raw.core.deleteCoValue()
+
 	console.log("[Notifications] Migration complete")
 	return newSettings
 }
@@ -182,26 +186,28 @@ async function addServerToGroup(
 	group.addMember(serverAccount, "writer")
 }
 
-/**
- * Find the latest (furthest future) reminder due date across all people.
- * Returns undefined if no future reminders exist.
- */
 function computeLatestReminderDueDate(me: LoadedAccount): string | undefined {
-	let today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-	let latestDate: string | undefined
+	let reminders = extractReminders(me)
+	let today = new Date().toISOString().slice(0, 10)
+	return findLatestFutureDate(reminders, today)
+}
 
+function extractReminders(
+	me: LoadedAccount,
+): { dueAtDate: string; deleted: boolean; done: boolean }[] {
+	let reminders: { dueAtDate: string; deleted: boolean; done: boolean }[] = []
 	for (let person of me.root.people.values()) {
 		if (!person || person.deletedAt) continue
 		for (let reminder of person.reminders.values()) {
-			if (!reminder || reminder.deletedAt || reminder.done) continue
-			// Only consider future reminders
-			if (reminder.dueAtDate >= today) {
-				if (!latestDate || reminder.dueAtDate > latestDate) {
-					latestDate = reminder.dueAtDate
-				}
-			}
+			if (!reminder) continue
+			reminders.push({
+				dueAtDate: reminder.dueAtDate,
+				deleted: !!reminder.deletedAt,
+				done: !!reminder.done,
+			})
 		}
 	}
-
-	return latestDate
+	return reminders
 }
+
+import { findLatestFutureDate } from "#app/lib/reminder-utils"

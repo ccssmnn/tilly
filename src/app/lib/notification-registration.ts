@@ -3,13 +3,11 @@ import { tryCatch } from "#shared/lib/trycatch"
 
 export { triggerNotificationRegistration }
 
-/**
- * Triggers notification settings registration with the server.
- * Call this after adding a new push device.
- */
+type RegistrationResult = { ok: true } | { ok: false; error: string }
+
 async function triggerNotificationRegistration(
 	notificationSettingsId: string,
-): Promise<void> {
+): Promise<RegistrationResult> {
 	let result = await tryCatch(
 		apiClient.push.register.$post({
 			json: { notificationSettingsId },
@@ -18,17 +16,18 @@ async function triggerNotificationRegistration(
 
 	if (!result.ok) {
 		console.error("[Notifications] Registration failed:", result.error)
-		return
+		return { ok: false, error: "Network error" }
 	}
 
 	if (!result.data.ok) {
 		let errorData = await tryCatch(result.data.json())
-		console.error(
-			"[Notifications] Registration error:",
-			errorData.ok ? errorData.data : "Unknown error",
-		)
-		return
+		let errorMessage = errorData.ok
+			? (errorData.data as { message?: string }).message || "Unknown error"
+			: "Unknown error"
+		console.error("[Notifications] Registration error:", errorMessage)
+		return { ok: false, error: errorMessage }
 	}
 
 	console.log("[Notifications] Registration triggered successfully")
+	return { ok: true }
 }

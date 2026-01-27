@@ -18,11 +18,13 @@ import {
 	baseServerMessages,
 	deServerMessages,
 } from "#shared/intl/messages.server"
-import { isPastNotificationTime, wasDeliveredToday } from "./push-cron-utils"
+import {
+	isPastNotificationTime,
+	wasDeliveredToday,
+	isStaleRef,
+} from "./push-cron-utils"
 
 export { cronDeliveryApp }
-
-let STALE_THRESHOLD_DAYS = 30
 
 let serverRefsQuery = {
 	root: {
@@ -100,7 +102,6 @@ let cronDeliveryApp = new Hono().get(
 				ref,
 				notificationSettings,
 				currentUtc,
-				worker,
 			)
 				.then(result => {
 					if (result) {
@@ -128,9 +129,11 @@ let cronDeliveryApp = new Hono().get(
 		}
 
 		if (staleRefIndices.length > 0) {
-			await worker.$jazz.waitForSync()
 			console.log(`🗑️ Removed ${staleRefIndices.length} stale refs`)
 		}
+
+		// Single sync at end for all mutations
+		await worker.$jazz.waitForSync()
 
 		return c.json({
 			message: `Processed ${deliveryResults.length} notification deliveries`,
@@ -143,7 +146,6 @@ async function processNotificationRef(
 	ref: LoadedRef,
 	notificationSettings: LoadedNotificationSettings,
 	currentUtc: Date,
-	worker: co.loaded<typeof ServerAccount>,
 ): Promise<{ userId: string; success: boolean } | null> {
 	let { userId } = ref
 
@@ -175,7 +177,6 @@ async function processNotificationRef(
 	if (enabledDevices.length === 0) {
 		console.log(`✅ User ${userId}: No enabled devices`)
 		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
-		await worker.$jazz.waitForSync()
 		console.log(
 			`✅ User ${userId}: Marked as delivered (skipped - no action needed)`,
 		)
@@ -217,34 +218,10 @@ async function processNotificationRef(
 	let userSuccess = deviceResults.some(r => r.success)
 
 	markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
-	await worker.$jazz.waitForSync()
 
 	console.log(`✅ User ${userId}: Completed notification delivery`)
 
 	return { userId, success: userSuccess }
-}
-
-/**
- * Check if a notification ref is stale and should be removed.
- * Stale = 30 days after whichever is later: lastSyncedAt or latestReminderDueDate
- */
-function isStaleRef(
-	lastSyncedAt: Date,
-	latestReminderDueDate: string | undefined,
-): boolean {
-	let referenceDate = lastSyncedAt
-
-	// If there's a future reminder, use that as reference instead
-	if (latestReminderDueDate) {
-		let reminderDate = new Date(latestReminderDueDate)
-		if (reminderDate > referenceDate) {
-			referenceDate = reminderDate
-		}
-	}
-
-	let staleDate = new Date()
-	staleDate.setDate(staleDate.getDate() - STALE_THRESHOLD_DAYS)
-	return referenceDate < staleDate
 }
 
 async function waitForConcurrencyLimit(
