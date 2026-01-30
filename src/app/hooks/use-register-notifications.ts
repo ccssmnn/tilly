@@ -1,6 +1,11 @@
 import { useEffect, useRef } from "react"
 import { useAccount } from "jazz-tools/react"
-import { Group, type co, type ResolveQuery } from "jazz-tools"
+import {
+	Group,
+	generateAuthToken,
+	type co,
+	type ResolveQuery,
+} from "jazz-tools"
 import { PUBLIC_JAZZ_WORKER_ACCOUNT } from "astro:env/client"
 import { UserAccount } from "#shared/schema/user"
 import { apiClient } from "#app/lib/api-client"
@@ -108,11 +113,19 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 		}
 	}
 
-	// Register with server
+	// Register with server using Jazz auth
+	let authToken = generateAuthToken(me)
 	let registerResult = await tryCatch(
-		apiClient.push.register.$post({
-			json: { notificationSettingsId: notificationSettings.$jazz.id },
-		}),
+		apiClient.push.register.$post(
+			{
+				json: { notificationSettingsId: notificationSettings.$jazz.id },
+			},
+			{
+				headers: {
+					Authorization: `Jazz ${authToken}`,
+				},
+			},
+		),
 	)
 
 	if (!registerResult.ok) {

@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { z } from "zod"
-import { authMiddleware, requireAuth } from "../lib/auth-middleware"
+import { authenticateRequest } from "jazz-tools"
 import { initServerWorker } from "../lib/utils"
 import { registerNotificationSettingsWithServer } from "./push-register-logic"
 
@@ -9,8 +9,6 @@ export { pushRegisterApp }
 
 let pushRegisterApp = new Hono().post(
 	"/register",
-	authMiddleware,
-	requireAuth,
 	zValidator(
 		"json",
 		z.object({
@@ -24,14 +22,27 @@ let pushRegisterApp = new Hono().post(
 	),
 	async c => {
 		let { notificationSettingsId } = c.req.valid("json")
-		let user = c.get("user")
 
 		let { worker } = await initServerWorker()
+
+		let { account, error } = await authenticateRequest(c.req.raw, {
+			loadAs: worker,
+		})
+
+		if (error) {
+			return c.json({ message: error.message }, 401)
+		}
+
+		if (!account) {
+			return c.json({ message: "Authentication required" }, 401)
+		}
+
+		let userId = account.$jazz.id
 
 		let result = await registerNotificationSettingsWithServer(
 			worker,
 			notificationSettingsId,
-			user.id,
+			userId,
 		)
 
 		if (!result.ok) {
