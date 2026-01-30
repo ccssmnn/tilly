@@ -1,11 +1,14 @@
 import { useEffect, useRef } from "react"
 import { useAccount } from "jazz-tools/react"
-import { Group, type co, type ResolveQuery, type ID } from "jazz-tools"
+import { Group, type co, type ResolveQuery } from "jazz-tools"
 import { PUBLIC_JAZZ_WORKER_ACCOUNT } from "astro:env/client"
-import { UserAccount, NotificationSettings } from "#shared/schema/user"
-import { ServerAccount } from "#shared/schema/server"
+import { UserAccount } from "#shared/schema/user"
 import { apiClient } from "#app/lib/api-client"
 import { tryCatch } from "#shared/lib/trycatch"
+import {
+	migrateNotificationSettings,
+	addServerToGroup,
+} from "#app/lib/notification-settings-migration"
 
 export { useRegisterNotifications }
 
@@ -46,7 +49,6 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	let notificationSettings = me.root.notificationSettings
 	if (!notificationSettings) return
 
-	// Bail early if server account ID is not configured
 	let serverAccountId = PUBLIC_JAZZ_WORKER_ACCOUNT
 	if (!serverAccountId) {
 		console.error("[Notifications] PUBLIC_JAZZ_WORKER_ACCOUNT not configured")
@@ -71,15 +73,21 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	let isShareableGroup = owner instanceof Group
 
 	if (!isShareableGroup) {
-		// Need to migrate to a shareable group
+		console.log("[Notifications] Migrating to shareable group")
 		let migrationResult = await tryCatch(
-			migrateNotificationSettings(me, notificationSettings, serverAccountId),
+			migrateNotificationSettings(notificationSettings, serverAccountId, {
+				loadAs: me,
+				rootLanguage,
+			}),
 		)
 		if (!migrationResult.ok) {
 			console.error("[Notifications] Migration failed:", migrationResult.error)
 			return
 		}
+		// Update root to point to new settings
+		me.root.$jazz.set("notificationSettings", migrationResult.data)
 		notificationSettings = migrationResult.data
+		console.log("[Notifications] Migration complete")
 	} else {
 		// Ensure server worker is a member
 		let group = owner as Group
@@ -88,7 +96,7 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 		)
 		if (!serverIsMember) {
 			let addResult = await tryCatch(
-				addServerToGroup(me, group, serverAccountId),
+				addServerToGroup(group, serverAccountId, { loadAs: me }),
 			)
 			if (!addResult.ok) {
 				console.error(
@@ -121,69 +129,6 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	}
 
 	console.log("[Notifications] Registration successful")
-}
-
-async function migrateNotificationSettings(
-	me: LoadedAccount,
-	oldSettings: co.loaded<typeof NotificationSettings>,
-	serverAccountId: string,
-): Promise<co.loaded<typeof NotificationSettings>> {
-	console.log("[Notifications] Migrating to shareable group")
-
-	// Create new group with current user as owner
-	let group = Group.create()
-
-	// Add server worker as writer
-	await addServerToGroup(me, group, serverAccountId)
-
-	let devicesCopy = oldSettings.pushDevices.map(device => ({
-		isEnabled: device.isEnabled,
-		deviceName: device.deviceName,
-		endpoint: device.endpoint,
-		keys: {
-			p256dh: device.keys.p256dh,
-			auth: device.keys.auth,
-		},
-	}))
-
-	let newSettings = NotificationSettings.create(
-		{
-			version: 1,
-			timezone: oldSettings.timezone,
-			notificationTime: oldSettings.notificationTime,
-			lastDeliveredAt: oldSettings.lastDeliveredAt,
-			pushDevices: devicesCopy,
-			language: oldSettings.language || me.root.language,
-		},
-		{ owner: group },
-	)
-
-	// Update root to point to new settings
-	me.root.$jazz.set("notificationSettings", newSettings)
-
-	// Delete old settings to avoid orphaned data
-	oldSettings.$jazz.raw.core.deleteCoValue()
-
-	console.log("[Notifications] Migration complete")
-	return newSettings
-}
-
-async function addServerToGroup(
-	me: LoadedAccount,
-	group: Group,
-	serverAccountId: string,
-): Promise<void> {
-	// Load the server account to add as member
-	let serverAccount = await ServerAccount.load(
-		serverAccountId as ID<typeof ServerAccount>,
-		{ loadAs: me },
-	)
-
-	if (!serverAccount || !serverAccount.$isLoaded) {
-		throw new Error("Failed to load server account")
-	}
-
-	group.addMember(serverAccount, "writer")
 }
 
 function computeLatestReminderDueDate(me: LoadedAccount): string | undefined {

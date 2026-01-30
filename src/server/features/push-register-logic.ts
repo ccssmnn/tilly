@@ -1,6 +1,7 @@
 import { co, type ID } from "jazz-tools"
 import { NotificationSettings } from "#shared/schema/user"
 import { NotificationSettingsRef, ServerAccount } from "#shared/schema/server"
+import { tryCatch } from "#shared/lib/trycatch"
 
 export { registerNotificationSettingsWithServer }
 export type { RegisterResult }
@@ -59,7 +60,11 @@ async function registerNotificationSettingsWithServer(
 		refs.$jazz.push(newRef)
 	}
 
-	await worker.$jazz.waitForSync()
+	let syncResult = await tryCatch(worker.$jazz.waitForSync())
+	if (!syncResult.ok) {
+		console.error("Failed to sync registration:", syncResult.error)
+		return { ok: false, error: "Failed to sync registration", status: 500 }
+	}
 
 	return { ok: true }
 }

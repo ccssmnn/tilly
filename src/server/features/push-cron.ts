@@ -23,6 +23,7 @@ import {
 	wasDeliveredToday,
 	isStaleRef,
 } from "./push-cron-utils"
+import { tryCatch } from "#shared/lib/trycatch"
 
 export { cronDeliveryApp }
 
@@ -69,20 +70,15 @@ let cronDeliveryApp = new Hono().get(
 			})
 		}
 
-		let staleRefIndices: number[] = []
+		let staleRefIds: string[] = []
 		let currentUtc = new Date()
-		let refIndex = 0
 
 		for (let ref of refs.values()) {
-			if (!ref) {
-				refIndex++
-				continue
-			}
+			if (!ref) continue
 
 			let notificationSettings = ref.notificationSettings
 			if (!notificationSettings?.$isLoaded) {
 				console.log(`❌ User ${ref.userId}: Settings not loaded`)
-				refIndex++
 				continue
 			}
 
@@ -90,9 +86,8 @@ let cronDeliveryApp = new Hono().get(
 			if (
 				isStaleRef(ref.lastSyncedAt, notificationSettings.latestReminderDueDate)
 			) {
-				staleRefIndices.push(refIndex)
+				staleRefIds.push(ref.$jazz.id)
 				console.log(`🗑️ Marking stale ref for removal: ${ref.userId}`)
-				refIndex++
 				continue
 			}
 
@@ -109,31 +104,38 @@ let cronDeliveryApp = new Hono().get(
 					}
 				})
 				.catch(error => {
-					if (typeof error === "string") {
-						console.log(`❌ User ${ref.userId}: ${error}`)
-					} else {
-						console.log(`❌ User ${ref.userId}: ${error.message || error}`)
-					}
+					let message =
+						typeof error === "string"
+							? error
+							: error instanceof Error
+								? error.message
+								: String(error)
+					console.log(`❌ User ${ref.userId}: ${message}`)
 				})
 				.finally(() => removeFromList(processingPromises, userPromise))
 
 			processingPromises.push(userPromise)
-			refIndex++
 		}
 
 		await Promise.allSettled(processingPromises)
 
-		// Remove stale refs (in reverse order to maintain indices)
-		for (let i = staleRefIndices.length - 1; i >= 0; i--) {
-			refs.$jazz.splice(staleRefIndices[i], 1)
+		// Remove stale refs by ID (avoids index shifting issues)
+		for (let staleId of staleRefIds) {
+			let index = [...refs.values()].findIndex(r => r?.$jazz.id === staleId)
+			if (index > -1) {
+				refs.$jazz.splice(index, 1)
+			}
 		}
 
-		if (staleRefIndices.length > 0) {
-			console.log(`🗑️ Removed ${staleRefIndices.length} stale refs`)
+		if (staleRefIds.length > 0) {
+			console.log(`🗑️ Removed ${staleRefIds.length} stale refs`)
 		}
 
 		// Single sync at end for all mutations
-		await worker.$jazz.waitForSync()
+		let syncResult = await tryCatch(worker.$jazz.waitForSync())
+		if (!syncResult.ok) {
+			console.error("❌ Failed to sync mutations:", syncResult.error)
+		}
 
 		return c.json({
 			message: `Processed ${deliveryResults.length} notification deliveries`,
