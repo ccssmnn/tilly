@@ -45,9 +45,9 @@ async function registerNotificationSettingsWithServer(
 
 	let refs = root.root.notificationSettingsRefs!
 
-	let existingRef = refs
-		.values()
-		.find(ref => ref?.notificationSettings?.$jazz.id === notificationSettingsId)
+	let existingRef = Array.from(refs.values()).find(
+		ref => ref?.notificationSettings?.$jazz.id === notificationSettingsId,
+	)
 
 	if (existingRef) {
 		existingRef.$jazz.set("lastSyncedAt", new Date())
