@@ -11,7 +11,17 @@ let pushRegisterApp = new Hono().post(
 	"/register",
 	authMiddleware,
 	requireAuth,
-	zValidator("json", z.object({ notificationSettingsId: z.string() })),
+	zValidator(
+		"json",
+		z.object({
+			notificationSettingsId: z
+				.string()
+				.min(1)
+				.refine(id => /^[a-zA-Z0-9_-]+$/.test(id), {
+					message: "Invalid Jazz ID format",
+				}),
+		}),
+	),
 	async c => {
 		let { notificationSettingsId } = c.req.valid("json")
 		let user = c.get("user")

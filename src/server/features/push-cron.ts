@@ -99,7 +99,7 @@ let cronDeliveryApp = new Hono().get(
 				currentUtc,
 			)
 				.then(result => {
-					if (result) {
+					if (result.status === "processed") {
 						deliveryResults.push(result)
 					}
 				})
@@ -120,11 +120,15 @@ let cronDeliveryApp = new Hono().get(
 		await Promise.allSettled(processingPromises)
 
 		// Remove stale refs by ID (avoids index shifting issues)
-		for (let staleId of staleRefIds) {
-			let index = [...refs.values()].findIndex(r => r?.$jazz.id === staleId)
-			if (index > -1) {
-				refs.$jazz.splice(index, 1)
-			}
+		let refIndexMap = new Map(
+			[...refs.values()].map((r, i) => [r?.$jazz.id, i]),
+		)
+		let sortedStaleIndices = staleRefIds
+			.map(id => refIndexMap.get(id))
+			.filter((i): i is number => i !== undefined)
+			.sort((a, b) => b - a)
+		for (let index of sortedStaleIndices) {
+			refs.$jazz.splice(index, 1)
 		}
 
 		if (staleRefIds.length > 0) {
@@ -144,11 +148,15 @@ let cronDeliveryApp = new Hono().get(
 	},
 )
 
+type ProcessResult =
+	| { status: "skipped"; reason: string }
+	| { status: "processed"; userId: string; success: boolean }
+
 async function processNotificationRef(
 	ref: LoadedRef,
 	notificationSettings: LoadedNotificationSettings,
 	currentUtc: Date,
-): Promise<{ userId: string; success: boolean } | null> {
+): Promise<ProcessResult> {
 	let { userId } = ref
 
 	// Check notification time
@@ -157,7 +165,10 @@ async function processNotificationRef(
 		let userNotificationTime = notificationSettings.notificationTime || "12:00"
 		let userLocalTime = toZonedTime(currentUtc, userTimezone)
 		let userLocalTimeStr = format(userLocalTime, "HH:mm")
-		throw `Not past notification time (current: ${userLocalTimeStr}, configured: ${userNotificationTime}, timezone: ${userTimezone})`
+		return {
+			status: "skipped",
+			reason: `Not past notification time (current: ${userLocalTimeStr}, configured: ${userNotificationTime}, timezone: ${userTimezone})`,
+		}
 	}
 
 	// Check if already delivered today
@@ -169,7 +180,10 @@ async function processNotificationRef(
 					"yyyy-MM-dd HH:mm",
 				)
 			: "never"
-		throw `Already delivered today (last delivered: ${lastDelivered})`
+		return {
+			status: "skipped",
+			reason: `Already delivered today (last delivered: ${lastDelivered})`,
+		}
 	}
 
 	console.log(`✅ User ${userId}: Passed notification time checks`)
@@ -182,7 +196,7 @@ async function processNotificationRef(
 		console.log(
 			`✅ User ${userId}: Marked as delivered (skipped - no action needed)`,
 		)
-		return { userId, success: true }
+		return { status: "skipped", reason: "No enabled devices" }
 	}
 
 	console.log(
@@ -223,7 +237,7 @@ async function processNotificationRef(
 
 	console.log(`✅ User ${userId}: Completed notification delivery`)
 
-	return { userId, success: userSuccess }
+	return { status: "processed", userId, success: userSuccess }
 }
 
 async function waitForConcurrencyLimit(

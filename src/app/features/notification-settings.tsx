@@ -981,6 +981,11 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 			)
 			if (!registrationResult.ok) {
 				toast.warning(t("notifications.toast.registrationFailed"))
+				setOpen(false)
+				form.reset({
+					deviceName: getDeviceName(),
+				})
+				return
 			}
 		}
 
