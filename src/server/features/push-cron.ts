@@ -159,6 +159,7 @@ let cronDeliveryApp = new Hono().get(
 type ProcessResult =
 	| { status: "skipped"; reason: string }
 	| { status: "processed"; userId: string; success: boolean }
+	| { status: "failed"; userId: string; reason: string }
 
 async function processNotificationRef(
 	ref: LoadedRef,
@@ -241,11 +242,14 @@ async function processNotificationRef(
 
 	let userSuccess = deviceResults.some(r => r.success)
 
-	markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
-
-	console.log(`✅ User ${userId}: Completed notification delivery`)
-
-	return { status: "processed", userId, success: userSuccess }
+	if (userSuccess) {
+		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
+		console.log(`✅ User ${userId}: Completed notification delivery`)
+		return { status: "processed", userId, success: true }
+	} else {
+		console.log(`❌ User ${userId}: All device sends failed, will retry`)
+		return { status: "failed", userId, reason: "All device sends failed" }
+	}
 }
 
 async function waitForConcurrencyLimit(
