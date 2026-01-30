@@ -6,7 +6,7 @@ import {
 	Check,
 	ExclamationTriangleFill,
 } from "react-bootstrap-icons"
-import { useAuth } from "@clerk/clerk-react"
+import { useAuth, SignInButton } from "@clerk/clerk-react"
 
 import { Button } from "#shared/ui/button"
 import {
@@ -23,7 +23,6 @@ import { usePWA } from "#app/lib/pwa"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { useIsMobile } from "#app/hooks/use-mobile"
 import { T, useIntl } from "#shared/intl/setup"
-import { getSignInUrl } from "#app/lib/auth-utils"
 import { Alert, AlertTitle } from "#shared/ui/alert"
 
 export { StatusIndicator }
@@ -177,10 +176,6 @@ function NotSignedInIndicator() {
 	let t = useIntl()
 	let isMobile = useIsMobile()
 
-	function handleSignIn() {
-		window.location.href = getSignInUrl(window.location.pathname)
-	}
-
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
@@ -219,11 +214,13 @@ function NotSignedInIndicator() {
 					<TypographyP className="leading-none">
 						<T k="status.notSignedIn.benefits" />
 					</TypographyP>
-					<DialogClose asChild>
-						<Button onClick={handleSignIn} className="h-12 w-full">
-							<T k="status.notSignedIn.signIn" />
-						</Button>
-					</DialogClose>
+					<SignInButton mode="redirect">
+						<DialogClose asChild>
+							<Button className="h-12 w-full">
+								<T k="status.notSignedIn.signIn" />
+							</Button>
+						</DialogClose>
+					</SignInButton>
 				</div>
 			</DialogContent>
 		</Dialog>

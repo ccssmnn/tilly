@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { SignInButton, SignUpButton } from "@clerk/clerk-react"
 import { useIsAuthenticated, useAccount } from "jazz-tools/react"
 import { Group, type ID } from "jazz-tools"
 import { T, useIntl } from "#shared/intl/setup"
@@ -16,7 +17,6 @@ import {
 	EmptyTitle,
 } from "#shared/ui/empty"
 import { Spinner } from "#shared/ui/spinner"
-import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
 
 export const Route = createFileRoute("/_app/invite")({
 	loader: () => {
@@ -243,16 +243,16 @@ function SignInPromptState() {
 					</EmptyDescription>
 				</EmptyHeader>
 				<EmptyContent>
-					<Button asChild className="w-full">
-						<a href={getSignInUrl("/app/invite")}>
+					<SignInButton mode="redirect" forceRedirectUrl="/app/invite">
+						<Button className="w-full">
 							<T k="auth.signIn.button" />
-						</a>
-					</Button>
-					<Button variant="outline" asChild className="w-full">
-						<a href={getSignUpUrl("/app/invite")}>
+						</Button>
+					</SignInButton>
+					<SignUpButton mode="redirect" forceRedirectUrl="/app/invite">
+						<Button variant="outline" className="w-full">
 							<T k="auth.signUp.button" />
-						</a>
-					</Button>
+						</Button>
+					</SignUpButton>
 				</EmptyContent>
 			</Empty>
 		</div>
