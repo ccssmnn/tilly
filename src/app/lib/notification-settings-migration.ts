@@ -7,13 +7,9 @@ export {
 	addServerToGroup,
 	copyNotificationSettingsData,
 }
-export type {
-	MigrationContext,
-	NotificationSettingsData,
-	NotificationSettingsInput,
-}
+export type { MigrationContext, NotificationSettingsData }
 
-type NotificationSettingsInput = {
+type NotificationSettingsData = {
 	timezone?: string
 	notificationTime?: string
 	lastDeliveredAt?: Date
@@ -32,22 +28,8 @@ type MigrationContext = {
 	rootLanguage?: "de" | "en"
 }
 
-type NotificationSettingsData = {
-	timezone?: string
-	notificationTime?: string
-	lastDeliveredAt?: Date
-	language?: "de" | "en"
-	latestReminderDueDate?: string
-	pushDevices: Array<{
-		isEnabled: boolean
-		deviceName: string
-		endpoint: string
-		keys: { p256dh: string; auth: string }
-	}>
-}
-
 function copyNotificationSettingsData(
-	settings: NotificationSettingsInput,
+	settings: NotificationSettingsData,
 	rootLanguage?: "de" | "en",
 ): NotificationSettingsData {
 	return {

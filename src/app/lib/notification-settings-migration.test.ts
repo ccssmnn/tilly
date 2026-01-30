@@ -1,12 +1,12 @@
 import { describe, test, expect } from "vitest"
 import {
 	copyNotificationSettingsData,
-	type NotificationSettingsInput,
+	type NotificationSettingsData,
 } from "./notification-settings-migration"
 
 describe("copyNotificationSettingsData", () => {
 	test("copies all settings fields", () => {
-		let mockSettings: NotificationSettingsInput = {
+		let mockSettings: NotificationSettingsData = {
 			timezone: "America/New_York",
 			notificationTime: "09:00",
 			lastDeliveredAt: new Date("2025-01-15T14:00:00Z"),
@@ -34,7 +34,7 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("uses rootLanguage when settings language is undefined", () => {
-		let mockSettings: NotificationSettingsInput = {
+		let mockSettings: NotificationSettingsData = {
 			timezone: "UTC",
 			notificationTime: "12:00",
 			pushDevices: [],
@@ -46,7 +46,7 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("preserves settings language over rootLanguage", () => {
-		let mockSettings: NotificationSettingsInput = {
+		let mockSettings: NotificationSettingsData = {
 			timezone: "UTC",
 			notificationTime: "12:00",
 			language: "en" as const,
@@ -59,7 +59,7 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("copies multiple devices", () => {
-		let mockSettings: NotificationSettingsInput = {
+		let mockSettings: NotificationSettingsData = {
 			timezone: "UTC",
 			pushDevices: [
 				{
@@ -85,7 +85,7 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("handles undefined optional fields", () => {
-		let mockSettings: NotificationSettingsInput = {
+		let mockSettings: NotificationSettingsData = {
 			pushDevices: [],
 		}
 

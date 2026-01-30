@@ -9,6 +9,7 @@ import {
 	migrateNotificationSettings,
 	addServerToGroup,
 } from "#app/lib/notification-settings-migration"
+import { findLatestFutureDate } from "#app/lib/reminder-utils"
 
 export { useRegisterNotifications }
 
@@ -38,8 +39,8 @@ function useRegisterNotifications(): void {
 		if (!me.root.notificationSettings) return
 
 		registrationRan.current = true
-		registerNotificationSettings(me).catch(() => {
-			// Allow retry on next mount if registration fails
+		registerNotificationSettings(me).catch(error => {
+			console.error("[Notifications] Registration error:", error)
 			registrationRan.current = false
 		})
 	}, [me.$isLoaded, me])
@@ -154,5 +155,3 @@ function extractReminders(
 	}
 	return reminders
 }
-
-import { findLatestFutureDate } from "#app/lib/reminder-utils"
