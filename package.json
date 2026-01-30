@@ -4,8 +4,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "astro dev",
-		"build": "bun test:run && astro check && astro build",
-		"build:node": "ASTRO_ADAPTER=node astro check && ASTRO_ADAPTER=node astro build",
+		"build": "astro build",
+		"build:prod": "astro build",
+		"build:node": "ASTRO_ADAPTER=node astro build",
 		"preview": "astro preview --port 4322",
 		"preview:node": "ASTRO_ADAPTER=node dotenv -e .env -- astro preview --port 4322",
 		"check": "concurrently -n Astro,Prettier,ESLint \"astro check\" \"prettier --check .\" \"eslint . --ext .ts,.tsx,.js,.jsx,.astro\"",
