@@ -134,7 +134,12 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 
 function computeLatestReminderDueDate(me: LoadedAccount): string | undefined {
 	let reminders = extractReminders(me)
-	let today = new Date().toISOString().slice(0, 10)
+	let timezone =
+		me.root.notificationSettings?.timezone ||
+		Intl.DateTimeFormat().resolvedOptions().timeZone
+	let today = new Date()
+		.toLocaleDateString("sv-SE", { timeZone: timezone })
+		.slice(0, 10)
 	return findLatestFutureDate(reminders, today)
 }
 

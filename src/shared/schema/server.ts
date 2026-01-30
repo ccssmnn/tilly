@@ -11,7 +11,17 @@ export let ServerAccountRoot = co.map({
 	notificationSettingsRefs: co.list(NotificationSettingsRef).optional(),
 })
 
-export let ServerAccount = co.account({
-	profile: co.map({ name: z.string() }),
-	root: ServerAccountRoot,
-})
+export let ServerAccount = co
+	.account({
+		profile: co.map({ name: z.string() }),
+		root: ServerAccountRoot,
+	})
+	.withMigration(async account => {
+		if (account.root === undefined) {
+			let root = ServerAccountRoot.create(
+				{ notificationSettingsRefs: [] },
+				{ owner: account },
+			)
+			account.$jazz.set("root", root)
+		}
+	})
