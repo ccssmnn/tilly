@@ -1,9 +1,9 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
+import { SignInButton } from "@clerk/clerk-react"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
 import { TypographyH1, TypographyLead } from "#shared/ui/typography"
 import { useAppStore } from "#app/lib/store"
-import { getSignInUrl } from "#app/lib/auth-utils"
 import { T } from "#shared/intl/setup"
 import {
 	SkipForwardFill,
@@ -24,11 +24,6 @@ export const Route = createFileRoute("/")({
 
 function WelcomeIndex() {
 	let setTourSkipped = useAppStore(state => state.setTourSkipped)
-
-	function handleSignIn() {
-		setTourSkipped(true)
-		window.location.href = getSignInUrl()
-	}
 
 	return (
 		<div
@@ -90,14 +85,16 @@ function WelcomeIndex() {
 									<T k="welcome.takeTour" />
 								</Link>
 							</Button>
-							<Button
-								variant="secondary"
-								onClick={handleSignIn}
-								className="h-12"
-							>
-								<PersonCircle />
-								<T k="welcome.signIn" />
-							</Button>
+							<SignInButton mode="redirect" forceRedirectUrl="/app/people">
+								<Button
+									variant="secondary"
+									onClick={() => setTourSkipped(true)}
+									className="h-12"
+								>
+									<PersonCircle />
+									<T k="welcome.signIn" />
+								</Button>
+							</SignInButton>
 						</motion.div>
 					</div>
 				</div>

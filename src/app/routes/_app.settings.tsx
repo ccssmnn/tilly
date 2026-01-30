@@ -1,6 +1,11 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router"
-import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"
-import { getSignInUrl, getSignUpUrl } from "#app/lib/auth-utils"
+import {
+	SignInButton,
+	SignUpButton,
+	SignOutButton,
+	useAuth,
+	useUser,
+} from "@clerk/clerk-react"
 import { useAccount, useIsAuthenticated } from "jazz-tools/react"
 import { Button } from "#shared/ui/button"
 import { Input } from "#shared/ui/input"
@@ -239,16 +244,16 @@ function AccountSection() {
 							{t("settings.account.status.signedOut")}
 						</p>
 						<div className="mt-3 space-x-2">
-							<Button asChild disabled={!isOnline}>
-								<a href={getSignInUrl("/app/settings")}>
+							<SignInButton mode="redirect" forceRedirectUrl="/app/settings">
+								<Button disabled={!isOnline}>
 									<T k="auth.signIn.button" />
-								</a>
-							</Button>
-							<Button asChild variant="outline" disabled={!isOnline}>
-								<a href={getSignUpUrl("/app/settings")}>
+								</Button>
+							</SignInButton>
+							<SignUpButton mode="redirect" forceRedirectUrl="/app/settings">
+								<Button variant="outline" disabled={!isOnline}>
 									<T k="auth.signUp.button" />
-								</a>
-							</Button>
+								</Button>
+							</SignUpButton>
 						</div>
 					</div>
 				)}
