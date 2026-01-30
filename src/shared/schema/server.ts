@@ -17,11 +17,21 @@ export let ServerAccount = co
 		root: ServerAccountRoot,
 	})
 	.withMigration(async account => {
-		if (account.root === undefined) {
-			let root = ServerAccountRoot.create(
+		let { root } = await account.$jazz.ensureLoaded({
+			resolve: { root: true },
+		})
+
+		if (root === undefined) {
+			let newRoot = ServerAccountRoot.create(
 				{ notificationSettingsRefs: [] },
 				{ owner: account },
 			)
-			account.$jazz.set("root", root)
+			account.$jazz.set("root", newRoot)
+		} else if (root.notificationSettingsRefs === undefined) {
+			let updatedRoot = ServerAccountRoot.create(
+				{ notificationSettingsRefs: [] },
+				{ owner: account },
+			)
+			account.$jazz.set("root", updatedRoot)
 		}
 	})

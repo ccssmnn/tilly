@@ -61,6 +61,14 @@ let cronDeliveryApp = new Hono().get(
 			resolve: serverRefsQuery,
 		})
 
+		if (!serverAccount || !serverAccount.root) {
+			console.log("🔔 Missing server account or root, aborting cron")
+			return c.json({
+				message: "Missing server account or root",
+				results: [],
+			})
+		}
+
 		let refs = serverAccount.root.notificationSettingsRefs
 		if (!refs) {
 			console.log("🔔 No notification settings refs found")
