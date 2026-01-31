@@ -62,7 +62,7 @@ let cronDeliveryApp = new Hono().get(
 		})
 
 		if (!serverAccount || !serverAccount.root) {
-			console.log("🔔 Missing server account or root, aborting cron")
+			console.log("⚠️ Missing server account or root, aborting cron")
 			return c.json({
 				message: "Missing server account or root",
 				results: [],
@@ -86,7 +86,7 @@ let cronDeliveryApp = new Hono().get(
 
 			let notificationSettings = ref.notificationSettings
 			if (!notificationSettings?.$isLoaded) {
-				console.log(`❌ User ${ref.userId}: Settings not loaded`)
+				console.log(`⚠️ User ${ref.userId}: Settings not loaded, skipping`)
 				continue
 			}
 
@@ -202,15 +202,11 @@ async function processNotificationRef(
 	if (enabledDevices.length === 0) {
 		console.log(`✅ User ${userId}: No enabled devices`)
 		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
-		console.log(
-			`✅ User ${userId}: Marked as delivered (skipped - no action needed)`,
-		)
+		console.log(`✅ User ${userId}: Marked as delivered (no devices to notify)`)
 		return { status: "skipped", reason: "No enabled devices" }
 	}
 
-	console.log(
-		`✅ User ${userId}: Ready to send wake notification to ${enabledDevices.length} devices`,
-	)
+	console.log(`📤 User ${userId}: Notifying ${enabledDevices.length} device(s)`)
 
 	// Create localized payload
 	let payload = createLocalizedNotificationPayload(userId, notificationSettings)
