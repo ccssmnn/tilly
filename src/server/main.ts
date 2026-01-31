@@ -4,6 +4,7 @@ import { logger } from "hono/logger"
 import { chatMessagesApp } from "./features/chat-messages"
 import { cronDeliveryApp } from "./features/push-cron"
 import { testNotificationApp } from "./features/push-test"
+import { pushRegisterApp } from "./features/push-register"
 import { authMiddleware } from "./lib/auth-middleware"
 
 let authenticatedRoutes = new Hono()
@@ -15,6 +16,7 @@ export let app = new Hono()
 	.use(cors())
 	.route("/push", testNotificationApp)
 	.route("/push", cronDeliveryApp)
+	.route("/push", pushRegisterApp)
 	.route("/", authenticatedRoutes)
 
 export type AppType = typeof app
