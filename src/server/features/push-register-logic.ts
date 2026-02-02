@@ -39,7 +39,7 @@ async function registerNotificationSettingsWithServer(
 	if (!root.root.notificationSettingsRefs) {
 		root.root.$jazz.set(
 			"notificationSettingsRefs",
-			co.list(NotificationSettingsRef).create([], { owner: worker }),
+			co.list(NotificationSettingsRef).create([]),
 		)
 	}
 
@@ -52,14 +52,11 @@ async function registerNotificationSettingsWithServer(
 	if (existingRef) {
 		existingRef.$jazz.set("lastSyncedAt", new Date())
 	} else {
-		let newRef = NotificationSettingsRef.create(
-			{
-				notificationSettings,
-				userId,
-				lastSyncedAt: new Date(),
-			},
-			{ owner: worker },
-		)
+		let newRef = NotificationSettingsRef.create({
+			notificationSettings,
+			userId,
+			lastSyncedAt: new Date(),
+		})
 		refs.$jazz.push(newRef)
 	}
 

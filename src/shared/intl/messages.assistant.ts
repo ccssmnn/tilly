@@ -48,6 +48,9 @@ const baseAssistantMessages = messages({
 	"assistant.requestTooLarge.title": "Message too long",
 	"assistant.requestTooLarge.description":
 		"Your message exceeds the size limit. Try a shorter message or clear the chat to start fresh.",
+	"assistant.workerTimeout.title": "Sync timeout",
+	"assistant.workerTimeout.description":
+		"Couldn't sync your data in time. Please try again.",
 	"assistant.usageLimit.title": "Usage limit reached",
 	"assistant.usageLimit.description":
 		"You've reached your usage limit. Check your settings to see when limits reset.",
@@ -279,6 +282,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.requestTooLarge.title": "Nachricht zu lang",
 	"assistant.requestTooLarge.description":
 		"Deine Nachricht überschreitet das Größenlimit. Versuche eine kürzere Nachricht oder leere den Chat für einen Neustart.",
+	"assistant.workerTimeout.title": "Sync-Timeout",
+	"assistant.workerTimeout.description":
+		"Daten konnten nicht rechtzeitig synchronisiert werden. Bitte versuche es erneut.",
 	"assistant.usageLimit.title": "Nutzungsgrenze erreicht",
 	"assistant.usageLimit.description":
 		"Du hast deine Nutzungsgrenze erreicht. Schaue in den Einstellungen wann die Grenzen zurückgesetzt werden.",

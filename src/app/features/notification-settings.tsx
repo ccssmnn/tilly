@@ -1,7 +1,7 @@
 import { de as dfnsDe } from "date-fns/locale"
 import { formatDistanceToNow } from "date-fns"
 import { useIsAuthenticated } from "jazz-tools/react"
-import { co } from "jazz-tools"
+import { co, generateAuthToken } from "jazz-tools"
 import { PushDevice, UserAccount } from "#shared/schema/user"
 import { Alert, AlertTitle, AlertDescription } from "#shared/ui/alert"
 import { ExclamationTriangle } from "react-bootstrap-icons"
@@ -976,8 +976,10 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 
 		// Trigger registration with server after adding device
 		if (notifications?.$jazz.id) {
+			let authToken = generateAuthToken(me)
 			let registrationResult = await triggerNotificationRegistration(
 				notifications.$jazz.id,
+				authToken,
 			)
 			if (!registrationResult.ok) {
 				toast.warning(t("notifications.toast.registrationFailed"))

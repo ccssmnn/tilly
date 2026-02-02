@@ -23,10 +23,7 @@ describe("registerNotificationSettingsWithServer", () => {
 
 		// Initialize server root manually since test accounts may not run migrations
 		if (!serverAccount.root) {
-			serverAccount.$jazz.set(
-				"root",
-				ServerAccountRoot.create({}, { owner: serverAccount }),
-			)
+			serverAccount.$jazz.set("root", ServerAccountRoot.create({}))
 		}
 
 		userAccount = await createJazzTestAccount({

@@ -7,11 +7,19 @@ type RegistrationResult = { ok: true } | { ok: false; error: string }
 
 async function triggerNotificationRegistration(
 	notificationSettingsId: string,
+	authToken: string,
 ): Promise<RegistrationResult> {
 	let result = await tryCatch(
-		apiClient.push.register.$post({
-			json: { notificationSettingsId },
-		}),
+		apiClient.push.register.$post(
+			{
+				json: { notificationSettingsId },
+			},
+			{
+				headers: {
+					Authorization: `Jazz ${authToken}`,
+				},
+			},
+		),
 	)
 
 	if (!result.ok) {

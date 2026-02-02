@@ -9,7 +9,14 @@ import { JAZZ_WORKER_SECRET } from "astro:env/server"
 import { UserAccount } from "#shared/schema/user"
 import { ServerAccount } from "#shared/schema/server"
 
-export { initUserWorker, initServerWorker }
+export { initUserWorker, initServerWorker, WorkerTimeoutError }
+
+class WorkerTimeoutError extends Error {
+	constructor() {
+		super("Worker initialization timed out")
+		this.name = "WorkerTimeoutError"
+	}
+}
 
 async function initUserWorker(user: {
 	unsafeMetadata: Record<string, unknown>
@@ -17,13 +24,20 @@ async function initUserWorker(user: {
 	let jazzAccountId = user.unsafeMetadata.jazzAccountID as string
 	let jazzAccountSecret = user.unsafeMetadata.jazzAccountSecret as string
 
-	let workerResult = await startWorker({
-		AccountSchema: UserAccount,
-		syncServer: PUBLIC_JAZZ_SYNC_SERVER,
-		accountID: jazzAccountId,
-		accountSecret: jazzAccountSecret,
-		skipInboxLoad: true,
-	})
+	let timeoutPromise = new Promise<never>((_, reject) =>
+		setTimeout(() => reject(new WorkerTimeoutError()), 30000),
+	)
+
+	let workerResult = await Promise.race([
+		startWorker({
+			AccountSchema: UserAccount,
+			syncServer: PUBLIC_JAZZ_SYNC_SERVER,
+			accountID: jazzAccountId,
+			accountSecret: jazzAccountSecret,
+			skipInboxLoad: true,
+		}),
+		timeoutPromise,
+	])
 
 	return { worker: workerResult.worker }
 }

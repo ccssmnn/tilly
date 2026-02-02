@@ -25,7 +25,11 @@ import {
 	checkUsageLimits,
 	updateUsage,
 } from "../lib/chat-usage"
-import { initUserWorker, initServerWorker } from "#server/lib/utils"
+import {
+	initUserWorker,
+	initServerWorker,
+	WorkerTimeoutError,
+} from "#server/lib/utils"
 import type { User } from "@clerk/backend"
 import { co, type Loaded, type ResolveQuery } from "jazz-tools"
 import { UserAccount, Assistant } from "#shared/schema/user"
@@ -49,15 +53,22 @@ let chatMessagesApp = new Hono()
 		let logger = (s: string) =>
 			logStep(s, { requestStartTime, userId: user.id })
 
-		let [
-			{ worker: userWorker_ },
-			{ worker: serverWorker }, //
-		] = await Promise.all([
-			initUserWorker(user),
-			initServerWorker(), //
-		])
+		let userWorkerResult: Awaited<ReturnType<typeof initUserWorker>>
+		let serverWorkerResult: Awaited<ReturnType<typeof initServerWorker>>
+		try {
+			;[userWorkerResult, serverWorkerResult] = await Promise.all([
+				initUserWorker(user),
+				initServerWorker(),
+			])
+		} catch (error) {
+			if (error instanceof WorkerTimeoutError) {
+				return c.json({ error: error.message, code: "worker-timeout" }, 504)
+			}
+			throw error
+		}
 
-		logger("Workers initialized")
+		let userWorker_ = userWorkerResult.worker
+		let serverWorker = serverWorkerResult.worker
 
 		let [
 			userWorker,
@@ -93,11 +104,9 @@ let chatMessagesApp = new Hono()
 		let { overflow } = checkInputSize(modelMessages)
 		if (overflow !== 0) {
 			let msg = `Messages size exceed limit by ${overflow}`
-			logger(msg)
 			return c.json({ error: msg, code: "request-too-large" }, 413)
 		}
 
-		logger("Alright. Starting streaming generation.")
 		return streamSSE(c, async stream => {
 			// we need to tell the client we are starting now
 			// so they know that until now everything was correct

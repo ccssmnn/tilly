@@ -447,6 +447,8 @@ function SendingError({ error }: { error: Error | null }) {
 					<T k="assistant.usageLimit.title" />
 				) : isRequestTooLargeError(error) ? (
 					<T k="assistant.requestTooLarge.title" />
+				) : isWorkerTimeoutError(error) ? (
+					<T k="assistant.workerTimeout.title" />
 				) : isEmptyMessagesError(error) ? (
 					<T k="assistant.sendError.title" />
 				) : (
@@ -465,6 +467,8 @@ function SendingError({ error }: { error: Error | null }) {
 					</div>
 				) : isRequestTooLargeError(error) ? (
 					<T k="assistant.requestTooLarge.description" />
+				) : isWorkerTimeoutError(error) ? (
+					<T k="assistant.workerTimeout.description" />
 				) : isEmptyMessagesError(error) ? (
 					<T k="assistant.emptyMessages.description" />
 				) : (
@@ -845,6 +849,11 @@ function isRequestTooLargeError(error: unknown): boolean {
 function isEmptyMessagesError(error: unknown): boolean {
 	let payload = extractErrorPayload(error)
 	return payload?.code === "empty-messages"
+}
+
+function isWorkerTimeoutError(error: unknown): boolean {
+	let payload = extractErrorPayload(error)
+	return payload?.code === "worker-timeout"
 }
 
 type ErrorPayload = {
