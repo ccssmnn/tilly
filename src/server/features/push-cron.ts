@@ -1,5 +1,5 @@
 import { CRON_SECRET } from "astro:env/server"
-import { initServerWorker } from "../lib/utils"
+import { getServerWorker } from "../lib/utils"
 
 import { toZonedTime, format } from "date-fns-tz"
 import { Hono } from "hono"
@@ -13,7 +13,7 @@ import {
 } from "./push-shared"
 import type { NotificationPayload } from "./push-shared"
 import { NotificationSettings } from "#shared/schema/user"
-import { ServerAccount } from "#shared/schema/server"
+import { ServerAccount, NotificationSettingsRef } from "#shared/schema/server"
 import {
 	baseServerMessages,
 	deServerMessages,
@@ -35,13 +35,7 @@ let serverRefsQuery = {
 	},
 } as const satisfies ResolveQuery<typeof ServerAccount>
 
-type LoadedServerAccount = co.loaded<
-	typeof ServerAccount,
-	typeof serverRefsQuery
->
-type LoadedRef = NonNullable<
-	NonNullable<LoadedServerAccount["root"]["notificationSettingsRefs"]>[number]
->
+type LoadedRef = co.loaded<typeof NotificationSettingsRef>
 type LoadedNotificationSettings = co.loaded<typeof NotificationSettings>
 
 let cronDeliveryApp = new Hono().get(
@@ -56,7 +50,7 @@ let cronDeliveryApp = new Hono().get(
 		let processingPromises: Promise<void>[] = []
 		let maxConcurrentUsers = 50
 
-		let { worker } = await initServerWorker()
+		let worker = await getServerWorker()
 		let serverAccount = await worker.$jazz.ensureLoaded({
 			resolve: serverRefsQuery,
 		})
@@ -78,10 +72,10 @@ let cronDeliveryApp = new Hono().get(
 			})
 		}
 
-		let staleRefIds: string[] = []
+		let staleRefKeys: string[] = []
 		let currentUtc = new Date()
 
-		for (let ref of refs.values()) {
+		for (let [notificationSettingsId, ref] of Object.entries(refs)) {
 			if (!ref) continue
 
 			let notificationSettings = ref.notificationSettings
@@ -94,7 +88,7 @@ let cronDeliveryApp = new Hono().get(
 			if (
 				isStaleRef(ref.lastSyncedAt, notificationSettings.latestReminderDueDate)
 			) {
-				staleRefIds.push(ref.$jazz.id)
+				staleRefKeys.push(notificationSettingsId)
 				console.log(`🗑️ Marking stale ref for removal: ${ref.userId}`)
 				continue
 			}
@@ -127,20 +121,13 @@ let cronDeliveryApp = new Hono().get(
 
 		await Promise.allSettled(processingPromises)
 
-		// Remove stale refs by ID (avoids index shifting issues)
-		let refIndexMap = new Map(
-			[...refs.values()].map((r, i) => [r?.$jazz.id, i]),
-		)
-		let sortedStaleIndices = staleRefIds
-			.map(id => refIndexMap.get(id))
-			.filter((i): i is number => i !== undefined)
-			.sort((a, b) => b - a)
-		for (let index of sortedStaleIndices) {
-			refs.$jazz.splice(index, 1)
+		// Remove stale refs by key
+		for (let key of staleRefKeys) {
+			refs.$jazz.delete(key)
 		}
 
-		if (staleRefIds.length > 0) {
-			console.log(`🗑️ Removed ${staleRefIds.length} stale refs`)
+		if (staleRefKeys.length > 0) {
+			console.log(`🗑️ Removed ${staleRefKeys.length} stale refs`)
 		}
 
 		// Single sync at end for all mutations

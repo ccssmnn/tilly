@@ -11,7 +11,7 @@ import {
 import { addDays, isPast } from "date-fns"
 import { co, Group, type ResolveQuery } from "jazz-tools"
 import { clerkClient } from "./auth-client"
-import { initServerWorker, initUserWorker } from "./utils"
+import { getServerWorker, initUserWorker } from "./utils"
 
 export { checkInputSize, checkUsageLimits, updateUsage }
 export type { ModelMessages }
@@ -56,7 +56,7 @@ async function updateUsage(
 	worker: UserWorker,
 	usage: UsageUpdatePayload,
 ): Promise<void> {
-	let serverWorkerResult = await tryCatch(initServerWorker())
+	let serverWorkerResult = await tryCatch(getServerWorker())
 	if (!serverWorkerResult.ok) {
 		console.error(
 			`[Usage] ${user.id} | Failed to init server worker for update`,
@@ -65,11 +65,7 @@ async function updateUsage(
 		throw new Error("Failed to init server worker")
 	}
 
-	let context = await ensureUsageContext(
-		user,
-		worker,
-		serverWorkerResult.data.worker,
-	)
+	let context = await ensureUsageContext(user, worker, serverWorkerResult.data)
 
 	let updateResult = await tryCatch(
 		applyUsageUpdate(context.usageTracking, usage),
@@ -118,7 +114,7 @@ type UsageLimitResult = {
 }
 
 type UserWorker = Awaited<ReturnType<typeof initUserWorker>>["worker"]
-type ServerWorker = Awaited<ReturnType<typeof initServerWorker>>["worker"]
+import type { ServerWorker } from "./utils"
 
 type UsageContext = {
 	worker: UserWorker

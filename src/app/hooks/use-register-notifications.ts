@@ -8,12 +8,12 @@ import {
 } from "jazz-tools"
 import { PUBLIC_JAZZ_WORKER_ACCOUNT } from "astro:env/client"
 import { UserAccount } from "#shared/schema/user"
-import { apiClient } from "#app/lib/api-client"
 import { tryCatch } from "#shared/lib/trycatch"
 import {
 	migrateNotificationSettings,
 	addServerToGroup,
 } from "#app/lib/notification-settings-migration"
+import { triggerNotificationRegistration } from "#app/lib/notification-registration"
 import { findLatestFutureDate } from "#app/lib/reminder-utils"
 
 export { useRegisterNotifications }
@@ -115,30 +115,13 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 
 	// Register with server using Jazz auth
 	let authToken = generateAuthToken(me)
-	let registerResult = await tryCatch(
-		apiClient.push.register.$post(
-			{
-				json: { notificationSettingsId: notificationSettings.$jazz.id },
-			},
-			{
-				headers: {
-					Authorization: `Jazz ${authToken}`,
-				},
-			},
-		),
+	let registerResult = await triggerNotificationRegistration(
+		notificationSettings.$jazz.id,
+		authToken,
 	)
 
 	if (!registerResult.ok) {
 		console.error("[Notifications] Registration failed:", registerResult.error)
-		return
-	}
-
-	if (!registerResult.data.ok) {
-		let errorData = await tryCatch(registerResult.data.json())
-		console.error(
-			"[Notifications] Registration error:",
-			errorData.ok ? errorData.data : "Unknown error",
-		)
 		return
 	}
 

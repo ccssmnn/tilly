@@ -27,8 +27,9 @@ import {
 } from "../lib/chat-usage"
 import {
 	initUserWorker,
-	initServerWorker,
+	getServerWorker,
 	WorkerTimeoutError,
+	type ServerWorker,
 } from "#server/lib/utils"
 import type { User } from "@clerk/backend"
 import { co, type Loaded, type ResolveQuery } from "jazz-tools"
@@ -54,12 +55,10 @@ let chatMessagesApp = new Hono()
 			logStep(s, { requestStartTime, userId: user.id })
 
 		let userWorkerResult: Awaited<ReturnType<typeof initUserWorker>>
-		let serverWorkerResult: Awaited<ReturnType<typeof initServerWorker>>
+		let serverWorker: ServerWorker
 		try {
-			;[userWorkerResult, serverWorkerResult] = await Promise.all([
-				initUserWorker(user),
-				initServerWorker(),
-			])
+			userWorkerResult = await initUserWorker(user)
+			serverWorker = await getServerWorker()
 		} catch (error) {
 			if (error instanceof WorkerTimeoutError) {
 				return c.json({ error: error.message, code: "worker-timeout" }, 504)
@@ -68,7 +67,6 @@ let chatMessagesApp = new Hono()
 		}
 
 		let userWorker_ = userWorkerResult.worker
-		let serverWorker = serverWorkerResult.worker
 
 		let [
 			userWorker,

@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { z } from "zod"
 import { authenticateRequest } from "jazz-tools"
-import { initServerWorker } from "../lib/utils"
+import { getServerWorker } from "../lib/utils"
 import { registerNotificationSettingsWithServer } from "./push-register-logic"
 
 export { pushRegisterApp }
@@ -23,7 +23,7 @@ let pushRegisterApp = new Hono().post(
 	async c => {
 		let { notificationSettingsId } = c.req.valid("json")
 
-		let { worker } = await initServerWorker()
+		let worker = await getServerWorker()
 
 		let { account, error } = await authenticateRequest(c.req.raw, {
 			loadAs: worker,

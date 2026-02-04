@@ -1,16 +1,17 @@
 import { describe, test, expect } from "vitest"
 import {
 	copyNotificationSettingsData,
-	type NotificationSettingsData,
+	type NotificationSettingsInput,
 } from "./notification-settings-migration"
 
 describe("copyNotificationSettingsData", () => {
 	test("copies all settings fields", () => {
-		let mockSettings: NotificationSettingsData = {
+		let mockSettings: NotificationSettingsInput = {
+			version: 1,
 			timezone: "America/New_York",
 			notificationTime: "09:00",
 			lastDeliveredAt: new Date("2025-01-15T14:00:00Z"),
-			language: "de" as const,
+			language: "de",
 			latestReminderDueDate: "2025-02-01",
 			pushDevices: [
 				{
@@ -34,7 +35,8 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("uses rootLanguage when settings language is undefined", () => {
-		let mockSettings: NotificationSettingsData = {
+		let mockSettings: NotificationSettingsInput = {
+			version: 1,
 			timezone: "UTC",
 			notificationTime: "12:00",
 			pushDevices: [],
@@ -46,10 +48,11 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("preserves settings language over rootLanguage", () => {
-		let mockSettings: NotificationSettingsData = {
+		let mockSettings: NotificationSettingsInput = {
+			version: 1,
 			timezone: "UTC",
 			notificationTime: "12:00",
-			language: "en" as const,
+			language: "en",
 			pushDevices: [],
 		}
 
@@ -59,7 +62,8 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("copies multiple devices", () => {
-		let mockSettings: NotificationSettingsData = {
+		let mockSettings: NotificationSettingsInput = {
+			version: 1,
 			timezone: "UTC",
 			pushDevices: [
 				{
@@ -85,7 +89,8 @@ describe("copyNotificationSettingsData", () => {
 	})
 
 	test("handles undefined optional fields", () => {
-		let mockSettings: NotificationSettingsData = {
+		let mockSettings: NotificationSettingsInput = {
+			version: 1,
 			pushDevices: [],
 		}
 

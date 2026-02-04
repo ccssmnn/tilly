@@ -7,9 +7,10 @@ export {
 	addServerToGroup,
 	copyNotificationSettingsData,
 }
-export type { MigrationContext, NotificationSettingsData }
+export type { MigrationContext, NotificationSettingsInput }
 
-type NotificationSettingsData = {
+type NotificationSettingsInput = {
+	version: 1
 	timezone?: string
 	notificationTime?: string
 	lastDeliveredAt?: Date
@@ -28,11 +29,26 @@ type MigrationContext = {
 	rootLanguage?: "de" | "en"
 }
 
+type NotificationSettingsLike = {
+	timezone?: string
+	notificationTime?: string
+	lastDeliveredAt?: Date
+	language?: "de" | "en"
+	latestReminderDueDate?: string
+	pushDevices: Array<{
+		isEnabled: boolean
+		deviceName: string
+		endpoint: string
+		keys: { p256dh: string; auth: string }
+	}>
+}
+
 function copyNotificationSettingsData(
-	settings: NotificationSettingsData,
+	settings: NotificationSettingsLike,
 	rootLanguage?: "de" | "en",
-): NotificationSettingsData {
+): NotificationSettingsInput {
 	return {
+		version: 1,
 		timezone: settings.timezone,
 		notificationTime: settings.notificationTime,
 		lastDeliveredAt: settings.lastDeliveredAt,
@@ -64,13 +80,7 @@ async function migrateNotificationSettings(
 		context.rootLanguage,
 	)
 
-	let newSettings = NotificationSettings.create(
-		{
-			version: 1,
-			...settingsData,
-		},
-		{ owner: group },
-	)
+	let newSettings = NotificationSettings.create(settingsData, { owner: group })
 
 	// Delete old settings to avoid orphaned data
 	oldSettings.$jazz.raw.core.deleteCoValue()

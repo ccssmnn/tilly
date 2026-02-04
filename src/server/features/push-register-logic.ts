@@ -1,6 +1,10 @@
 import { co, type ID } from "jazz-tools"
 import { NotificationSettings } from "#shared/schema/user"
-import { NotificationSettingsRef, ServerAccount } from "#shared/schema/server"
+import {
+	NotificationSettingsRef,
+	NotificationSettingsRefsRecord,
+	ServerAccount,
+} from "#shared/schema/server"
 import { tryCatch } from "#shared/lib/trycatch"
 
 export { registerNotificationSettingsWithServer }
@@ -39,15 +43,14 @@ async function registerNotificationSettingsWithServer(
 	if (!root.root.notificationSettingsRefs) {
 		root.root.$jazz.set(
 			"notificationSettingsRefs",
-			co.list(NotificationSettingsRef).create([]),
+			NotificationSettingsRefsRecord.create({}),
 		)
 	}
 
 	let refs = root.root.notificationSettingsRefs!
 
-	let existingRef = Array.from(refs.values()).find(
-		ref => ref?.notificationSettings?.$jazz.id === notificationSettingsId,
-	)
+	// Keyed by notificationSettingsId - upsert is naturally idempotent
+	let existingRef = refs[notificationSettingsId]
 
 	if (existingRef) {
 		existingRef.$jazz.set("lastSyncedAt", new Date())
@@ -57,7 +60,7 @@ async function registerNotificationSettingsWithServer(
 			userId,
 			lastSyncedAt: new Date(),
 		})
-		refs.$jazz.push(newRef)
+		refs.$jazz.set(notificationSettingsId, newRef)
 	}
 
 	let syncResult = await tryCatch(worker.$jazz.waitForSync())

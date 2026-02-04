@@ -64,8 +64,10 @@ describe("registerNotificationSettingsWithServer", () => {
 			resolve: { root: { notificationSettingsRefs: { $each: true } } },
 		})
 		let refs = loadedServer.root.notificationSettingsRefs
-		expect(refs?.length).toBe(1)
-		expect(refs?.[0]?.userId).toBe("test-user-123")
+		let refEntries = refs ? Object.entries(refs) : []
+		expect(refEntries.length).toBe(1)
+		expect(refEntries[0]?.[0]).toBe(notificationSettings.$jazz.id)
+		expect(refEntries[0]?.[1]?.userId).toBe("test-user-123")
 	})
 
 	test("updates lastSyncedAt for existing registration", async () => {
@@ -99,8 +101,8 @@ describe("registerNotificationSettingsWithServer", () => {
 		let loadedServer = await serverAccount.$jazz.ensureLoaded({
 			resolve: { root: { notificationSettingsRefs: { $each: true } } },
 		})
-		let firstSyncTime =
-			loadedServer.root.notificationSettingsRefs?.[0]?.lastSyncedAt
+		let refs = loadedServer.root.notificationSettingsRefs
+		let firstSyncTime = refs?.[notificationSettings.$jazz.id]?.lastSyncedAt
 
 		await new Promise(r => setTimeout(r, 10))
 
@@ -114,10 +116,11 @@ describe("registerNotificationSettingsWithServer", () => {
 			resolve: { root: { notificationSettingsRefs: { $each: true } } },
 		})
 
-		expect(loadedServer.root.notificationSettingsRefs?.length).toBe(1)
+		refs = loadedServer.root.notificationSettingsRefs
+		let refEntries = refs ? Object.entries(refs) : []
+		expect(refEntries.length).toBe(1)
 
-		let secondSyncTime =
-			loadedServer.root.notificationSettingsRefs?.[0]?.lastSyncedAt
+		let secondSyncTime = refs?.[notificationSettings.$jazz.id]?.lastSyncedAt
 		expect(secondSyncTime?.getTime()).toBeGreaterThan(firstSyncTime!.getTime())
 	})
 
