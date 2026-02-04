@@ -968,13 +968,12 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 			return
 		}
 
-		addPushDevice({
+		let deviceData = {
 			deviceName: values.deviceName,
 			endpoint: subscriptionResult.data.endpoint,
 			keys: subscriptionResult.data.keys,
-		})
+		}
 
-		// Trigger registration with server after adding device
 		if (notifications?.$jazz.id) {
 			let authToken = generateAuthToken(me)
 			let registrationResult = await triggerNotificationRegistration(
@@ -990,6 +989,8 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 				return
 			}
 		}
+
+		addPushDevice(deviceData)
 
 		toast.success(t("notifications.toast.deviceAdded"))
 		setOpen(false)
