@@ -28,9 +28,11 @@ async function triggerNotificationRegistration(
 	}
 
 	if (!result.data.ok) {
-		let errorData = await tryCatch(result.data.json())
+		let errorData = await tryCatch(
+			result.data.json() as Promise<{ message?: string }>,
+		)
 		let errorMessage = errorData.ok
-			? (errorData.data as { message?: string }).message || "Unknown error"
+			? errorData.data.message || "Unknown error"
 			: "Unknown error"
 		console.error("[Notifications] Registration error:", errorMessage)
 		return { ok: false, error: errorMessage }
