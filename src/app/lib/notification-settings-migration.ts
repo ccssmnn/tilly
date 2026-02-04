@@ -70,7 +70,10 @@ async function migrateNotificationSettings(
 	oldSettings: co.loaded<typeof NotificationSettings>,
 	serverAccountId: string,
 	context: MigrationContext,
-): Promise<co.loaded<typeof NotificationSettings>> {
+): Promise<{
+	newSettings: co.loaded<typeof NotificationSettings>
+	cleanup: () => void
+}> {
 	let group = Group.create()
 
 	await addServerToGroup(group, serverAccountId, context)
@@ -82,10 +85,11 @@ async function migrateNotificationSettings(
 
 	let newSettings = NotificationSettings.create(settingsData, { owner: group })
 
-	// Delete old settings to avoid orphaned data
-	oldSettings.$jazz.raw.core.deleteCoValue()
+	let cleanup = () => {
+		oldSettings.$jazz.raw.core.deleteCoValue()
+	}
 
-	return newSettings
+	return { newSettings, cleanup }
 }
 
 async function addServerToGroup(

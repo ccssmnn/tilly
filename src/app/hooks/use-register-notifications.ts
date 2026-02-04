@@ -90,9 +90,12 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 			console.error("[Notifications] Migration failed:", migrationResult.error)
 			return
 		}
-		// Update root to point to new settings
-		me.root.$jazz.set("notificationSettings", migrationResult.data)
-		notificationSettings = migrationResult.data
+		let { newSettings, cleanup } = migrationResult.data
+		// Update root to point to new settings before cleanup
+		me.root.$jazz.set("notificationSettings", newSettings)
+		// Only cleanup old settings after new settings are persisted
+		cleanup()
+		notificationSettings = newSettings
 		console.log("[Notifications] Migration complete")
 	} else {
 		// Ensure server worker is a member
