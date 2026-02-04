@@ -9,6 +9,7 @@ import {
 	useCleanupEmptyGroups,
 	useCleanupInaccessiblePeople,
 } from "#app/hooks/use-cleanups"
+import { useRegisterNotifications } from "#app/hooks/use-register-notifications"
 import { useSafariSwipeHack } from "#shared/ui/swipeable-list-item"
 
 export const Route = createFileRoute("/_app")({
@@ -24,6 +25,7 @@ function AppComponent() {
 	useCleanupInactiveLists()
 	useCleanupEmptyGroups()
 	useCleanupInaccessiblePeople()
+	useRegisterNotifications()
 
 	let dueReminderCount = useDueReminders()
 

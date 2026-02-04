@@ -81,11 +81,7 @@ async function sendNotificationToDevice(
 	device: PushDevice,
 	payload: NotificationPayload,
 ): Promise<SendResult> {
-	console.log("[Push] Sending to endpoint:", device.endpoint.slice(-20))
-	console.log(
-		"[Push] Using VAPID public key:",
-		PUBLIC_VAPID_KEY.slice(0, 20) + "...",
-	)
+	console.log(`📤 Sending to: ${device.endpoint.slice(-20)}`)
 
 	let result = await tryCatch(
 		webpush.sendNotification(

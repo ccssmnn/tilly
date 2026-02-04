@@ -300,6 +300,8 @@ const baseSettingsMessages = messages({
 	"notifications.toast.deviceRemoved": "Device removed successfully",
 	"notifications.toast.deviceAdded": "Device added successfully!",
 	"notifications.toast.nameUpdated": "Device name updated",
+	"notifications.toast.registrationFailed":
+		"Device added but server registration failed. Notifications may not work.",
 	"notifications.lastDelivery.label": "Last Notification Check",
 	"notifications.lastDelivery.reset": "Reset",
 	"notifications.lastDelivery.description":
@@ -664,6 +666,8 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.toast.deviceRemoved": "Gerät erfolgreich entfernt",
 	"notifications.toast.deviceAdded": "Gerät erfolgreich hinzugefügt!",
 	"notifications.toast.nameUpdated": "Gerätename aktualisiert",
+	"notifications.toast.registrationFailed":
+		"Gerät hinzugefügt, aber Serverregistrierung fehlgeschlagen. Benachrichtigungen funktionieren möglicherweise nicht.",
 	"notifications.lastDelivery.label": "Letzter Check",
 	"notifications.lastDelivery.reset": "Zurücksetzen",
 	"notifications.lastDelivery.description":

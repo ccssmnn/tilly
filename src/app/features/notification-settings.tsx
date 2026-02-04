@@ -1,7 +1,7 @@
 import { de as dfnsDe } from "date-fns/locale"
 import { formatDistanceToNow } from "date-fns"
 import { useIsAuthenticated } from "jazz-tools/react"
-import { co } from "jazz-tools"
+import { co, generateAuthToken } from "jazz-tools"
 import { PushDevice, UserAccount } from "#shared/schema/user"
 import { Alert, AlertTitle, AlertDescription } from "#shared/ui/alert"
 import { ExclamationTriangle } from "react-bootstrap-icons"
@@ -55,6 +55,7 @@ import { PUBLIC_VAPID_KEY } from "astro:env/client"
 import { getServiceWorkerRegistration } from "#app/lib/service-worker"
 import { tryCatch } from "#shared/lib/trycatch"
 import { isInAppBrowser } from "#app/hooks/use-pwa"
+import { triggerNotificationRegistration } from "#app/lib/notification-registration"
 
 export function NotificationSettings({
 	me,
@@ -967,11 +968,29 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 			return
 		}
 
-		addPushDevice({
+		let deviceData = {
 			deviceName: values.deviceName,
 			endpoint: subscriptionResult.data.endpoint,
 			keys: subscriptionResult.data.keys,
-		})
+		}
+
+		if (notifications?.$jazz.id) {
+			let authToken = generateAuthToken(me)
+			let registrationResult = await triggerNotificationRegistration(
+				notifications.$jazz.id,
+				authToken,
+			)
+			if (!registrationResult.ok) {
+				toast.warning(t("notifications.toast.registrationFailed"))
+				setOpen(false)
+				form.reset({
+					deviceName: getDeviceName(),
+				})
+				return
+			}
+		}
+
+		addPushDevice(deviceData)
 
 		toast.success(t("notifications.toast.deviceAdded"))
 		setOpen(false)

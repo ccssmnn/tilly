@@ -27,6 +27,8 @@ export let NotificationSettings = co.map({
 	notificationTime: z.string().optional(),
 	lastDeliveredAt: z.date().optional(),
 	pushDevices: z.array(PushDevice),
+	language: z.enum(["de", "en"]).optional(),
+	latestReminderDueDate: z.string().optional(), // YYYY-MM-DD format
 })
 
 export let Assistant = co.map({
