@@ -41,10 +41,16 @@ async function getServerWorker(): Promise<ServerWorker> {
 		accountSecret: JAZZ_WORKER_SECRET,
 		skipInboxLoad: true,
 		asActiveAccount: false,
-	}).then(result => {
-		cachedServerWorker = result.worker
-		return result.worker
 	})
+		.then(result => {
+			cachedServerWorker = result.worker
+			return result.worker
+		})
+		.catch(error => {
+			serverWorkerPromise = null
+			cachedServerWorker = null
+			throw error
+		})
 
 	return serverWorkerPromise
 }
