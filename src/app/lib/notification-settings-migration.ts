@@ -1,4 +1,4 @@
-import { Account, Group, type co, type ID } from "jazz-tools"
+import { Account, Group, type co, type ID, deleteCoValues } from "jazz-tools"
 import { NotificationSettings } from "#shared/schema/user"
 import { ServerAccount } from "#shared/schema/server"
 
@@ -72,7 +72,7 @@ async function migrateNotificationSettings(
 	context: MigrationContext,
 ): Promise<{
 	newSettings: co.loaded<typeof NotificationSettings>
-	cleanup: () => void
+	cleanup: () => Promise<void>
 }> {
 	let group = Group.create()
 
@@ -85,8 +85,30 @@ async function migrateNotificationSettings(
 
 	let newSettings = NotificationSettings.create(settingsData, { owner: group })
 
-	let cleanup = () => {
-		oldSettings.$jazz.raw.core.deleteCoValue()
+	let cleanup = async () => {
+		let owner = oldSettings.$jazz.owner
+		if (owner instanceof Group) {
+			let hasAdminPermission = owner.members.some(
+				m =>
+					m.account?.$jazz.id === context.loadAs.$jazz.id && m.role === "admin",
+			)
+			if (!hasAdminPermission) {
+				console.error(
+					"[NotificationSettingsMigration] Caller lacks admin permission on owning group",
+				)
+				throw new Error("Caller lacks admin permission on owning group")
+			}
+		}
+
+		try {
+			await deleteCoValues(NotificationSettings, oldSettings.$jazz.id)
+		} catch (error) {
+			console.error(
+				"[NotificationSettingsMigration] Failed to delete old settings:",
+				error,
+			)
+			throw error
+		}
 	}
 
 	return { newSettings, cleanup }

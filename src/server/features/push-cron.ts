@@ -1,5 +1,5 @@
 import { CRON_SECRET } from "astro:env/server"
-import { getServerWorker } from "../lib/utils"
+import { getServerWorker, WorkerTimeoutError } from "../lib/utils"
 
 import { toZonedTime, format } from "date-fns-tz"
 import { Hono } from "hono"
@@ -50,7 +50,15 @@ let cronDeliveryApp = new Hono().get(
 		let processingPromises: Promise<void>[] = []
 		let maxConcurrentUsers = 50
 
-		let worker = await getServerWorker()
+		let worker
+		try {
+			worker = await getServerWorker()
+		} catch (error) {
+			if (error instanceof WorkerTimeoutError) {
+				return c.json({ error: error.message, code: "worker-timeout" }, 504)
+			}
+			throw error
+		}
 		let serverAccount = await worker.$jazz.ensureLoaded({
 			resolve: serverRefsQuery,
 		})

@@ -57,7 +57,7 @@ async function getServerWorker(): Promise<ServerWorker> {
 
 async function initUserWorker(user: {
 	unsafeMetadata: Record<string, unknown>
-}) {
+}): Promise<{ worker: co.loaded<typeof UserAccount>; shutdown(): void }> {
 	let jazzAccountId = user.unsafeMetadata.jazzAccountID as string
 	let jazzAccountSecret = user.unsafeMetadata.jazzAccountSecret as string
 
@@ -65,16 +65,35 @@ async function initUserWorker(user: {
 		setTimeout(() => reject(new WorkerTimeoutError()), 30000),
 	)
 
-	let workerResult = await Promise.race([
-		startWorker({
-			AccountSchema: UserAccount,
-			syncServer: PUBLIC_JAZZ_SYNC_SERVER,
-			accountID: jazzAccountId,
-			accountSecret: jazzAccountSecret,
-			skipInboxLoad: true,
-		}),
-		timeoutPromise,
-	])
+	let workerPromise = startWorker({
+		AccountSchema: UserAccount,
+		syncServer: PUBLIC_JAZZ_SYNC_SERVER,
+		accountID: jazzAccountId,
+		accountSecret: jazzAccountSecret,
+		skipInboxLoad: true,
+	})
 
-	return { worker: workerResult.worker }
+	let workerResult = await Promise.race([workerPromise, timeoutPromise])
+
+	let resolved = false
+	const shutdown = async () => {
+		if (resolved) return
+		resolved = true
+		try {
+			const result = await workerPromise
+			await result.shutdownWorker?.()
+		} catch {
+			// ignore cleanup errors
+		}
+	}
+
+	workerPromise
+		.then(() => {
+			resolved = true
+		})
+		.catch(() => {
+			resolved = true
+		})
+
+	return { worker: workerResult.worker, shutdown }
 }

@@ -93,8 +93,8 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 		let { newSettings, cleanup } = migrationResult.data
 		// Update root to point to new settings before cleanup
 		me.root.$jazz.set("notificationSettings", newSettings)
-		// Only cleanup old settings after new settings are persisted
-		cleanup()
+		// Defer cleanup to next tick so new settings are persisted first
+		setTimeout(cleanup, 0)
 		notificationSettings = newSettings
 		console.log("[Notifications] Migration complete")
 	} else {
