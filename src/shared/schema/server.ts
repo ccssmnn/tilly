@@ -7,14 +7,14 @@ export let NotificationSettingsRef = co.map({
 	lastSyncedAt: z.date(),
 })
 
-// Keyed by notificationSettingsId for idempotent upserts (prevents duplicates under concurrent requests)
 export let NotificationSettingsRefsRecord = co.record(
 	z.string(),
 	NotificationSettingsRef,
 )
 
 export let ServerAccountRoot = co.map({
-	notificationSettingsRefs: NotificationSettingsRefsRecord.optional(),
+	notificationSettingsRefs: co.list(NotificationSettingsRef).optional(),
+	notificationSettingsRefsV2: NotificationSettingsRefsRecord.optional(),
 })
 
 export let ServerAccount = co
@@ -24,18 +24,29 @@ export let ServerAccount = co
 	})
 	.withMigration(async account => {
 		if (!account.$jazz.has("root")) {
-			let newRoot = ServerAccountRoot.create({
-				notificationSettingsRefs: NotificationSettingsRefsRecord.create({}),
-			})
+			let newRoot = ServerAccountRoot.create(
+				{
+					notificationSettingsRefs: co.list(NotificationSettingsRef).create([]),
+					notificationSettingsRefsV2: NotificationSettingsRefsRecord.create({}),
+				},
+				account.$jazz.owner,
+			)
 			account.$jazz.set("root", newRoot)
 		} else {
 			let { root } = await account.$jazz.ensureLoaded({
-				resolve: { root: { notificationSettingsRefs: { $each: true } } },
+				resolve: { root: true },
 			})
 			if (root.notificationSettingsRefs === undefined) {
 				root.$jazz.set(
 					"notificationSettingsRefs",
-					NotificationSettingsRefsRecord.create({}),
+					co.list(NotificationSettingsRef).create([], root.$jazz.owner),
+				)
+			}
+
+			if (root.notificationSettingsRefsV2 === undefined) {
+				root.$jazz.set(
+					"notificationSettingsRefsV2",
+					NotificationSettingsRefsRecord.create({}, root.$jazz.owner),
 				)
 			}
 		}

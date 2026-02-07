@@ -1,6 +1,7 @@
 import { beforeEach, describe, test, expect } from "vitest"
 import {
 	createJazzTestAccount,
+	runWithoutActiveAccount,
 	setupJazzTestSync,
 	setActiveAccount,
 } from "jazz-tools/testing"
@@ -61,12 +62,15 @@ describe("registerNotificationSettingsWithServer", () => {
 		expect(result.ok).toBe(true)
 
 		let loadedServer = await serverAccount.$jazz.ensureLoaded({
-			resolve: { root: { notificationSettingsRefs: { $each: true } } },
+			resolve: { root: { notificationSettingsRefsV2: { $each: true } } },
 		})
-		let refs = loadedServer.root.notificationSettingsRefs
+		let refs = loadedServer.root.notificationSettingsRefsV2
 		let refEntries = refs ? Object.entries(refs) : []
 		expect(refEntries.length).toBe(1)
 		expect(refEntries[0]?.[0]).toBe(notificationSettings.$jazz.id)
+		expect(refEntries[0]?.[1]?.notificationSettings?.$jazz.id).toBe(
+			notificationSettings.$jazz.id,
+		)
 		expect(refEntries[0]?.[1]?.userId).toBe("test-user-123")
 	})
 
@@ -99,9 +103,9 @@ describe("registerNotificationSettingsWithServer", () => {
 		expect(firstResult.ok).toBe(true)
 
 		let loadedServer = await serverAccount.$jazz.ensureLoaded({
-			resolve: { root: { notificationSettingsRefs: { $each: true } } },
+			resolve: { root: { notificationSettingsRefsV2: { $each: true } } },
 		})
-		let refs = loadedServer.root.notificationSettingsRefs
+		let refs = loadedServer.root.notificationSettingsRefsV2
 		let firstSyncTime = refs?.[notificationSettings.$jazz.id]?.lastSyncedAt
 
 		await new Promise(r => setTimeout(r, 10))
@@ -113,10 +117,10 @@ describe("registerNotificationSettingsWithServer", () => {
 		)
 
 		loadedServer = await serverAccount.$jazz.ensureLoaded({
-			resolve: { root: { notificationSettingsRefs: { $each: true } } },
+			resolve: { root: { notificationSettingsRefsV2: { $each: true } } },
 		})
 
-		refs = loadedServer.root.notificationSettingsRefs
+		refs = loadedServer.root.notificationSettingsRefsV2
 		let refEntries = refs ? Object.entries(refs) : []
 		expect(refEntries.length).toBe(1)
 
@@ -149,5 +153,37 @@ describe("registerNotificationSettingsWithServer", () => {
 			expect(result.status).toBe(400)
 			expect(result.error).toContain("ensure server has access")
 		}
+	})
+
+	test("can register without active account context", async () => {
+		setActiveAccount(userAccount)
+
+		let group = Group.create()
+		group.addMember(serverAccount, "writer")
+
+		let notificationSettings = NotificationSettings.create(
+			{
+				version: 1,
+				timezone: "UTC",
+				notificationTime: "09:00",
+				pushDevices: [],
+			},
+			{ owner: group },
+		)
+
+		await userAccount.$jazz.waitForAllCoValuesSync()
+		await serverAccount.$jazz.waitForAllCoValuesSync()
+
+		setActiveAccount(serverAccount)
+
+		let result = await runWithoutActiveAccount(() =>
+			registerNotificationSettingsWithServer(
+				serverAccount,
+				notificationSettings.$jazz.id,
+				"test-user-123",
+			),
+		)
+
+		expect(result.ok).toBe(true)
 	})
 })

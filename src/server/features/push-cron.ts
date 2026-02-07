@@ -29,7 +29,7 @@ export { cronDeliveryApp }
 
 let serverRefsQuery = {
 	root: {
-		notificationSettingsRefs: {
+		notificationSettingsRefsV2: {
 			$each: { notificationSettings: true },
 		},
 	},
@@ -71,7 +71,7 @@ let cronDeliveryApp = new Hono().get(
 			})
 		}
 
-		let refs = serverAccount.root.notificationSettingsRefs
+		let refs = serverAccount.root.notificationSettingsRefsV2
 		if (!refs) {
 			console.log("🔔 No notification settings refs found")
 			return c.json({
@@ -129,7 +129,6 @@ let cronDeliveryApp = new Hono().get(
 
 		await Promise.allSettled(processingPromises)
 
-		// Remove stale refs by key
 		for (let key of staleRefKeys) {
 			refs.$jazz.delete(key)
 		}

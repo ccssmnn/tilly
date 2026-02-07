@@ -9,7 +9,6 @@
  */
 
 import { useAccount } from "jazz-tools/react"
-import { useUser } from "@clerk/clerk-react"
 import { useEffect, useMemo } from "react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
 import { syncRemindersToServiceWorker } from "#app/lib/service-worker"
@@ -28,7 +27,6 @@ let remindersQuery = {
 } as const
 
 function useSyncRemindersToServiceWorker() {
-	let { user } = useUser()
 	let me = useAccount(UserAccount, { resolve: remindersQuery })
 
 	let remindersKey = useMemo(() => {
@@ -51,12 +49,8 @@ function useSyncRemindersToServiceWorker() {
 		: Intl.DateTimeFormat().resolvedOptions().timeZone
 
 	useEffect(() => {
-		console.log("[useSyncReminders] effect", {
-			userId: user?.id,
-			hasRemindersKey: !!remindersKey,
-			remindersKey,
-		})
-		if (!user?.id || !remindersKey) return
+		let jazzUserId = me.$isLoaded ? me.$jazz.id : undefined
+		if (!jazzUserId || !remindersKey) return
 		let reminders = JSON.parse(remindersKey) as {
 			id: string
 			dueAtDate: string
@@ -64,11 +58,6 @@ function useSyncRemindersToServiceWorker() {
 		let todayStr = new Date()
 			.toLocaleDateString("sv-SE", { timeZone: timezone })
 			.slice(0, 10)
-		console.log("[useSyncReminders] syncing", {
-			userId: user.id,
-			reminders,
-			todayStr,
-		})
-		syncRemindersToServiceWorker(user.id, reminders, todayStr)
-	}, [user?.id, remindersKey, timezone])
+		syncRemindersToServiceWorker(jazzUserId, reminders, todayStr)
+	}, [me, remindersKey, timezone])
 }

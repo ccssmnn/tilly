@@ -34,7 +34,9 @@ async function getServerWorker(): Promise<ServerWorker> {
 		return serverWorkerPromise
 	}
 
-	serverWorkerPromise = startWorker({
+	let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+	let workerInitPromise = startWorker({
 		AccountSchema: ServerAccount,
 		syncServer: PUBLIC_JAZZ_SYNC_SERVER,
 		accountID: PUBLIC_JAZZ_WORKER_ACCOUNT,
@@ -42,14 +44,27 @@ async function getServerWorker(): Promise<ServerWorker> {
 		skipInboxLoad: true,
 		asActiveAccount: false,
 	})
-		.then(result => {
-			cachedServerWorker = result.worker
-			return result.worker
+		.then(result => result.worker)
+		.catch(error => {
+			throw error
+		})
+
+	let timeoutPromise = new Promise<ServerWorker>((_, reject) => {
+		timeoutId = setTimeout(() => reject(new WorkerTimeoutError()), 30000)
+	})
+
+	serverWorkerPromise = Promise.race([workerInitPromise, timeoutPromise])
+		.then(worker => {
+			cachedServerWorker = worker
+			return worker
 		})
 		.catch(error => {
 			serverWorkerPromise = null
 			cachedServerWorker = null
 			throw error
+		})
+		.finally(() => {
+			if (timeoutId) clearTimeout(timeoutId)
 		})
 
 	return serverWorkerPromise

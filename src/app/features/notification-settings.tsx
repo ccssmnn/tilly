@@ -665,7 +665,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 					</DropdownMenuItem>
 					{device.isEnabled && (
 						<DropdownMenuItem
-							onClick={() => handleSendTestNotification(device.endpoint, t)}
+							onClick={() => handleSendTestNotification(device.endpoint, me, t)}
 						>
 							<T k="notifications.devices.sendTest" />
 							<BellFill />
@@ -786,12 +786,21 @@ async function handleToggleDeviceEnabled(
 
 async function handleSendTestNotification(
 	endpoint: string,
+	me: co.loaded<typeof UserAccount, Query>,
 	t: ReturnType<typeof useIntl>,
 ) {
+	let authToken = generateAuthToken(me)
 	let result = await tryCatch(
-		apiClient.push["send-test-notification"].$post({
-			json: { endpoint },
-		}),
+		apiClient.push["send-test-notification"].$post(
+			{
+				json: { endpoint },
+			},
+			{
+				headers: {
+					Authorization: `Jazz ${authToken}`,
+				},
+			},
+		),
 	)
 
 	if (!result.ok) {
@@ -800,14 +809,20 @@ async function handleSendTestNotification(
 	}
 
 	if (result.data.ok) {
-		let data = await tryCatch(result.data.json())
+		let data = await tryCatch(
+			result.data.json() as Promise<{ message?: string; error?: string }>,
+		)
 		if (data.ok) {
-			toast.success(data.data.message)
+			toast.success(
+				data.data.message || t("notifications.toast.testSendSuccess"),
+			)
 		} else {
 			toast.success(t("notifications.toast.testSendSuccess"))
 		}
 	} else {
-		let data = await tryCatch(result.data.json())
+		let data = await tryCatch(
+			result.data.json() as Promise<{ message?: string; error?: string }>,
+		)
 		let message =
 			data.ok && "message" in data.data
 				? data.data.message

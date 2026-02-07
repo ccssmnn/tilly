@@ -33,9 +33,11 @@ let pushRegisterApp = new Hono().post(
 			throw error
 		}
 
-		let { account, error } = await authenticateRequest(c.req.raw, {
+		let authResult = await authenticateRequest(c.req.raw, {
 			loadAs: worker,
 		})
+
+		let { account, error } = authResult
 
 		if (error) {
 			return c.json({ message: error.message }, 401)

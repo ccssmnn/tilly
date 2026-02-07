@@ -37,31 +37,26 @@ async function registerNotificationSettingsWithServer(
 	}
 
 	let root = await worker.$jazz.ensureLoaded({
-		resolve: { root: { notificationSettingsRefs: { $each: true } } },
+		resolve: { root: { notificationSettingsRefsV2: true } },
 	})
 
-	if (!root.root.notificationSettingsRefs) {
+	if (!root.root.notificationSettingsRefsV2) {
 		root.root.$jazz.set(
-			"notificationSettingsRefs",
-			NotificationSettingsRefsRecord.create({}),
+			"notificationSettingsRefsV2",
+			NotificationSettingsRefsRecord.create({}, root.root.$jazz.owner),
 		)
 	}
 
-	let refs = root.root.notificationSettingsRefs!
-
-	// Keyed by notificationSettingsId - upsert is naturally idempotent
-	let existingRef = refs[notificationSettingsId]
-
-	if (existingRef) {
-		existingRef.$jazz.set("lastSyncedAt", new Date())
-	} else {
-		let newRef = NotificationSettingsRef.create({
+	let refsV2 = root.root.notificationSettingsRefsV2!
+	let newRef = NotificationSettingsRef.create(
+		{
 			notificationSettings,
 			userId,
 			lastSyncedAt: new Date(),
-		})
-		refs.$jazz.set(notificationSettingsId, newRef)
-	}
+		},
+		refsV2.$jazz.owner,
+	)
+	refsV2.$jazz.set(notificationSettingsId, newRef)
 
 	let syncResult = await tryCatch(worker.$jazz.waitForSync())
 	if (!syncResult.ok) {

@@ -81,15 +81,10 @@ sw.addEventListener("message", event => {
 })
 
 sw.addEventListener("push", event => {
-	console.log("[SW] Push event received", {
-		hasData: !!event.data,
-		rawText: event.data?.text?.() ?? null,
-	})
 	let notificationData = mergeNotificationPayload(
 		getDefaultNotificationPayload(),
 		event.data,
 	)
-	console.log("[SW] Parsed notification data:", notificationData)
 	event.waitUntil(validateAuthAndShowNotification(notificationData))
 })
 
@@ -111,35 +106,27 @@ async function validateAuthAndShowNotification(
 ): Promise<void> {
 	// Test notifications always show (use count from payload or default to 1)
 	if (notificationData.isTest) {
-		console.log("[SW] Test notification, skipping validation")
 		await showNotification(notificationData, notificationData.count ?? 1)
 		return
 	}
 
 	let payloadUserId = notificationData.userId
 	if (!payloadUserId) {
-		console.log("[SW] No userId in payload, suppressing notification")
 		return
 	}
 
 	// getRemindersFromCache returns null + clears cache if userId doesn't match
 	let cached = await getRemindersFromCache(payloadUserId)
 	if (!cached) {
-		console.log("[SW] No reminders for user, suppressing notification")
 		return
 	}
 
 	let count = getDueReminderCount(cached.reminders, cached.todayStr)
 	if (count === 0) {
-		console.log("[SW] No due reminders, suppressing notification")
 		return
 	}
 
 	if (await isUserOnPage(notificationData.url)) {
-		console.log(
-			"[SW] User already on target page, suppressing notification",
-			notificationData.url,
-		)
 		return
 	}
 
@@ -150,14 +137,12 @@ async function showNotification(
 	notificationData: NotificationPayload,
 	count: number,
 ): Promise<void> {
-	console.log("[SW] showNotification called", { notificationData, count })
 	let titleTemplate =
 		count === 1
 			? (notificationData.titleOne ?? notificationData.title ?? "")
 			: (notificationData.titleMany ?? notificationData.title ?? "")
 	let title = titleTemplate.replace("{count}", String(count))
 	let body = notificationData.body.replace("{count}", String(count))
-	console.log("[SW] Showing notification:", { title, body })
 
 	await sw.registration.showNotification(title, {
 		body,
@@ -172,8 +157,8 @@ async function showNotification(
 	if (typeof setAppBadge === "function") {
 		try {
 			await setAppBadge.call(sw.registration, count)
-		} catch (error) {
-			console.log("[SW] Unable to set app badge:", error)
+		} catch {
+			return
 		}
 	}
 }
@@ -255,8 +240,8 @@ function mergeNotificationPayload(
 	let parsed: unknown = null
 	try {
 		parsed = eventData.json()
-	} catch (error) {
-		console.log("[SW] Error parsing push data:", error)
+	} catch {
+		parsed = null
 	}
 
 	if (parsed && typeof parsed === "object") {
@@ -337,40 +322,28 @@ async function setRemindersInCache(
 	reminders: ReminderData[],
 	todayStr: string,
 ): Promise<void> {
-	console.log("[SW] setRemindersInCache called", {
-		userId,
-		reminderCount: reminders.length,
-		reminders,
-		todayStr,
-	})
 	try {
 		let cache = await caches.open(REMINDERS_CACHE)
 		let data = JSON.stringify({ [userId]: { reminders, todayStr } })
 		await cache.put("reminders", new Response(data))
-		console.log("[SW] Reminders cached successfully")
-	} catch (error) {
-		console.log("[SW] Error caching reminders:", error)
+	} catch {
+		return
 	}
 }
 
 async function getRemindersFromCache(
 	userId: string,
 ): Promise<{ reminders: ReminderData[]; todayStr: string } | null> {
-	console.log("[SW] getRemindersFromCache called", { userId })
 	try {
 		let cache = await caches.open(REMINDERS_CACHE)
 		let response = await cache.match("reminders")
 		if (!response) {
-			console.log("[SW] No reminders in cache")
 			return null
 		}
 		let data = await response.json()
-		console.log("[SW] Cache data:", data)
 		let result = data[userId] || null
-		console.log("[SW] Reminders for userId:", result)
 		return result
-	} catch (error) {
-		console.log("[SW] Error loading reminders from cache:", error)
+	} catch {
 		return null
 	}
 }
@@ -379,12 +352,10 @@ function getDueReminderCount(
 	reminders: ReminderData[],
 	todayStr: string,
 ): number {
-	console.log("[SW] getDueReminderCount", { todayStr, reminders })
 	let count = 0
 	for (let r of reminders) {
 		if (r.dueAtDate <= todayStr) count++
 	}
-	console.log("[SW] Due reminder count:", count)
 	return count
 }
 
@@ -408,8 +379,7 @@ async function isUserOnPage(targetUrl?: string): Promise<boolean> {
 		}
 
 		return false
-	} catch (error) {
-		console.log("[SW] Error checking if user is on page:", error)
+	} catch {
 		return false
 	}
 }
