@@ -35,17 +35,27 @@ async function getServerWorker(): Promise<ServerWorker> {
 	}
 
 	let timeoutId: ReturnType<typeof setTimeout> | undefined
+	let workerAccountId = PUBLIC_JAZZ_WORKER_ACCOUNT
+	let syncServer = PUBLIC_JAZZ_SYNC_SERVER
 
 	let workerInitPromise = startWorker({
 		AccountSchema: ServerAccount,
-		syncServer: PUBLIC_JAZZ_SYNC_SERVER,
-		accountID: PUBLIC_JAZZ_WORKER_ACCOUNT,
+		syncServer,
+		accountID: workerAccountId,
 		accountSecret: JAZZ_WORKER_SECRET,
 		skipInboxLoad: true,
 		asActiveAccount: false,
 	})
 		.then(result => result.worker)
 		.catch(error => {
+			console.error("[PushWorker] Worker start failed", {
+				workerAccountId,
+				syncServer,
+				error:
+					error instanceof Error
+						? { name: error.name, message: error.message, stack: error.stack }
+						: String(error),
+			})
 			throw error
 		})
 
