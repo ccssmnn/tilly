@@ -1,12 +1,17 @@
 import { Person, Note, isDeleted, UserAccount } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
+import { useEffect } from "react"
 import {
 	filterNotes,
 	filterPersonNotes,
 	type NotesFilterOptions,
 	type PersonNotesFilterOptions,
 } from "#app/features/note-filters"
+import {
+	getLoadedCoListValues,
+	removeDeletedCoValueRefs,
+} from "#shared/lib/co-list-utils"
 
 export {
 	useNotes,
@@ -20,8 +25,8 @@ let notesResolve = {
 	root: {
 		people: {
 			$each: {
-				notes: { $each: true },
-				inactiveNotes: { $each: true },
+				notes: { $each: { $onError: "catch" } },
+				inactiveNotes: { $each: { $onError: "catch" } },
 				$onError: "catch",
 			},
 		},
@@ -29,8 +34,8 @@ let notesResolve = {
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personNotesResolve = {
-	notes: { $each: true },
-	inactiveNotes: { $each: true },
+	notes: { $each: { $onError: "catch" } },
+	inactiveNotes: { $each: { $onError: "catch" } },
 } as const satisfies ResolveQuery<typeof Person>
 
 type NotesLoadedAccount = co.loaded<typeof UserAccount, typeof notesResolve>
@@ -63,12 +68,13 @@ function useNotes(
 
 	for (let person of people) {
 		for (let note of person.notes.values()) {
+			if (!note.$isLoaded) continue
 			allNotePairs.push({ note, person })
 		}
 
 		if (person.inactiveNotes?.$isLoaded) {
 			for (let note of person.inactiveNotes.values()) {
-				if (!note) continue
+				if (!note?.$isLoaded) continue
 				allNotePairs.push({ note, person })
 			}
 		}
@@ -87,11 +93,19 @@ function usePersonNotes(
 		resolve: personNotesResolve,
 	})
 
+	useEffect(() => {
+		if (!person.$isLoaded) return
+		removeDeletedCoValueRefs(person.notes)
+		removeDeletedCoValueRefs(person.inactiveNotes)
+	}, [person])
+
 	let loadedPerson = person.$isLoaded ? person : defaultPerson
 
 	let allNotes = [
-		...(loadedPerson?.notes ?? []),
-		...(loadedPerson?.inactiveNotes ?? []),
+		...getLoadedCoListValues<co.loaded<typeof Note>>(loadedPerson?.notes),
+		...getLoadedCoListValues<co.loaded<typeof Note>>(
+			loadedPerson?.inactiveNotes,
+		),
 	]
 
 	return filterPersonNotes(allNotes, searchQuery, options)

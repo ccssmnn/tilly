@@ -56,6 +56,7 @@ import { createReminder } from "#shared/tools/reminder-create"
 import { updateNote } from "#shared/tools/note-update"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { useHasHover } from "#app/hooks/use-has-hover"
+import { removeCoListRefsById } from "#shared/lib/co-list-utils"
 
 export { PersonListItem }
 export type { PersonListItemPerson }
@@ -266,10 +267,15 @@ function PersonItemHeader({
 	nameColor?: string
 	searchQuery?: string
 }) {
-	let hasDueReminders = person.reminders
-		?.filter(reminder => reminder != null)
-		?.filter(reminder => !isDeleted(reminder) && reminder.done !== true)
-		?.some(reminder => isDueToday(reminder))
+	let hasDueReminders = false
+	for (let reminder of person.reminders.values()) {
+		if (!reminder?.$isLoaded) continue
+		if (isDeleted(reminder) || reminder.done === true) continue
+		if (isDueToday(reminder)) {
+			hasDueReminders = true
+			break
+		}
+	}
 
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
@@ -685,6 +691,14 @@ function usePersonItemOperations({
 			return false
 		}
 
+		let root = (loadedMe as { root?: unknown }).root as
+			| { people?: unknown; inactivePeople?: unknown }
+			| undefined
+		if (root?.people) removeFromListById(root.people, person.$jazz.id)
+		if (root?.inactivePeople) {
+			removeFromListById(root.inactivePeople, person.$jazz.id)
+		}
+
 		toast.success(t("person.toast.permanentlyDeleted", { name: person.name }))
 		return true
 	}
@@ -806,7 +820,7 @@ type PersonListItemPerson = co.loaded<
 	typeof Person,
 	{
 		avatar: true
-		reminders: { $each: true }
+		reminders: { $each: { $onError: "catch" } }
 	}
 >
 
@@ -836,4 +850,8 @@ type PersonItemOperations = {
 	addReminder: (
 		data: ReminderFormInput,
 	) => Promise<{ success: true } | undefined>
+}
+
+function removeFromListById(list: unknown, id: string) {
+	removeCoListRefsById(list, id)
 }

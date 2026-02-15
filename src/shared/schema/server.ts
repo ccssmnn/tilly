@@ -1,4 +1,4 @@
-import { co, z } from "jazz-tools"
+import { Group, co, z } from "jazz-tools"
 import { NotificationSettings } from "./user"
 
 export let NotificationSettingsRef = co.map({
@@ -23,6 +23,21 @@ export let ServerAccountRoot = co.map({
 	notificationSettingsRefsV2: NotificationSettingsRefsRecord.optional(),
 })
 
+function createServerAccountRoot(owner: Group) {
+	return ServerAccountRoot.create(
+		{
+			notificationSettingsRefs: co
+				.list(NotificationSettingsRef)
+				.create([], owner),
+			notificationSettingsRefsV2: NotificationSettingsRefsRecord.create(
+				{},
+				owner,
+			),
+		},
+		owner,
+	)
+}
+
 export let ServerAccount = co
 	.account({
 		profile: co.map({ name: z.string() }),
@@ -30,18 +45,8 @@ export let ServerAccount = co
 	})
 	.withMigration(async account => {
 		if (!account.$jazz.has("root")) {
-			let newRoot = ServerAccountRoot.create(
-				{
-					notificationSettingsRefs: co
-						.list(NotificationSettingsRef)
-						.create([], account),
-					notificationSettingsRefsV2: NotificationSettingsRefsRecord.create(
-						{},
-						account,
-					),
-				},
-				account,
-			)
+			let owner = account.$jazz.owner ?? Group.create(account)
+			let newRoot = createServerAccountRoot(owner)
 			account.$jazz.set("root", newRoot)
 		} else {
 			let loaded
@@ -71,18 +76,8 @@ export let ServerAccount = co
 				})
 
 				if (isRootAuthCorruptionError(error)) {
-					let repairedRoot = ServerAccountRoot.create(
-						{
-							notificationSettingsRefs: co
-								.list(NotificationSettingsRef)
-								.create([], account),
-							notificationSettingsRefsV2: NotificationSettingsRefsRecord.create(
-								{},
-								account,
-							),
-						},
-						account,
-					)
+					let owner = account.$jazz.owner ?? Group.create(account)
+					let repairedRoot = createServerAccountRoot(owner)
 					account.$jazz.set("root", repairedRoot)
 					console.warn("[ServerAccount] Repaired unreadable root", {
 						accountId: account.$jazz.id,

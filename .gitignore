@@ -20,3 +20,4 @@ scripts/mock-data.de.json
 .reference
 .opencode
 sync-db
+.env*.local

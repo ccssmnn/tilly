@@ -44,7 +44,7 @@ function useDueReminders(): number {
 			root: {
 				people: {
 					$each: {
-						reminders: { $each: true },
+						reminders: { $each: { $onError: "catch" } },
 						$onError: "catch",
 					},
 				},
@@ -58,6 +58,7 @@ function useDueReminders(): number {
 		for (let person of me.root.people.values()) {
 			if (!person?.$isLoaded || isDeleted(person)) continue
 			for (let reminder of person.reminders.values()) {
+				if (!reminder.$isLoaded) continue
 				if (!reminder.done && !isDeleted(reminder) && isDueToday(reminder)) {
 					dueReminderCount++
 				}

@@ -51,14 +51,14 @@ let personListQuery = {
 		people: {
 			$each: {
 				avatar: true,
-				reminders: { $each: true },
+				reminders: { $each: { $onError: "catch" } },
 				$onError: "catch",
 			},
 		},
 		inactivePeople: {
 			$each: {
 				avatar: true,
-				reminders: { $each: true },
+				reminders: { $each: { $onError: "catch" } },
 				$onError: "catch",
 			},
 		},

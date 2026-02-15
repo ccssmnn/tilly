@@ -146,12 +146,6 @@ function PersonDetails({
 	)
 }
 
-type Query = {
-	avatar: true
-	notes: { $each: true }
-	reminders: { $each: true }
-}
-
 function ManageListsDialog({
 	open,
 	onOpenChange,
@@ -299,6 +293,12 @@ function ManageListsDialog({
 			/>
 		</>
 	)
+}
+
+type Query = {
+	avatar: true
+	notes: { $each: { $onError: "catch" } }
+	reminders: { $each: { $onError: "catch" } }
 }
 
 function ActionsDropdown({

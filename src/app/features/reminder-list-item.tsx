@@ -47,6 +47,7 @@ import { cn, isTextSelectionOngoing } from "#app/lib/utils"
 import { updateReminder } from "#shared/tools/reminder-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { permanentlyDeleteReminder } from "#shared/lib/delete-covalue"
+import { removeCoListRefsById } from "#shared/lib/co-list-utils"
 import { NoteForm } from "#app/features/note-form"
 import { createNote } from "#shared/tools/note-create"
 import { updateNote } from "#shared/tools/note-update"
@@ -1022,6 +1023,11 @@ function useReminderItemOperations({
 			return false
 		}
 
+		removeFromListById(person.reminders, reminder.$jazz.id)
+		if (person.inactiveReminders) {
+			removeFromListById(person.inactiveReminders, reminder.$jazz.id)
+		}
+
 		toast.success(t("reminder.toast.permanentlyDeleted"))
 		return true
 	}
@@ -1035,4 +1041,8 @@ function useReminderItemOperations({
 		restore,
 		deletePermanently,
 	}
+}
+
+function removeFromListById(list: unknown, id: string) {
+	removeCoListRefsById(list, id)
 }

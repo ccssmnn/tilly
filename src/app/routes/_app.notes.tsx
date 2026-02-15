@@ -48,8 +48,8 @@ let resolve = {
 	root: {
 		people: {
 			$each: {
-				notes: { $each: true },
-				reminders: { $each: true },
+				notes: { $each: { $onError: "catch" } },
+				reminders: { $each: { $onError: "catch" } },
 				$onError: "catch",
 			},
 		},

@@ -55,7 +55,7 @@ let resolve = {
 		people: {
 			$each: {
 				avatar: true,
-				reminders: { $each: true },
+				reminders: { $each: { $onError: "catch" } },
 				$onError: "catch",
 			},
 		},

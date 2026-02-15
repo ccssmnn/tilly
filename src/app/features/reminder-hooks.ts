@@ -1,12 +1,17 @@
 import { Person, Reminder, isDeleted, UserAccount } from "#shared/schema/user"
 import { useAccount, useCoState } from "jazz-tools/react-core"
 import { co, type ResolveQuery } from "jazz-tools"
+import { useEffect } from "react"
 import {
 	filterReminders,
 	filterPersonReminders,
 	type RemindersFilterOptions,
 	type PersonRemindersFilterOptions,
 } from "#app/features/reminder-filters"
+import {
+	getLoadedCoListValues,
+	removeDeletedCoValueRefs,
+} from "#shared/lib/co-list-utils"
 
 export {
 	useReminders,
@@ -20,8 +25,8 @@ let remindersResolve = {
 	root: {
 		people: {
 			$each: {
-				reminders: { $each: true },
-				inactiveReminders: { $each: true },
+				reminders: { $each: { $onError: "catch" } },
+				inactiveReminders: { $each: { $onError: "catch" } },
 				$onError: "catch",
 			},
 		},
@@ -29,8 +34,8 @@ let remindersResolve = {
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 let personRemindersResolve = {
-	reminders: { $each: true },
-	inactiveReminders: { $each: true },
+	reminders: { $each: { $onError: "catch" } },
+	inactiveReminders: { $each: { $onError: "catch" } },
 } as const satisfies ResolveQuery<typeof Person>
 
 type RemindersLoadedAccount = co.loaded<
@@ -66,12 +71,13 @@ function useReminders(
 
 	for (let person of people) {
 		for (let reminder of person.reminders.values()) {
+			if (!reminder.$isLoaded) continue
 			allReminderPairs.push({ reminder, person })
 		}
 
 		if (person.inactiveReminders?.$isLoaded) {
 			for (let reminder of person.inactiveReminders.values()) {
-				if (!reminder) continue
+				if (!reminder?.$isLoaded) continue
 				allReminderPairs.push({ reminder, person })
 			}
 		}
@@ -90,11 +96,21 @@ function usePersonReminders(
 		resolve: personRemindersResolve,
 	})
 
+	useEffect(() => {
+		if (!person.$isLoaded) return
+		removeDeletedCoValueRefs(person.reminders)
+		removeDeletedCoValueRefs(person.inactiveReminders)
+	}, [person])
+
 	let loadedPerson = person.$isLoaded ? person : defaultPerson
 
 	let allReminders = [
-		...(loadedPerson?.reminders ?? []),
-		...(loadedPerson?.inactiveReminders ?? []),
+		...getLoadedCoListValues<co.loaded<typeof Reminder>>(
+			loadedPerson?.reminders,
+		),
+		...getLoadedCoListValues<co.loaded<typeof Reminder>>(
+			loadedPerson?.inactiveReminders,
+		),
 	]
 
 	return filterPersonReminders(allReminders, searchQuery, options)

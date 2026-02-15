@@ -61,7 +61,8 @@ let resolve = {
 	root: {
 		people: {
 			$each: {
-				reminders: { $each: true },
+				reminders: { $each: { $onError: "catch" } },
+				$onError: "catch",
 			},
 		},
 		assistant: { stringifiedMessages: true },

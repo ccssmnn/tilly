@@ -13,21 +13,27 @@ import {
 	permanentlyDeletePerson,
 	permanentlyDeleteReminder,
 } from "#shared/lib/delete-covalue"
+import {
+	removeCoValueRefsByLoadingStates,
+	removeDeletedCoValueRefs,
+} from "#shared/lib/co-list-utils"
 
 let inactiveListsQuery = {
 	root: {
 		people: {
 			$each: {
-				notes: { $each: true },
-				inactiveNotes: { $each: true },
-				reminders: { $each: true },
-				inactiveReminders: { $each: true },
+				notes: { $each: { $onError: "catch" } },
+				inactiveNotes: { $each: { $onError: "catch" } },
+				reminders: { $each: { $onError: "catch" } },
+				inactiveReminders: { $each: { $onError: "catch" } },
+				$onError: "catch",
 			},
 		},
 		inactivePeople: {
 			$each: {
-				notes: { $each: true },
-				reminders: { $each: true },
+				notes: { $each: { $onError: "catch" } },
+				reminders: { $each: { $onError: "catch" } },
+				$onError: "catch",
 			},
 		},
 	},
@@ -42,6 +48,11 @@ let emptyGroupsQuery = {
 let inaccessiblePeopleQuery = {
 	root: {
 		people: {
+			$each: {
+				$onError: "catch",
+			},
+		},
+		inactivePeople: {
 			$each: {
 				$onError: "catch",
 			},
@@ -85,18 +96,12 @@ function useCleanupInaccessiblePeople(): void {
 		if (cleanupRan.current || !me.$isLoaded) return
 		cleanupRan.current = true
 
-		let indicesToRemove: number[] = []
-		let peopleArray = Array.from(me.root.people.values())
-
-		for (let i = 0; i < peopleArray.length; i++) {
-			let person = peopleArray[i]
-			if (!person?.$isLoaded) {
-				indicesToRemove.push(i)
-			}
-		}
-
-		for (let i = indicesToRemove.length - 1; i >= 0; i--) {
-			me.root.people.$jazz.splice(indicesToRemove[i], 1)
+		removeCoValueRefsByLoadingStates(me.root.people, ["deleted", "unavailable"])
+		if (me.root.inactivePeople) {
+			removeCoValueRefsByLoadingStates(me.root.inactivePeople, [
+				"deleted",
+				"unavailable",
+			])
 		}
 	}, [me.$isLoaded, me])
 }
@@ -104,13 +109,18 @@ function useCleanupInaccessiblePeople(): void {
 async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 	let { people, inactivePeople } = me.root
 
+	removeDeletedCoValueRefs(people)
+	if (inactivePeople) {
+		removeDeletedCoValueRefs(inactivePeople)
+	}
+
 	// Process people list - move deleted to inactive
 	let peopleToMove: number[] = []
 	let peopleArray = Array.from(people.values())
 
 	for (let i = 0; i < peopleArray.length; i++) {
 		let person = peopleArray[i]
-		if (!person) continue
+		if (!person || !person.$isLoaded) continue
 		if (person.deletedAt) {
 			peopleToMove.push(i)
 		}
@@ -118,7 +128,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 	for (let i = peopleToMove.length - 1; i >= 0; i--) {
 		let person = peopleArray[peopleToMove[i]]
-		if (person && inactivePeople) inactivePeople.$jazz.push(person)
+		if (person?.$isLoaded && inactivePeople) inactivePeople.$jazz.push(person)
 		people.$jazz.splice(peopleToMove[i], 1)
 	}
 
@@ -129,7 +139,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 		for (let i = 0; i < inactivePeopleArray.length; i++) {
 			let person = inactivePeopleArray[i]
-			if (!person) continue
+			if (!person || !person.$isLoaded) continue
 			if (person.deletedAt && isStale(person.deletedAt)) {
 				inactivePeopleToDelete.push(i)
 			}
@@ -139,7 +149,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 		for (let i = inactivePeopleToDelete.length - 1; i >= 0; i--) {
 			let person = inactivePeopleArray[inactivePeopleToDelete[i]]
 			inactivePeople.$jazz.splice(inactivePeopleToDelete[i], 1)
-			if (person) {
+			if (person?.$isLoaded) {
 				try {
 					await permanentlyDeletePerson(person)
 				} catch {
@@ -151,7 +161,14 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 	// Process each person's notes and reminders
 	for (let person of people.values()) {
-		if (!person) continue
+		if (!person || !person.$isLoaded) continue
+
+		removeDeletedCoValueRefs(person.notes)
+		if (person.inactiveNotes) removeDeletedCoValueRefs(person.inactiveNotes)
+		removeDeletedCoValueRefs(person.reminders)
+		if (person.inactiveReminders) {
+			removeDeletedCoValueRefs(person.inactiveReminders)
+		}
 
 		// Process notes - move deleted to inactive
 		if (person.notes && person.inactiveNotes) {
@@ -160,7 +177,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 			for (let i = 0; i < notesArray.length; i++) {
 				let note = notesArray[i]
-				if (!note) continue
+				if (!note?.$isLoaded) continue
 				if (note.deletedAt) {
 					notesToMove.push(i)
 				}
@@ -168,7 +185,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 			for (let i = notesToMove.length - 1; i >= 0; i--) {
 				let note = notesArray[notesToMove[i]]
-				if (note) person.inactiveNotes.$jazz.push(note)
+				if (note?.$isLoaded) person.inactiveNotes.$jazz.push(note)
 				person.notes.$jazz.splice(notesToMove[i], 1)
 			}
 		}
@@ -180,7 +197,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 			for (let i = 0; i < inactiveNotesArray.length; i++) {
 				let note = inactiveNotesArray[i]
-				if (!note) continue
+				if (!note?.$isLoaded) continue
 				if (note.deletedAt && isStale(note.deletedAt)) {
 					inactiveNotesToDelete.push(i)
 				}
@@ -189,7 +206,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 			for (let i = inactiveNotesToDelete.length - 1; i >= 0; i--) {
 				let note = inactiveNotesArray[inactiveNotesToDelete[i]]
 				person.inactiveNotes.$jazz.splice(inactiveNotesToDelete[i], 1)
-				if (note) {
+				if (note?.$isLoaded) {
 					try {
 						await permanentlyDeleteNote(note)
 					} catch {
@@ -206,7 +223,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 			for (let i = 0; i < remindersArray.length; i++) {
 				let reminder = remindersArray[i]
-				if (!reminder) continue
+				if (!reminder?.$isLoaded) continue
 				if (reminder.deletedAt || reminder.done) {
 					remindersToMove.push(i)
 				}
@@ -214,7 +231,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 			for (let i = remindersToMove.length - 1; i >= 0; i--) {
 				let reminder = remindersArray[remindersToMove[i]]
-				if (reminder) person.inactiveReminders.$jazz.push(reminder)
+				if (reminder?.$isLoaded) person.inactiveReminders.$jazz.push(reminder)
 				person.reminders.$jazz.splice(remindersToMove[i], 1)
 			}
 		}
@@ -226,7 +243,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 
 			for (let i = 0; i < inactiveRemindersArray.length; i++) {
 				let reminder = inactiveRemindersArray[i]
-				if (!reminder) continue
+				if (!reminder?.$isLoaded) continue
 				if (reminder.deletedAt && isStale(reminder.deletedAt)) {
 					inactiveRemindersToDelete.push(i)
 				}
@@ -235,7 +252,7 @@ async function cleanupInactiveLists(me: LoadedUser): Promise<void> {
 			for (let i = inactiveRemindersToDelete.length - 1; i >= 0; i--) {
 				let reminder = inactiveRemindersArray[inactiveRemindersToDelete[i]]
 				person.inactiveReminders.$jazz.splice(inactiveRemindersToDelete[i], 1)
-				if (reminder) {
+				if (reminder?.$isLoaded) {
 					try {
 						await permanentlyDeleteReminder(reminder)
 					} catch {

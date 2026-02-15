@@ -44,14 +44,17 @@ export { PersonShareDialog }
 
 type LoadedPerson = co.loaded<
 	typeof Person,
-	{ notes: { $each: true }; reminders: { $each: true } }
+	{
+		notes: { $each: { $onError: "catch" } }
+		reminders: { $each: { $onError: "catch" } }
+	}
 >
 
 let fullResolve = {
-	notes: { $each: true },
-	reminders: { $each: true },
-	inactiveNotes: { $each: true },
-	inactiveReminders: { $each: true },
+	notes: { $each: { $onError: "catch" } },
+	reminders: { $each: { $onError: "catch" } },
+	inactiveNotes: { $each: { $onError: "catch" } },
+	inactiveReminders: { $each: { $onError: "catch" } },
 } as const
 
 function PersonShareDialog({
@@ -488,10 +491,10 @@ type PendingInviteGroup = {
 type FullyLoadedPerson = co.loaded<
 	typeof Person,
 	{
-		notes: { $each: true }
-		reminders: { $each: true }
-		inactiveNotes: { $each: true }
-		inactiveReminders: { $each: true }
+		notes: { $each: { $onError: "catch" } }
+		reminders: { $each: { $onError: "catch" } }
+		inactiveNotes: { $each: { $onError: "catch" } }
+		inactiveReminders: { $each: { $onError: "catch" } }
 	}
 >
 
@@ -662,7 +665,7 @@ async function migrateNestedListsToGroup(
 	if (needsMigration(person.notes)) {
 		let newNotes = co.list(Note).create([], group)
 		for (let note of person.notes.values()) {
-			if (!note) continue
+			if (!note?.$isLoaded) continue
 			let newNote = Note.create(
 				{
 					version: 1,
@@ -684,7 +687,7 @@ async function migrateNestedListsToGroup(
 	if (needsMigration(person.reminders)) {
 		let newReminders = co.list(Reminder).create([], group)
 		for (let reminder of person.reminders.values()) {
-			if (!reminder) continue
+			if (!reminder?.$isLoaded) continue
 			let newReminder = Reminder.create(
 				{
 					version: 1,
@@ -707,7 +710,7 @@ async function migrateNestedListsToGroup(
 	if (person.inactiveNotes && needsMigration(person.inactiveNotes)) {
 		let newInactiveNotes = co.list(Note).create([], group)
 		for (let note of person.inactiveNotes.values()) {
-			if (!note) continue
+			if (!note?.$isLoaded) continue
 			let newNote = Note.create(
 				{
 					version: 1,
@@ -729,7 +732,7 @@ async function migrateNestedListsToGroup(
 	if (person.inactiveReminders && needsMigration(person.inactiveReminders)) {
 		let newInactiveReminders = co.list(Reminder).create([], group)
 		for (let reminder of person.inactiveReminders.values()) {
-			if (!reminder) continue
+			if (!reminder?.$isLoaded) continue
 			let newReminder = Reminder.create(
 				{
 					version: 1,
@@ -785,7 +788,7 @@ async function migratePersonToGroup(
 	}
 
 	for (let note of person.notes.values()) {
-		if (!note) continue
+		if (!note?.$isLoaded) continue
 		let newNote = Note.create(
 			{
 				version: 1,
@@ -802,7 +805,7 @@ async function migratePersonToGroup(
 	}
 
 	for (let reminder of person.reminders.values()) {
-		if (!reminder) continue
+		if (!reminder?.$isLoaded) continue
 		let newReminder = Reminder.create(
 			{
 				version: 1,

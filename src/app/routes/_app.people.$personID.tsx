@@ -6,8 +6,8 @@ import {
 	Person,
 	Note,
 	Reminder,
-	isDueToday,
 	UserAccount,
+	isDueToday,
 } from "#shared/schema/user"
 import { usePersonNotes } from "#app/features/note-hooks"
 import { usePersonReminders } from "#app/features/reminder-hooks"
@@ -87,8 +87,8 @@ export const Route = createFileRoute("/_app/people/$personID")({
 
 let resolve = {
 	avatar: true,
-	notes: { $each: true },
-	reminders: { $each: true },
+	notes: { $each: { $onError: "catch" } },
+	reminders: { $each: { $onError: "catch" } },
 } as const satisfies ResolveQuery<typeof Person>
 
 function PersonScreen() {

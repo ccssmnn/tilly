@@ -47,6 +47,7 @@ import { toast } from "sonner"
 import { updateNote } from "#shared/tools/note-update"
 import { tryCatch } from "#shared/lib/trycatch"
 import { permanentlyDeleteNote } from "#shared/lib/delete-covalue"
+import { removeCoListRefsById } from "#shared/lib/co-list-utils"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { de as dfnsDe } from "date-fns/locale"
 import { Markdown } from "#shared/ui/markdown"
@@ -839,6 +840,11 @@ function useNoteItemOperations({
 			return false
 		}
 
+		removeFromListById(person.notes, note.$jazz.id)
+		if (person.inactiveNotes) {
+			removeFromListById(person.inactiveNotes, note.$jazz.id)
+		}
+
 		toast.success(t("note.toast.permanentlyDeleted"))
 		return true
 	}
@@ -867,6 +873,10 @@ function useExpanded(id: string) {
 	}
 
 	return { isExpanded, toggleExpanded }
+}
+
+function removeFromListById(list: unknown, id: string) {
+	removeCoListRefsById(list, id)
 }
 
 function NoteImageGridThumbnails({
