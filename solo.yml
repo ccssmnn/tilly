@@ -1,0 +1,17 @@
+name: tilly
+icon: null
+processes:
+  Jazz Sync Server:
+    command: bunx jazz-run sync
+    working_dir: null
+    auto_start: true
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
+  Dev Server:
+    command: bun run dev
+    working_dir: null
+    auto_start: true
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
