@@ -1,5 +1,5 @@
 name: tilly
-icon: null
+icon: public/apple-touch-icon.png
 processes:
   Jazz Sync Server:
     command: bunx jazz-run sync

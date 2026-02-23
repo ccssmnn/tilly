@@ -11,7 +11,11 @@ import { IntlProvider } from "#shared/intl/setup"
 import { messagesDe } from "#shared/intl/messages"
 import { useSyncRemindersToServiceWorker } from "#app/hooks/use-sync-reminders-to-sw"
 import { PWAContext, usePWAProvider } from "#app/lib/pwa"
-import { SplashScreen } from "./components/splash-screen"
+import {
+	SplashScreen,
+	SplashScreenStatic,
+	useSplashDelay,
+} from "./components/splash-screen"
 import { Toaster } from "#shared/ui/sonner"
 import { MainErrorBoundary } from "#app/components/main-error-boundary"
 
@@ -39,7 +43,7 @@ function JazzWithClerk() {
 				clerk={clerk}
 				AccountSchema={UserAccount}
 				sync={syncConfig}
-				fallback={<SplashScreen />}
+				fallback={<SplashScreenStatic />}
 			>
 				<RouterWithJazz />
 				<Toaster richColors />
@@ -52,8 +56,8 @@ function RouterWithJazz() {
 	useSyncRemindersToServiceWorker()
 	let me = useAccount(UserAccount, { resolve: { root: true } })
 
-	// Only show splash screen if account is still loading
-	if (me.$jazz.loadingState === "loading") return <SplashScreen />
+	let splashReady = useSplashDelay(700)
+	let showSplash = me.$jazz.loadingState === "loading" || !splashReady
 
 	// Pass null for unauthenticated users, me object for authenticated users
 	let contextMe
@@ -65,17 +69,19 @@ function RouterWithJazz() {
 
 	let locale = contextMe?.root?.language || "en"
 
-	if (locale === "de") {
-		return (
-			<IntlProvider messages={messagesDe} locale="de">
-				<RouterProvider router={router} context={{ me: contextMe }} />
-			</IntlProvider>
-		)
-	}
 	return (
-		<IntlProvider>
-			<RouterProvider router={router} context={{ me: contextMe }} />
-		</IntlProvider>
+		<>
+			<SplashScreen show={showSplash} />
+			{locale === "de" ? (
+				<IntlProvider messages={messagesDe} locale="de">
+					<RouterProvider router={router} context={{ me: contextMe }} />
+				</IntlProvider>
+			) : (
+				<IntlProvider>
+					<RouterProvider router={router} context={{ me: contextMe }} />
+				</IntlProvider>
+			)}
+		</>
 	)
 }
 

@@ -66,10 +66,15 @@ let metaDescription =
 	<body
 		class="selection:bg-primary selection:text-primary-foreground select-none bg-background text-foreground *:border-border overscroll-y-none"
 	>
+		<div id="splash" class="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background">
+			<img src="/app/icons/icon-192x192.png" class="size-24 rounded-lg" />
+			<span class="text-4xl font-bold tracking-tight">Tilly</span>
+		</div>
 		<PWA client:only="react">
 			<SplashScreen slot="fallback" />
 		</PWA>
 		<script>
+			window.__pageLoadTime = Date.now()
 			function updateThemeColor() {
 				let meta = document.getElementById("theme-color")
 				if (!meta) return
