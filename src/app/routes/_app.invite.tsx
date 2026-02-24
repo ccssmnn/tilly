@@ -167,7 +167,7 @@ function InvalidInviteState() {
 					</EmptyDescription>
 				</EmptyHeader>
 				<EmptyContent>
-					<Button asChild>
+					<Button>
 						<Link to="/people">
 							<T k="invite.error.invalid.action" />
 						</Link>
@@ -194,7 +194,7 @@ function RevokedInviteState() {
 					</EmptyDescription>
 				</EmptyHeader>
 				<EmptyContent>
-					<Button asChild>
+					<Button>
 						<Link to="/people">
 							<T k="invite.error.invalid.action" />
 						</Link>
@@ -219,7 +219,7 @@ function ErrorState({ message }: { message: string }) {
 					<EmptyDescription>{message}</EmptyDescription>
 				</EmptyHeader>
 				<EmptyContent>
-					<Button asChild>
+					<Button>
 						<Link to="/people">
 							<T k="invite.error.invalid.action" />
 						</Link>

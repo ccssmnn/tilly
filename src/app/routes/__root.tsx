@@ -56,7 +56,7 @@ function ErrorComponent({ error }: { error?: Error }) {
 				</a>
 			}
 			actions={
-				<Button asChild variant="outline" className="w-full">
+				<Button variant="outline" className="w-full">
 					<Link to="/">
 						<T k="error.goBack" />
 					</Link>
@@ -98,7 +98,7 @@ function NotFoundComponent() {
 					>
 						<T k="notFound.goBack" />
 					</Button>
-					<Button asChild className="flex-1">
+					<Button className="flex-1">
 						<Link to="/people">
 							<T k="notFound.goToPeople" />
 						</Link>

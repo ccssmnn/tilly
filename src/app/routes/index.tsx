@@ -44,7 +44,7 @@ function WelcomeIndex() {
 						animate={{ y: 0, opacity: 1 }}
 						transition={{ delay: 0.4 }}
 					>
-						<Button variant="outline" asChild>
+						<Button variant="outline">
 							<Link to="/people" onClick={() => setTourSkipped(true)}>
 								<SkipForwardFill />
 								<T k="welcome.skip" />
@@ -79,7 +79,7 @@ function WelcomeIndex() {
 							transition={{ delay: 0.4, duration: 0.4 }}
 							className="flex items-center gap-3"
 						>
-							<Button asChild className="h-12">
+							<Button className="h-12">
 								<Link to="/tour">
 									<LightbulbFill />
 									<T k="welcome.takeTour" />

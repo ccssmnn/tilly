@@ -146,7 +146,10 @@ function LanguageSection() {
 				<Label>
 					<T k="settings.language.select.label" />
 				</Label>
-				<Select value={currentLang} onValueChange={setLanguage}>
+				<Select
+					value={currentLang}
+					onValueChange={val => val && setLanguage(val)}
+				>
 					<SelectTrigger className="w-full">
 						<SelectValue />
 					</SelectTrigger>
@@ -199,7 +202,7 @@ function AccountSection() {
 								})}
 							</p>
 							<div className="mt-3 inline-flex flex-wrap gap-3">
-								<Button asChild variant="secondary" disabled={!isOnline}>
+								<Button variant="secondary" disabled={!isOnline}>
 									<a href={`${getAccountsUrl()}/user`}>
 										<T k="settings.account.manageAccount" />
 									</a>
@@ -226,7 +229,7 @@ function AccountSection() {
 										: t("settings.account.tier.free")}
 								</p>
 								<div className="mt-3">
-									<Button asChild variant="secondary" disabled={!isOnline}>
+									<Button variant="secondary" disabled={!isOnline}>
 										<a href={`${getAccountsUrl()}/user/billing`}>
 											<T k="settings.account.manageSubscription" />
 										</a>
@@ -763,7 +766,7 @@ function DeleteDataButton({
 
 	return (
 		<AlertDialog open={open} onOpenChange={setOpen}>
-			<AlertDialogTrigger asChild>
+			<AlertDialogTrigger>
 				<Button variant="destructive">
 					<T k="settings.data.delete.button" />
 				</Button>
@@ -837,13 +840,13 @@ function AboutSection() {
 			description={t("settings.about.description")}
 		>
 			<div className="space-y-3">
-				<Button asChild variant="outline" className="w-full justify-start">
+				<Button variant="outline" className="w-full justify-start">
 					<a href="/" target="_blank" rel="noopener noreferrer">
 						<Compass />
 						<T k="settings.about.visit" />
 					</a>
 				</Button>
-				<Button asChild variant="outline" className="w-full justify-start">
+				<Button variant="outline" className="w-full justify-start">
 					<a
 						href={`/${currentLang}/blog/pragmatic-relationship-journaling`}
 						target="_blank"
@@ -857,7 +860,6 @@ function AboutSection() {
 					variant="outline"
 					className="w-full justify-start"
 					onClick={() => setTourSkipped(false)}
-					asChild
 				>
 					<Link to="/tour">
 						<Lightbulb />

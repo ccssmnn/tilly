@@ -212,7 +212,7 @@ function PersonListItem({
 	return (
 		<>
 			<HoverCard>
-				<HoverCardTrigger asChild>{linkContent}</HoverCardTrigger>
+				<HoverCardTrigger>{linkContent}</HoverCardTrigger>
 				<HoverCardContent side="bottom" align="center" className="w-auto p-2">
 					<PersonHoverActions
 						operations={operations}
@@ -450,7 +450,7 @@ function RestorePersonDialog({
 	return (
 		<>
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogTrigger asChild>{children}</DialogTrigger>
+				<DialogTrigger>{children}</DialogTrigger>
 				<DialogContent
 					titleSlot={
 						<DialogHeader>

@@ -92,7 +92,7 @@ export function Combobox<T = unknown>({
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+			<PopoverTrigger>{triggerButton}</PopoverTrigger>
 			<PopoverContent
 				className="w-full p-0"
 				align="start"

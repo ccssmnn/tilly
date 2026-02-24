@@ -615,7 +615,6 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 						}
 					}}
 					onClick={() => setDropdownOpen(true)}
-					asChild
 				>
 					<div className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
 						<div className="min-w-0 flex-1 space-y-1">
@@ -1019,7 +1018,7 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
+			<DialogTrigger>
 				<Button variant="outline" disabled={disabled}>
 					<T k="notifications.devices.addButton" />
 				</Button>

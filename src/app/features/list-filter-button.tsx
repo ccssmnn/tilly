@@ -70,17 +70,19 @@ function ListFilterButton({
 	return (
 		<>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						variant={hasNonDefaultFilters ? "secondary" : "outline"}
-						onClick={() => setDropdownOpen(true)}
-					>
-						<Sliders />
-						<span className="sr-only">
-							<T k="person.listFilter.lists" />
-						</span>
-					</Button>
-				</DropdownMenuTrigger>
+				<DropdownMenuTrigger
+					render={
+						<Button
+							variant={hasNonDefaultFilters ? "secondary" : "outline"}
+							onClick={() => setDropdownOpen(true)}
+						>
+							<Sliders />
+							<span className="sr-only">
+								<T k="person.listFilter.lists" />
+							</span>
+						</Button>
+					}
+				/>
 				<DropdownMenuContent align="end">
 					{/* Status section */}
 					<DropdownMenuLabel>

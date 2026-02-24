@@ -165,7 +165,7 @@ function UpdateReminderResult({
 							</div>
 						)}
 						<div className="flex gap-3">
-							<Button asChild variant="outline" className="flex-1">
+							<Button variant="outline" className="flex-1">
 								<Link
 									to="/people/$personID"
 									params={{ personID: result.personId }}
@@ -308,7 +308,7 @@ function RemoveReminderResult({
 							/>
 						</div>
 						<div className="flex gap-3">
-							<Button asChild variant="outline" className="flex-1">
+							<Button variant="outline" className="flex-1">
 								<Link
 									to="/people/$personID"
 									params={{ personID: result.personId }}

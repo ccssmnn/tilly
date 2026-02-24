@@ -155,12 +155,14 @@ export function ExportButton(props: {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="outline">
-					<Download className="mr-2 h-4 w-4" />
-					<T k="data.export.button" />
-				</Button>
-			</DialogTrigger>
+			<DialogTrigger
+				render={
+					<Button variant="outline">
+						<Download className="mr-2 h-4 w-4" />
+						<T k="data.export.button" />
+					</Button>
+				}
+			/>
 			<DialogContent
 				titleSlot={
 					<DialogHeader>

@@ -218,7 +218,7 @@ function PersonScreen() {
 				<Tabs value={tab}>
 					<div className="mb-6 flex items-center justify-between gap-3">
 						<TabsList className="flex-1">
-							<TabsTrigger value="notes" asChild>
+							<TabsTrigger value="notes">
 								<Link
 									to={Route.fullPath}
 									params={{ personID: person.$jazz.id }}
@@ -236,7 +236,7 @@ function PersonScreen() {
 									</span>
 								</Link>
 							</TabsTrigger>
-							<TabsTrigger value="reminders" asChild>
+							<TabsTrigger value="reminders">
 								<Link
 									to={Route.fullPath}
 									params={{ personID: person.$jazz.id }}
@@ -374,7 +374,7 @@ function StatusFilterButton({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
+			<DropdownMenuTrigger>
 				<Button variant={hasNonDefaultFilters ? "secondary" : "outline"}>
 					{hasNonDefaultFilters ? <Sliders /> : <Collection />}
 					<span className="sr-only md:not-sr-only">
@@ -657,7 +657,7 @@ function PersonNotFound() {
 						<Button variant="outline" onClick={() => window.history.back()}>
 							<T k="person.notFound.goBack" />
 						</Button>
-						<Button asChild>
+						<Button>
 							<Link to="/people">
 								<T k="person.notFound.goToPeople" />
 							</Link>
@@ -689,7 +689,7 @@ function PersonUnauthorized() {
 						<Button variant="outline" onClick={() => window.history.back()}>
 							<T k="person.unauthorized.goBack" />
 						</Button>
-						<Button asChild>
+						<Button>
 							<Link to="/people">
 								<T k="person.unauthorized.goToPeople" />
 							</Link>

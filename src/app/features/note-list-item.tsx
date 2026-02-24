@@ -511,16 +511,18 @@ function ActionsDropdown({
 					<PencilSquare />
 				</DropdownMenuItem>
 				{showPerson && (
-					<DropdownMenuItem asChild>
-						<Link
-							to="/people/$personID"
-							params={{ personID: person.$jazz.id }}
-							onClick={() => onOpenChange(false)}
-						>
-							<T k="note.actions.viewPerson" />
-							<PersonFill />
-						</Link>
-					</DropdownMenuItem>
+					<DropdownMenuItem
+						render={
+							<Link
+								to="/people/$personID"
+								params={{ personID: person.$jazz.id }}
+								onClick={() => onOpenChange(false)}
+							>
+								<T k="note.actions.viewPerson" />
+								<PersonFill />
+							</Link>
+						}
+					/>
 				)}
 				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
 					<T k="note.actions.delete" />

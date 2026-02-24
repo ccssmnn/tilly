@@ -94,7 +94,7 @@ function MarkdownEditor({
 					<div className="flex gap-1">
 						{toolButtons.map(tool => (
 							<Tooltip key={tool.format}>
-								<TooltipTrigger asChild>
+								<TooltipTrigger>
 									<Button
 										type="button"
 										variant="ghost"

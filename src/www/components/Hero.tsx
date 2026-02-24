@@ -38,7 +38,7 @@ function Hero({
 				{badge && (
 					<div className="inline-flex gap-3">
 						<Badge variant="outline">{badge.text}</Badge>
-						<Button asChild variant="ghost" size="sm">
+						<Button variant="ghost" size="sm">
 							<a href={badge.href}>
 								{badge.description} <span aria-hidden="true">→</span>
 							</a>
@@ -48,10 +48,10 @@ function Hero({
 				<TypographyH1>{title}</TypographyH1>
 				<TypographyLead>{description}</TypographyLead>
 				<div className="inline-flex gap-3">
-					<Button asChild>
+					<Button>
 						<a href={primaryCta.href}>{primaryCta.text}</a>
 					</Button>
-					<Button asChild variant="ghost">
+					<Button variant="ghost">
 						<a href={secondaryCta.href}>
 							{secondaryCta.text} <span aria-hidden="true">→</span>
 						</a>

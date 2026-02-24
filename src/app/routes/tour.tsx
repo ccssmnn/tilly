@@ -98,7 +98,7 @@ function TourComponent() {
 					</Link>
 					<div className="flex-1" />
 					<motion.div layoutId="skip">
-						<Button variant="outline" asChild>
+						<Button variant="outline">
 							<Link to="/people" onClick={() => setTourSkipped(true)}>
 								<SkipForwardFill />
 								<T k="welcome.skip" />
@@ -299,7 +299,7 @@ function FinishSetupStep() {
 				</EmptyDescription>
 			</EmptyHeader>
 			<EmptyContent>
-				<Button asChild>
+				<Button>
 					<Link to="/settings" onClick={() => setTourSkipped(true)}>
 						<T k="finish.button" />
 					</Link>

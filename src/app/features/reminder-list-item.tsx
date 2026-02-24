@@ -474,16 +474,18 @@ function ActionsDropdown({
 					<FileEarmarkText />
 				</DropdownMenuItem>
 				{showPerson && (
-					<DropdownMenuItem asChild>
-						<Link
-							to="/people/$personID"
-							params={{ personID: person.$jazz.id }}
-							onClick={() => onOpenChange(false)}
-						>
-							<T k="reminder.actions.viewPerson" />
-							<PersonFill />
-						</Link>
-					</DropdownMenuItem>
+					<DropdownMenuItem
+						render={
+							<Link
+								to="/people/$personID"
+								params={{ personID: person.$jazz.id }}
+								onClick={() => onOpenChange(false)}
+							>
+								<T k="reminder.actions.viewPerson" />
+								<PersonFill />
+							</Link>
+						}
+					/>
 				)}
 				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
 					<T k="reminder.actions.delete" />

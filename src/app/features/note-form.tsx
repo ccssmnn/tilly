@@ -183,19 +183,21 @@ function NoteForm({
 						<T k="form.cancel" />
 					</Button>
 					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								type="submit"
-								disabled={form.formState.isSubmitting}
-								className="flex-1"
-							>
-								{form.formState.isSubmitting ? (
-									<T k="form.saving" />
-								) : (
-									<T k="form.save" />
-								)}
-							</Button>
-						</TooltipTrigger>
+						<TooltipTrigger
+							render={
+								<Button
+									type="submit"
+									disabled={form.formState.isSubmitting}
+									className="flex-1"
+								>
+									{form.formState.isSubmitting ? (
+										<T k="form.saving" />
+									) : (
+										<T k="form.save" />
+									)}
+								</Button>
+							}
+						/>
 						<TooltipContent>
 							<KbdGroup>
 								<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
@@ -323,21 +325,23 @@ function ImagesField({
 			)}
 			{canAddMore && (
 				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => fileInputRef.current?.click()}
-							disabled={!hasPlusAccess}
-							className="w-full"
-						>
-							<Plus />
-							<T
-								k="note.form.images.add"
-								params={{ count: totalImages.toString() }}
-							/>
-						</Button>
-					</TooltipTrigger>
+					<TooltipTrigger
+						render={
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => fileInputRef.current?.click()}
+								disabled={!hasPlusAccess}
+								className="w-full"
+							>
+								<Plus />
+								<T
+									k="note.form.images.add"
+									params={{ count: totalImages.toString() }}
+								/>
+							</Button>
+						}
+					/>
 					{!hasPlusAccess && (
 						<TooltipContent>
 							<Link to="/settings" className="text-blue-500 hover:underline">

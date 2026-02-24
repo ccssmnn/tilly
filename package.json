@@ -17,10 +17,13 @@
 		"test:run": "vitest run"
 	},
 	"dependencies": {
+		"@base-ui/react": "^1.2.0",
 		"@ccssmnn/intl": "^0.1.1",
 		"@clerk/backend": "2.29.5",
 		"@clerk/clerk-react": "5.59.6",
-		"@hono/zod-validator": "^0.7.6",
+		"@fontsource-variable/geist": "^5.2.8",
+		"@hugeicons/core-free-icons": "^3.1.1",
+		"@hugeicons/react": "^1.1.5",
 		"@hookform/resolvers": "^5.2.2",
 		"@tailwindcss/typography": "^0.5.19",
 		"@tanstack/react-router": "^1.157.3",
@@ -38,7 +41,6 @@
 		"jazz-tools": "^0.20.4",
 		"motion": "^12.29.0",
 		"nanoid": "^5.1.6",
-		"radix-ui": "^1.4.3",
 		"react": "19.2.3",
 		"react-bootstrap-icons": "^1.11.6",
 		"react-dom": "19.2.3",

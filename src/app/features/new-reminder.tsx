@@ -93,7 +93,7 @@ function NewReminder(props: {
 
 	return (
 		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-			<DialogTrigger asChild>{props.children}</DialogTrigger>
+			<DialogTrigger>{props.children}</DialogTrigger>
 			<DialogContent
 				titleSlot={
 					<div className="relative overflow-hidden">

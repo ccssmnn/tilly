@@ -53,7 +53,7 @@ function OfflineIndicator() {
 
 	return (
 		<Dialog>
-			<DialogTrigger asChild>
+			<DialogTrigger>
 				<Button
 					title={t("status.offline.tooltip")}
 					variant="secondary"
@@ -118,7 +118,7 @@ function UpdateIndicator() {
 
 	return (
 		<Dialog>
-			<DialogTrigger asChild>
+			<DialogTrigger>
 				<Button
 					title={t("status.update.tooltip")}
 					className="absolute top-3 right-3 md:gap-2"
@@ -160,7 +160,7 @@ function UpdateIndicator() {
 								? t("status.update.updating")
 								: t("status.update.updateNow")}
 						</Button>
-						<Button variant="outline" className="flex-1" asChild>
+						<Button variant="outline" className="flex-1">
 							<DialogClose>
 								<T k="status.update.later" />
 							</DialogClose>
@@ -178,10 +178,10 @@ function NotSignedInIndicator() {
 
 	return (
 		<Dialog>
-			<DialogTrigger asChild>
+			<DialogTrigger>
 				<Button
 					title={t("status.notSignedIn.tooltip")}
-					variant="warning"
+					variant="outline"
 					className="absolute top-3 right-3 md:gap-2"
 					style={
 						isMobile
@@ -215,7 +215,7 @@ function NotSignedInIndicator() {
 						<T k="status.notSignedIn.benefits" />
 					</TypographyP>
 					<SignInButton mode="redirect">
-						<DialogClose asChild>
+						<DialogClose>
 							<Button className="h-12 w-full">
 								<T k="status.notSignedIn.signIn" />
 							</Button>

@@ -441,7 +441,7 @@ function ActionsDropdown({
 	return (
 		<>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-				<DropdownMenuTrigger asChild onClick={() => setDropdownOpen(true)}>
+				<DropdownMenuTrigger onClick={() => setDropdownOpen(true)}>
 					{children}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent>
@@ -629,7 +629,7 @@ function SharedWithBadge({ collaborators }: { collaborators: Collaborator[] }) {
 
 	return (
 		<Tooltip>
-			<TooltipTrigger asChild>
+			<TooltipTrigger>
 				<Badge variant="secondary" className="mb-2 cursor-default">
 					{t("person.shared.sharedWithCount", { count: collaborators.length })}
 				</Badge>

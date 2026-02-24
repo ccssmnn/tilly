@@ -141,7 +141,7 @@ function SubscribePrompt() {
 				</EmptyDescription>
 			</EmptyHeader>
 			<EmptyContent>
-				<Button asChild>
+				<Button>
 					<Link to="/settings">
 						<T k="assistant.subscribe.settings" />
 					</Link>
@@ -460,7 +460,7 @@ function SendingError({ error }: { error: Error | null }) {
 				{isUsageLimitError(error) ? (
 					<div className="space-y-2">
 						<T k="assistant.usageLimit.description" />
-						<Button asChild variant="outline" size="sm" className="mt-2">
+						<Button variant="outline" size="sm" className="mt-2">
 							<Link to="/settings">
 								<T k="assistant.usageLimit.viewSettings" />
 							</Link>

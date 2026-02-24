@@ -218,7 +218,7 @@ function ReminderForm({
 						<T k="form.cancel" />
 					</Button>
 					<Tooltip>
-						<TooltipTrigger asChild>
+						<TooltipTrigger>
 							<Button
 								type="submit"
 								disabled={form.formState.isSubmitting}

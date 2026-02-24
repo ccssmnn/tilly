@@ -232,7 +232,7 @@ export function UploadButton({ userID }: { userID: string }) {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
+			<DialogTrigger>
 				<Button variant="outline">
 					<Upload className="mr-2 h-4 w-4" />
 					<T k="data.import.button" />

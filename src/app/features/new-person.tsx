@@ -52,7 +52,7 @@ function NewPerson({
 
 	return (
 		<Dialog>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogTrigger>{children}</DialogTrigger>
 			<DialogContent
 				titleSlot={
 					<DialogHeader>
