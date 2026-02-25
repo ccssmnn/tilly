@@ -57,18 +57,15 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.people.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.people.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.people.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.people.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -144,18 +141,15 @@ function GetPersonDetailsResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.person.read.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.person.read.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.person.read.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.person.read.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">

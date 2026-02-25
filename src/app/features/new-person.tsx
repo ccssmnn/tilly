@@ -1,6 +1,5 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
-import { type ReactNode } from "react"
 import {
 	Dialog,
 	DialogContent,
@@ -18,10 +17,10 @@ import { T, useIntl } from "#shared/intl/setup"
 export { NewPerson }
 
 function NewPerson({
-	children,
+	render,
 	onSuccess,
 }: {
-	children: ReactNode
+	render: React.ComponentProps<typeof DialogTrigger>["render"]
 	onSuccess?: (personId: string) => void
 }) {
 	let me = useAccount(UserAccount)
@@ -52,19 +51,16 @@ function NewPerson({
 
 	return (
 		<Dialog>
-			<DialogTrigger>{children}</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.new.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.new.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogTrigger render={render} />
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="person.new.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="person.new.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<PersonForm
 					onSave={handleSave}
 					submitButtonText={t("person.create.button")}

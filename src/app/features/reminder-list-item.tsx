@@ -516,18 +516,15 @@ function EditReminderDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="reminder.edit.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="reminder.edit.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="reminder.edit.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="reminder.edit.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<ReminderForm
 					defaultValues={{
 						text: reminder.text,
@@ -564,24 +561,21 @@ function AddNoteDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T
-								k="reminder.addNote.title"
-								params={{ personName: person.name }}
-							/>
-						</DialogTitle>
-						<DialogDescription>
-							<T
-								k="reminder.addNote.description"
-								params={{ personName: person.name }}
-							/>
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T
+							k="reminder.addNote.title"
+							params={{ personName: person.name }}
+						/>
+					</DialogTitle>
+					<DialogDescription>
+						<T
+							k="reminder.addNote.description"
+							params={{ personName: person.name }}
+						/>
+					</DialogDescription>
+				</DialogHeader>
 				<NoteForm
 					onSubmit={handleAddNote}
 					onCancel={() => onOpenChange(false)}

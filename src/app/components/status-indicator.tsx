@@ -53,38 +53,38 @@ function OfflineIndicator() {
 
 	return (
 		<Dialog>
-			<DialogTrigger>
-				<Button
-					title={t("status.offline.tooltip")}
-					variant="secondary"
-					className="absolute top-3 right-3 md:gap-2"
-					style={
-						isMobile
-							? {
-									top: `max(calc(var(--spacing) * 3), env(safe-area-inset-top))`,
-									right: `max(calc(var(--spacing) * 3), env(safe-area-inset-right))`,
-								}
-							: undefined
-					}
-				>
-					<CloudSlash />
-					<span className="hidden md:inline">
-						<T k="status.offline.tooltip" />
-					</span>
-				</Button>
-			</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="status.offline.dialog.title" />
-						</DialogTitle>
-						<DialogDescription className="text-foreground leading-tight">
-							<T k="status.offline.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogTrigger
+				render={htmlProps => (
+					<Button
+						{...htmlProps}
+						title={t("status.offline.tooltip")}
+						variant="secondary"
+						className="absolute top-3 right-3 md:gap-2"
+						style={
+							isMobile
+								? {
+										top: `max(calc(var(--spacing) * 3), env(safe-area-inset-top))`,
+										right: `max(calc(var(--spacing) * 3), env(safe-area-inset-right))`,
+									}
+								: undefined
+						}
+					>
+						<CloudSlash />
+						<span className="hidden md:inline">
+							<T k="status.offline.tooltip" />
+						</span>
+					</Button>
+				)}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="status.offline.dialog.title" />
+					</DialogTitle>
+					<DialogDescription className="text-foreground leading-tight">
+						<T k="status.offline.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-3">
 					<Alert>
 						<Check />
@@ -118,37 +118,37 @@ function UpdateIndicator() {
 
 	return (
 		<Dialog>
-			<DialogTrigger>
-				<Button
-					title={t("status.update.tooltip")}
-					className="absolute top-3 right-3 md:gap-2"
-					style={
-						isMobile
-							? {
-									top: `max(calc(var(--spacing) * 3), env(safe-area-inset-top))`,
-									right: `max(calc(var(--spacing) * 3), env(safe-area-inset-right))`,
-								}
-							: undefined
-					}
-				>
-					<ArrowClockwise />
-					<span className="hidden md:inline">
-						<T k="status.update.tooltip" />
-					</span>
-				</Button>
-			</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="status.update.dialog.title" />
-						</DialogTitle>
-						<DialogDescription className="text-foreground leading-tight">
-							<T k="status.update.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogTrigger
+				render={htmlProps => (
+					<Button
+						{...htmlProps}
+						title={t("status.update.tooltip")}
+						className="absolute top-3 right-3 md:gap-2"
+						style={
+							isMobile
+								? {
+										top: `max(calc(var(--spacing) * 3), env(safe-area-inset-top))`,
+										right: `max(calc(var(--spacing) * 3), env(safe-area-inset-right))`,
+									}
+								: undefined
+						}
+					>
+						<ArrowClockwise />
+						<span className="hidden md:inline">
+							<T k="status.update.tooltip" />
+						</span>
+					</Button>
+				)}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="status.update.dialog.title" />
+					</DialogTitle>
+					<DialogDescription className="text-foreground leading-tight">
+						<T k="status.update.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-4">
 					<div className="flex gap-2">
 						<Button
@@ -178,38 +178,38 @@ function NotSignedInIndicator() {
 
 	return (
 		<Dialog>
-			<DialogTrigger>
-				<Button
-					title={t("status.notSignedIn.tooltip")}
-					variant="outline"
-					className="absolute top-3 right-3 md:gap-2"
-					style={
-						isMobile
-							? {
-									top: `max(calc(var(--spacing) * 3), env(safe-area-inset-top))`,
-									right: `max(calc(var(--spacing) * 3), env(safe-area-inset-right))`,
-								}
-							: undefined
-					}
-				>
-					<PersonX />
-					<span className="hidden md:inline">
-						<T k="status.notSignedIn.tooltip" />
-					</span>
-				</Button>
-			</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="status.notSignedIn.dialog.title" />
-						</DialogTitle>
-						<DialogDescription className="text-foreground leading-tight">
-							<T k="status.notSignedIn.browserOnly" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogTrigger
+				render={htmlProps => (
+					<Button
+						{...htmlProps}
+						title={t("status.notSignedIn.tooltip")}
+						variant="outline"
+						className="absolute top-3 right-3 md:gap-2"
+						style={
+							isMobile
+								? {
+										top: `max(calc(var(--spacing) * 3), env(safe-area-inset-top))`,
+										right: `max(calc(var(--spacing) * 3), env(safe-area-inset-right))`,
+									}
+								: undefined
+						}
+					>
+						<PersonX />
+						<span className="hidden md:inline">
+							<T k="status.notSignedIn.tooltip" />
+						</span>
+					</Button>
+				)}
+			/>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="status.notSignedIn.dialog.title" />
+					</DialogTitle>
+					<DialogDescription className="text-foreground leading-tight">
+						<T k="status.notSignedIn.browserOnly" />
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-3">
 					<TypographyP className="leading-none">
 						<T k="status.notSignedIn.benefits" />

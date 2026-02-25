@@ -314,19 +314,15 @@ function AvatarCropperDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.crop.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.crop.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-				className="max-w-md"
-			>
+			<DialogContent className="max-w-md">
+				<DialogHeader>
+					<DialogTitle>
+						<T k="person.crop.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="person.crop.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<div className="relative h-64 w-full">
 					<Cropper
 						image={imageSrc}

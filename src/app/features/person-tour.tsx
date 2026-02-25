@@ -28,12 +28,15 @@ function PersonTour({ onSuccess }: { onSuccess?: (personId: string) => void }) {
 				</EmptyDescription>
 			</EmptyHeader>
 			<EmptyContent>
-				<NewPerson onSuccess={onSuccess}>
-					<Button>
-						<PeopleFill />
-						<T k="addPerson.button" />
-					</Button>
-				</NewPerson>
+				<NewPerson
+					onSuccess={onSuccess}
+					render={
+						<Button>
+							<PeopleFill />
+							<T k="addPerson.button" />
+						</Button>
+					}
+				/>
 			</EmptyContent>
 		</Empty>
 	)

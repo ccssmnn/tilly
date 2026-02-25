@@ -281,14 +281,16 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 					setNotesStatusFilter(filter as "active" | "deleted")
 				}
 			/>
-			<NewNote>
-				<Button>
-					<Plus className="size-4" />
-					<span className="sr-only md:not-sr-only">
-						<T k="notes.addButton" />
-					</span>
-				</Button>
-			</NewNote>
+			<NewNote
+				render={
+					<Button>
+						<Plus className="size-4" />
+						<span className="sr-only md:not-sr-only">
+							<T k="notes.addButton" />
+						</span>
+					</Button>
+				}
+			/>
 		</div>
 	)
 }

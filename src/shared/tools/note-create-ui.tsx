@@ -114,18 +114,15 @@ function AddNoteResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.note.created.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.note.created.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.note.created.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.note.created.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">

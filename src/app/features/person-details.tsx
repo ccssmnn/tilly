@@ -222,18 +222,15 @@ function ManageListsDialog({
 	return (
 		<>
 			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="person.manageLists.title" />
-							</DialogTitle>
-							<DialogDescription>
-								{t("person.manageLists.description", { name: personName })}
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.manageLists.title" />
+						</DialogTitle>
+						<DialogDescription>
+							{t("person.manageLists.description", { name: personName })}
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						{existingLists.length > 0 && (
 							<ul className="space-y-2">
@@ -479,18 +476,15 @@ function ActionsDropdown({
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="person.edit.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="person.edit.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.edit.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="person.edit.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<PersonForm person={person} onSave={handleFormSave} />
 				</DialogContent>
 			</Dialog>

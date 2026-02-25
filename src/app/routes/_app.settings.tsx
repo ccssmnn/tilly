@@ -368,15 +368,12 @@ function ProfileNameDialog({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="settings.profile.displayName.dialog.title" />
-						</DialogTitle>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="settings.profile.displayName.dialog.title" />
+					</DialogTitle>
+				</DialogHeader>
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleSubmit)}
@@ -527,18 +524,15 @@ function AssistantSection({
 				</div>
 			</div>
 			<Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="settings.agent.reset.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="settings.agent.reset.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="settings.agent.reset.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="settings.agent.reset.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="flex items-center gap-3">
 						<Button
 							variant="outline"

@@ -85,16 +85,6 @@ let metaDescription =
 			}
 
 			updateThemeColor()
-
-			let observer = new MutationObserver(mutations => {
-				for (let m of mutations) {
-					if (m.type === "attributes" && m.attributeName === "class") {
-						updateThemeColor()
-					}
-				}
-			})
-
-			observer.observe(document.documentElement, { attributes: true })
 		</script>
 	</body>
 </html>

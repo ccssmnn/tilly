@@ -30,7 +30,7 @@ function Textarea({
 			data-slot="textarea"
 			className={cn(
 				"border-input bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 placeholder:text-muted-foreground flex field-sizing-content min-h-16 w-full resize-none rounded-xl border px-3 py-3 text-base transition-colors outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-[3px] md:text-sm",
-				enableAutoResize ? "resize-none" : "resize-y rounded-br-none",
+				enableAutoResize ? "resize-none" : "resize-y",
 				className,
 			)}
 			onInput={onInput}
@@ -53,11 +53,11 @@ function useResizeTextarea(
 		textarea.style.height = "auto"
 		let scrollHeight = textarea.scrollHeight
 		if (maxHeight && maxHeight < scrollHeight) {
-			textarea.style.height = `${maxHeight}`
+			textarea.style.height = `${maxHeight}px`
 		} else if (minHeight && minHeight > scrollHeight) {
-			textarea.style.height = `${minHeight}`
+			textarea.style.height = `${minHeight}px`
 		} else {
-			textarea.style.height = `${scrollHeight}`
+			textarea.style.height = `${scrollHeight}px`
 		}
 
 		textarea.scrollTop = textarea.scrollHeight

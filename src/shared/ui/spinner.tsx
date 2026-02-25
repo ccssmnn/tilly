@@ -1,10 +1,15 @@
-import { ArrowRepeat } from "react-bootstrap-icons"
-
 import { cn } from "#app/lib/utils"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Loading03Icon } from "@hugeicons/core-free-icons"
 
-function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+function Spinner({
+	className,
+	...props
+}: Omit<React.ComponentProps<"svg">, "strokeWidth">) {
 	return (
-		<ArrowRepeat
+		<HugeiconsIcon
+			icon={Loading03Icon}
+			strokeWidth={2 as const}
 			role="status"
 			aria-label="Loading"
 			className={cn("size-4 animate-spin", className)}

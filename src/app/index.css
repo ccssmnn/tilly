@@ -1,22 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
 @plugin "@tailwindcss/typography";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-	--font-sans: "Geist Variable", sans-serif;
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
-	--radius-2xl: calc(var(--radius) + 8px);
-	--radius-3xl: calc(var(--radius) + 12px);
-	--radius-4xl: calc(var(--radius) + 16px);
-}
 
 :root {
 	--background: oklch(1 0 0);
@@ -37,28 +23,71 @@
 	--border: oklch(0.928 0.006 264.531);
 	--input: oklch(0.928 0.006 264.531);
 	--ring: oklch(0.707 0.022 261.325);
-	--radius: 1.5rem;
+	--radius: 0.625rem;
 }
 
-.dark {
-	--background: oklch(0.13 0.028 261.692);
-	--foreground: oklch(0.985 0.002 247.839);
-	--card: oklch(0.21 0.034 264.665);
-	--card-foreground: oklch(0.985 0.002 247.839);
-	--popover: oklch(0.21 0.034 264.665);
-	--popover-foreground: oklch(0.985 0.002 247.839);
-	--primary: oklch(0.7 0.12 183);
-	--primary-foreground: oklch(0.28 0.04 193);
-	--secondary: oklch(0.274 0.006 286.033);
-	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.278 0.033 256.848);
-	--muted-foreground: oklch(0.707 0.022 261.325);
-	--accent: oklch(0.278 0.033 256.848);
-	--accent-foreground: oklch(0.985 0.002 247.839);
-	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(1 0 0 / 10%);
-	--input: oklch(1 0 0 / 15%);
-	--ring: oklch(0.551 0.027 264.364);
+@media (prefers-color-scheme: dark) {
+	:root {
+		--background: oklch(0.13 0.028 261.692);
+		--foreground: oklch(0.985 0.002 247.839);
+		--card: oklch(0.21 0.034 264.665);
+		--card-foreground: oklch(0.985 0.002 247.839);
+		--popover: oklch(0.21 0.034 264.665);
+		--popover-foreground: oklch(0.985 0.002 247.839);
+		--primary: oklch(0.7 0.12 183);
+		--primary-foreground: oklch(0.28 0.04 193);
+		--secondary: oklch(0.274 0.006 286.033);
+		--secondary-foreground: oklch(0.985 0 0);
+		--muted: oklch(0.278 0.033 256.848);
+		--muted-foreground: oklch(0.707 0.022 261.325);
+		--accent: oklch(0.278 0.033 256.848);
+		--accent-foreground: oklch(0.985 0.002 247.839);
+		--destructive: oklch(0.704 0.191 22.216);
+		--border: oklch(1 0 0 / 10%);
+		--input: oklch(1 0 0 / 15%);
+		--ring: oklch(0.551 0.027 264.364);
+	}
+}
+
+@theme inline {
+	--font-sans: "Geist Variable", sans-serif;
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--radius-2xl: calc(var(--radius) + 8px);
+	--radius-3xl: calc(var(--radius) + 12px);
+	--radius-4xl: calc(var(--radius) + 16px);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground font-sans;
+	}
+	html {
+		@apply font-sans;
+	}
 }
 
 @layer utilities {
@@ -98,16 +127,4 @@ input[type="search"]::-webkit-search-cancel-button {
 
 input[type="search"]::-webkit-search-decoration {
 	display: none;
-}
-
-@layer base {
-	* {
-		@apply border-border outline-ring/50;
-	}
-	body {
-		@apply bg-background text-foreground font-sans;
-	}
-	html {
-		@apply font-sans;
-	}
 }

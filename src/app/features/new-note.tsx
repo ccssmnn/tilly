@@ -1,6 +1,5 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
-import { type ReactNode } from "react"
 import {
 	Dialog,
 	DialogContent,
@@ -23,7 +22,7 @@ import { format } from "date-fns"
 export { NewNote }
 
 function NewNote(props: {
-	children: ReactNode
+	render: React.ComponentProps<typeof DialogTrigger>["render"]
 	onSuccess?: (noteId: string) => void
 	personId?: string
 }) {
@@ -96,77 +95,74 @@ function NewNote(props: {
 
 	return (
 		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-			<DialogTrigger>{props.children}</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<div className="relative overflow-hidden">
-						<AnimatePresence mode="wait" custom={direction}>
-							{!selectedPersonId ? (
-								<motion.div
-									key="select"
-									custom={direction}
-									initial="enter"
-									animate="center"
-									exit="exit"
-									variants={{
-										enter: (dir: "left" | "right") => ({
-											opacity: 0,
-											x: { left: -12, right: 12 }[dir],
-										}),
-										center: { opacity: 1, x: 0 },
-										exit: (dir: "left" | "right") => ({
-											opacity: 0,
-											x: { left: 12, right: -12 }[dir],
-										}),
-									}}
-									transition={{ duration: 0.075 }}
-								>
-									<DialogHeader>
-										<DialogTitle>
-											<T k="note.select.title" />
-										</DialogTitle>
-										<DialogDescription>
-											<T k="note.select.description" />
-										</DialogDescription>
-									</DialogHeader>
-								</motion.div>
-							) : (
-								<motion.div
-									key="form"
-									custom={direction}
-									initial="enter"
-									animate="center"
-									exit="exit"
-									variants={{
-										enter: (dir: "left" | "right") => ({
-											opacity: 0,
-											x: { left: -12, right: 12 }[dir],
-										}),
-										center: { opacity: 1, x: 0 },
-										exit: (dir: "left" | "right") => ({
-											opacity: 0,
-											x: { left: 12, right: -12 }[dir],
-										}),
-									}}
-									transition={{ duration: 0.075 }}
-								>
-									<DialogHeader>
-										<DialogTitle>
-											<T k="note.add.title" />
-										</DialogTitle>
-										<DialogDescription>
-											<T
-												k="note.add.description"
-												params={{ person: selectedPersonLabel }}
-											/>
-										</DialogDescription>
-									</DialogHeader>
-								</motion.div>
-							)}
-						</AnimatePresence>
-					</div>
-				}
-			>
+			<DialogTrigger render={props.render} />
+			<DialogContent>
+				<div className="relative overflow-hidden">
+					<AnimatePresence mode="wait" custom={direction}>
+						{!selectedPersonId ? (
+							<motion.div
+								key="select"
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: -12, right: 12 }[dir],
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: 12, right: -12 }[dir],
+									}),
+								}}
+								transition={{ duration: 0.075 }}
+							>
+								<DialogHeader>
+									<DialogTitle>
+										<T k="note.select.title" />
+									</DialogTitle>
+									<DialogDescription>
+										<T k="note.select.description" />
+									</DialogDescription>
+								</DialogHeader>
+							</motion.div>
+						) : (
+							<motion.div
+								key="form"
+								custom={direction}
+								initial="enter"
+								animate="center"
+								exit="exit"
+								variants={{
+									enter: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: -12, right: 12 }[dir],
+									}),
+									center: { opacity: 1, x: 0 },
+									exit: (dir: "left" | "right") => ({
+										opacity: 0,
+										x: { left: 12, right: -12 }[dir],
+									}),
+								}}
+								transition={{ duration: 0.075 }}
+							>
+								<DialogHeader>
+									<DialogTitle>
+										<T k="note.add.title" />
+									</DialogTitle>
+									<DialogDescription>
+										<T
+											k="note.add.description"
+											params={{ person: selectedPersonLabel }}
+										/>
+									</DialogDescription>
+								</DialogHeader>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
 				<div className="relative">
 					<AnimatePresence mode="wait" custom={direction}>
 						{!selectedPersonId ? (

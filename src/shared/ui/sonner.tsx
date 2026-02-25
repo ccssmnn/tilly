@@ -1,28 +1,71 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { useIsMobile } from "#app/hooks/use-mobile"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+	CheckmarkCircle02Icon,
+	InformationCircleIcon,
+	Alert02Icon,
+	MultiplicationSignCircleIcon,
+	Loading03Icon,
+} from "@hugeicons/core-free-icons"
 
-export function Toaster({ ...props }: ToasterProps) {
-	let isMobile = useIsMobile()
-
+const Toaster = ({ ...props }: ToasterProps) => {
 	return (
 		<Sonner
-			position={isMobile ? "top-center" : "bottom-right"}
-			mobileOffset={{
-				top: "max(calc(var(--spacing) * 3), env(safe-area-inset-top))",
-				bottom: "max(calc(var(--spacing) * 3), env(safe-area-inset-bottom))",
-				left: "max(calc(var(--spacing) * 3), env(safe-area-inset-left))",
-				right: "max(calc(var(--spacing) * 3), env(safe-area-inset-right))",
-			}}
 			theme="system"
 			className="toaster group"
+			icons={{
+				success: (
+					<HugeiconsIcon
+						icon={CheckmarkCircle02Icon}
+						strokeWidth={2}
+						className="size-4"
+					/>
+				),
+				info: (
+					<HugeiconsIcon
+						icon={InformationCircleIcon}
+						strokeWidth={2}
+						className="size-4"
+					/>
+				),
+				warning: (
+					<HugeiconsIcon
+						icon={Alert02Icon}
+						strokeWidth={2}
+						className="size-4"
+					/>
+				),
+				error: (
+					<HugeiconsIcon
+						icon={MultiplicationSignCircleIcon}
+						strokeWidth={2}
+						className="size-4"
+					/>
+				),
+				loading: (
+					<HugeiconsIcon
+						icon={Loading03Icon}
+						strokeWidth={2}
+						className="size-4 animate-spin"
+					/>
+				),
+			}}
 			style={
 				{
 					"--normal-bg": "var(--popover)",
 					"--normal-text": "var(--popover-foreground)",
 					"--normal-border": "var(--border)",
+					"--border-radius": "var(--radius)",
 				} as React.CSSProperties
 			}
+			toastOptions={{
+				classNames: {
+					toast: "cn-toast",
+				},
+			}}
 			{...props}
 		/>
 	)
 }
+
+export { Toaster }

@@ -94,18 +94,15 @@ function PersonShareDialog({
 	}, [person, refreshKey])
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.share.dialog.title" params={{ name: person.name }} />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.share.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="person.share.dialog.title" params={{ name: person.name }} />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="person.share.dialog.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-6">
 					<InviteLinkSection
 						person={person}

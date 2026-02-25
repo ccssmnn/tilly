@@ -63,18 +63,15 @@ function NewListDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.newList.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.newList.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="person.newList.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="person.newList.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<ListForm
 					defaultListName=""
 					defaultSelectedPeople={defaultSelectedPeople || new Set()}

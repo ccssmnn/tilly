@@ -1,8 +1,9 @@
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
-import { Check, ChevronRight } from "react-bootstrap-icons"
 
 import { cn } from "#app/lib/utils"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowRight01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
 	return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />
@@ -120,7 +121,11 @@ function DropdownMenuSubTrigger({
 			{...props}
 		>
 			{children}
-			<ChevronRight className="ml-auto size-4" />
+			<HugeiconsIcon
+				icon={ArrowRight01Icon}
+				strokeWidth={2}
+				className="ml-auto"
+			/>
 		</MenuPrimitive.SubmenuTrigger>
 	)
 }
@@ -174,7 +179,7 @@ function DropdownMenuCheckboxItem({
 				data-slot="dropdown-menu-checkbox-item-indicator"
 			>
 				<MenuPrimitive.CheckboxItemIndicator>
-					<Check className="size-4" />
+					<HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
 				</MenuPrimitive.CheckboxItemIndicator>
 			</span>
 			{children}
@@ -214,7 +219,7 @@ function DropdownMenuRadioItem({
 				data-slot="dropdown-menu-radio-item-indicator"
 			>
 				<MenuPrimitive.RadioItemIndicator>
-					<div className="size-2 rounded-full bg-current" />
+					<HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
 				</MenuPrimitive.RadioItemIndicator>
 			</span>
 			{children}

@@ -131,16 +131,13 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 					</div>
 				</nav>
 				<Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-					<DialogContent
-						titleSlot={
-							<DialogHeader>
-								<DialogTitle>Menu</DialogTitle>
-								<DialogDescription>
-									<T k="marketing.nav.menuDescription" />
-								</DialogDescription>
-							</DialogHeader>
-						}
-					>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Menu</DialogTitle>
+							<DialogDescription>
+								<T k="marketing.nav.menuDescription" />
+							</DialogDescription>
+						</DialogHeader>
 						<div className="flex flex-col gap-3">
 							{navigation.map(item => (
 								<Button key={item.name} variant="outline">

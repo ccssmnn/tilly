@@ -238,18 +238,15 @@ export function UploadButton({ userID }: { userID: string }) {
 					<T k="data.import.button" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="data.import.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="data.import.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="data.import.dialog.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="data.import.dialog.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 						<FormField

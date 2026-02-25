@@ -127,18 +127,15 @@ function UpdateReminderResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.reminder.updated.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.reminder.updated.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.reminder.updated.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.reminder.updated.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -283,18 +280,15 @@ function RemoveReminderResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.reminder.deleted.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.reminder.deleted.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.reminder.deleted.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.reminder.deleted.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">

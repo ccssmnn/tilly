@@ -367,14 +367,15 @@ function PeopleControls({
 						params: { personID: personId },
 					})
 				}}
-			>
-				<Button>
-					<Plus className="size-4" />
-					<span className="sr-only md:not-sr-only">
-						<T k="people.newPersonLabel" />
-					</span>
-				</Button>
-			</NewPerson>
+				render={
+					<Button>
+						<Plus className="size-4" />
+						<span className="sr-only md:not-sr-only">
+							<T k="people.newPersonLabel" />
+						</span>
+					</Button>
+				}
+			/>
 		</div>
 	)
 }
@@ -431,11 +432,12 @@ function NoActivePeopleState({
 								params: { personID: personId },
 							})
 						}}
-					>
-						<Button>
-							<T k="addPerson.button" />
-						</Button>
-					</NewPerson>
+						render={
+							<Button>
+								<T k="addPerson.button" />
+							</Button>
+						}
+					/>
 				</EmptyContent>
 			</Empty>
 		</div>

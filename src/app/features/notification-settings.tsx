@@ -257,18 +257,15 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 				open={isTimezoneDialogOpen}
 				onOpenChange={handleCloseTimezoneDialog}
 			>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="notifications.timezone.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="notifications.timezone.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="notifications.timezone.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="notifications.timezone.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<Form {...timezoneForm}>
 						<form
 							onSubmit={timezoneForm.handleSubmit(handleTimezoneSubmit)}
@@ -413,18 +410,15 @@ function NotificationTimeSection({
 				open={isNotificationTimeDialogOpen}
 				onOpenChange={handleCloseNotificationTimeDialog}
 			>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="notifications.time.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="notifications.time.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="notifications.time.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="notifications.time.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<Form {...notificationTimeForm}>
 						<form
 							onSubmit={notificationTimeForm.handleSubmit(
@@ -693,18 +687,15 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 			</DropdownMenu>
 
 			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="notifications.devices.editDialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="notifications.devices.editDialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="notifications.devices.editDialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="notifications.devices.editDialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<Input
 							value={editName}
@@ -1023,22 +1014,19 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 					<T k="notifications.devices.addButton" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="notifications.devices.addDialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							{isPermissionDenied ? (
-								<T k="notifications.devices.addDialog.description.blocked" />
-							) : (
-								<T k="notifications.devices.addDialog.description.enabled" />
-							)}
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="notifications.devices.addDialog.title" />
+					</DialogTitle>
+					<DialogDescription>
+						{isPermissionDenied ? (
+							<T k="notifications.devices.addDialog.description.blocked" />
+						) : (
+							<T k="notifications.devices.addDialog.description.enabled" />
+						)}
+					</DialogDescription>
+				</DialogHeader>
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleAddDevice)}

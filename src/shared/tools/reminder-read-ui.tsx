@@ -61,18 +61,15 @@ function ListRemindersResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.reminder.list.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.reminder.list.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.reminder.list.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.reminder.list.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div className="space-y-2">
 							{reminders.length === 0 ? (

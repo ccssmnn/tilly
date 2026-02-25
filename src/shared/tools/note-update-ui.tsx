@@ -129,18 +129,15 @@ function EditNoteResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.note.updated.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.note.updated.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.note.updated.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.note.updated.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						{result.content && (
 							<div>
@@ -290,18 +287,15 @@ function DeleteNoteResult({
 				</span>
 			</ToolMessageWrapper>
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="tool.note.deleted.dialog.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="tool.note.deleted.dialog.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="tool.note.deleted.dialog.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="tool.note.deleted.dialog.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">

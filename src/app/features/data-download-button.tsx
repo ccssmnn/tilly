@@ -163,15 +163,12 @@ export function ExportButton(props: {
 					</Button>
 				}
 			/>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="data.export.dialog.title" />
-						</DialogTitle>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="data.export.dialog.title" />
+					</DialogTitle>
+				</DialogHeader>
 				<div className="space-y-4">
 					<DialogDescription>
 						<T k="data.export.dialog.description" />

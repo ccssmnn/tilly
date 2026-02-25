@@ -451,53 +451,50 @@ function RestorePersonDialog({
 		<>
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogTrigger>{children}</DialogTrigger>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="person.restore.title" params={{ name: person.name }} />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="person.restore.deletionInfo"
-									params={{
-										timeAgo: formatDistanceToNow(
-											person.deletedAt ||
-												person.updatedAt ||
-												person.createdAt ||
-												new Date(
-													person.$jazz.lastUpdatedAt || person.$jazz.createdAt,
-												),
-											{
-												addSuffix: true,
-												locale: dfnsLocale,
-											},
-										),
-									}}
-								/>
-								{deletionInfo && (
-									<>
-										{deletionInfo.isDueForPermanentDeletion ? (
-											<span className="text-destructive">
-												<T k="person.restore.permanentDeletionWarning" />
-											</span>
-										) : (
-											<span>
-												<T
-													k="person.restore.permanentDeletionCountdown"
-													params={{
-														days: deletionInfo.daysUntilPermanentDeletion,
-													}}
-												/>
-											</span>
-										)}
-									</>
-								)}
-								<T k="person.restore.question" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="person.restore.title" params={{ name: person.name }} />
+						</DialogTitle>
+						<DialogDescription>
+							<T
+								k="person.restore.deletionInfo"
+								params={{
+									timeAgo: formatDistanceToNow(
+										person.deletedAt ||
+											person.updatedAt ||
+											person.createdAt ||
+											new Date(
+												person.$jazz.lastUpdatedAt || person.$jazz.createdAt,
+											),
+										{
+											addSuffix: true,
+											locale: dfnsLocale,
+										},
+									),
+								}}
+							/>
+							{deletionInfo && (
+								<>
+									{deletionInfo.isDueForPermanentDeletion ? (
+										<span className="text-destructive">
+											<T k="person.restore.permanentDeletionWarning" />
+										</span>
+									) : (
+										<span>
+											<T
+												k="person.restore.permanentDeletionCountdown"
+												params={{
+													days: deletionInfo.daysUntilPermanentDeletion,
+												}}
+											/>
+										</span>
+									)}
+								</>
+							)}
+							<T k="person.restore.question" />
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-3">
 						<Button className="h-12 w-full" onClick={handleRestore}>
 							<T k="person.restore.title" params={{ name: person.name }} />
@@ -555,18 +552,15 @@ function AddNoteDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="addNote.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="addNote.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="addNote.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="addNote.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<NoteForm
 					onSubmit={handleAddNote}
 					onCancel={() => onOpenChange(false)}
@@ -594,18 +588,15 @@ function AddReminderDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="addReminder.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="addReminder.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="addReminder.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="addReminder.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<ReminderForm
 					onSubmit={handleAddReminder}
 					onCancel={() => onOpenChange(false)}

@@ -121,19 +121,15 @@ function EditListDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				className="max-h-[80vh] overflow-y-auto"
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.editList.title" params={{ hashtag }} />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.editList.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent className="max-h-[80vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>
+						<T k="person.editList.title" params={{ hashtag }} />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="person.editList.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<ListForm
 					defaultListName={initialListName}
 					defaultSelectedPeople={initialSelectedPeople}

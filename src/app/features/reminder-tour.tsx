@@ -50,19 +50,28 @@ function ReminderTour({
 			</EmptyHeader>
 			<EmptyContent>
 				{targetPerson !== undefined ? (
-					<NewReminder onSuccess={onSuccess} personId={targetPerson.$jazz.id}>
-						<Button>
-							<BellFill />
-							<T k="addReminder.button" params={{ name: targetPerson.name }} />
-						</Button>
-					</NewReminder>
+					<NewReminder
+						onSuccess={onSuccess}
+						personId={targetPerson.$jazz.id}
+						render={
+							<Button>
+								<BellFill />
+								<T
+									k="addReminder.button"
+									params={{ name: targetPerson.name }}
+								/>
+							</Button>
+						}
+					/>
 				) : (
-					<NewPerson>
-						<Button>
-							<PersonPlusFill />
-							<T k="addPerson.button" />
-						</Button>
-					</NewPerson>
+					<NewPerson
+						render={
+							<Button>
+								<PersonPlusFill />
+								<T k="addPerson.button" />
+							</Button>
+						}
+					/>
 				)}
 			</EmptyContent>
 		</Empty>

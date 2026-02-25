@@ -36,24 +36,21 @@ function PWAInstallDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="pwa.install.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T
-								k={
-									isMobileDevice()
-										? "pwa.install.dialog.description.mobile"
-										: "pwa.install.dialog.description.desktop"
-								}
-							/>
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="pwa.install.dialog.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T
+							k={
+								isMobileDevice()
+									? "pwa.install.dialog.description.mobile"
+									: "pwa.install.dialog.description.desktop"
+							}
+						/>
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-4">
 					{isAndroid() && canInstall && (
 						<AndroidChromeInstructions

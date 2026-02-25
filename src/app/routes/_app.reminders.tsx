@@ -332,14 +332,16 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 					setRemindersStatusFilter(filter as "active" | "done" | "deleted")
 				}
 			/>
-			<NewReminder>
-				<Button>
-					<Plus className="size-4" />
-					<span className="sr-only md:not-sr-only">
-						<T k="reminders.addButton" />
-					</span>
-				</Button>
-			</NewReminder>
+			<NewReminder
+				render={
+					<Button>
+						<Plus className="size-4" />
+						<span className="sr-only md:not-sr-only">
+							<T k="reminders.addButton" />
+						</span>
+					</Button>
+				}
+			/>
 		</div>
 	)
 }

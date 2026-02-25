@@ -554,18 +554,15 @@ function EditDialog(props: {
 
 	return (
 		<Dialog open={props.open} onOpenChange={props.onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="note.actions.edit" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="note.actions.description" />
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
+						<T k="note.actions.edit" />
+					</DialogTitle>
+					<DialogDescription>
+						<T k="note.actions.description" />
+					</DialogDescription>
+				</DialogHeader>
 				<NoteForm
 					note={props.note}
 					defaultValues={{
@@ -1055,10 +1052,8 @@ function ImageCarousel({
 
 	return (
 		<Dialog open={open} onOpenChange={onClose}>
-			<DialogContent
-				titleSlot={<DialogTitle>Image viewer</DialogTitle>}
-				className="h-[90dvh] md:w-[90dvw] md:max-w-none"
-			>
+			<DialogContent className="h-[90dvh] md:w-[90dvw] md:max-w-none">
+				<DialogTitle>Image viewer</DialogTitle>
 				<div className="relative h-full w-full">
 					<AnimatePresence mode="wait" custom={direction}>
 						<motion.div

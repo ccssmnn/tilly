@@ -588,21 +588,18 @@ function AddItemButton(props: {
 			</Button>
 
 			<Dialog open={noteOpen} onOpenChange={setNoteOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="note.add.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T
-									k="note.add.description"
-									params={{ person: props.person.name }}
-								/>
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="note.add.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T
+								k="note.add.description"
+								params={{ person: props.person.name }}
+							/>
+						</DialogDescription>
+					</DialogHeader>
 					<NoteForm
 						onSubmit={handleAddNote}
 						onCancel={() => setNoteOpen(false)}
@@ -611,18 +608,15 @@ function AddItemButton(props: {
 			</Dialog>
 
 			<Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
-				<DialogContent
-					titleSlot={
-						<DialogHeader>
-							<DialogTitle>
-								<T k="reminders.add.title" />
-							</DialogTitle>
-							<DialogDescription>
-								<T k="reminders.add.description" />
-							</DialogDescription>
-						</DialogHeader>
-					}
-				>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="reminders.add.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="reminders.add.description" />
+						</DialogDescription>
+					</DialogHeader>
 					<ReminderForm
 						defaultValues={{
 							text: "",
