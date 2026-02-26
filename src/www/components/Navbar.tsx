@@ -13,7 +13,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
-import { List } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Menu01Icon } from "@hugeicons/core-free-icons"
 import { IntlProvider, T } from "#shared/intl/setup"
 import { messagesDe, messagesEn } from "#shared/intl/messages"
 
@@ -126,7 +127,7 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 							onClick={() => setMobileMenuOpen(true)}
 							className="md:hidden"
 						>
-							<List className="size-6" />
+							<HugeiconsIcon icon={Menu01Icon} className="size-6" />
 						</Button>
 					</div>
 				</nav>

@@ -8,7 +8,7 @@ import {
 } from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
-import { Bell } from "react-bootstrap-icons"
+import { Notification01Icon } from "@hugeicons/core-free-icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
@@ -30,7 +30,7 @@ function ListRemindersResult({
 
 	if ("error" in result) {
 		return (
-			<ToolMessageWrapper icon={Bell}>
+			<ToolMessageWrapper icon={Notification01Icon}>
 				<span className="text-red-600">❌ {result.error}</span>
 			</ToolMessageWrapper>
 		)
@@ -49,7 +49,7 @@ function ListRemindersResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				icon={Bell}
+				icon={Notification01Icon}
 				onClick={() => setDialogOpen(true)}
 				dialogOpen={dialogOpen}
 			>

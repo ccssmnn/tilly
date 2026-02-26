@@ -9,7 +9,7 @@ import {
 } from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
-import { People } from "react-bootstrap-icons"
+import { UserMultipleIcon } from "@hugeicons/core-free-icons"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T } from "#shared/intl/setup"
@@ -32,7 +32,7 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 
 	if ("error" in result) {
 		return (
-			<ToolMessageWrapper icon={People}>
+			<ToolMessageWrapper icon={UserMultipleIcon}>
 				<span className="text-red-600">❌ {result.error}</span>
 			</ToolMessageWrapper>
 		)
@@ -41,7 +41,7 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 	return (
 		<>
 			<ToolMessageWrapper
-				icon={People}
+				icon={UserMultipleIcon}
 				onClick={() => setDialogOpen(true)}
 				dialogOpen={dialogOpen}
 			>
@@ -116,7 +116,7 @@ function GetPersonDetailsResult({
 
 	if ("error" in result) {
 		return (
-			<ToolMessageWrapper icon={People}>
+			<ToolMessageWrapper icon={UserMultipleIcon}>
 				<span className="text-red-600">❌ {result.error}</span>
 			</ToolMessageWrapper>
 		)
@@ -125,7 +125,7 @@ function GetPersonDetailsResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				icon={People}
+				icon={UserMultipleIcon}
 				onClick={() => setDialogOpen(true)}
 				dialogOpen={dialogOpen}
 			>

@@ -21,7 +21,13 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-import { X, Search, Plus, Trash } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+	Cancel01Icon,
+	Search01Icon,
+	Add01Icon,
+	Delete02Icon,
+} from "@hugeicons/core-free-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -250,7 +256,10 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("notes.search.placeholder")}
 				</label>
-				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
+				<HugeiconsIcon
+					icon={Search01Icon}
+					className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform"
+				/>
 				<Input
 					ref={autoFocusRef}
 					id={searchInputId}
@@ -265,7 +274,7 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 			</div>
 			{notesSearchQuery !== "" ? (
 				<Button variant="outline" onClick={() => setNotesSearchQuery("")}>
-					<X className="size-4" />
+					<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
 					<span className="sr-only md:not-sr-only">
 						<T k="common.clear" />
 					</span>
@@ -284,7 +293,7 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 			<NewNote
 				render={
 					<Button>
-						<Plus className="size-4" />
+						<HugeiconsIcon icon={Add01Icon} className="size-4" />
 						<span className="sr-only md:not-sr-only">
 							<T k="notes.addButton" />
 						</span>
@@ -309,7 +318,7 @@ function NoDeletedNotesState() {
 			<Empty>
 				<EmptyHeader>
 					<EmptyMedia variant="icon" className="bg-destructive/10">
-						<Trash className="text-destructive" />
+						<HugeiconsIcon icon={Delete02Icon} className="text-destructive" />
 					</EmptyMedia>
 					<EmptyTitle>
 						<T k="notes.empty.noDeleted" />
@@ -329,7 +338,7 @@ function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 			<Empty>
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Search />
+						<HugeiconsIcon icon={Search01Icon} />
 					</EmptyMedia>
 					<EmptyTitle>
 						<T k="notes.noResults.message" params={{ query: searchQuery }} />

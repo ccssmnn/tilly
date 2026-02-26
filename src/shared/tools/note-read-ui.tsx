@@ -8,7 +8,7 @@ import {
 } from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
-import { FileEarmarkText } from "react-bootstrap-icons"
+import { File02Icon } from "@hugeicons/core-free-icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
@@ -29,7 +29,7 @@ function ListNotesResult({
 
 	if ("error" in result) {
 		return (
-			<ToolMessageWrapper icon={FileEarmarkText}>
+			<ToolMessageWrapper icon={File02Icon}>
 				<span className="text-red-600">❌ {result.error}</span>
 			</ToolMessageWrapper>
 		)
@@ -71,7 +71,7 @@ function ListNotesResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				icon={FileEarmarkText}
+				icon={File02Icon}
 				onClick={() => setDialogOpen(true)}
 				dialogOpen={dialogOpen}
 			>

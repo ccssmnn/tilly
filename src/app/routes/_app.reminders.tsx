@@ -21,7 +21,15 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-import { Plus, X, Search, Bell, Trash, Check } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+	Add01Icon,
+	Cancel01Icon,
+	Search01Icon,
+	Notification01Icon,
+	Delete02Icon,
+	CheckmarkCircle01Icon,
+} from "@hugeicons/core-free-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useDeferredValue, useId, type ReactNode, type RefObject } from "react"
 import { NewReminder } from "#app/features/new-reminder"
@@ -301,7 +309,10 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("reminders.search.placeholder")}
 				</label>
-				<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
+				<HugeiconsIcon
+					icon={Search01Icon}
+					className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform"
+				/>
 				<Input
 					ref={autoFocusRef}
 					id={searchInputId}
@@ -316,7 +327,7 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 			</div>
 			{remindersSearchQuery !== "" ? (
 				<Button variant="outline" onClick={() => setRemindersSearchQuery("")}>
-					<X />
+					<HugeiconsIcon icon={Cancel01Icon} />
 					<span className="sr-only md:not-sr-only">
 						<T k="common.clear" />
 					</span>
@@ -335,7 +346,7 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 			<NewReminder
 				render={
 					<Button>
-						<Plus className="size-4" />
+						<HugeiconsIcon icon={Add01Icon} className="size-4" />
 						<span className="sr-only md:not-sr-only">
 							<T k="reminders.addButton" />
 						</span>
@@ -360,7 +371,7 @@ function NoSearchResultsState({ searchQuery }: { searchQuery: string }) {
 			<Empty>
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Search />
+						<HugeiconsIcon icon={Search01Icon} />
 					</EmptyMedia>
 					<EmptyTitle>
 						<T
@@ -383,7 +394,7 @@ function AllCaughtUpState() {
 			<Empty>
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Bell />
+						<HugeiconsIcon icon={Notification01Icon} />
 					</EmptyMedia>
 					<EmptyTitle>
 						<T k="reminders.allCaughtUp.title" />
@@ -403,7 +414,10 @@ function NoDoneRemindersState() {
 			<Empty>
 				<EmptyHeader>
 					<EmptyMedia variant="icon">
-						<Check className="text-muted-foreground" />
+						<HugeiconsIcon
+							icon={CheckmarkCircle01Icon}
+							className="text-muted-foreground"
+						/>
 					</EmptyMedia>
 					<EmptyTitle>
 						<T k="reminders.empty.noDone" />
@@ -423,7 +437,7 @@ function NoDeletedRemindersState() {
 			<Empty>
 				<EmptyHeader>
 					<EmptyMedia variant="icon" className="bg-destructive/10">
-						<Trash className="text-destructive" />
+						<HugeiconsIcon icon={Delete02Icon} className="text-destructive" />
 					</EmptyMedia>
 					<EmptyTitle>
 						<T k="reminders.empty.noDeleted" />

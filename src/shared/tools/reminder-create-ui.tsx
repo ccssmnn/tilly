@@ -10,15 +10,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import { HugeiconsIcon } from "@hugeicons/react"
 import {
-	ArrowCounterclockwise,
-	Pause,
-	Bell,
-	Calendar,
-	ArrowRepeat,
-	CheckCircle,
-	Circle,
-} from "react-bootstrap-icons"
+	RefreshIcon,
+	PauseIcon,
+	Notification01Icon,
+	Calendar01Icon,
+	CheckmarkCircle01Icon,
+	CircleIcon,
+} from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
 import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
@@ -41,7 +41,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 
 	if ("error" in result) {
 		return (
-			<ToolMessageWrapper icon={Bell}>
+			<ToolMessageWrapper icon={Notification01Icon}>
 				<span className="text-red-600">❌ {result.error}</span>
 			</ToolMessageWrapper>
 		)
@@ -98,7 +98,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 
 	if (isUndone) {
 		return (
-			<ToolMessageWrapper icon={Bell}>
+			<ToolMessageWrapper icon={Notification01Icon}>
 				<span className="text-gray-500 line-through">
 					<T
 						k="tool.reminder.created.undone"
@@ -114,7 +114,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 	return (
 		<>
 			<ToolMessageWrapper
-				icon={Bell}
+				icon={Notification01Icon}
 				onClick={() => setDialogOpen(true)}
 				dialogOpen={dialogOpen}
 			>
@@ -167,9 +167,12 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 								disabled={isUndoing}
 							>
 								{isUndoing ? (
-									<Pause className="mr-2 h-3 w-3 animate-spin" />
+									<HugeiconsIcon
+										icon={PauseIcon}
+										className="mr-2 h-3 w-3 animate-spin"
+									/>
 								) : (
-									<ArrowCounterclockwise className="mr-2 h-3 w-3" />
+									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
 								)}
 								<T k="tool.undo" />
 							</Button>
@@ -199,9 +202,9 @@ function ReminderDetails({
 			<p className="text-sm">{text}</p>
 			<div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm">
 				{repeat ? (
-					<ArrowRepeat className="h-4 w-4" />
+					<HugeiconsIcon icon={RefreshIcon} className="h-4 w-4" />
 				) : (
-					<Calendar className="h-4 w-4" />
+					<HugeiconsIcon icon={Calendar01Icon} className="h-4 w-4" />
 				)}
 				<span className="whitespace-nowrap">
 					{dueAt
@@ -220,12 +223,16 @@ function ReminderDetails({
 					<span className="flex items-center gap-1 whitespace-nowrap">
 						{done ? (
 							<>
-								<CheckCircle className="h-3 w-3 text-green-600" />{" "}
+								<HugeiconsIcon
+									icon={CheckmarkCircle01Icon}
+									className="h-3 w-3 text-green-600"
+								/>{" "}
 								<T k="tool.reminder.done" />
 							</>
 						) : (
 							<>
-								<Circle className="h-3 w-3" /> <T k="tool.reminder.notDone" />
+								<HugeiconsIcon icon={CircleIcon} className="h-3 w-3" />{" "}
+								<T k="tool.reminder.notDone" />
 							</>
 						)}
 					</span>

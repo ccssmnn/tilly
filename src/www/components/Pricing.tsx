@@ -1,7 +1,8 @@
 import { TypographyH2, TypographyP } from "#shared/ui/typography"
 import { Card, CardContent, CardFooter } from "#shared/ui/card"
 import { buttonVariants } from "#shared/ui/button"
-import { Check as CheckIcon } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { CheckmarkCircle01Icon } from "@hugeicons/core-free-icons"
 import { cn } from "#app/lib/utils"
 
 export { Pricing }
@@ -75,7 +76,8 @@ function Pricing({ title, subtitle, ctaText, tiers }: Props) {
 							>
 								{tier.features.map(feature => (
 									<li key={feature} className="flex gap-x-3">
-										<CheckIcon
+										<HugeiconsIcon
+											icon={CheckmarkCircle01Icon}
 											aria-hidden="true"
 											className={`h-6 w-5 flex-none ${
 												tier.featured ? "text-primary" : "text-primary"

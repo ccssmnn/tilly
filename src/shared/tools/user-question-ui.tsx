@@ -13,7 +13,8 @@ import {
 	CardTitle,
 } from "#shared/ui/card"
 import { TypographyMuted } from "#shared/ui/typography"
-import { QuestionCircle } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { QuestionIcon } from "@hugeicons/core-free-icons"
 import { RadioGroup, RadioGroupItem } from "#shared/ui/radio-group"
 import { Label } from "#shared/ui/label"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
@@ -101,7 +102,7 @@ function UserQuestionConfirmation({
 		<Card className="border-primary">
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2 font-medium">
-					<QuestionCircle className="h-4 w-4" />
+					<HugeiconsIcon icon={QuestionIcon} className="h-4 w-4" />
 					Question
 				</CardTitle>
 			</CardHeader>
@@ -248,7 +249,7 @@ function UserQuestionResult({
 function ToolMessageWrapper({ children }: { children: ReactNode }) {
 	return (
 		<Alert>
-			<QuestionCircle className="h-4 w-4" />
+			<HugeiconsIcon icon={QuestionIcon} className="h-4 w-4" />
 			<AlertDescription className="text-sm">{children}</AlertDescription>
 		</Alert>
 	)

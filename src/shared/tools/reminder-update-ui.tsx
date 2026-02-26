@@ -10,7 +10,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
-import { ArrowCounterclockwise, Pause, Bell } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+	RefreshIcon,
+	PauseIcon,
+	Notification01Icon,
+} from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
 import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
@@ -179,9 +184,12 @@ function UpdateReminderResult({
 								disabled={isUndoing}
 							>
 								{isUndoing ? (
-									<Pause className="mr-2 h-3 w-3 animate-spin" />
+									<HugeiconsIcon
+										icon={PauseIcon}
+										className="mr-2 h-3 w-3 animate-spin"
+									/>
 								) : (
-									<ArrowCounterclockwise className="mr-2 h-3 w-3" />
+									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
 								)}
 								<T k="tool.undo" />
 							</Button>
@@ -319,9 +327,12 @@ function RemoveReminderResult({
 								disabled={isUndoing}
 							>
 								{isUndoing ? (
-									<Pause className="mr-2 h-3 w-3 animate-spin" />
+									<HugeiconsIcon
+										icon={PauseIcon}
+										className="mr-2 h-3 w-3 animate-spin"
+									/>
 								) : (
-									<ArrowCounterclockwise className="mr-2 h-3 w-3" />
+									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
 								)}
 								<T k="tool.restore" />
 							</Button>
@@ -349,7 +360,7 @@ function ToolMessageWrapper({
 				dialogOpen && "bg-accent",
 			)}
 		>
-			<Bell className="h-4 w-4" />
+			<HugeiconsIcon icon={Notification01Icon} className="h-4 w-4" />
 			<AlertDescription className="text-sm" onClick={onClick}>
 				{children}
 			</AlertDescription>

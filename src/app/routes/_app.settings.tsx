@@ -65,7 +65,13 @@ import {
 	AlertDialogTrigger,
 } from "#shared/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
-import { WifiOff, Lightbulb, Book, Compass } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+	WifiOff01Icon,
+	BulbIcon,
+	Book01Icon,
+	Compass01Icon,
+} from "@hugeicons/core-free-icons"
 import { tryCatch } from "#shared/lib/trycatch"
 import { co } from "jazz-tools"
 import { Person } from "#shared/schema/user"
@@ -263,7 +269,7 @@ function AccountSection() {
 				<div className="space-y-2">
 					{!isOnline && (
 						<Alert variant="destructive">
-							<WifiOff className="h-4 w-4" />
+							<HugeiconsIcon icon={WifiOff01Icon} className="h-4 w-4" />
 							<AlertTitle>
 								<T k="settings.account.requiresInternet" />
 							</AlertTitle>
@@ -836,7 +842,7 @@ function AboutSection() {
 			<div className="space-y-3">
 				<Button variant="outline" className="w-full justify-start">
 					<a href="/" target="_blank" rel="noopener noreferrer">
-						<Compass />
+						<HugeiconsIcon icon={Compass01Icon} />
 						<T k="settings.about.visit" />
 					</a>
 				</Button>
@@ -846,7 +852,7 @@ function AboutSection() {
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Book />
+						<HugeiconsIcon icon={Book01Icon} />
 						<T k="settings.about.learnMore" />
 					</a>
 				</Button>
@@ -856,7 +862,7 @@ function AboutSection() {
 					onClick={() => setTourSkipped(false)}
 				>
 					<Link to="/tour">
-						<Lightbulb />
+						<HugeiconsIcon icon={BulbIcon} />
 						<T k="settings.about.redoTour" />
 					</Link>
 				</Button>
