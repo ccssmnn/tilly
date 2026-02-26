@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { z } from "zod"
 import { useCoState } from "jazz-tools/react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "#shared/ui/tabs"
+import { Tabs, TabsContent } from "#shared/ui/tabs"
 import {
 	Person,
 	Note,
@@ -24,6 +24,7 @@ import {
 	Sliders,
 	Trash,
 	Check,
+	ChevronDown,
 } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
@@ -32,7 +33,12 @@ import { NoteForm } from "#app/features/note-form"
 import { ReminderListItem } from "#app/features/reminder-list-item"
 import { ReminderForm } from "#app/features/reminder-form"
 import { Button } from "#shared/ui/button"
-import { Input } from "#shared/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "#shared/ui/input-group"
 import {
 	Empty,
 	EmptyContent,
@@ -52,6 +58,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
+	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
@@ -61,8 +68,6 @@ import { createReminder } from "#shared/tools/reminder-create"
 import { createNote } from "#shared/tools/note-create"
 import { tryCatch } from "#shared/lib/trycatch"
 import { toast } from "sonner"
-import { cn } from "#app/lib/utils"
-import { useIsMobile } from "#app/hooks/use-mobile"
 import { T, useIntl } from "#shared/intl/setup"
 import { NoteTour } from "#app/features/note-tour"
 import { ReminderTour } from "#app/features/reminder-tour"
@@ -97,9 +102,9 @@ function PersonScreen() {
 	let { personID } = Route.useParams()
 	let data = Route.useLoaderData()
 	let { tab } = Route.useSearch()
+	let navigate = Route.useNavigate()
 
 	let subscribedPerson = useCoState(Person, personID, { resolve })
-	let isMobile = useIsMobile()
 	let [searchQuery, setSearchQuery] = useState("")
 	let deferredSearchQuery = useDeferredValue(searchQuery)
 	let autoFocusRef = useAutoFocusInput()
@@ -164,112 +169,93 @@ function PersonScreen() {
 
 			<div className="space-y-6">
 				<div className="flex flex-1 items-center gap-2">
-					<div className="relative flex-1">
+					<TabSwitcherButton
+						tab={tab}
+						hasDueReminders={hasDueReminders}
+						notesCount={notes.length}
+						remindersCount={reminders.length}
+						onTabChange={nextTab =>
+							navigate({
+								search: prev => ({ ...prev, tab: nextTab }),
+								replace: true,
+								resetScroll: false,
+							})
+						}
+					/>
+					<div className="flex-1">
 						<label htmlFor={searchInputId} className="sr-only">
 							{t("person.detail.search.placeholder")}
 						</label>
-						<Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform" />
-						<Input
-							ref={r => {
-								autoFocusRef.current = r
-							}}
-							id={searchInputId}
-							name="person-detail-search"
-							type="search"
-							enterKeyHint="search"
-							placeholder={t("person.detail.search.placeholder")}
-							value={searchQuery}
-							onChange={e => setSearchQuery(e.target.value)}
-							className="flex-1 pl-10"
-						/>
+						<InputGroup>
+							<InputGroupInput
+								ref={r => {
+									autoFocusRef.current = r
+								}}
+								id={searchInputId}
+								name="person-detail-search"
+								type="search"
+								enterKeyHint="search"
+								placeholder={t("person.detail.search.placeholder")}
+								value={searchQuery}
+								onChange={e => setSearchQuery(e.target.value)}
+							/>
+							<InputGroupAddon align="inline-start">
+								<Search className="size-4" />
+							</InputGroupAddon>
+							{searchQuery !== "" ? (
+								<InputGroupAddon align="inline-end">
+									<InputGroupButton
+										variant="ghost"
+										size="icon-xs"
+										aria-label={t("common.clear")}
+										onClick={() => setSearchQuery("")}
+									>
+										<X />
+									</InputGroupButton>
+								</InputGroupAddon>
+							) : null}
+							<InputGroupAddon align="inline-end">
+								<StatusFilterButton
+									statusOptions={
+										tab === "notes"
+											? [
+													{ value: "active", label: t("filter.status.active") },
+													{
+														value: "deleted",
+														label: t("filter.status.deleted"),
+													},
+												]
+											: [
+													{ value: "active", label: t("filter.status.active") },
+													{ value: "done", label: t("filter.status.done") },
+													{
+														value: "deleted",
+														label: t("filter.status.deleted"),
+													},
+												]
+									}
+									statusFilter={
+										tab === "notes" ? notesStatusFilter : remindersStatusFilter
+									}
+									onStatusFilterChange={filter =>
+										tab === "notes"
+											? setNotesStatusFilter(filter as "active" | "deleted")
+											: setRemindersStatusFilter(
+													filter as "active" | "done" | "deleted",
+												)
+									}
+								/>
+							</InputGroupAddon>
+						</InputGroup>
 					</div>
-					{searchQuery !== "" ? (
-						<Button variant="outline" onClick={() => setSearchQuery("")}>
-							<X />
-							<span className="sr-only md:not-sr-only">
-								<T k="common.clear" />
-							</span>
-						</Button>
-					) : null}
-					<StatusFilterButton
-						statusOptions={
-							tab === "notes"
-								? [
-										{ value: "active", label: t("filter.status.active") },
-										{ value: "deleted", label: t("filter.status.deleted") },
-									]
-								: [
-										{ value: "active", label: t("filter.status.active") },
-										{ value: "done", label: t("filter.status.done") },
-										{ value: "deleted", label: t("filter.status.deleted") },
-									]
-						}
-						statusFilter={
-							tab === "notes" ? notesStatusFilter : remindersStatusFilter
-						}
-						onStatusFilterChange={filter =>
-							tab === "notes"
-								? setNotesStatusFilter(filter as "active" | "deleted")
-								: setRemindersStatusFilter(
-										filter as "active" | "done" | "deleted",
-									)
-						}
+					<AddItemButton
+						person={person}
+						activeTab={tab}
+						me={me}
+						onItemCreated={() => setSearchQuery("")}
 					/>
 				</div>
 				<Tabs value={tab}>
-					<div className="mb-6 flex items-center justify-between gap-3">
-						<TabsList className="flex-1">
-							<TabsTrigger value="notes">
-								<Link
-									to={Route.fullPath}
-									params={{ personID: person.$jazz.id }}
-									search={{ tab: "notes" }}
-									className="flex items-center gap-1"
-									replace
-									resetScroll={false}
-								>
-									<FileEarmarkText />
-									<span className={cn(isMobile && tab !== "notes" && "hidden")}>
-										<T
-											k="person.detail.notes.tab"
-											params={{ count: notes.length }}
-										/>
-									</span>
-								</Link>
-							</TabsTrigger>
-							<TabsTrigger value="reminders">
-								<Link
-									to={Route.fullPath}
-									params={{ personID: person.$jazz.id }}
-									search={{ tab: "reminders" }}
-									className="flex items-center gap-1"
-									replace
-									resetScroll={false}
-								>
-									<div className="relative">
-										<Bell />
-										{hasDueReminders && (
-											<div className="bg-primary absolute top-0 right-0 size-2 rounded-full" />
-										)}
-									</div>
-									<span
-										className={cn(isMobile && tab !== "reminders" && "hidden")}
-									>
-										<T
-											k="person.detail.reminders.tab"
-											params={{ count: reminders.length }}
-										/>
-									</span>
-								</Link>
-							</TabsTrigger>
-						</TabsList>
-						<AddItemButton
-							person={person}
-							activeTab={tab}
-							me={me}
-							onItemCreated={() => setSearchQuery("")}
-						/>
-					</div>
 					<TabsContent value="notes">
 						<NotesList
 							notes={notes}
@@ -362,6 +348,63 @@ function NotesList({
 	)
 }
 
+function TabSwitcherButton({
+	tab,
+	hasDueReminders,
+	notesCount,
+	remindersCount,
+	onTabChange,
+}: {
+	tab: "notes" | "reminders"
+	hasDueReminders: boolean
+	notesCount: number
+	remindersCount: number
+	onTabChange: (tab: "notes" | "reminders") => void
+}) {
+	let t = useIntl()
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				render={
+					<Button variant="outline" className="shrink-0">
+						<div className="relative">
+							{tab === "notes" ? <FileEarmarkText /> : <Bell />}
+							{tab === "reminders" && hasDueReminders && (
+								<div className="bg-primary absolute top-0 right-0 size-2 rounded-full" />
+							)}
+						</div>
+						<span className="hidden md:inline">
+							{tab === "notes"
+								? t("person.detail.notes.tab", { count: notesCount })
+								: t("person.detail.reminders.tab", { count: remindersCount })}
+						</span>
+						<ChevronDown className="size-3 opacity-70" />
+					</Button>
+				}
+			/>
+			<DropdownMenuContent align="start">
+				<DropdownMenuItem onClick={() => onTabChange("notes")}>
+					<FileEarmarkText />
+					<T k="person.detail.notes.tab" params={{ count: notesCount }} />
+				</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => onTabChange("reminders")}>
+					<div className="relative">
+						<Bell />
+						{hasDueReminders && (
+							<div className="bg-primary absolute top-0 right-0 size-2 rounded-full" />
+						)}
+					</div>
+					<T
+						k="person.detail.reminders.tab"
+						params={{ count: remindersCount }}
+					/>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}
+
 function StatusFilterButton({
 	statusOptions,
 	statusFilter,
@@ -377,12 +420,13 @@ function StatusFilterButton({
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				render={
-					<Button variant={hasNonDefaultFilters ? "secondary" : "outline"}>
+					<InputGroupButton
+						variant={hasNonDefaultFilters ? "secondary" : "ghost"}
+						size="icon-xs"
+						aria-label="Status filter"
+					>
 						{hasNonDefaultFilters ? <Sliders /> : <Collection />}
-						<span className="sr-only md:not-sr-only">
-							<T k="filter.status" />
-						</span>
-					</Button>
+					</InputGroupButton>
 				}
 			/>
 			<DropdownMenuContent align="end">

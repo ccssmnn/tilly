@@ -4,7 +4,12 @@ import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "#shared/ui/button"
-import { Textarea } from "#shared/ui/textarea"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupTextarea,
+} from "#shared/ui/input-group"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
@@ -341,8 +346,8 @@ function EmptyChatState({
 							render={({ field }) => (
 								<FormItem>
 									<FormControl>
-										<div className="relative">
-											<Textarea
+										<InputGroup className="h-auto rounded-3xl">
+											<InputGroupTextarea
 												placeholder={
 													!isOnline
 														? t("assistant.placeholder.offline")
@@ -350,7 +355,7 @@ function EmptyChatState({
 												}
 												rows={2}
 												maxHeight={240}
-												className="min-h-20 max-w-full resize-none overflow-x-hidden overflow-y-auto rounded-3xl pr-14"
+												className="min-h-20 max-w-full overflow-x-hidden overflow-y-auto"
 												disabled={!isOnline || isBusy}
 												{...field}
 												onKeyDown={submitOnKeyCtrlEnter}
@@ -360,27 +365,32 @@ function EmptyChatState({
 													field.ref(r)
 												}}
 											/>
-											{abort ? (
-												<Button
-													type="button"
-													variant="destructive"
-													onClick={abort}
-													size="icon"
-													className="absolute right-2 bottom-2 size-10 rounded-3xl"
-												>
-													<Pause />
-												</Button>
-											) : (
-												<Button
-													type="submit"
-													size="icon"
-													className="absolute right-2 bottom-2 size-10 rounded-3xl"
-													disabled={!isOnline || isBusy}
-												>
-													<Send />
-												</Button>
-											)}
-										</div>
+											<InputGroupAddon
+												align="block-end"
+												className="justify-end"
+											>
+												{abort ? (
+													<InputGroupButton
+														type="button"
+														variant="destructive"
+														onClick={abort}
+														size="icon-sm"
+														className="size-10 rounded-3xl"
+													>
+														<Pause />
+													</InputGroupButton>
+												) : (
+													<InputGroupButton
+														type="submit"
+														size="icon-sm"
+														className="size-10 rounded-3xl"
+														disabled={!isOnline || isBusy}
+													>
+														<Send />
+													</InputGroupButton>
+												)}
+											</InputGroupAddon>
+										</InputGroup>
 									</FormControl>
 								</FormItem>
 							)}
@@ -620,43 +630,47 @@ function UserInput(props: {
 						control={form.control}
 						name="prompt"
 						render={({ field }) => (
-							<FormItem className="flex items-end">
+							<FormItem>
 								<FormControl>
-									<Textarea
-										placeholder={props.placeholder}
-										rows={1}
-										maxHeight={240}
-										className="max-h-36 min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
-										disabled={props.disabled}
-										{...field}
-										onKeyDown={submitOnKeyCtrlEnter}
-										ref={r => {
-											textareaRef.current = r
-											autoFocusRef.current = r
-											field.ref(r)
-										}}
-									/>
+									<InputGroup className="h-auto border-0 bg-transparent shadow-none">
+										<InputGroupTextarea
+											placeholder={props.placeholder}
+											rows={1}
+											maxHeight={240}
+											className="max-h-36 min-h-10 overflow-y-auto"
+											disabled={props.disabled}
+											{...field}
+											onKeyDown={submitOnKeyCtrlEnter}
+											ref={r => {
+												textareaRef.current = r
+												autoFocusRef.current = r
+												field.ref(r)
+											}}
+										/>
+										<InputGroupAddon align="block-end" className="justify-end">
+											{props.stopGeneratingResponse ? (
+												<InputGroupButton
+													type="button"
+													variant="destructive"
+													onClick={props.stopGeneratingResponse}
+													size="icon-sm"
+													className="size-10 rounded-3xl"
+												>
+													<Pause />
+												</InputGroupButton>
+											) : (
+												<InputGroupButton
+													type="submit"
+													size="icon-sm"
+													className="size-10 rounded-3xl"
+													disabled={props.disabled}
+												>
+													<Send />
+												</InputGroupButton>
+											)}
+										</InputGroupAddon>
+									</InputGroup>
 								</FormControl>
-								{props.stopGeneratingResponse ? (
-									<Button
-										type="button"
-										variant="destructive"
-										onClick={props.stopGeneratingResponse}
-										size="icon"
-										className="size-10 rounded-3xl"
-									>
-										<Pause />
-									</Button>
-								) : (
-									<Button
-										type="submit"
-										size="icon"
-										className="size-10 rounded-3xl"
-										disabled={props.disabled}
-									>
-										<Send />
-									</Button>
-								)}
 							</FormItem>
 						)}
 					/>

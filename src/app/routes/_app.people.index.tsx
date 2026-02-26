@@ -8,7 +8,12 @@ import {
 	useWindowVirtualizer,
 } from "@tanstack/react-virtual"
 import { Button } from "#shared/ui/button"
-import { Input } from "#shared/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "#shared/ui/input-group"
 import {
 	Empty,
 	EmptyContent,
@@ -324,51 +329,57 @@ function PeopleControls({
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
-			<div className="relative w-full">
+			<div className="w-full">
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("people.search.placeholder")}
 				</label>
-				<HugeiconsIcon
-					icon={Search01Icon}
-					className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform"
-				/>
-				<Input
-					ref={input => {
-						autoFocusRef.current = input
-					}}
-					id={searchInputId}
-					name="people-search"
-					type="search"
-					enterKeyHint="search"
-					placeholder={t("people.search.placeholder")}
-					value={peopleSearchQuery}
-					onChange={event => setPeopleSearchQuery(event.target.value)}
-					className="w-full pl-10"
-				/>
+				<InputGroup>
+					<InputGroupInput
+						ref={input => {
+							autoFocusRef.current = input
+						}}
+						id={searchInputId}
+						name="people-search"
+						type="search"
+						enterKeyHint="search"
+						placeholder={t("people.search.placeholder")}
+						value={peopleSearchQuery}
+						onChange={event => setPeopleSearchQuery(event.target.value)}
+					/>
+					<InputGroupAddon align="inline-start">
+						<HugeiconsIcon icon={Search01Icon} className="size-4" />
+					</InputGroupAddon>
+					{peopleSearchQuery !== "" ? (
+						<InputGroupAddon align="inline-end">
+							<InputGroupButton
+								variant="ghost"
+								size="icon-xs"
+								aria-label={t("people.search.clearLabel")}
+								onClick={() => setPeopleSearchQuery("")}
+							>
+								<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
+							</InputGroupButton>
+						</InputGroupAddon>
+					) : null}
+					<InputGroupAddon align="inline-end">
+						<ListFilterButton
+							people={allPeople}
+							listFilter={peopleListFilter}
+							onListFilterChange={setPeopleListFilter}
+							statusOptions={statusOptions}
+							statusFilter={peopleStatusFilter}
+							onStatusFilterChange={filter =>
+								setPeopleStatusFilter(filter as "active" | "deleted")
+							}
+							sortOptions={sortOptions}
+							sortMode={peopleSortMode}
+							onSortChange={mode =>
+								setPeopleSortMode(mode as "recent" | "alphabetical")
+							}
+						/>
+					</InputGroupAddon>
+				</InputGroup>
 			</div>
-			{peopleSearchQuery !== "" ? (
-				<Button variant="outline" onClick={() => setPeopleSearchQuery("")}>
-					<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
-					<span className="sr-only md:not-sr-only">
-						<T k="people.search.clearLabel" />
-					</span>
-				</Button>
-			) : null}
-			<ListFilterButton
-				people={allPeople}
-				listFilter={peopleListFilter}
-				onListFilterChange={setPeopleListFilter}
-				statusOptions={statusOptions}
-				statusFilter={peopleStatusFilter}
-				onStatusFilterChange={filter =>
-					setPeopleStatusFilter(filter as "active" | "deleted")
-				}
-				sortOptions={sortOptions}
-				sortMode={peopleSortMode}
-				onSortChange={mode =>
-					setPeopleSortMode(mode as "recent" | "alphabetical")
-				}
-			/>
 			<NewPerson
 				onSuccess={personId => {
 					setPeopleSearchQuery("")

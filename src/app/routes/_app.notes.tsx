@@ -13,7 +13,12 @@ import { co, type ResolveQuery } from "jazz-tools"
 import { useDeferredValue, useId, type ReactNode } from "react"
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
-import { Input } from "#shared/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "#shared/ui/input-group"
 import {
 	Empty,
 	EmptyDescription,
@@ -252,44 +257,50 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 
 	return (
 		<div className="my-6 flex items-center justify-end gap-3">
-			<div className="relative w-full">
+			<div className="w-full">
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("notes.search.placeholder")}
 				</label>
-				<HugeiconsIcon
-					icon={Search01Icon}
-					className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform"
-				/>
-				<Input
-					ref={autoFocusRef}
-					id={searchInputId}
-					name="notes-search"
-					type="search"
-					enterKeyHint="search"
-					placeholder={t("notes.search.placeholder")}
-					value={notesSearchQuery}
-					onChange={e => setNotesSearchQuery(e.target.value)}
-					className="w-full pl-10"
-				/>
+				<InputGroup>
+					<InputGroupInput
+						ref={autoFocusRef}
+						id={searchInputId}
+						name="notes-search"
+						type="search"
+						enterKeyHint="search"
+						placeholder={t("notes.search.placeholder")}
+						value={notesSearchQuery}
+						onChange={e => setNotesSearchQuery(e.target.value)}
+					/>
+					<InputGroupAddon align="inline-start">
+						<HugeiconsIcon icon={Search01Icon} className="size-4" />
+					</InputGroupAddon>
+					{notesSearchQuery !== "" ? (
+						<InputGroupAddon align="inline-end">
+							<InputGroupButton
+								variant="ghost"
+								size="icon-xs"
+								aria-label={t("common.clear")}
+								onClick={() => setNotesSearchQuery("")}
+							>
+								<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
+							</InputGroupButton>
+						</InputGroupAddon>
+					) : null}
+					<InputGroupAddon align="inline-end">
+						<ListFilterButton
+							people={allPeople}
+							listFilter={notesListFilter}
+							onListFilterChange={setNotesListFilter}
+							statusOptions={statusOptions}
+							statusFilter={notesStatusFilter}
+							onStatusFilterChange={filter =>
+								setNotesStatusFilter(filter as "active" | "deleted")
+							}
+						/>
+					</InputGroupAddon>
+				</InputGroup>
 			</div>
-			{notesSearchQuery !== "" ? (
-				<Button variant="outline" onClick={() => setNotesSearchQuery("")}>
-					<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
-					<span className="sr-only md:not-sr-only">
-						<T k="common.clear" />
-					</span>
-				</Button>
-			) : null}
-			<ListFilterButton
-				people={allPeople}
-				listFilter={notesListFilter}
-				onListFilterChange={setNotesListFilter}
-				statusOptions={statusOptions}
-				statusFilter={notesStatusFilter}
-				onStatusFilterChange={filter =>
-					setNotesStatusFilter(filter as "active" | "deleted")
-				}
-			/>
 			<NewNote
 				render={
 					<Button>

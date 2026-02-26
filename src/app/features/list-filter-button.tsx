@@ -1,4 +1,4 @@
-import { Button } from "#shared/ui/button"
+import { InputGroupButton } from "#shared/ui/input-group"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -73,15 +73,14 @@ function ListFilterButton({
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 				<DropdownMenuTrigger
 					render={
-						<Button
-							variant={hasNonDefaultFilters ? "secondary" : "outline"}
+						<InputGroupButton
+							variant={hasNonDefaultFilters ? "secondary" : "ghost"}
+							size="icon-xs"
 							onClick={() => setDropdownOpen(true)}
+							aria-label={t("person.listFilter.lists")}
 						>
 							<Sliders />
-							<span className="sr-only">
-								<T k="person.listFilter.lists" />
-							</span>
-						</Button>
+						</InputGroupButton>
 					}
 				/>
 				<DropdownMenuContent align="end">

@@ -13,7 +13,12 @@ import { type ResolveQuery } from "jazz-tools"
 import { ReminderListItem } from "#app/features/reminder-list-item"
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
-import { Input } from "#shared/ui/input"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "#shared/ui/input-group"
 import {
 	Empty,
 	EmptyDescription,
@@ -305,44 +310,52 @@ function SearchSection({ allPeople }: { allPeople: PersonWithSummary[] }) {
 
 	return (
 		<div className="mt-6 mb-3 flex items-center justify-end gap-3">
-			<div className="relative w-full">
+			<div className="w-full">
 				<label htmlFor={searchInputId} className="sr-only">
 					{t("reminders.search.placeholder")}
 				</label>
-				<HugeiconsIcon
-					icon={Search01Icon}
-					className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2 transform"
-				/>
-				<Input
-					ref={autoFocusRef}
-					id={searchInputId}
-					name="reminders-search"
-					type="search"
-					enterKeyHint="search"
-					placeholder={t("reminders.search.placeholder")}
-					value={remindersSearchQuery}
-					onChange={e => setRemindersSearchQuery(e.target.value)}
-					className="w-full pl-10"
-				/>
+				<InputGroup>
+					<InputGroupInput
+						ref={autoFocusRef}
+						id={searchInputId}
+						name="reminders-search"
+						type="search"
+						enterKeyHint="search"
+						placeholder={t("reminders.search.placeholder")}
+						value={remindersSearchQuery}
+						onChange={e => setRemindersSearchQuery(e.target.value)}
+					/>
+					<InputGroupAddon align="inline-start">
+						<HugeiconsIcon icon={Search01Icon} className="size-4" />
+					</InputGroupAddon>
+					{remindersSearchQuery !== "" ? (
+						<InputGroupAddon align="inline-end">
+							<InputGroupButton
+								variant="ghost"
+								size="icon-xs"
+								aria-label={t("common.clear")}
+								onClick={() => setRemindersSearchQuery("")}
+							>
+								<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
+							</InputGroupButton>
+						</InputGroupAddon>
+					) : null}
+					<InputGroupAddon align="inline-end">
+						<ListFilterButton
+							people={allPeople}
+							listFilter={remindersListFilter}
+							onListFilterChange={setRemindersListFilter}
+							statusOptions={statusOptions}
+							statusFilter={remindersStatusFilter}
+							onStatusFilterChange={filter =>
+								setRemindersStatusFilter(
+									filter as "active" | "done" | "deleted",
+								)
+							}
+						/>
+					</InputGroupAddon>
+				</InputGroup>
 			</div>
-			{remindersSearchQuery !== "" ? (
-				<Button variant="outline" onClick={() => setRemindersSearchQuery("")}>
-					<HugeiconsIcon icon={Cancel01Icon} />
-					<span className="sr-only md:not-sr-only">
-						<T k="common.clear" />
-					</span>
-				</Button>
-			) : null}
-			<ListFilterButton
-				people={allPeople}
-				listFilter={remindersListFilter}
-				onListFilterChange={setRemindersListFilter}
-				statusOptions={statusOptions}
-				statusFilter={remindersStatusFilter}
-				onStatusFilterChange={filter =>
-					setRemindersStatusFilter(filter as "active" | "done" | "deleted")
-				}
-			/>
 			<NewReminder
 				render={
 					<Button>
