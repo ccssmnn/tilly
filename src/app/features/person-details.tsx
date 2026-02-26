@@ -10,11 +10,14 @@ import {
 	DialogTitle,
 } from "#shared/ui/dialog"
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
-	DropdownMenuItem,
-} from "#shared/ui/dropdown-menu"
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -309,8 +312,8 @@ function ActionsDropdown({
 }) {
 	let navigate = useNavigate()
 	let t = useIntl()
-	let [dropdownOpen, setDropdownOpen] = useState(false)
-	let [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+	let [actionsOpen, setActionsOpen] = useState(false)
+	let [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false)
 	let [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 	let [isStopSharingDialogOpen, setIsStopSharingDialogOpen] = useState(false)
 	let [isManageListsDialogOpen, setIsManageListsDialogOpen] = useState(false)
@@ -352,7 +355,8 @@ function ActionsDropdown({
 			return
 		}
 
-		setIsEditDialogOpen(false)
+		setIsEditDrawerOpen(false)
+		setActionsOpen(false)
 		toast.success(t("toast.personUpdated"), {
 			action: {
 				label: t("common.undo"),
@@ -437,57 +441,108 @@ function ActionsDropdown({
 
 	return (
 		<>
-			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-				<DropdownMenuTrigger onClick={() => setDropdownOpen(true)}>
+			<Drawer
+				open={actionsOpen}
+				onOpenChange={open => {
+					setActionsOpen(open)
+					if (!open) {
+						setIsEditDrawerOpen(false)
+					}
+				}}
+			>
+				<DrawerTrigger render={<span className="contents" />}>
 					{children}
-				</DropdownMenuTrigger>
-				<DropdownMenuContent>
-					{showShare && (
-						<DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
-							<T k="person.share.button" />
-							<Share />
-						</DropdownMenuItem>
-					)}
-					<DropdownMenuItem onClick={() => setIsManageListsDialogOpen(true)}>
-						<T k="person.manageLists.title" />
-						<Collection />
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
-						<T k="person.edit.title" />
-						<PencilSquare />
-					</DropdownMenuItem>
-					{isShared ? (
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() => setIsStopSharingDialogOpen(true)}
+				</DrawerTrigger>
+				<DrawerContent contentClassName="max-w-md">
+					<DrawerHeader>
+						<DrawerTitle>
+							<T k="person.actions.title" />
+						</DrawerTitle>
+					</DrawerHeader>
+					<div className="grid gap-2">
+						{showShare && (
+							<Button
+								variant="outline"
+								className="w-full justify-between"
+								onClick={() => {
+									setActionsOpen(false)
+									setIsShareDialogOpen(true)
+								}}
+							>
+								<T k="person.share.button" />
+								<Share />
+							</Button>
+						)}
+						<Button
+							variant="outline"
+							className="w-full justify-between"
+							onClick={() => {
+								setActionsOpen(false)
+								setIsManageListsDialogOpen(true)
+							}}
 						>
-							<T k="person.leave.button" />
-							<BoxArrowRight />
-						</DropdownMenuItem>
-					) : (
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() => setIsDeleteDialogOpen(true)}
+							<T k="person.manageLists.title" />
+							<Collection />
+						</Button>
+						<Drawer open={isEditDrawerOpen} onOpenChange={setIsEditDrawerOpen}>
+							<DrawerTrigger
+								render={
+									<Button
+										variant="outline"
+										className="w-full justify-between"
+									/>
+								}
+							>
+								<T k="person.edit.title" />
+								<PencilSquare />
+							</DrawerTrigger>
+							<DrawerContent contentClassName="max-w-xl">
+								<DrawerHeader>
+									<DrawerTitle>
+										<T k="person.edit.title" />
+									</DrawerTitle>
+									<p className="text-muted-foreground text-sm">
+										<T k="person.edit.description" />
+									</p>
+								</DrawerHeader>
+								<PersonForm person={person} onSave={handleFormSave} />
+							</DrawerContent>
+						</Drawer>
+						{isShared ? (
+							<Button
+								variant="destructive"
+								className="w-full justify-between"
+								onClick={() => {
+									setActionsOpen(false)
+									setIsStopSharingDialogOpen(true)
+								}}
+							>
+								<T k="person.leave.button" />
+								<BoxArrowRight />
+							</Button>
+						) : (
+							<Button
+								variant="destructive"
+								className="w-full justify-between"
+								onClick={() => {
+									setActionsOpen(false)
+									setIsDeleteDialogOpen(true)
+								}}
+							>
+								<T k="person.delete.title" />
+								<Trash />
+							</Button>
+						)}
+					</div>
+					<DrawerFooter>
+						<DrawerClose
+							render={<Button variant="outline" className="w-full" />}
 						>
-							<T k="person.delete.title" />
-							<Trash />
-						</DropdownMenuItem>
-					)}
-				</DropdownMenuContent>
-			</DropdownMenu>
-			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
-							<T k="person.edit.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="person.edit.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<PersonForm person={person} onSave={handleFormSave} />
-				</DialogContent>
-			</Dialog>
+							<T k="common.cancel" />
+						</DrawerClose>
+					</DrawerFooter>
+				</DrawerContent>
+			</Drawer>
 			<AlertDialog
 				open={isDeleteDialogOpen}
 				onOpenChange={setIsDeleteDialogOpen}

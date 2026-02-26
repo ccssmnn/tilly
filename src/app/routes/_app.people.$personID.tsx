@@ -48,12 +48,11 @@ import {
 	EmptyTitle,
 } from "#shared/ui/empty"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -611,9 +610,9 @@ function AddItemButton(props: {
 	function handleButtonClick() {
 		if (props.activeTab === "notes") {
 			setNoteOpen(true)
-		} else {
-			setReminderOpen(true)
+			return
 		}
+		setReminderOpen(true)
 	}
 
 	return (
@@ -636,36 +635,27 @@ function AddItemButton(props: {
 				</span>
 			</Button>
 
-			<Dialog open={noteOpen} onOpenChange={setNoteOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={noteOpen} onOpenChange={setNoteOpen}>
+				<DrawerContent contentClassName="max-w-lg">
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="note.add.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T
-								k="note.add.description"
-								params={{ person: props.person.name }}
-							/>
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerTitle>
+					</DrawerHeader>
 					<NoteForm
 						onSubmit={handleAddNote}
 						onCancel={() => setNoteOpen(false)}
 					/>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 
-			<Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={reminderOpen} onOpenChange={setReminderOpen}>
+				<DrawerContent contentClassName="max-w-lg">
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="reminders.add.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="reminders.add.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerTitle>
+					</DrawerHeader>
 					<ReminderForm
 						defaultValues={{
 							text: "",
@@ -674,8 +664,8 @@ function AddItemButton(props: {
 						onSubmit={handleAddReminder}
 						onCancel={() => setReminderOpen(false)}
 					/>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
