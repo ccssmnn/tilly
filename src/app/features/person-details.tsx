@@ -623,11 +623,15 @@ function SharedWithBadge({ collaborators }: { collaborators: Collaborator[] }) {
 
 	return (
 		<Tooltip>
-			<TooltipTrigger>
-				<Badge variant="secondary" className="mb-2 cursor-default">
-					{t("person.shared.sharedWithCount", { count: collaborators.length })}
-				</Badge>
-			</TooltipTrigger>
+			<TooltipTrigger
+				render={
+					<Badge variant="secondary" className="mb-2 cursor-default">
+						{t("person.shared.sharedWithCount", {
+							count: collaborators.length,
+						})}
+					</Badge>
+				}
+			/>
 			<TooltipContent>
 				<p>{names.join(", ")}</p>
 			</TooltipContent>

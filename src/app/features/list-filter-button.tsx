@@ -2,6 +2,7 @@ import { Button } from "#shared/ui/button"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuRadioGroup,
@@ -85,9 +86,11 @@ function ListFilterButton({
 				/>
 				<DropdownMenuContent align="end">
 					{/* Status section */}
-					<DropdownMenuLabel>
-						<T k="filter.status" />
-					</DropdownMenuLabel>
+					<DropdownMenuGroup>
+						<DropdownMenuLabel>
+							<T k="filter.status" />
+						</DropdownMenuLabel>
+					</DropdownMenuGroup>
 					<DropdownMenuRadioGroup
 						value={statusFilter}
 						onValueChange={onStatusFilterChange}
@@ -103,9 +106,11 @@ function ListFilterButton({
 					{sortOptions && sortMode !== undefined && onSortChange && (
 						<>
 							<DropdownMenuSeparator />
-							<DropdownMenuLabel>
-								<T k="filter.sort" />
-							</DropdownMenuLabel>
+							<DropdownMenuGroup>
+								<DropdownMenuLabel>
+									<T k="filter.sort" />
+								</DropdownMenuLabel>
+							</DropdownMenuGroup>
 							<DropdownMenuRadioGroup
 								value={sortMode}
 								onValueChange={onSortChange}
@@ -124,9 +129,11 @@ function ListFilterButton({
 
 					{/* Lists section */}
 					<DropdownMenuSeparator />
-					<DropdownMenuLabel>
-						<T k="person.listFilter.lists" />
-					</DropdownMenuLabel>
+					<DropdownMenuGroup>
+						<DropdownMenuLabel>
+							<T k="person.listFilter.lists" />
+						</DropdownMenuLabel>
+					</DropdownMenuGroup>
 					{listFilter && (
 						<DropdownMenuItem onClick={() => editList(listFilter)}>
 							{t("person.listFilter.editList", {

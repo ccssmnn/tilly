@@ -212,7 +212,7 @@ function PersonListItem({
 	return (
 		<>
 			<HoverCard>
-				<HoverCardTrigger>{linkContent}</HoverCardTrigger>
+				<HoverCardTrigger render={linkContent} />
 				<HoverCardContent side="bottom" align="center" className="w-auto p-2">
 					<PersonHoverActions
 						operations={operations}

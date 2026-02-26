@@ -766,11 +766,13 @@ function DeleteDataButton({
 
 	return (
 		<AlertDialog open={open} onOpenChange={setOpen}>
-			<AlertDialogTrigger>
-				<Button variant="destructive">
-					<T k="settings.data.delete.button" />
-				</Button>
-			</AlertDialogTrigger>
+			<AlertDialogTrigger
+				render={
+					<Button variant="destructive">
+						<T k="settings.data.delete.button" />
+					</Button>
+				}
+			/>
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>

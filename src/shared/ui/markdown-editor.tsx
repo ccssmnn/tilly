@@ -1,5 +1,5 @@
 import { useState, useRef, type ChangeEvent } from "react"
-import { Textarea, useResizeTextarea } from "./textarea"
+import { Textarea } from "./textarea"
 import { Button } from "./button"
 import { Markdown } from "./markdown"
 import {
@@ -36,8 +36,6 @@ function MarkdownEditor({
 }: MarkdownEditorProps) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
-
-	useResizeTextarea(textareaRef, value, { maxHeight: 400, minHeight: 80 })
 
 	function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
 		onChange(e.target.value)
@@ -92,28 +90,30 @@ function MarkdownEditor({
 			<div className="border-border bg-muted/30 flex items-center justify-between gap-2 rounded-b-md border border-t-0 px-2 py-1 md:rounded-t-md md:rounded-b-none md:border-t md:border-b-0">
 				<TooltipProvider>
 					<div className="flex gap-1">
-						{toolButtons.map(tool => (
+						{toolButtons.map((tool, index) => (
 							<Tooltip key={tool.format}>
-								<TooltipTrigger>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										onMouseDown={e => e.preventDefault()}
-										onClick={() =>
-											applyMarkdownFormat(
-												textareaRef,
-												value,
-												onChange,
-												tool.format,
-											)
-										}
-										className="h-10 w-10 p-0 md:h-7 md:w-7"
-										disabled={showPreview}
-									>
-										<tool.icon className="h-5 w-5 md:h-4 md:w-4" />
-									</Button>
-								</TooltipTrigger>
+								<TooltipTrigger
+									render={
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											onMouseDown={e => e.preventDefault()}
+											onClick={() =>
+												applyMarkdownFormat(
+													textareaRef,
+													value,
+													onChange,
+													tool.format,
+												)
+											}
+											className="h-10 w-10 p-0 md:h-7 md:w-7"
+											disabled={showPreview}
+										>
+											<tool.icon className="h-5 w-5 md:h-4 md:w-4" />
+										</Button>
+									}
+								/>
 								<TooltipContent>
 									<T k={tool.label} />{" "}
 									<KbdGroup>
@@ -173,7 +173,7 @@ function MarkdownEditor({
 					onChange={handleChange}
 					placeholder={placeholder}
 					rows={rows}
-					autoResize={false}
+					maxHeight={400}
 					id={id}
 					className={cn(
 						"max-h-[80dvh] resize-none overflow-y-auto rounded-t-md rounded-b-none md:rounded-t-none md:rounded-b-md [&::-webkit-resizer]:hidden",

@@ -199,8 +199,8 @@ function NavBarButton({
 }: NavBarButtonProps) {
 	let controls = useAnimationControls()
 	let buttonClassName = cn(
-		"transition-colors flex h-full flex-1 flex-col items-center justify-center text-xs",
-		"md:rounded-md md:flex-row md:gap-2 md:px-3 md:py-2 md:text-sm md:flex-none",
+		"rounded-full transition-colors flex h-full flex-1 flex-col items-center justify-center text-xs",
+		"md:flex-row md:gap-2 md:px-3 md:py-2 md:text-sm md:flex-none",
 		className,
 	)
 	let iconClasses = cn("size-6 sm:mb-1 md:mb-0", iconClassName)

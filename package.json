@@ -47,6 +47,7 @@
 		"react-easy-crop": "^5.5.6",
 		"react-hook-form": "^7.71.1",
 		"react-markdown": "^10.1.0",
+		"react-textarea-autosize": "^8.5.9",
 		"rehype-raw": "^7.0.0",
 		"remark-gfm": "^4.0.1",
 		"sonner": "^2.0.7",

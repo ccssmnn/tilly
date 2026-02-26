@@ -161,15 +161,17 @@ function PersonForm({
 				{(person || submitButtonText) && (
 					<div className="flex justify-end">
 						<Tooltip>
-							<TooltipTrigger>
-								<Button type="submit" disabled={form.formState.isSubmitting}>
-									{form.formState.isSubmitting ? (
-										<T k="person.form.saving" />
-									) : (
-										submitButtonText || <T k="person.form.saveChanges" />
-									)}
-								</Button>
-							</TooltipTrigger>
+							<TooltipTrigger
+								render={
+									<Button type="submit" disabled={form.formState.isSubmitting}>
+										{form.formState.isSubmitting ? (
+											<T k="person.form.saving" />
+										) : (
+											submitButtonText || <T k="person.form.saveChanges" />
+										)}
+									</Button>
+								}
+							/>
 							<TooltipContent>
 								<KbdGroup>
 									<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>

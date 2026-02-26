@@ -218,19 +218,21 @@ function ReminderForm({
 						<T k="form.cancel" />
 					</Button>
 					<Tooltip>
-						<TooltipTrigger>
-							<Button
-								type="submit"
-								disabled={form.formState.isSubmitting}
-								className="flex-1"
-							>
-								{form.formState.isSubmitting ? (
-									<T k="form.saving" />
-								) : (
-									<T k="form.save" />
-								)}
-							</Button>
-						</TooltipTrigger>
+						<TooltipTrigger
+							render={
+								<Button
+									type="submit"
+									disabled={form.formState.isSubmitting}
+									className="flex-1"
+								>
+									{form.formState.isSubmitting ? (
+										<T k="form.saving" />
+									) : (
+										<T k="form.save" />
+									)}
+								</Button>
+							}
+						/>
 						<TooltipContent>
 							<KbdGroup>
 								<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>

@@ -51,6 +51,7 @@ import {
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuLabel,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
@@ -374,18 +375,22 @@ function StatusFilterButton({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger>
-				<Button variant={hasNonDefaultFilters ? "secondary" : "outline"}>
-					{hasNonDefaultFilters ? <Sliders /> : <Collection />}
-					<span className="sr-only md:not-sr-only">
-						<T k="filter.status" />
-					</span>
-				</Button>
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger
+				render={
+					<Button variant={hasNonDefaultFilters ? "secondary" : "outline"}>
+						{hasNonDefaultFilters ? <Sliders /> : <Collection />}
+						<span className="sr-only md:not-sr-only">
+							<T k="filter.status" />
+						</span>
+					</Button>
+				}
+			/>
 			<DropdownMenuContent align="end">
-				<DropdownMenuLabel>
-					<T k="filter.status" />
-				</DropdownMenuLabel>
+				<DropdownMenuGroup>
+					<DropdownMenuLabel>
+						<T k="filter.status" />
+					</DropdownMenuLabel>
+				</DropdownMenuGroup>
 				<DropdownMenuRadioGroup
 					value={statusFilter}
 					onValueChange={onStatusFilterChange}

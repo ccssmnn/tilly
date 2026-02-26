@@ -4,7 +4,7 @@ import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "#shared/ui/button"
-import { Textarea, useResizeTextarea } from "#shared/ui/textarea"
+import { Textarea } from "#shared/ui/textarea"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
@@ -269,7 +269,6 @@ function EmptyChatState({
 
 	let autoFocusRef = useAutoFocusInput()
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
-	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
 
 	function handleSubmit(data: { prompt: string }) {
 		if (!me.$isLoaded) return
@@ -350,13 +349,8 @@ function EmptyChatState({
 														: t("assistant.placeholder.initial")
 												}
 												rows={2}
+												maxHeight={240}
 												className="min-h-20 max-w-full resize-none overflow-x-hidden overflow-y-auto rounded-3xl pr-14"
-												style={{
-													height: "auto",
-													wordWrap: "break-word",
-													width: "100%",
-												}}
-												autoResize={false}
 												disabled={!isOnline || isBusy}
 												{...field}
 												onKeyDown={submitOnKeyCtrlEnter}
@@ -570,7 +564,6 @@ function UserInput(props: {
 	let autoFocusRef = useAutoFocusInput()
 
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
-	useResizeTextarea(textareaRef, promptValue, { maxHeight: 2.5 * 6 * 16 })
 
 	function handleSubmit(data: { prompt: string }) {
 		if (!me.$isLoaded) return
@@ -632,9 +625,8 @@ function UserInput(props: {
 									<Textarea
 										placeholder={props.placeholder}
 										rows={1}
+										maxHeight={240}
 										className="max-h-36 min-h-10 flex-1 resize-none overflow-y-auto rounded-3xl"
-										style={{ height: "auto" }}
-										autoResize={false}
 										disabled={props.disabled}
 										{...field}
 										onKeyDown={submitOnKeyCtrlEnter}

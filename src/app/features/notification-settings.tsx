@@ -1009,11 +1009,13 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger>
-				<Button variant="outline" disabled={disabled}>
-					<T k="notifications.devices.addButton" />
-				</Button>
-			</DialogTrigger>
+			<DialogTrigger
+				render={
+					<Button variant="outline" disabled={disabled}>
+						<T k="notifications.devices.addButton" />
+					</Button>
+				}
+			/>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
