@@ -340,6 +340,9 @@ function EmptyChatState({
 			<div className="w-full max-w-xl">
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)}>
+						<p id="assistant-empty-input-hint" className="sr-only">
+							Press Cmd, Ctrl, or Shift plus Enter to send.
+						</p>
 						<FormField
 							control={form.control}
 							name="prompt"
@@ -355,7 +358,8 @@ function EmptyChatState({
 												}
 												rows={2}
 												maxHeight={240}
-												className="min-h-20 max-w-full overflow-x-hidden overflow-y-auto"
+												className="min-h-20 max-w-full overflow-x-hidden overflow-y-auto text-base md:text-sm"
+												aria-describedby="assistant-empty-input-hint"
 												disabled={!isOnline || isBusy}
 												{...field}
 												onKeyDown={submitOnKeyCtrlEnter}
@@ -375,7 +379,9 @@ function EmptyChatState({
 														variant="destructive"
 														onClick={abort}
 														size="icon-sm"
-														className="size-10 rounded-3xl"
+														className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
+														aria-label="Stop response generation"
+														title="Stop response generation"
 													>
 														<Pause />
 													</InputGroupButton>
@@ -383,8 +389,11 @@ function EmptyChatState({
 													<InputGroupButton
 														type="submit"
 														size="icon-sm"
-														className="size-10 rounded-3xl"
+														className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
 														disabled={!isOnline || isBusy}
+														aria-label="Send message"
+														title="Send message"
+														variant="default"
 													>
 														<Send />
 													</InputGroupButton>
@@ -402,8 +411,9 @@ function EmptyChatState({
 				{starters.slice(0, 3).map(starter => (
 					<Button
 						key={starter.key}
+						type="button"
 						variant="ghost"
-						className="h-auto min-w-0 justify-start text-left text-wrap whitespace-normal"
+						className="h-auto min-h-11 min-w-0 justify-start text-left text-wrap whitespace-normal"
 						onClick={() => prefillStarter(starter.text)}
 						disabled={!isOnline || isBusy}
 					>
@@ -433,7 +443,7 @@ function OfflineAlert() {
 function LoadingIndicator({ state }: { state: "sending" | "generating" }) {
 	return (
 		<div className="text-muted-foreground flex items-center justify-center gap-3 py-2 text-sm">
-			<Avatar className="size-8 animate-pulse">
+			<Avatar className="size-8 animate-pulse motion-reduce:animate-none">
 				<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly logo" />
 				<AvatarFallback>T</AvatarFallback>
 			</Avatar>
@@ -618,7 +628,7 @@ function UserInput(props: {
 	return (
 		<div
 			className={cn(
-				"bg-background/50 border-border fixed z-1 rounded-4xl border p-2 backdrop-blur-xl transition-all duration-300 max-md:inset-x-3 md:bottom-3 md:left-1/2 md:w-full md:max-w-xl md:-translate-x-1/2",
+				"bg-background/50 border-border fixed z-1 rounded-4xl border p-2 backdrop-blur-xl transition-[bottom,background-color,border-color,box-shadow] duration-300 motion-reduce:transition-none max-md:inset-x-3 md:bottom-3 md:left-1/2 md:w-full md:max-w-xl md:-translate-x-1/2",
 				inputFocused && "bg-background bottom-1",
 				!inputFocused &&
 					"bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*19)]",
@@ -626,6 +636,9 @@ function UserInput(props: {
 		>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)}>
+					<p id="assistant-chat-input-hint" className="sr-only">
+						Press Cmd, Ctrl, or Shift plus Enter to send.
+					</p>
 					<FormField
 						control={form.control}
 						name="prompt"
@@ -637,7 +650,8 @@ function UserInput(props: {
 											placeholder={props.placeholder}
 											rows={1}
 											maxHeight={240}
-											className="max-h-36 min-h-10 overflow-y-auto"
+											className="max-h-36 min-h-11 overflow-y-auto text-base md:text-sm"
+											aria-describedby="assistant-chat-input-hint"
 											disabled={props.disabled}
 											{...field}
 											onKeyDown={submitOnKeyCtrlEnter}
@@ -654,7 +668,9 @@ function UserInput(props: {
 													variant="destructive"
 													onClick={props.stopGeneratingResponse}
 													size="icon-sm"
-													className="size-10 rounded-3xl"
+													className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
+													aria-label="Stop response generation"
+													title="Stop response generation"
 												>
 													<Pause />
 												</InputGroupButton>
@@ -662,8 +678,10 @@ function UserInput(props: {
 												<InputGroupButton
 													type="submit"
 													size="icon-sm"
-													className="size-10 rounded-3xl"
+													className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
 													disabled={props.disabled}
+													aria-label="Send message"
+													title="Send message"
 												>
 													<Send />
 												</InputGroupButton>

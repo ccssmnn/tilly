@@ -40,7 +40,7 @@ import {
 	SelectValue,
 } from "#shared/ui/select"
 import { Switch } from "#shared/ui/switch"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ExportButton as DownloadButton } from "#app/features/data-download-button"
 import { UploadButton } from "#app/features/data-upload-button"
 import { TypographyH1, TypographyMuted } from "#shared/ui/typography"
@@ -100,6 +100,10 @@ let resolve = {
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
+let mobileActionGroupClass = "grid gap-2 sm:flex sm:flex-wrap"
+let mobileActionButtonClass = "w-full sm:w-auto"
+let sectionStackClass = "space-y-4 sm:space-y-6"
+
 function SettingsScreen() {
 	let t = useIntl()
 	let data = Route.useLoaderData()
@@ -111,7 +115,7 @@ function SettingsScreen() {
 	let isPWAInstalled = useIsPWAInstalled()
 
 	return (
-		<div className="space-y-8 pb-20 md:mt-12 md:pb-4">
+		<div className="space-y-6 pb-20 md:mt-10 md:pb-6">
 			<title>{t("settings.pageTitle")}</title>
 			<TypographyH1>
 				<T k="settings.title" />
@@ -195,7 +199,7 @@ function AccountSection() {
 						: t("settings.account.description.signedOut.offline")
 			}
 		>
-			<div className="space-y-6">
+			<div className={sectionStackClass}>
 				{isAuthenticated ? (
 					<>
 						<div>
@@ -207,17 +211,30 @@ function AccountSection() {
 									email: user?.emailAddresses[0]?.emailAddress || "",
 								})}
 							</p>
-							<div className="mt-3 inline-flex flex-wrap gap-3">
-								<Button variant="secondary" disabled={!isOnline}>
-									<a href={`${getAccountsUrl()}/user`}>
+							<div className={`mt-3 ${mobileActionGroupClass}`}>
+								{isOnline ? (
+									<Button
+										variant="secondary"
+										className={mobileActionButtonClass}
+										render={<a href={`${getAccountsUrl()}/user`} />}
+									>
 										<T k="settings.account.manageAccount" />
-									</a>
-								</Button>
+									</Button>
+								) : (
+									<Button
+										variant="secondary"
+										className={mobileActionButtonClass}
+										disabled
+									>
+										<T k="settings.account.manageAccount" />
+									</Button>
+								)}
 								<SignOutButton redirectUrl="/app">
 									<Button
 										onClick={() => resetAppStore()}
 										variant="outline"
 										disabled={!isOnline}
+										className={mobileActionButtonClass}
 									>
 										<T k="settings.account.signOut" />
 									</Button>
@@ -234,12 +251,24 @@ function AccountSection() {
 										? t("settings.account.tier.plus")
 										: t("settings.account.tier.free")}
 								</p>
-								<div className="mt-3">
-									<Button variant="secondary" disabled={!isOnline}>
-										<a href={`${getAccountsUrl()}/user/billing`}>
+								<div className={`mt-3 ${mobileActionGroupClass}`}>
+									{isOnline ? (
+										<Button
+											variant="secondary"
+											className={mobileActionButtonClass}
+											render={<a href={`${getAccountsUrl()}/user/billing`} />}
+										>
 											<T k="settings.account.manageSubscription" />
-										</a>
-									</Button>
+										</Button>
+									) : (
+										<Button
+											variant="secondary"
+											className={mobileActionButtonClass}
+											disabled
+										>
+											<T k="settings.account.manageSubscription" />
+										</Button>
+									)}
 								</div>
 							</div>
 						)}
@@ -252,33 +281,38 @@ function AccountSection() {
 						<p className="text-muted-foreground text-sm">
 							{t("settings.account.status.signedOut")}
 						</p>
-						<div className="mt-3 space-x-2">
+						<div className={`mt-3 ${mobileActionGroupClass}`}>
 							<SignInButton mode="redirect" forceRedirectUrl="/app/settings">
-								<Button disabled={!isOnline}>
+								<Button
+									disabled={!isOnline}
+									className={mobileActionButtonClass}
+								>
 									<T k="auth.signIn.button" />
 								</Button>
 							</SignInButton>
 							<SignUpButton mode="redirect" forceRedirectUrl="/app/settings">
-								<Button variant="outline" disabled={!isOnline}>
+								<Button
+									variant="outline"
+									disabled={!isOnline}
+									className={mobileActionButtonClass}
+								>
 									<T k="auth.signUp.button" />
 								</Button>
 							</SignUpButton>
 						</div>
 					</div>
 				)}
-				<div className="space-y-2">
-					{!isOnline && (
-						<Alert variant="destructive">
-							<HugeiconsIcon icon={WifiOff01Icon} className="h-4 w-4" />
-							<AlertTitle>
-								<T k="settings.account.requiresInternet" />
-							</AlertTitle>
-							<AlertDescription>
-								<T k="settings.account.offlineDescription" />
-							</AlertDescription>
-						</Alert>
-					)}
-				</div>
+				{!isOnline && (
+					<Alert variant="destructive">
+						<HugeiconsIcon icon={WifiOff01Icon} className="h-4 w-4" />
+						<AlertTitle>
+							<T k="settings.account.requiresInternet" />
+						</AlertTitle>
+						<AlertDescription>
+							<T k="settings.account.offlineDescription" />
+						</AlertDescription>
+					</Alert>
+				)}
 			</div>
 		</SettingsSection>
 	)
@@ -310,12 +344,12 @@ function ProfileSection({
 			title={t("settings.profile.title")}
 			description={t("settings.profile.description")}
 		>
-			<div className="space-y-6">
+			<div className={sectionStackClass}>
 				<div className="space-y-2">
 					<p className="text-sm font-medium">
 						<T k="settings.profile.displayName.label" />
 					</p>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
 						<DisplayField
 							value={me?.profile?.name ?? ""}
 							placeholder={<T k="settings.profile.displayName.placeholder" />}
@@ -323,6 +357,7 @@ function ProfileSection({
 						/>
 						<Button
 							variant="outline"
+							className={mobileActionButtonClass}
 							onClick={() => setIsDisplayNameDialogOpen(true)}
 							disabled={!me?.profile}
 						>
@@ -362,9 +397,13 @@ function ProfileNameDialog({
 		},
 	})
 
+	useEffect(() => {
+		if (!isOpen) return
+		form.reset({ name: currentName })
+	}, [currentName, isOpen, form])
+
 	function handleSubmit(data: z.infer<typeof profileFormSchema>) {
 		onSave(data)
-		onClose()
 	}
 
 	function handleCancel() {
@@ -373,7 +412,12 @@ function ProfileNameDialog({
 	}
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
+		<Dialog
+			open={isOpen}
+			onOpenChange={open => {
+				if (!open) onClose()
+			}}
+		>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
@@ -473,9 +517,9 @@ function AssistantSection({
 			title={t("settings.agent.title")}
 			description={t("settings.agent.description")}
 		>
-			<div className="space-y-6">
+			<div className={sectionStackClass}>
 				{hasPushDevices && (
-					<div className="flex items-center justify-between gap-3">
+					<div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
 						<div className="space-y-1">
 							<Label htmlFor="notify-on-complete">
 								<T k="settings.agent.notifyOnComplete.label" />
@@ -524,7 +568,11 @@ function AssistantSection({
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.agent.reset.description" />
 					</p>
-					<Button variant="outline" onClick={() => setIsResetDialogOpen(true)}>
+					<Button
+						variant="outline"
+						className={mobileActionButtonClass}
+						onClick={() => setIsResetDialogOpen(true)}
+					>
 						<T k="settings.agent.reset.button" />
 					</Button>
 				</div>
@@ -539,15 +587,15 @@ function AssistantSection({
 							<T k="settings.agent.reset.dialog.description" />
 						</DialogDescription>
 					</DialogHeader>
-					<div className="flex items-center gap-3">
+					<div className="grid gap-2 sm:grid-cols-2">
 						<Button
 							variant="outline"
-							className="flex-1"
+							className="w-full"
 							onClick={() => setIsResetDialogOpen(false)}
 						>
 							<T k="common.cancel" />
 						</Button>
-						<Button className="flex-1" onClick={handleResetAssistant}>
+						<Button className="w-full" onClick={handleResetAssistant}>
 							<T k="settings.agent.reset.button" />
 						</Button>
 					</div>
@@ -576,9 +624,12 @@ function PWASection() {
 						: t("settings.pwa.description.desktop")
 				}
 			>
-				<div className="space-y-6">
+				<div className={sectionStackClass}>
 					<div>
-						<Button onClick={() => setShowInstallDialog(true)}>
+						<Button
+							className={mobileActionButtonClass}
+							onClick={() => setShowInstallDialog(true)}
+						>
 							<T k="settings.pwa.install.button" />
 						</Button>
 						<p className="text-muted-foreground mt-2 text-xs">
@@ -617,10 +668,11 @@ function AppSection() {
 			title={t("settings.app.title")}
 			description={t("settings.app.description")}
 		>
-			<div className="space-y-6">
+			<div className={sectionStackClass}>
 				<div>
 					<Button
 						variant="outline"
+						className={mobileActionButtonClass}
 						onClick={handleCheckForUpdates}
 						disabled={isChecking}
 					>
@@ -649,40 +701,34 @@ function DataSection() {
 			title={t("settings.data.title")}
 			description={t("settings.data.description")}
 		>
-			<div className="space-y-6">
-				<div>
+			<div className={sectionStackClass}>
+				<div className="space-y-2">
 					<p className="mb-1 text-sm font-medium">
 						<T k="settings.data.export.label" />
 					</p>
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.data.export.description" />
 					</p>
-				</div>
-				<div>
 					<DownloadButton account={currentMe} />
 				</div>
 
-				<div>
+				<div className="space-y-2">
 					<p className="mb-1 text-sm font-medium">
 						<T k="settings.data.import.label" />
 					</p>
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.data.import.description" />
 					</p>
-				</div>
-				<div>
 					<UploadButton userID={currentMe.$jazz.id} />
 				</div>
 
-				<div>
+				<div className="space-y-2">
 					<p className="text-destructive mb-1 text-sm font-medium">
 						<T k="settings.data.delete.title" />
 					</p>
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.data.delete.description" />
 					</p>
-				</div>
-				<div>
 					<DeleteDataButton currentMe={currentMe} />
 				</div>
 			</div>
@@ -842,31 +888,35 @@ function AboutSection() {
 			description={t("settings.about.description")}
 		>
 			<div className="space-y-3">
-				<Button variant="outline" className="w-full justify-start">
-					<a href="/" target="_blank" rel="noopener noreferrer">
-						<HugeiconsIcon icon={Compass01Icon} />
-						<T k="settings.about.visit" />
-					</a>
-				</Button>
-				<Button variant="outline" className="w-full justify-start">
-					<a
-						href={`/${currentLang}/blog/pragmatic-relationship-journaling`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<HugeiconsIcon icon={Book01Icon} />
-						<T k="settings.about.learnMore" />
-					</a>
+				<Button
+					variant="outline"
+					className="w-full justify-start"
+					render={<a href="/" target="_blank" rel="noopener noreferrer" />}
+				>
+					<HugeiconsIcon icon={Compass01Icon} />
+					<T k="settings.about.visit" />
 				</Button>
 				<Button
 					variant="outline"
 					className="w-full justify-start"
-					onClick={() => setTourSkipped(false)}
+					render={
+						<a
+							href={`/${currentLang}/blog/pragmatic-relationship-journaling`}
+							target="_blank"
+							rel="noopener noreferrer"
+						/>
+					}
 				>
-					<Link to="/tour">
-						<HugeiconsIcon icon={BulbIcon} />
-						<T k="settings.about.redoTour" />
-					</Link>
+					<HugeiconsIcon icon={Book01Icon} />
+					<T k="settings.about.learnMore" />
+				</Button>
+				<Button
+					variant="outline"
+					className="w-full justify-start"
+					render={<Link to="/tour" onClick={() => setTourSkipped(false)} />}
+				>
+					<HugeiconsIcon icon={BulbIcon} />
+					<T k="settings.about.redoTour" />
 				</Button>
 			</div>
 		</SettingsSection>
