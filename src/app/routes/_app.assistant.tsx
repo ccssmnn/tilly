@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
+import { useAuth } from "@clerk/clerk-react"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
@@ -76,7 +77,20 @@ let resolve = {
 } as const satisfies ResolveQuery<typeof UserAccount>
 
 function AssistantScreen() {
+	let auth = useAuth()
 	let { hasPlusAccess, isLoading } = useHasPlusAccess()
+
+	if (!auth.isLoaded) {
+		return (
+			<AssistantLayout hideTitle>
+				<AssistantLoading />
+			</AssistantLayout>
+		)
+	}
+
+	if (!auth.isSignedIn) {
+		throw notFound()
+	}
 
 	if (isLoading) {
 		return (

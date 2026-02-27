@@ -16,6 +16,7 @@ import {
 	SplashScreenStatic,
 	useSplashDelay,
 } from "./components/splash-screen"
+import { PWAInstallHint } from "#app/components/pwa-install-hint"
 import { Toaster } from "#shared/ui/sonner"
 import { MainErrorBoundary } from "#app/components/main-error-boundary"
 
@@ -74,10 +75,12 @@ function RouterWithJazz() {
 			<SplashScreen show={showSplash} />
 			{locale === "de" ? (
 				<IntlProvider messages={messagesDe} locale="de">
+					<PWAInstallHint />
 					<RouterProvider router={router} context={{ me: contextMe }} />
 				</IntlProvider>
 			) : (
 				<IntlProvider>
+					<PWAInstallHint />
 					<RouterProvider router={router} context={{ me: contextMe }} />
 				</IntlProvider>
 			)}

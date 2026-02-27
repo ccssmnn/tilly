@@ -60,6 +60,9 @@ const baseAssistantMessages = messages({
 	"assistant.clearChatHint.description":
 		"Starting a new conversation helps save your usage budget. Clear your chat to begin fresh.",
 	"assistant.clearChatHint.dismiss": "Got it",
+	"assistant.input.hint": "Press Cmd, Ctrl, or Shift plus Enter to send.",
+	"assistant.input.send": "Send message",
+	"assistant.input.stopGenerating": "Stop response generation",
 	"assistant.placeholder.offline": "Chat requires internet connection",
 	"assistant.placeholder.generating": "Generating response...",
 	"assistant.placeholder.initial": "Chat with Tilly",
@@ -211,6 +214,9 @@ const baseAssistantMessages = messages({
 	"tool.userQuestion.no": "No",
 	"tool.userQuestion.cancel": "Cancel",
 	"tool.userQuestion.submit": "Submit",
+	"tool.userQuestion.title": "Question",
+	"tool.userQuestion.result.questionLabel": "Q:",
+	"tool.userQuestion.result.answerLabel": "A:",
 
 	// Voice recording messages
 	"assistant.voiceRecording.title": "Voice Message",
@@ -294,6 +300,10 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.clearChatHint.description":
 		"Ein neues Gespräch zu beginnen hilft, dein Nutzungsbudget zu sparen. Lösche deinen Chat für einen frischen Start.",
 	"assistant.clearChatHint.dismiss": "Alles klar",
+	"assistant.input.hint":
+		"Drücke Cmd, Ctrl oder Shift zusammen mit Enter, um zu senden.",
+	"assistant.input.send": "Nachricht senden",
+	"assistant.input.stopGenerating": "Antwortgenerierung stoppen",
 	"assistant.placeholder.offline": "Chat erfordert Internetverbindung",
 	"assistant.placeholder.generating": "Antwort wird erstellt...",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
@@ -458,6 +468,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.userQuestion.no": "Nein",
 	"tool.userQuestion.cancel": "Abbrechen",
 	"tool.userQuestion.submit": "Senden",
+	"tool.userQuestion.title": "Frage",
+	"tool.userQuestion.result.questionLabel": "F:",
+	"tool.userQuestion.result.answerLabel": "A:",
 
 	// Voice recording messages
 	"assistant.voiceRecording.title": "Sprachnachricht",

@@ -24,7 +24,6 @@ import {
 	Sliders,
 	Trash,
 	Check,
-	ChevronDown,
 } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { PersonDetails } from "#app/features/person-details"
@@ -378,7 +377,6 @@ function TabSwitcherButton({
 								? t("person.detail.notes.tab", { count: notesCount })
 								: t("person.detail.reminders.tab", { count: remindersCount })}
 						</span>
-						<ChevronDown className="size-3 opacity-70" />
 					</Button>
 				}
 			/>

@@ -103,7 +103,7 @@ function UserQuestionConfirmation({
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2 font-medium">
 					<HugeiconsIcon icon={QuestionIcon} className="h-4 w-4" />
-					Question
+					<T k="tool.userQuestion.title" />
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
@@ -197,7 +197,7 @@ function UserQuestionConfirmation({
 						onClick={handleCancel}
 						disabled={isResponding}
 					>
-						Cancel
+						<T k="tool.userQuestion.cancel" />
 					</Button>
 				)}
 			</CardFooter>
@@ -238,9 +238,11 @@ function UserQuestionResult({
 		<ToolMessageWrapper>
 			<div className="space-y-1">
 				<div className="text-muted-foreground text-sm">
-					Q: {result.question}
+					{t("tool.userQuestion.result.questionLabel")} {result.question}
 				</div>
-				<div className="font-medium">A: {answerDisplay}</div>
+				<div className="font-medium">
+					{t("tool.userQuestion.result.answerLabel")} {answerDisplay}
+				</div>
 			</div>
 		</ToolMessageWrapper>
 	)

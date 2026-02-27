@@ -357,6 +357,7 @@ const baseSettingsMessages = messages({
 	"status.notSignedIn.benefits":
 		"Sign in to back up and sync your data, and receive push notifications",
 	"status.notSignedIn.signIn": "Sign In",
+	"status.notSignedIn.dismiss": "Dismiss",
 })
 
 let deSettingsMessages = translate(baseSettingsMessages, {
@@ -727,4 +728,5 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"status.notSignedIn.benefits":
 		"Melde dich an, um deine Daten zu sichern, zu synchronisieren und Push-Benachrichtigungen zu erhalten",
 	"status.notSignedIn.signIn": "Anmelden",
+	"status.notSignedIn.dismiss": "Ausblenden",
 })

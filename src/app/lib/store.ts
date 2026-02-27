@@ -250,7 +250,7 @@ export let useAppStore = create<AppState>()(
 			name: "tilly-app-storage",
 			storage: createIdbStorage(storeStateSchema, initialPersistedState),
 			partialize: (state): PersistedState => ({
-				pwaInstallHintDismissed: false,
+				pwaInstallHintDismissed: state.pwaInstallHintDismissed,
 				hideInstallNavItem: state.hideInstallNavItem,
 				tourSkipped: state.tourSkipped,
 				lastAccessDate: state.lastAccessDate,

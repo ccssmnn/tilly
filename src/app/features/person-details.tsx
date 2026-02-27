@@ -450,7 +450,10 @@ function ActionsDropdown({
 					}
 				}}
 			>
-				<DrawerTrigger render={<span className="contents" />}>
+				<DrawerTrigger
+					render={<span className="contents" />}
+					nativeButton={false}
+				>
 					{children}
 				</DrawerTrigger>
 				<DrawerContent contentClassName="max-w-md">

@@ -1,11 +1,12 @@
 import { Button } from "#shared/ui/button"
 import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogDescription,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import {
 	isAndroid,
 	isIOS,
@@ -35,13 +36,13 @@ function PWAInstallDialog({
 	let { canInstall, promptInstall } = usePWAInstallPrompt()
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent contentClassName="max-w-md">
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="pwa.install.dialog.title" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T
 							k={
 								isMobileDevice()
@@ -49,8 +50,8 @@ function PWAInstallDialog({
 									: "pwa.install.dialog.description.desktop"
 							}
 						/>
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<div className="space-y-4">
 					{isAndroid() && canInstall && (
 						<AndroidChromeInstructions
@@ -70,22 +71,21 @@ function PWAInstallDialog({
 							onInstallComplete={onInstallComplete}
 						/>
 					)}
-
-					<div className="pt-2">
-						<Button
-							variant="secondary"
-							onClick={() => {
-								onOpenChange(false)
-								onDismiss?.()
-							}}
-							className="w-full"
-						>
-							<T k="pwa.install.dialog.later" />
-						</Button>
-					</div>
 				</div>
-			</DialogContent>
-		</Dialog>
+				<DrawerFooter>
+					<Button
+						variant="secondary"
+						onClick={() => {
+							onOpenChange(false)
+							onDismiss?.()
+						}}
+						className="w-full sm:w-auto"
+					>
+						<T k="pwa.install.dialog.later" />
+					</Button>
+				</DrawerFooter>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
