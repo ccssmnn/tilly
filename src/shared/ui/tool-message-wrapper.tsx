@@ -29,7 +29,7 @@ export function ToolMessageWrapper({
 	return (
 		<Alert
 			className={cn(
-				onClick && "md:hover:bg-accent cursor-pointer",
+				onClick && "pointer-fine:hover:bg-accent cursor-pointer",
 				dialogOpen && "bg-accent",
 			)}
 		>

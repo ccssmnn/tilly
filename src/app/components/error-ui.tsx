@@ -78,7 +78,7 @@ function ErrorUI({
 					{feedbackLink}
 					{error && (
 						<details className="group">
-							<summary className="text-muted-foreground md:hover:text-foreground cursor-pointer text-sm font-medium">
+							<summary className="text-muted-foreground pointer-fine:hover:text-foreground cursor-pointer text-sm font-medium">
 								{showDetailsLabel}
 							</summary>
 							<div className="mt-3 space-y-3">
@@ -111,7 +111,7 @@ function ErrorUI({
 								</div>
 								{error.stack && (
 									<details>
-										<summary className="text-muted-foreground md:hover:text-foreground cursor-pointer text-xs font-medium">
+										<summary className="text-muted-foreground pointer-fine:hover:text-foreground cursor-pointer text-xs font-medium">
 											{stackTraceLabel}
 										</summary>
 										<pre className="bg-muted mt-2 max-h-40 overflow-auto rounded p-3 text-xs select-text">
@@ -121,7 +121,7 @@ function ErrorUI({
 								)}
 								{componentStack && (
 									<details>
-										<summary className="text-muted-foreground md:hover:text-foreground cursor-pointer text-xs font-medium">
+										<summary className="text-muted-foreground pointer-fine:hover:text-foreground cursor-pointer text-xs font-medium">
 											{componentStackLabel}
 										</summary>
 										<pre className="bg-muted mt-2 max-h-40 overflow-auto rounded p-3 text-xs select-text">

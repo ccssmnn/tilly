@@ -293,7 +293,7 @@ function ImagesField({
 									type="button"
 									variant="destructive"
 									size="icon"
-									className="absolute top-2 right-2 size-11 md:size-6"
+									className="absolute top-2 right-2 size-11 pointer-fine:size-6"
 									onClick={() => removeExistingImage(image.$jazz.id)}
 								>
 									<X className="size-4" />
@@ -314,7 +314,7 @@ function ImagesField({
 								type="button"
 								variant="destructive"
 								size="icon"
-								className="absolute top-2 right-2 size-11 md:size-6"
+								className="absolute top-2 right-2 size-11 pointer-fine:size-6"
 								onClick={() => removeNewImage(index)}
 							>
 								<X className="size-4" />
@@ -344,7 +344,10 @@ function ImagesField({
 					/>
 					{!hasPlusAccess && (
 						<TooltipContent>
-							<Link to="/settings" className="text-blue-500 md:hover:underline">
+							<Link
+								to="/settings"
+								className="text-blue-500 pointer-fine:hover:underline"
+							>
 								<T k="note.form.images.requiresPlus" />
 							</Link>
 						</TooltipContent>

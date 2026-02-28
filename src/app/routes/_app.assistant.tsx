@@ -600,7 +600,7 @@ function ClearChatButton({
 						co.list(zz.string()).create([]),
 					)
 				}}
-				className="text-muted-foreground md:hover:text-foreground"
+				className="text-muted-foreground pointer-fine:hover:text-foreground"
 			>
 				<T k="assistant.clearChat" />
 			</Button>

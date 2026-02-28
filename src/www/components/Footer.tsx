@@ -36,7 +36,7 @@ function Footer({ navigation, company }: Props) {
 						<a
 							key={item.name}
 							href={item.href}
-							className="text-muted-foreground md:hover:text-foreground transition-colors"
+							className="text-muted-foreground pointer-fine:hover:text-foreground transition-colors"
 						>
 							{item.name}
 						</a>
@@ -49,7 +49,7 @@ function Footer({ navigation, company }: Props) {
 								{index > 0 && <span className="text-muted-foreground">•</span>}
 								<a
 									href={item.href}
-									className="text-muted-foreground md:hover:text-foreground text-sm transition-colors"
+									className="text-muted-foreground pointer-fine:hover:text-foreground text-sm transition-colors"
 								>
 									{item.name}
 								</a>
@@ -64,7 +64,7 @@ function Footer({ navigation, company }: Props) {
 							<a
 								key={item.name}
 								href={item.href}
-								className="text-muted-foreground md:hover:text-foreground transition-colors"
+								className="text-muted-foreground pointer-fine:hover:text-foreground transition-colors"
 							>
 								<span className="sr-only">{item.name}</span>
 								<HugeiconsIcon icon={iconData.icon} className="h-5 w-5" />

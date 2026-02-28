@@ -50,7 +50,7 @@ function ErrorComponent({ error }: { error?: Error }) {
 					href={`/${locale}/feedback`}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="text-primary text-sm md:hover:underline"
+					className="text-primary text-sm pointer-fine:hover:underline"
 				>
 					<T k="error.feedback" />
 				</a>

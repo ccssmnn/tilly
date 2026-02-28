@@ -29,7 +29,7 @@ function SwipeableListItem({
 			key={itemKey}
 			leftAction={leftAction}
 			rightActions={rightActions}
-			className={cn("@media(pointer:fine):mx-0 -mx-3 md:mx-0", className)}
+			className={cn("-mx-3 md:mx-0 pointer-fine:mx-0", className)}
 		>
 			{children}
 		</SwipeableContent>

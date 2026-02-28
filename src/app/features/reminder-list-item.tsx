@@ -343,7 +343,7 @@ function ReminderItemContainer({
 	onClick: (e: React.MouseEvent) => void
 }) {
 	let baseClassName = cn(
-		"md:hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
+		"pointer-fine:hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
 		className,
 	)
 

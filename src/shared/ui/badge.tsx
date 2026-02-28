@@ -10,16 +10,16 @@ const badgeVariants = cva(
 		variants: {
 			variant: {
 				default:
-					"bg-primary text-primary-foreground md:[a]:hover:bg-primary/80",
+					"bg-primary text-primary-foreground pointer-fine:[a]:hover:bg-primary/80",
 				secondary:
-					"bg-secondary text-secondary-foreground md:[a]:hover:bg-secondary/80",
+					"bg-secondary text-secondary-foreground pointer-fine:[a]:hover:bg-secondary/80",
 				destructive:
-					"bg-destructive/10 md:[a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
+					"bg-destructive/10 pointer-fine:[a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
 				outline:
-					"border-border text-foreground md:[a]:hover:bg-muted md:[a]:hover:text-muted-foreground bg-input/30",
+					"border-border text-foreground pointer-fine:[a]:hover:bg-muted pointer-fine:[a]:hover:text-muted-foreground bg-input/30",
 				ghost:
-					"md:hover:bg-muted md:hover:text-muted-foreground md:dark:hover:bg-muted/50",
-				link: "text-primary underline-offset-4 md:hover:underline",
+					"pointer-fine:hover:bg-muted pointer-fine:hover:text-muted-foreground dark:pointer-fine:hover:bg-muted/50",
+				link: "text-primary underline-offset-4 pointer-fine:hover:underline",
 			},
 		},
 		defaultVariants: {

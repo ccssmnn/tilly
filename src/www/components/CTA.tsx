@@ -34,7 +34,7 @@ function CTA({ title, primaryCta, secondaryCta }: Props) {
 					{secondaryCta && (
 						<a
 							href={secondaryCta.href}
-							className="text-foreground text-sm/6 font-semibold md:hover:opacity-80"
+							className="text-foreground text-sm/6 font-semibold pointer-fine:hover:opacity-80"
 						>
 							{secondaryCta.text}
 							<span aria-hidden="true">→</span>

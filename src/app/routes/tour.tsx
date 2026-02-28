@@ -171,7 +171,7 @@ function TourComponent() {
 										"absolute top-1/2 left-1/2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
 										currentStep === index
 											? "bg-foreground w-6"
-											: "bg-foreground/50 md:hover:bg-foreground/75 w-2",
+											: "bg-foreground/50 pointer-fine:hover:bg-foreground/75 w-2",
 									)}
 								/>
 							</button>

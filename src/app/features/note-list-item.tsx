@@ -339,7 +339,7 @@ function NoteItemContainer({
 	)
 
 	return (
-		<div className={cn(className, "md:hover:bg-muted rounded-md")}>
+		<div className={cn(className, "pointer-fine:hover:bg-muted rounded-md")}>
 			<DropdownMenuTrigger
 				id={`note-${note.$jazz.id}`}
 				className={baseClassName}
@@ -389,7 +389,7 @@ function ExpandCollapseButton({
 			<button
 				type="button"
 				onClick={toggleExpanded}
-				className="text-muted-foreground -m-1 min-h-11 min-w-11 p-1 text-xs font-bold md:hover:underline"
+				className="text-muted-foreground -m-1 min-h-11 min-w-11 p-1 text-xs font-bold pointer-fine:hover:underline"
 			>
 				{isExpanded ? <T k="note.showLess" /> : <T k="note.showMore" />}
 			</button>
@@ -1119,7 +1119,7 @@ function ImageCarousel({
 												"absolute top-1/2 left-1/2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
 												currentIndex === index
 													? "bg-foreground w-6"
-													: "bg-foreground/50 md:hover:bg-foreground/75 w-2",
+													: "bg-foreground/50 pointer-fine:hover:bg-foreground/75 w-2",
 											)}
 										/>
 									</button>

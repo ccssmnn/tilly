@@ -118,7 +118,7 @@ function PersonListItem({
 		<Link
 			to="/people/$personID"
 			params={{ personID: person.$jazz.id }}
-			className="items-top md:hover:bg-muted active:bg-accent flex flex-1 gap-3 rounded-lg py-4 transition-colors duration-150"
+			className="items-top pointer-fine:hover:bg-muted active:bg-accent flex flex-1 gap-3 rounded-lg py-4 transition-colors duration-150"
 			draggable={false}
 			onDragStart={e => e.preventDefault()}
 			onClick={e => {
@@ -154,7 +154,7 @@ function PersonListItem({
 			<>
 				<SwipeableListItem itemKey={person.$jazz.id} {...deletedSwipeActions}>
 					<RestorePersonDrawer person={person}>
-						<div className="items-top md:hover:bg-muted active:bg-accent flex flex-1 cursor-pointer gap-3 rounded-lg py-4 transition-colors duration-150">
+						<div className="items-top pointer-fine:hover:bg-muted active:bg-accent flex flex-1 cursor-pointer gap-3 rounded-lg py-4 transition-colors duration-150">
 							<PersonItemContainer
 								person={person}
 								className="grayscale"
@@ -377,7 +377,7 @@ function PersonHoverActions({
 			<Button
 				variant="ghost"
 				size="sm"
-				className="text-destructive md:hover:text-destructive justify-start gap-2"
+				className="text-destructive pointer-fine:hover:text-destructive justify-start gap-2"
 				onClick={e => {
 					e.preventDefault()
 					e.stopPropagation()

@@ -103,10 +103,10 @@ function MarkdownEditor({
 												tool.format,
 											)
 										}
-										className="size-11 p-0 md:size-7"
+										className="size-11 p-0 pointer-fine:size-7"
 										disabled={showPreview}
 									>
-										<tool.icon className="h-5 w-5 md:h-4 md:w-4" />
+										<tool.icon className="h-5 w-5 pointer-fine:h-4 pointer-fine:w-4" />
 									</Button>
 								}
 							/>
@@ -128,7 +128,7 @@ function MarkdownEditor({
 				onMouseDown={e => e.preventDefault()}
 				onClick={() => setShowPreview(!showPreview)}
 				disabled={!value.trim()}
-				className="text-muted-foreground md:hover:text-foreground h-11 gap-1 px-3 text-sm md:h-7 md:px-2 md:text-xs"
+				className="text-muted-foreground pointer-fine:hover:text-foreground h-11 gap-1 px-3 text-sm pointer-fine:h-7 pointer-fine:px-2 pointer-fine:text-xs"
 			>
 				{showPreview ? (
 					<>
