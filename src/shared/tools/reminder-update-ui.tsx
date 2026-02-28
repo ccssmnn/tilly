@@ -4,12 +4,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -46,7 +46,7 @@ function UpdateReminderResult({
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
@@ -61,7 +61,7 @@ function UpdateReminderResult({
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			if (result.previous) {
 				await updateReminder(
@@ -124,23 +124,23 @@ function UpdateReminderResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
 					<T k="tool.reminder.updated.message" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.reminder.updated.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.reminder.updated.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -195,8 +195,8 @@ function UpdateReminderResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
@@ -209,7 +209,7 @@ function RemoveReminderResult({
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
@@ -224,7 +224,7 @@ function RemoveReminderResult({
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			await updateReminder(
 				{ deletedAt: undefined },
@@ -280,23 +280,23 @@ function RemoveReminderResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
 					<T k="tool.reminder.deleted.message" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.reminder.deleted.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.reminder.deleted.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -338,8 +338,8 @@ function RemoveReminderResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

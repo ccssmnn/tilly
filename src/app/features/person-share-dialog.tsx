@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react"
 import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogDescription,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerDescription,
+} from "#shared/ui/drawer"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -40,7 +40,7 @@ import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale } from "#shared/intl/setup"
 
-export { PersonShareDialog }
+export { PersonShareDrawer as PersonShareDialog }
 
 type LoadedPerson = co.loaded<
 	typeof Person,
@@ -57,7 +57,7 @@ let fullResolve = {
 	inactiveReminders: { $each: { $onError: "catch" } },
 } as const
 
-function PersonShareDialog({
+function PersonShareDrawer({
 	open,
 	onOpenChange,
 	person,
@@ -93,16 +93,16 @@ function PersonShareDialog({
 		load()
 	}, [person, refreshKey])
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="person.share.dialog.title" params={{ name: person.name }} />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="person.share.dialog.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<div className="space-y-6">
 					<InviteLinkSection
 						person={person}
@@ -131,8 +131,8 @@ function PersonShareDialog({
 						}
 					/>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

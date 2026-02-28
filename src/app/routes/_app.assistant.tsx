@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { useAuth } from "@clerk/clerk-react"
+import { SignInButton, SignUpButton, useAuth } from "@clerk/clerk-react"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
@@ -89,7 +89,11 @@ function AssistantScreen() {
 	}
 
 	if (!auth.isSignedIn) {
-		throw notFound()
+		return (
+			<AssistantLayout hideTitle>
+				<SubscribePrompt mode="signedOut" />
+			</AssistantLayout>
+		)
 	}
 
 	if (isLoading) {
@@ -103,7 +107,7 @@ function AssistantScreen() {
 	if (!hasPlusAccess) {
 		return (
 			<AssistantLayout hideTitle>
-				<SubscribePrompt />
+				<SubscribePrompt mode="plusRequired" />
 			</AssistantLayout>
 		)
 	}
@@ -142,7 +146,9 @@ function AssistantLoading() {
 	)
 }
 
-function SubscribePrompt() {
+function SubscribePrompt({ mode }: { mode: "signedOut" | "plusRequired" }) {
+	let isSignedOut = mode === "signedOut"
+
 	return (
 		<Empty className="min-h-[calc(100dvh-12rem-env(safe-area-inset-bottom))] md:min-h-[calc(100dvh-6rem)]">
 			<EmptyHeader>
@@ -153,18 +159,45 @@ function SubscribePrompt() {
 					</Avatar>
 				</EmptyMedia>
 				<EmptyTitle>
-					<T k="assistant.subscribe.title" />
+					<T
+						k={
+							isSignedOut
+								? "assistant.signedOut.title"
+								: "assistant.subscribe.title"
+						}
+					/>
 				</EmptyTitle>
 				<EmptyDescription>
-					<T k="assistant.subscribe.description" />
+					<T
+						k={
+							isSignedOut
+								? "assistant.signedOut.description"
+								: "assistant.subscribe.description"
+						}
+					/>
 				</EmptyDescription>
 			</EmptyHeader>
 			<EmptyContent>
-				<Button>
-					<Link to="/settings">
-						<T k="assistant.subscribe.settings" />
-					</Link>
-				</Button>
+				{isSignedOut ? (
+					<div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+						<SignInButton mode="redirect" forceRedirectUrl="/app/assistant">
+							<Button className="w-full sm:w-auto">
+								<T k="auth.signIn.button" />
+							</Button>
+						</SignInButton>
+						<SignUpButton mode="redirect" forceRedirectUrl="/app/assistant">
+							<Button variant="outline" className="w-full sm:w-auto">
+								<T k="auth.signUp.button" />
+							</Button>
+						</SignUpButton>
+					</div>
+				) : (
+					<Button>
+						<Link to="/settings">
+							<T k="assistant.subscribe.settings" />
+						</Link>
+					</Button>
+				)}
 			</EmptyContent>
 		</Empty>
 	)
@@ -567,7 +600,7 @@ function ClearChatButton({
 						co.list(zz.string()).create([]),
 					)
 				}}
-				className="text-muted-foreground hover:text-foreground"
+				className="text-muted-foreground md:hover:text-foreground"
 			>
 				<T k="assistant.clearChat" />
 			</Button>

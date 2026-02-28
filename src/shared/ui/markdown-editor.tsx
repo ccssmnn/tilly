@@ -103,7 +103,7 @@ function MarkdownEditor({
 												tool.format,
 											)
 										}
-										className="h-10 w-10 p-0 md:h-7 md:w-7"
+										className="size-11 p-0 md:size-7"
 										disabled={showPreview}
 									>
 										<tool.icon className="h-5 w-5 md:h-4 md:w-4" />
@@ -128,7 +128,7 @@ function MarkdownEditor({
 				onMouseDown={e => e.preventDefault()}
 				onClick={() => setShowPreview(!showPreview)}
 				disabled={!value.trim()}
-				className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
+				className="text-muted-foreground md:hover:text-foreground h-11 gap-1 px-3 text-sm md:h-7 md:px-2 md:text-xs"
 			>
 				{showPreview ? (
 					<>

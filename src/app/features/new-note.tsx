@@ -1,13 +1,13 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import { Button } from "#shared/ui/button"
 import { NoteForm } from "#app/features/note-form"
 import { PersonSelector } from "#app/features/person-selector"
@@ -22,7 +22,7 @@ import { format } from "date-fns"
 export { NewNote }
 
 function NewNote(props: {
-	render: React.ComponentProps<typeof DialogTrigger>["render"]
+	render: React.ComponentProps<typeof DrawerTrigger>["render"]
 	onSuccess?: (noteId: string) => void
 	personId?: string
 }) {
@@ -36,17 +36,17 @@ function NewNote(props: {
 		},
 	})
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let [direction, setDirection] = useState<"left" | "right">()
 
 	let selectedPersonLabel =
 		people.find(person => person.$jazz.id === selectedPersonId)?.name ?? ""
 
-	function handleDialogOpenChange(open: boolean) {
+	function handleDrawerOpenChange(open: boolean) {
 		if (!open) {
 			setSelectedPersonId(props.personId ?? "")
 		}
-		setDialogOpen(open)
+		setDrawerOpen(open)
 	}
 
 	function handlePersonSelected(personId: string) {
@@ -89,14 +89,14 @@ function NewNote(props: {
 
 		props.onSuccess?.(result.data.noteID)
 		toast.success(t("notes.created.success"))
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		setSelectedPersonId(props.personId ?? "")
 	}
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-			<DialogTrigger render={props.render} />
-			<DialogContent>
+		<Drawer open={dialogOpen} onOpenChange={handleDrawerOpenChange}>
+			<DrawerTrigger render={props.render} />
+			<DrawerContent>
 				<div className="relative overflow-hidden">
 					<AnimatePresence mode="wait" custom={direction}>
 						{!selectedPersonId ? (
@@ -119,14 +119,14 @@ function NewNote(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DialogHeader>
-									<DialogTitle>
+								<DrawerHeader>
+									<DrawerTitle>
 										<T k="note.select.title" />
-									</DialogTitle>
-									<DialogDescription>
+									</DrawerTitle>
+									<DrawerDescription>
 										<T k="note.select.description" />
-									</DialogDescription>
-								</DialogHeader>
+									</DrawerDescription>
+								</DrawerHeader>
 							</motion.div>
 						) : (
 							<motion.div
@@ -148,17 +148,17 @@ function NewNote(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DialogHeader>
-									<DialogTitle>
+								<DrawerHeader>
+									<DrawerTitle>
 										<T k="note.add.title" />
-									</DialogTitle>
-									<DialogDescription>
+									</DrawerTitle>
+									<DrawerDescription>
 										<T
 											k="note.add.description"
 											params={{ person: selectedPersonLabel }}
 										/>
-									</DialogDescription>
-								</DialogHeader>
+									</DrawerDescription>
+								</DrawerHeader>
 							</motion.div>
 						)}
 					</AnimatePresence>
@@ -195,7 +195,7 @@ function NewNote(props: {
 									<div className="flex justify-end gap-2">
 										<Button
 											variant="outline"
-											onClick={() => handleDialogOpenChange(false)}
+											onClick={() => handleDrawerOpenChange(false)}
 										>
 											<T k="common.cancel" />
 										</Button>
@@ -235,7 +235,7 @@ function NewNote(props: {
 						)}
 					</AnimatePresence>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }

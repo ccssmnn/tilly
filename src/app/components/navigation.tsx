@@ -195,7 +195,7 @@ function NavBarButton({
 				activeProps={{ className: "text-foreground" }}
 				inactiveProps={{
 					className:
-						"text-muted-foreground hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
+						"text-muted-foreground md:hover:text-foreground/80 md:hover:bg-muted/50 transition-color",
 				}}
 				{...sharedProps}
 			>

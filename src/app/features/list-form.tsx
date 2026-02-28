@@ -198,7 +198,7 @@ function PeopleListSelector(props: {
 							key={person.$jazz.id}
 							onClick={() => handleTogglePerson(person.$jazz.id)}
 							disabled={props.disabled}
-							className={`hover:bg-muted active:bg-accent flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors disabled:opacity-50 ${
+							className={`md:hover:bg-muted active:bg-accent flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors disabled:opacity-50 ${
 								props.selectedPeople.has(person.$jazz.id) ? "bg-muted" : ""
 							}`}
 						>

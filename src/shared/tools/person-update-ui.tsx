@@ -4,12 +4,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -41,7 +41,7 @@ function UpdatePersonResult({
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
@@ -55,7 +55,7 @@ function UpdatePersonResult({
 
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			// Now we have access to previous values for proper undo functionality
 			await updatePerson(
@@ -118,7 +118,7 @@ function UpdatePersonResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -128,16 +128,16 @@ function UpdatePersonResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.person.updated.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.person.updated.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -186,8 +186,8 @@ function UpdatePersonResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
@@ -200,7 +200,7 @@ function DeletePersonResult({
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
@@ -215,7 +215,7 @@ function DeletePersonResult({
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			await updatePerson(result.personId, { deletedAt: undefined }, me)
 			setIsUndone(true)
@@ -265,7 +265,7 @@ function DeletePersonResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -275,16 +275,16 @@ function DeletePersonResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.person.deleted.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.person.deleted.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -316,8 +316,8 @@ function DeletePersonResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

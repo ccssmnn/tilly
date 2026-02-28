@@ -1,11 +1,11 @@
 import { useState } from "react"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -29,9 +29,9 @@ import {
 	replaceHashtagInSummary,
 } from "#app/features/list-utilities"
 
-export { EditListDialog }
+export { EditListDrawer as EditListDialog }
 
-function EditListDialog({
+function EditListDrawer({
 	open,
 	onOpenChange,
 	hashtag,
@@ -120,16 +120,16 @@ function EditListDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[80vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent className="max-h-[80vh] overflow-y-auto">
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="person.editList.title" params={{ hashtag }} />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="person.editList.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<ListForm
 					defaultListName={initialListName}
 					defaultSelectedPeople={initialSelectedPeople}
@@ -170,8 +170,8 @@ function EditListDialog({
 						</AlertDialogFooter>
 					</AlertDialogContent>
 				</AlertDialog>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

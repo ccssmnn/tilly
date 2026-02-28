@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { type InferUITool } from "ai"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import { UserMultipleIcon } from "@hugeicons/core-free-icons"
@@ -26,7 +26,7 @@ type _GetPersonDetailsTool = InferUITool<
 export { ListPeopleResult, GetPersonDetailsResult }
 
 function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
 	let { setPeopleSearchQuery } = useAppStore()
 
@@ -42,7 +42,7 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 		<>
 			<ToolMessageWrapper
 				icon={UserMultipleIcon}
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -56,16 +56,16 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 					)}
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.people.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.people.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -92,7 +92,7 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 									className="flex-1"
 									onClick={() => {
 										setPeopleSearchQuery(result.searchQuery!)
-										setDialogOpen(false)
+										setDrawerOpen(false)
 										navigate({ to: "/people" })
 									}}
 								>
@@ -101,8 +101,8 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 							</div>
 						)}
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
@@ -112,7 +112,7 @@ function GetPersonDetailsResult({
 }: {
 	result: _GetPersonDetailsTool["output"]
 }) {
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 
 	if ("error" in result) {
 		return (
@@ -126,7 +126,7 @@ function GetPersonDetailsResult({
 		<>
 			<ToolMessageWrapper
 				icon={UserMultipleIcon}
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -140,16 +140,16 @@ function GetPersonDetailsResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.person.read.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.person.read.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -191,8 +191,8 @@ function GetPersonDetailsResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

@@ -3,12 +3,12 @@ import { Command as CommandPrimitive } from "cmdk"
 
 import { cn } from "#app/lib/utils"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { InputGroup, InputGroupAddon } from "#shared/ui/input-group"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { SearchIcon, Tick02Icon } from "@hugeicons/core-free-icons"
@@ -29,36 +29,33 @@ function Command({
 	)
 }
 
-function CommandDialog({
+function CommandDrawer({
 	title = "Command Palette",
 	description = "Search for a command to run...",
 	children,
 	className,
-	showCloseButton = false,
 	...props
-}: Omit<React.ComponentProps<typeof Dialog>, "children"> & {
+}: Omit<React.ComponentProps<typeof Drawer>, "children"> & {
 	title?: string
 	description?: string
 	className?: string
-	showCloseButton?: boolean
 	children: React.ReactNode
 }) {
 	return (
-		<Dialog {...props}>
-			<DialogHeader className="sr-only">
-				<DialogTitle>{title}</DialogTitle>
-				<DialogDescription>{description}</DialogDescription>
-			</DialogHeader>
-			<DialogContent
+		<Drawer {...props}>
+			<DrawerHeader className="sr-only">
+				<DrawerTitle>{title}</DrawerTitle>
+				<DrawerDescription>{description}</DrawerDescription>
+			</DrawerHeader>
+			<DrawerContent
 				className={cn(
 					"top-1/3 translate-y-0 overflow-hidden rounded-4xl! p-0",
 					className,
 				)}
-				showCloseButton={showCloseButton}
 			>
 				{children}
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
@@ -68,7 +65,7 @@ function CommandInput({
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
 	return (
 		<div data-slot="command-input-wrapper" className="p-1 pb-0">
-			<InputGroup className="bg-input/30 h-9">
+			<InputGroup className="bg-input/30 h-9 max-md:h-11">
 				<CommandPrimitive.Input
 					data-slot="command-input"
 					className={cn(
@@ -156,7 +153,7 @@ function CommandItem({
 		<CommandPrimitive.Item
 			data-slot="command-item"
 			className={cn(
-				"data-selected:bg-muted data-selected:text-foreground data-selected:*:[svg]:text-foreground group/command-item relative flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm outline-hidden select-none in-data-[slot=dialog-content]:rounded-2xl data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+				"data-selected:bg-muted data-selected:text-foreground data-selected:*:[svg]:text-foreground group/command-item relative flex min-h-11 cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm outline-hidden select-none in-data-[slot=dialog-content]:rounded-2xl data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				className,
 			)}
 			{...props}
@@ -189,7 +186,7 @@ function CommandShortcut({
 
 export {
 	Command,
-	CommandDialog,
+	CommandDrawer,
 	CommandInput,
 	CommandList,
 	CommandEmpty,

@@ -2,13 +2,13 @@ import { useState } from "react"
 import { Upload, ExclamationTriangle } from "react-bootstrap-icons"
 import { Button } from "#shared/ui/button"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import {
 	Form,
 	FormControl,
@@ -231,8 +231,8 @@ export function UploadButton({ userID }: { userID: string }) {
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerTrigger
 				render={
 					<Button variant="outline">
 						<Upload className="mr-2 h-4 w-4" />
@@ -240,15 +240,15 @@ export function UploadButton({ userID }: { userID: string }) {
 					</Button>
 				}
 			/>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="data.import.dialog.title" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="data.import.dialog.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 						<FormField
@@ -324,7 +324,7 @@ export function UploadButton({ userID }: { userID: string }) {
 						</div>
 					</form>
 				</Form>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }

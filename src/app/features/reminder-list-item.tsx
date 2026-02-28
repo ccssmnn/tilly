@@ -1,10 +1,10 @@
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -80,7 +80,7 @@ function ReminderListItem({
 	let t = useIntl()
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
-	let [dialogOpen, setDialogOpen] = useState<
+	let [dialogOpen, setDrawerOpen] = useState<
 		"actions" | "edit" | "note" | "restore" | "done" | undefined
 	>()
 	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
@@ -139,7 +139,7 @@ function ReminderListItem({
 				icon: EditIcon,
 				label: t("reminder.actions.edit"),
 				color: "warning",
-				onAction: () => setDialogOpen("edit"),
+				onAction: () => setDrawerOpen("edit"),
 			} satisfies SwipeAction,
 		},
 	}
@@ -161,7 +161,7 @@ function ReminderListItem({
 				<SwipeableListItem itemKey={reminder.$jazz.id} {...deletedSwipeActions}>
 					<RestoreReminderDropdown
 						open={dialogOpen === "restore"}
-						onOpenChange={open => setDialogOpen(open ? "restore" : undefined)}
+						onOpenChange={open => setDrawerOpen(open ? "restore" : undefined)}
 						operations={operations}
 					>
 						<ReminderItemContainer
@@ -169,7 +169,7 @@ function ReminderListItem({
 							person={person}
 							showPerson={showPerson}
 							className={dialogOpen === "restore" ? "bg-accent" : ""}
-							onClick={() => setDialogOpen("restore")}
+							onClick={() => setDrawerOpen("restore")}
 						>
 							<div className="space-y-1 select-text">
 								<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
@@ -235,7 +235,7 @@ function ReminderListItem({
 			<SwipeableListItem itemKey={reminder.$jazz.id} {...doneSwipeActions}>
 				<DoneReminderDropdown
 					open={dialogOpen === "done"}
-					onOpenChange={open => setDialogOpen(open ? "done" : undefined)}
+					onOpenChange={open => setDrawerOpen(open ? "done" : undefined)}
 					operations={operations}
 				>
 					<ReminderItemContainer
@@ -243,7 +243,7 @@ function ReminderListItem({
 						person={person}
 						showPerson={showPerson}
 						className={dialogOpen === "done" ? "bg-accent" : ""}
-						onClick={_e => setDialogOpen("done")}
+						onClick={_e => setDrawerOpen("done")}
 					>
 						<div className="space-y-1 select-text">
 							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
@@ -270,9 +270,9 @@ function ReminderListItem({
 			<SwipeableListItem itemKey={reminder.$jazz.id} {...activeSwipeActions}>
 				<ActionsDropdown
 					open={dialogOpen === "actions"}
-					onOpenChange={open => setDialogOpen(open ? "actions" : undefined)}
-					onEditClick={() => setDialogOpen("edit")}
-					onAddNoteClick={() => setDialogOpen("note")}
+					onOpenChange={open => setDrawerOpen(open ? "actions" : undefined)}
+					onEditClick={() => setDrawerOpen("edit")}
+					onAddNoteClick={() => setDrawerOpen("note")}
 					showPerson={showPerson}
 					person={person}
 					operations={operations}
@@ -282,7 +282,7 @@ function ReminderListItem({
 						person={person}
 						showPerson={showPerson}
 						className={dialogOpen ? "bg-accent" : ""}
-						onClick={() => setDialogOpen("actions")}
+						onClick={() => setDrawerOpen("actions")}
 					>
 						<div className="flex items-start gap-3 select-text">
 							<div
@@ -310,17 +310,17 @@ function ReminderListItem({
 					</ReminderItemContainer>
 				</ActionsDropdown>
 			</SwipeableListItem>
-			<EditReminderDialog
+			<EditReminderDrawer
 				open={dialogOpen === "edit"}
-				onOpenChange={open => setDialogOpen(open ? "edit" : undefined)}
+				onOpenChange={open => setDrawerOpen(open ? "edit" : undefined)}
 				reminder={reminder}
 				operations={operations}
 			/>
-			<AddNoteDialog
+			<AddNoteDrawer
 				person={person}
 				open={dialogOpen === "note"}
-				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
-				onClose={() => setDialogOpen(undefined)}
+				onOpenChange={open => setDrawerOpen(open ? "note" : undefined)}
+				onClose={() => setDrawerOpen(undefined)}
 				operations={operations}
 			/>
 		</>
@@ -343,7 +343,7 @@ function ReminderItemContainer({
 	onClick: (e: React.MouseEvent) => void
 }) {
 	let baseClassName = cn(
-		"hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
+		"md:hover:bg-muted active:bg-accent flex w-full cursor-pointer items-start gap-3 rounded-md py-4 text-left",
 		className,
 	)
 
@@ -496,7 +496,7 @@ function ActionsDropdown({
 	)
 }
 
-function EditReminderDialog({
+function EditReminderDrawer({
 	open,
 	onOpenChange,
 	reminder,
@@ -515,16 +515,16 @@ function EditReminderDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="reminder.edit.title" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="reminder.edit.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<ReminderForm
 					defaultValues={{
 						text: reminder.text,
@@ -534,12 +534,12 @@ function EditReminderDialog({
 					onSubmit={handleEdit}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
-function AddNoteDialog({
+function AddNoteDrawer({
 	person,
 	open,
 	onOpenChange,
@@ -560,28 +560,28 @@ function AddNoteDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T
 							k="reminder.addNote.title"
 							params={{ personName: person.name }}
 						/>
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T
 							k="reminder.addNote.description"
 							params={{ personName: person.name }}
 						/>
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<NoteForm
 					onSubmit={handleAddNote}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

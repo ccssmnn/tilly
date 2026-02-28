@@ -1,13 +1,13 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import { ReminderForm } from "#app/features/reminder-form"
 import { PersonSelector } from "#app/features/person-selector"
 import { createReminder } from "#shared/tools/reminder-create"
@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from "motion/react"
 export { NewReminder }
 
 function NewReminder(props: {
-	render: React.ComponentProps<typeof DialogTrigger>["render"]
+	render: React.ComponentProps<typeof DrawerTrigger>["render"]
 	onSuccess?: (reminderId: string) => void
 	personId?: string
 }) {
@@ -35,7 +35,7 @@ function NewReminder(props: {
 	})
 	let t = useIntl()
 	let [selectedPersonId, setSelectedPersonId] = useState(props.personId ?? "")
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let [direction, setDirection] = useState<"left" | "right">()
 
 	let selectedPersonLabel =
@@ -51,11 +51,11 @@ function NewReminder(props: {
 		setSelectedPersonId("")
 	}
 
-	function handleDialogOpenChange(open: boolean) {
+	function handleDrawerOpenChange(open: boolean) {
 		if (!open) {
 			setSelectedPersonId(props.personId ?? "")
 		}
-		setDialogOpen(open)
+		setDrawerOpen(open)
 	}
 
 	async function handleSave(values: {
@@ -86,14 +86,14 @@ function NewReminder(props: {
 
 		props.onSuccess?.(result.data.reminderID)
 		toast.success(t("reminders.created.success"))
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		setSelectedPersonId(props.personId ?? "")
 	}
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-			<DialogTrigger render={props.render} />
-			<DialogContent>
+		<Drawer open={dialogOpen} onOpenChange={handleDrawerOpenChange}>
+			<DrawerTrigger render={props.render} />
+			<DrawerContent>
 				<div className="relative overflow-hidden">
 					<AnimatePresence mode="wait" custom={direction}>
 						{!selectedPersonId ? (
@@ -116,14 +116,14 @@ function NewReminder(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DialogHeader>
-									<DialogTitle>
+								<DrawerHeader>
+									<DrawerTitle>
 										<T k="reminder.select.title" />
-									</DialogTitle>
-									<DialogDescription>
+									</DrawerTitle>
+									<DrawerDescription>
 										<T k="reminder.select.description" />
-									</DialogDescription>
-								</DialogHeader>
+									</DrawerDescription>
+								</DrawerHeader>
 							</motion.div>
 						) : (
 							<motion.div
@@ -145,17 +145,17 @@ function NewReminder(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DialogHeader>
-									<DialogTitle>
+								<DrawerHeader>
+									<DrawerTitle>
 										<T k="reminder.add.title" />
-									</DialogTitle>
-									<DialogDescription>
+									</DrawerTitle>
+									<DrawerDescription>
 										<T
 											k="reminder.add.description"
 											params={{ person: selectedPersonLabel }}
 										/>
-									</DialogDescription>
-								</DialogHeader>
+									</DrawerDescription>
+								</DrawerHeader>
 							</motion.div>
 						)}
 					</AnimatePresence>
@@ -192,7 +192,7 @@ function NewReminder(props: {
 									<div className="flex justify-end gap-2">
 										<Button
 											variant="outline"
-											onClick={() => handleDialogOpenChange(false)}
+											onClick={() => handleDrawerOpenChange(false)}
 										>
 											<T k="common.cancel" />
 										</Button>
@@ -231,7 +231,7 @@ function NewReminder(props: {
 						)}
 					</AnimatePresence>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }

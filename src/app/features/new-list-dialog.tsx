@@ -1,11 +1,11 @@
 import { useState } from "react"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
@@ -13,9 +13,9 @@ import { ListForm } from "#app/features/list-form"
 import { T } from "#shared/intl/setup"
 import { addHashtagToSummary } from "#app/features/list-utilities"
 
-export { NewListDialog }
+export { NewListDrawer as NewListDialog }
 
-function NewListDialog({
+function NewListDrawer({
 	open,
 	onOpenChange,
 	people,
@@ -62,16 +62,16 @@ function NewListDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="person.newList.title" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="person.newList.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<ListForm
 					defaultListName=""
 					defaultSelectedPeople={defaultSelectedPeople || new Set()}
@@ -79,7 +79,7 @@ function NewListDialog({
 					isLoading={isLoading}
 					mode="create"
 				/>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }

@@ -1,10 +1,10 @@
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -76,7 +76,7 @@ function NoteListItem(props: {
 }) {
 	let me = useAccount(UserAccount)
 	let t = useIntl()
-	let [openDialog, setOpenDialog] = useState<"actions" | "restore" | "edit">()
+	let [openDrawer, setOpenDrawer] = useState<"actions" | "restore" | "edit">()
 	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
 		useState(false)
 	let { isExpanded, toggleExpanded } = useExpanded(props.note.$jazz.id)
@@ -154,7 +154,7 @@ function NoteListItem(props: {
 				icon: PencilSquare,
 				label: t("note.actions.edit"),
 				color: "warning",
-				onAction: () => setOpenDialog("edit"),
+				onAction: () => setOpenDrawer("edit"),
 			} satisfies SwipeAction,
 		},
 	}
@@ -167,8 +167,8 @@ function NoteListItem(props: {
 					{...deletedSwipeActions}
 				>
 					<RestoreNoteDropdown
-						open={openDialog === "restore"}
-						onOpenChange={open => setOpenDialog(open ? "restore" : undefined)}
+						open={openDrawer === "restore"}
+						onOpenChange={open => setOpenDrawer(open ? "restore" : undefined)}
 						operations={operations}
 					>
 						<NoteItemContainer
@@ -176,8 +176,8 @@ function NoteListItem(props: {
 							person={props.person}
 							showPerson={showPerson}
 							hasOverflow={hasOverflow}
-							className={openDialog ? "bg-accent" : ""}
-							onClick={() => setOpenDialog("restore")}
+							className={openDrawer ? "bg-accent" : ""}
+							onClick={() => setOpenDrawer("restore")}
 						>
 							<div className="flex items-center gap-3 select-text">
 								<span className="text-destructive">
@@ -240,9 +240,9 @@ function NoteListItem(props: {
 		<>
 			<SwipeableListItem itemKey={props.note.$jazz.id} {...activeSwipeActions}>
 				<ActionsDropdown
-					open={openDialog === "actions"}
-					onOpenChange={open => setOpenDialog(open ? "actions" : undefined)}
-					onEditClick={() => setOpenDialog("edit")}
+					open={openDrawer === "actions"}
+					onOpenChange={open => setOpenDrawer(open ? "actions" : undefined)}
+					onEditClick={() => setOpenDrawer("edit")}
 					showPerson={showPerson}
 					person={props.person}
 					operations={operations}
@@ -252,8 +252,8 @@ function NoteListItem(props: {
 						person={props.person}
 						showPerson={showPerson}
 						hasOverflow={hasOverflow}
-						className={openDialog ? "bg-accent" : ""}
-						onClick={() => setOpenDialog("actions")}
+						className={openDrawer ? "bg-accent" : ""}
+						onClick={() => setOpenDrawer("actions")}
 					>
 						<div className="flex items-center gap-3 select-text">
 							{showPerson && (
@@ -305,11 +305,11 @@ function NoteListItem(props: {
 				open={carouselOpen}
 				onClose={() => setCarouselOpen(false)}
 			/>
-			<EditDialog
+			<EditDrawer
 				note={props.note}
 				person={props.person}
-				open={openDialog === "edit"}
-				onOpenChange={() => setOpenDialog(undefined)}
+				open={openDrawer === "edit"}
+				onOpenChange={() => setOpenDrawer(undefined)}
 				operations={operations}
 			/>
 		</>
@@ -339,7 +339,7 @@ function NoteItemContainer({
 	)
 
 	return (
-		<div className={cn(className, "hover:bg-muted rounded-md")}>
+		<div className={cn(className, "md:hover:bg-muted rounded-md")}>
 			<DropdownMenuTrigger
 				id={`note-${note.$jazz.id}`}
 				className={baseClassName}
@@ -387,8 +387,9 @@ function ExpandCollapseButton({
 	return (
 		<div className={cn("pb-4 text-right", showPerson && "ml-[76px]")}>
 			<button
+				type="button"
 				onClick={toggleExpanded}
-				className="text-muted-foreground -m-1 p-1 text-xs font-bold hover:underline"
+				className="text-muted-foreground -m-1 min-h-11 min-w-11 p-1 text-xs font-bold md:hover:underline"
 			>
 				{isExpanded ? <T k="note.showLess" /> : <T k="note.showMore" />}
 			</button>
@@ -533,7 +534,7 @@ function ActionsDropdown({
 	)
 }
 
-function EditDialog(props: {
+function EditDrawer(props: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	note: co.loaded<typeof Note>
@@ -553,16 +554,16 @@ function EditDialog(props: {
 	}
 
 	return (
-		<Dialog open={props.open} onOpenChange={props.onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={props.open} onOpenChange={props.onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="note.actions.edit" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="note.actions.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<NoteForm
 					note={props.note}
 					defaultValues={{
@@ -575,8 +576,8 @@ function EditDialog(props: {
 					onSubmit={handleSubmit}
 					onCancel={() => props.onOpenChange(false)}
 				/>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
@@ -1051,9 +1052,9 @@ function ImageCarousel({
 	if (!currentImage) return null
 
 	return (
-		<Dialog open={open} onOpenChange={onClose}>
-			<DialogContent className="h-[90dvh] md:w-[90dvw] md:max-w-none">
-				<DialogTitle>Image viewer</DialogTitle>
+		<Drawer open={open} onOpenChange={onClose}>
+			<DrawerContent className="h-[90dvh] md:w-[90dvw] md:max-w-none">
+				<DrawerTitle>Image viewer</DrawerTitle>
 				<div className="relative h-full w-full">
 					<AnimatePresence mode="wait" custom={direction}>
 						<motion.div
@@ -1107,15 +1108,21 @@ function ImageCarousel({
 							<div className="flex gap-2">
 								{images.map((_, index) => (
 									<button
+										type="button"
 										key={index}
 										onClick={() => handleDotClick(index)}
-										className={cn(
-											"size-2 rounded-full transition-all",
-											currentIndex === index
-												? "bg-foreground w-6"
-												: "bg-foreground/50 hover:bg-foreground/75",
-										)}
-									/>
+										aria-label={`Go to image ${index + 1}`}
+										className="relative size-11 rounded-full"
+									>
+										<span
+											className={cn(
+												"absolute top-1/2 left-1/2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
+												currentIndex === index
+													? "bg-foreground w-6"
+													: "bg-foreground/50 md:hover:bg-foreground/75 w-2",
+											)}
+										/>
+									</button>
 								))}
 							</div>
 							<Button onClick={handleNext} variant="secondary">
@@ -1125,8 +1132,8 @@ function ImageCarousel({
 						</div>
 					)}
 				</div>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

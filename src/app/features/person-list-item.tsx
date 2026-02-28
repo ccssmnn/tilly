@@ -9,13 +9,13 @@ import { Button } from "#shared/ui/button"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { isTextSelectionOngoing } from "#app/lib/utils"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -69,7 +69,7 @@ function PersonListItem({
 	let me = useAccount(UserAccount)
 	let t = useIntl()
 	let hasHover = useHasHover()
-	let [dialogOpen, setDialogOpen] = useState<"note" | "reminder">()
+	let [dialogOpen, setDrawerOpen] = useState<"note" | "reminder">()
 	let [confirmPermanentDeleteOpen, setConfirmPermanentDeleteOpen] =
 		useState(false)
 	let operations = usePersonItemOperations({ person, me })
@@ -103,13 +103,13 @@ function PersonListItem({
 				icon: FileEarmarkText,
 				label: t("person.actions.addNote"),
 				color: "primary",
-				onAction: () => setDialogOpen("note"),
+				onAction: () => setDrawerOpen("note"),
 			} satisfies SwipeAction,
 			secondary: {
 				icon: Bell,
 				label: t("person.actions.addReminder"),
 				color: "warning",
-				onAction: () => setDialogOpen("reminder"),
+				onAction: () => setDrawerOpen("reminder"),
 			} satisfies SwipeAction,
 		},
 	}
@@ -118,7 +118,7 @@ function PersonListItem({
 		<Link
 			to="/people/$personID"
 			params={{ personID: person.$jazz.id }}
-			className="items-top hover:bg-muted active:bg-accent flex flex-1 gap-3 rounded-lg py-4 transition-colors duration-150"
+			className="items-top md:hover:bg-muted active:bg-accent flex flex-1 gap-3 rounded-lg py-4 transition-colors duration-150"
 			draggable={false}
 			onDragStart={e => e.preventDefault()}
 			onClick={e => {
@@ -136,14 +136,14 @@ function PersonListItem({
 
 	let dialogs = (
 		<>
-			<AddNoteDialog
+			<AddNoteDrawer
 				open={dialogOpen === "note"}
-				onOpenChange={open => setDialogOpen(open ? "note" : undefined)}
+				onOpenChange={open => setDrawerOpen(open ? "note" : undefined)}
 				operations={operations}
 			/>
-			<AddReminderDialog
+			<AddReminderDrawer
 				open={dialogOpen === "reminder"}
-				onOpenChange={open => setDialogOpen(open ? "reminder" : undefined)}
+				onOpenChange={open => setDrawerOpen(open ? "reminder" : undefined)}
 				operations={operations}
 			/>
 		</>
@@ -153,8 +153,8 @@ function PersonListItem({
 		return (
 			<>
 				<SwipeableListItem itemKey={person.$jazz.id} {...deletedSwipeActions}>
-					<RestorePersonDialog person={person}>
-						<div className="items-top hover:bg-muted active:bg-accent flex flex-1 cursor-pointer gap-3 rounded-lg py-4 transition-colors duration-150">
+					<RestorePersonDrawer person={person}>
+						<div className="items-top md:hover:bg-muted active:bg-accent flex flex-1 cursor-pointer gap-3 rounded-lg py-4 transition-colors duration-150">
 							<PersonItemContainer
 								person={person}
 								className="grayscale"
@@ -168,7 +168,7 @@ function PersonListItem({
 								<PersonItemSummary person={person} searchQuery={searchQuery} />
 							</PersonItemContainer>
 						</div>
-					</RestorePersonDialog>
+					</RestorePersonDrawer>
 				</SwipeableListItem>
 
 				<AlertDialog
@@ -216,8 +216,8 @@ function PersonListItem({
 				<HoverCardContent side="bottom" align="center" className="w-auto p-2">
 					<PersonHoverActions
 						operations={operations}
-						onAddNote={() => setDialogOpen("note")}
-						onAddReminder={() => setDialogOpen("reminder")}
+						onAddNote={() => setDrawerOpen("note")}
+						onAddReminder={() => setDrawerOpen("reminder")}
 					/>
 				</HoverCardContent>
 			</HoverCard>
@@ -377,7 +377,7 @@ function PersonHoverActions({
 			<Button
 				variant="ghost"
 				size="sm"
-				className="text-destructive hover:text-destructive justify-start gap-2"
+				className="text-destructive md:hover:text-destructive justify-start gap-2"
 				onClick={e => {
 					e.preventDefault()
 					e.stopPropagation()
@@ -391,7 +391,7 @@ function PersonHoverActions({
 	)
 }
 
-function RestorePersonDialog({
+function RestorePersonDrawer({
 	person,
 	children,
 }: {
@@ -449,14 +449,14 @@ function RestorePersonDialog({
 
 	return (
 		<>
-			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogTrigger>{children}</DialogTrigger>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={open} onOpenChange={setOpen}>
+				<DrawerTrigger>{children}</DrawerTrigger>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="person.restore.title" params={{ name: person.name }} />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T
 								k="person.restore.deletionInfo"
 								params={{
@@ -493,8 +493,8 @@ function RestorePersonDialog({
 								</>
 							)}
 							<T k="person.restore.question" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-3">
 						<Button className="h-12 w-full" onClick={handleRestore}>
 							<T k="person.restore.title" params={{ name: person.name }} />
@@ -507,8 +507,8 @@ function RestorePersonDialog({
 							<T k="reminder.restore.permanentDelete" />
 						</Button>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
@@ -534,7 +534,7 @@ function RestorePersonDialog({
 	)
 }
 
-function AddNoteDialog({
+function AddNoteDrawer({
 	open,
 	onOpenChange,
 	operations,
@@ -551,26 +551,26 @@ function AddNoteDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="addNote.title" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="addNote.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<NoteForm
 					onSubmit={handleAddNote}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
-function AddReminderDialog({
+function AddReminderDrawer({
 	open,
 	onOpenChange,
 	operations,
@@ -587,22 +587,22 @@ function AddReminderDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+		<Drawer open={open} onOpenChange={onOpenChange}>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="addReminder.title" />
-					</DialogTitle>
-					<DialogDescription>
+					</DrawerTitle>
+					<DrawerDescription>
 						<T k="addReminder.description" />
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<ReminderForm
 					onSubmit={handleAddReminder}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

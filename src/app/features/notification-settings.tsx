@@ -18,14 +18,14 @@ import {
 	SelectValue,
 } from "#shared/ui/select"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -144,7 +144,7 @@ export function NotificationSettings({
 						</div>
 
 						{!isCurrentDeviceAdded && canAddDevice && (
-							<AddDeviceDialog me={me} disabled={!isAuthenticated} />
+							<AddDeviceDrawer me={me} disabled={!isAuthenticated} />
 						)}
 					</div>
 
@@ -196,7 +196,7 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 	let currentTimezone =
 		notifications?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
 	let usingDefaultTimezone = !notifications?.timezone
-	let [isTimezoneDialogOpen, setIsTimezoneDialogOpen] = useState(false)
+	let [isTimezoneDrawerOpen, setIsTimezoneDrawerOpen] = useState(false)
 
 	let timezoneForm = useForm({
 		resolver: zodResolver(timezoneFormSchema),
@@ -210,12 +210,12 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 		notifications.$jazz.set("timezone", timezone)
 	}
 
-	function handleOpenTimezoneDialog() {
-		setIsTimezoneDialogOpen(true)
+	function handleOpenTimezoneDrawer() {
+		setIsTimezoneDrawerOpen(true)
 	}
 
-	function handleCloseTimezoneDialog() {
-		setIsTimezoneDialogOpen(false)
+	function handleCloseTimezoneDrawer() {
+		setIsTimezoneDrawerOpen(false)
 	}
 
 	function handleDetectTimezone() {
@@ -226,12 +226,12 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 
 	function handleTimezoneSubmit(data: z.infer<typeof timezoneFormSchema>) {
 		updateTimezone(data.timezone)
-		setIsTimezoneDialogOpen(false)
+		setIsTimezoneDrawerOpen(false)
 	}
 
 	function handleTimezoneCancel() {
 		timezoneForm.reset({ timezone: currentTimezone })
-		setIsTimezoneDialogOpen(false)
+		setIsTimezoneDrawerOpen(false)
 	}
 
 	return (
@@ -242,7 +242,7 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 				</p>
 				<div className="flex items-center gap-2">
 					<DisplayField value={currentTimezone} className="flex-1" />
-					<Button variant="outline" onClick={handleOpenTimezoneDialog}>
+					<Button variant="outline" onClick={handleOpenTimezoneDrawer}>
 						<T k="notifications.timezone.change" />
 					</Button>
 				</div>
@@ -253,19 +253,19 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 				)}
 			</div>
 
-			<Dialog
-				open={isTimezoneDialogOpen}
-				onOpenChange={handleCloseTimezoneDialog}
+			<Drawer
+				open={isTimezoneDrawerOpen}
+				onOpenChange={handleCloseTimezoneDrawer}
 			>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="notifications.timezone.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="notifications.timezone.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<Form {...timezoneForm}>
 						<form
 							onSubmit={timezoneForm.handleSubmit(handleTimezoneSubmit)}
@@ -327,8 +327,8 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 							</div>
 						</form>
 					</Form>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
@@ -341,7 +341,7 @@ function NotificationTimeSection({
 	let notifications = me?.root.notificationSettings
 	let currentNotificationTime = notifications?.notificationTime || "12:00"
 	let usingDefaultTime = !notifications?.notificationTime
-	let [isNotificationTimeDialogOpen, setIsNotificationTimeDialogOpen] =
+	let [isNotificationTimeDrawerOpen, setIsNotificationTimeDrawerOpen] =
 		useState(false)
 
 	let notificationTimeForm = useForm({
@@ -356,24 +356,24 @@ function NotificationTimeSection({
 		notifications.$jazz.set("notificationTime", time)
 	}
 
-	function handleOpenNotificationTimeDialog() {
-		setIsNotificationTimeDialogOpen(true)
+	function handleOpenNotificationTimeDrawer() {
+		setIsNotificationTimeDrawerOpen(true)
 	}
 
-	function handleCloseNotificationTimeDialog() {
-		setIsNotificationTimeDialogOpen(false)
+	function handleCloseNotificationTimeDrawer() {
+		setIsNotificationTimeDrawerOpen(false)
 	}
 
 	function handleNotificationTimeSubmit(
 		data: z.infer<typeof notificationTimeFormSchema>,
 	) {
 		updateNotificationTime(data.notificationTime)
-		setIsNotificationTimeDialogOpen(false)
+		setIsNotificationTimeDrawerOpen(false)
 	}
 
 	function handleNotificationTimeCancel() {
 		notificationTimeForm.reset({ notificationTime: currentNotificationTime })
-		setIsNotificationTimeDialogOpen(false)
+		setIsNotificationTimeDrawerOpen(false)
 	}
 
 	let locale = useLocale()
@@ -393,7 +393,7 @@ function NotificationTimeSection({
 						})}
 						className="flex-1"
 					/>
-					<Button variant="outline" onClick={handleOpenNotificationTimeDialog}>
+					<Button variant="outline" onClick={handleOpenNotificationTimeDrawer}>
 						<T k="notifications.time.change" />
 					</Button>
 				</div>
@@ -406,19 +406,19 @@ function NotificationTimeSection({
 				</p>
 			</div>
 
-			<Dialog
-				open={isNotificationTimeDialogOpen}
-				onOpenChange={handleCloseNotificationTimeDialog}
+			<Drawer
+				open={isNotificationTimeDrawerOpen}
+				onOpenChange={handleCloseNotificationTimeDrawer}
 			>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="notifications.time.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="notifications.time.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<Form {...notificationTimeForm}>
 						<form
 							onSubmit={notificationTimeForm.handleSubmit(
@@ -493,8 +493,8 @@ function NotificationTimeSection({
 							</div>
 						</form>
 					</Form>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
@@ -591,14 +591,14 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 	let [currentEndpoint, refreshEndpoint] = useCurrentEndpoint()
 	let isCurrentDevice = device.endpoint === currentEndpoint
 	let [dropdownOpen, setDropdownOpen] = useState(false)
-	let [editDialogOpen, setEditDialogOpen] = useState(false)
+	let [editDrawerOpen, setEditDrawerOpen] = useState(false)
 	let [editName, setEditName] = useState(device.deviceName)
 
 	return (
 		<div
 			className={cn(
 				"flex items-start justify-between py-4 transition-all",
-				(dropdownOpen || editDialogOpen) && "bg-accent -mx-1 rounded-md px-1",
+				(dropdownOpen || editDrawerOpen) && "bg-accent -mx-1 rounded-md px-1",
 			)}
 		>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal>
@@ -664,7 +664,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 							<BellFill />
 						</DropdownMenuItem>
 					)}
-					<DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+					<DropdownMenuItem onClick={() => setEditDrawerOpen(true)}>
 						<T k="notifications.devices.editName" />
 						<PencilSquare />
 					</DropdownMenuItem>
@@ -686,16 +686,16 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
-							<T k="notifications.devices.editDialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="notifications.devices.editDialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+			<Drawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
+							<T k="notifications.devices.editDrawer.title" />
+						</DrawerTitle>
+						<DrawerDescription>
+							<T k="notifications.devices.editDrawer.description" />
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<Input
 							value={editName}
@@ -707,23 +707,23 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 										device.endpoint,
 										editName,
 										notifications,
-										() => setEditDialogOpen(false),
+										() => setEditDrawerOpen(false),
 										t,
 									)
 								}
 								if (e.key === "Escape") {
 									setEditName(device.deviceName)
-									setEditDialogOpen(false)
+									setEditDrawerOpen(false)
 								}
 							}}
 						/>
 					</div>
-					<DialogFooter>
+					<DrawerFooter>
 						<Button
 							variant="outline"
 							onClick={() => {
 								setEditName(device.deviceName)
-								setEditDialogOpen(false)
+								setEditDrawerOpen(false)
 							}}
 						>
 							<T k="common.cancel" />
@@ -734,7 +734,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 									device.endpoint,
 									editName,
 									notifications,
-									() => setEditDialogOpen(false),
+									() => setEditDrawerOpen(false),
 									t,
 								)
 							}
@@ -742,9 +742,9 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 						>
 							<T k="common.save" />
 						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+					</DrawerFooter>
+				</DrawerContent>
+			</Drawer>
 		</div>
 	)
 }
@@ -883,12 +883,12 @@ function updatePushDevice(
 	)
 }
 
-interface AddDeviceDialogProps {
+interface AddDeviceDrawerProps {
 	me: co.loaded<typeof UserAccount, Query>
 	disabled?: boolean
 }
 
-function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
+function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 	let t = useIntl()
 	let notifications = me?.root.notificationSettings
 	let [, refreshEndpoint] = useCurrentEndpoint()
@@ -1008,27 +1008,27 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 	let isPermissionDenied = permission === "denied"
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerTrigger
 				render={
 					<Button variant="outline" disabled={disabled}>
 						<T k="notifications.devices.addButton" />
 					</Button>
 				}
 			/>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
-						<T k="notifications.devices.addDialog.title" />
-					</DialogTitle>
-					<DialogDescription>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
+						<T k="notifications.devices.addDrawer.title" />
+					</DrawerTitle>
+					<DrawerDescription>
 						{isPermissionDenied ? (
-							<T k="notifications.devices.addDialog.description.blocked" />
+							<T k="notifications.devices.addDrawer.description.blocked" />
 						) : (
-							<T k="notifications.devices.addDialog.description.enabled" />
+							<T k="notifications.devices.addDrawer.description.enabled" />
 						)}
-					</DialogDescription>
-				</DialogHeader>
+					</DrawerDescription>
+				</DrawerHeader>
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleAddDevice)}
@@ -1053,7 +1053,7 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 								</FormItem>
 							)}
 						/>
-						<DialogFooter>
+						<DrawerFooter>
 							<Button
 								type="button"
 								variant="outline"
@@ -1072,11 +1072,11 @@ function AddDeviceDialog({ me, disabled }: AddDeviceDialogProps) {
 									<T k="notifications.devices.addButton" />
 								)}
 							</Button>
-						</DialogFooter>
+						</DrawerFooter>
 					</form>
 				</Form>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

@@ -6,13 +6,13 @@ import { toast } from "sonner"
 
 import { Button } from "#shared/ui/button"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "#shared/ui/drawer"
 import { UserAccount } from "#shared/schema/user"
 import { cn } from "#app/lib/utils"
 import { type FileData, type FilePerson } from "#app/features/data-file-schema"
@@ -154,8 +154,8 @@ export function ExportButton(props: {
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerTrigger
 				render={
 					<Button variant="outline">
 						<Download className="mr-2 h-4 w-4" />
@@ -163,16 +163,16 @@ export function ExportButton(props: {
 					</Button>
 				}
 			/>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="data.export.dialog.title" />
-					</DialogTitle>
-				</DialogHeader>
+					</DrawerTitle>
+				</DrawerHeader>
 				<div className="space-y-4">
-					<DialogDescription>
+					<DrawerDescription>
 						<T k="data.export.dialog.description" />
-					</DialogDescription>
+					</DrawerDescription>
 					<div className="flex space-x-2">
 						<Button
 							type="button"
@@ -194,8 +194,8 @@ export function ExportButton(props: {
 						</Button>
 					</div>
 				</div>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 

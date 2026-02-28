@@ -4,12 +4,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -35,7 +35,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
@@ -50,7 +50,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			await updateReminder(
 				{ deletedAt: new Date() },
@@ -115,7 +115,7 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 		<>
 			<ToolMessageWrapper
 				icon={Notification01Icon}
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -127,16 +127,16 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.reminder.created.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.reminder.created.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -178,8 +178,8 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

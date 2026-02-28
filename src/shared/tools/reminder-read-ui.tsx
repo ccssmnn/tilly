@@ -1,11 +1,11 @@
 import { useState } from "react"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import { Notification01Icon } from "@hugeicons/core-free-icons"
@@ -22,7 +22,7 @@ function ListRemindersResult({
 }: {
 	result: InferToolOutput<ReturnType<typeof createListRemindersTool>>
 }) {
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
 	let { setRemindersSearchQuery } = useAppStore()
 	let t = useIntl()
@@ -42,7 +42,7 @@ function ListRemindersResult({
 		if (searchQuery) {
 			setRemindersSearchQuery(searchQuery)
 		}
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		navigate({ to: "/reminders" })
 	}
 
@@ -50,7 +50,7 @@ function ListRemindersResult({
 		<>
 			<ToolMessageWrapper
 				icon={Notification01Icon}
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -60,16 +60,16 @@ function ListRemindersResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.reminder.list.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.reminder.list.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div className="space-y-2">
 							{reminders.length === 0 ? (
@@ -119,7 +119,7 @@ function ListRemindersResult({
 							<Button
 								variant="outline"
 								className="flex-1"
-								onClick={() => setDialogOpen(false)}
+								onClick={() => setDrawerOpen(false)}
 							>
 								<T k="common.cancel" />
 							</Button>
@@ -128,8 +128,8 @@ function ListRemindersResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

@@ -160,15 +160,21 @@ function TourComponent() {
 					<div className="flex gap-2">
 						{steps.map((_, index) => (
 							<button
+								type="button"
 								key={index}
 								onClick={() => handleDotClick(index)}
-								className={cn(
-									"size-2 rounded-full transition-all",
-									currentStep === index
-										? "bg-foreground w-6"
-										: "bg-foreground/50 hover:bg-foreground/75",
-								)}
-							/>
+								aria-label={`Go to step ${index + 1}`}
+								className="relative size-11 rounded-full"
+							>
+								<span
+									className={cn(
+										"absolute top-1/2 left-1/2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
+										currentStep === index
+											? "bg-foreground w-6"
+											: "bg-foreground/50 md:hover:bg-foreground/75 w-2",
+									)}
+								/>
+							</button>
 						))}
 					</div>
 					<div className="flex w-32 justify-end">

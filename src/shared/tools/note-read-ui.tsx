@@ -1,11 +1,11 @@
 import { useState } from "react"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import { File02Icon } from "@hugeicons/core-free-icons"
@@ -22,7 +22,7 @@ function ListNotesResult({
 }: {
 	result: InferToolOutput<ReturnType<typeof createListNotesTool>>
 }) {
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
 	let { setNotesSearchQuery } = useAppStore()
 	let t = useIntl()
@@ -56,7 +56,7 @@ function ListNotesResult({
 		: { count: countToShow }
 
 	function handleViewNotes() {
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		navigate({ to: "/notes" })
 	}
 
@@ -64,7 +64,7 @@ function ListNotesResult({
 		if (searchQuery) {
 			setNotesSearchQuery(searchQuery)
 		}
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		navigate({ to: "/notes" })
 	}
 
@@ -72,23 +72,23 @@ function ListNotesResult({
 		<>
 			<ToolMessageWrapper
 				icon={File02Icon}
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
 					<T k={messageKey} params={messageParams} />
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.note.list.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.note.list.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div className="space-y-1">
 							<h4 className="text-sm font-medium">
@@ -153,7 +153,7 @@ function ListNotesResult({
 							<Button
 								variant="outline"
 								className="flex-1"
-								onClick={() => setDialogOpen(false)}
+								onClick={() => setDrawerOpen(false)}
 							>
 								<T k="common.cancel" />
 							</Button>
@@ -168,8 +168,8 @@ function ListNotesResult({
 							)}
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

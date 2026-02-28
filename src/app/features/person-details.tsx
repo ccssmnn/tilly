@@ -3,16 +3,10 @@ import { Group, co } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Button } from "#shared/ui/button"
 import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogDescription,
-	DialogTitle,
-} from "#shared/ui/dialog"
-import {
 	Drawer,
 	DrawerClose,
 	DrawerContent,
+	DrawerDescription,
 	DrawerFooter,
 	DrawerHeader,
 	DrawerTitle,
@@ -224,16 +218,16 @@ function ManageListsDialog({
 
 	return (
 		<>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={open} onOpenChange={onOpenChange}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="person.manageLists.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							{t("person.manageLists.description", { name: personName })}
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						{existingLists.length > 0 && (
 							<ul className="space-y-2">
@@ -282,8 +276,8 @@ function ManageListsDialog({
 							<T k="person.manageLists.createList" />
 						</Button>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 			<NewListDialog
 				open={isNewListDialogOpen}
 				onOpenChange={setIsNewListDialogOpen}

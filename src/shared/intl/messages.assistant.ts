@@ -10,6 +10,9 @@ const baseAssistantMessages = messages({
 	"assistant.subscribe.description":
 		"Tilly Agent can turn your thoughts into notes and reminders. It's like talking to your journal! Try free for 30 days.",
 	"assistant.subscribe.settings": "Start Free Trial",
+	"assistant.signedOut.title": "Sign in to use Tilly AI",
+	"assistant.signedOut.description":
+		"Tilly AI needs an account to access your contacts, notes, and reminders.",
 	"assistant.subscribe.currentPlan": "Current plan: {$plan}",
 	"assistant.subscribe.currentPlan.unknown": "Unknown",
 	"assistant.subscribe.trialStatus": "Free trial active",
@@ -248,6 +251,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.subscribe.description":
 		"Der Tilly Agent verwandelt lose Gedanken in Notizen und Erinnerungen. Als würdest du mit deinem Journal Sprechen. 30 Tage kostenlos testen.",
 	"assistant.subscribe.settings": "Kostenlos testen",
+	"assistant.signedOut.title": "Melde dich an, um Tilly KI zu nutzen",
+	"assistant.signedOut.description":
+		"Die Tilly KI benötigt ein Konto, um auf Kontakte, Notizen und Erinnerungen zuzugreifen.",
 	"assistant.subscribe.currentPlan": "Aktueller Tarif: {$plan}",
 	"assistant.subscribe.currentPlan.unknown": "Unbekannt",
 	"assistant.subscribe.trialStatus": "Kostenlose Testphase aktiv",

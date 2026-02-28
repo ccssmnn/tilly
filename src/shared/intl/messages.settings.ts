@@ -245,8 +245,8 @@ const baseSettingsMessages = messages({
 	"notifications.devices.table.status": "Status",
 	"notifications.devices.remove": "Remove",
 	"notifications.devices.editName": "Edit name",
-	"notifications.devices.editDialog.title": "Edit Device Name",
-	"notifications.devices.editDialog.description":
+	"notifications.devices.editDrawer.title": "Edit Device Name",
+	"notifications.devices.editDrawer.description":
 		"Change the display name for this device.",
 	"notifications.devices.remove.confirm.title": "Remove Device",
 	"notifications.devices.remove.confirm.description":
@@ -307,10 +307,10 @@ const baseSettingsMessages = messages({
 	"notifications.lastDelivery.description":
 		"When reminders were last checked and, if needed, delivered. Reset this to force another check on the next hourly run.",
 	"notifications.devices.addButton": "Add This Device",
-	"notifications.devices.addDialog.title": "Add This Device",
-	"notifications.devices.addDialog.description.enabled":
+	"notifications.devices.addDrawer.title": "Add This Device",
+	"notifications.devices.addDrawer.description.enabled":
 		"Enable push notifications for this device to receive reminders.",
-	"notifications.devices.addDialog.description.blocked":
+	"notifications.devices.addDrawer.description.blocked":
 		"Push notifications are blocked. Please enable them in your browser settings.",
 	"notifications.devices.nameLabel": "Device Name",
 	"notifications.devices.name.required": "Device name is required",
@@ -609,8 +609,8 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.devices.table.status": "Status",
 	"notifications.devices.remove": "Entfernen",
 	"notifications.devices.editName": "Namen bearbeiten",
-	"notifications.devices.editDialog.title": "Gerätenamen bearbeiten",
-	"notifications.devices.editDialog.description":
+	"notifications.devices.editDrawer.title": "Gerätenamen bearbeiten",
+	"notifications.devices.editDrawer.description":
 		"Ändere den Anzeigenamen für dieses Gerät.",
 	"notifications.devices.remove.confirm.title": "Gerät entfernen",
 	"notifications.devices.remove.confirm.description":
@@ -674,10 +674,10 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.lastDelivery.description":
 		"Wann Erinnerungen zuletzt geprüft und bei Bedarf zugestellt wurden. Setze dies zurück, um beim nächsten stündlichen Durchlauf eine erneute Prüfung zu erzwingen.",
 	"notifications.devices.addButton": "Dieses Gerät hinzufügen",
-	"notifications.devices.addDialog.title": "Dieses Gerät hinzufügen",
-	"notifications.devices.addDialog.description.enabled":
+	"notifications.devices.addDrawer.title": "Dieses Gerät hinzufügen",
+	"notifications.devices.addDrawer.description.enabled":
 		"Aktiviere Push-Benachrichtigungen für dieses Gerät, um Erinnerungen zu erhalten.",
-	"notifications.devices.addDialog.description.blocked":
+	"notifications.devices.addDrawer.description.blocked":
 		"Push-Benachrichtigungen sind blockiert. Bitte aktiviere sie in deinen Browser-Einstellungen.",
 	"notifications.devices.nameLabel": "Gerätename",
 	"notifications.devices.name.required": "Gerätename ist erforderlich",

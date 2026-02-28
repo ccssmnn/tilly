@@ -3,12 +3,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { RefreshIcon, PauseIcon, File02Icon } from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
@@ -33,7 +33,7 @@ function EditNoteResult({
 }) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 	let me = useAccount(UserAccount)
@@ -49,7 +49,7 @@ function EditNoteResult({
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			if (result.previous) {
 				await updateNote(
@@ -113,7 +113,7 @@ function EditNoteResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -125,16 +125,16 @@ function EditNoteResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.note.updated.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.note.updated.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						{result.content && (
 							<div>
@@ -193,8 +193,8 @@ function EditNoteResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
@@ -206,7 +206,7 @@ function DeleteNoteResult({
 }) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 	let me = useAccount(UserAccount)
@@ -222,7 +222,7 @@ function DeleteNoteResult({
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			await updateNote(
 				{ deletedAt: undefined },
@@ -274,7 +274,7 @@ function DeleteNoteResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -286,16 +286,16 @@ function DeleteNoteResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.note.deleted.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.note.deleted.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -327,8 +327,8 @@ function DeleteNoteResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }

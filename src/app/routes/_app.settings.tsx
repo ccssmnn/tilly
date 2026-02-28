@@ -25,12 +25,12 @@ import {
 	FormMessage,
 } from "#shared/ui/form"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { Label } from "#shared/ui/label"
 import {
 	Select,
@@ -412,18 +412,18 @@ function ProfileNameDialog({
 	}
 
 	return (
-		<Dialog
+		<Drawer
 			open={isOpen}
 			onOpenChange={open => {
 				if (!open) onClose()
 			}}
 		>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
+			<DrawerContent>
+				<DrawerHeader>
+					<DrawerTitle>
 						<T k="settings.profile.displayName.dialog.title" />
-					</DialogTitle>
-				</DialogHeader>
+					</DrawerTitle>
+				</DrawerHeader>
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleSubmit)}
@@ -479,8 +479,8 @@ function ProfileNameDialog({
 						</div>
 					</form>
 				</Form>
-			</DialogContent>
-		</Dialog>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
@@ -577,16 +577,16 @@ function AssistantSection({
 					</Button>
 				</div>
 			</div>
-			<Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="settings.agent.reset.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="settings.agent.reset.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="grid gap-2 sm:grid-cols-2">
 						<Button
 							variant="outline"
@@ -599,8 +599,8 @@ function AssistantSection({
 							<T k="settings.agent.reset.button" />
 						</Button>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</SettingsSection>
 	)
 }

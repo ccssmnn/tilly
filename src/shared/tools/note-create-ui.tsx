@@ -3,12 +3,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "#shared/ui/drawer"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { RefreshIcon, PauseIcon, File02Icon } from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
@@ -30,7 +30,7 @@ function AddNoteResult({
 }) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
-	let [dialogOpen, setDialogOpen] = useState(false)
+	let [dialogOpen, setDrawerOpen] = useState(false)
 	let { addMessage } = useChatHistory()
 	let t = useIntl()
 	let me = useAccount(UserAccount)
@@ -46,7 +46,7 @@ function AddNoteResult({
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
-		setDialogOpen(false)
+		setDrawerOpen(false)
 		try {
 			updateNote(
 				{ deletedAt: new Date() },
@@ -98,7 +98,7 @@ function AddNoteResult({
 	return (
 		<>
 			<ToolMessageWrapper
-				onClick={() => setDialogOpen(true)}
+				onClick={() => setDrawerOpen(true)}
 				dialogOpen={dialogOpen}
 			>
 				<span className="cursor-pointer">
@@ -110,16 +110,16 @@ function AddNoteResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DrawerContent>
+					<DrawerHeader>
+						<DrawerTitle>
 							<T k="tool.note.created.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</DrawerTitle>
+						<DrawerDescription>
 							<T k="tool.note.created.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+						</DrawerDescription>
+					</DrawerHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -161,8 +161,8 @@ function AddNoteResult({
 							</Button>
 						</div>
 					</div>
-				</DialogContent>
-			</Dialog>
+				</DrawerContent>
+			</Drawer>
 		</>
 	)
 }
