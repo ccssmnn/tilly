@@ -3,12 +3,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { RefreshIcon, PauseIcon, File02Icon } from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
@@ -110,16 +110,16 @@ function AddNoteResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="tool.note.created.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="tool.note.created.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -161,8 +161,8 @@ function AddNoteResult({
 							</Button>
 						</div>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

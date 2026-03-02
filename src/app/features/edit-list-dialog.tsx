@@ -1,11 +1,11 @@
 import { useState } from "react"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -120,16 +120,16 @@ function EditListDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent className="max-h-[80vh] overflow-y-auto">
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-h-[80vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>
 						<T k="person.editList.title" params={{ hashtag }} />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="person.editList.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<ListForm
 					defaultListName={initialListName}
 					defaultSelectedPeople={initialSelectedPeople}
@@ -170,8 +170,8 @@ function EditListDrawer({
 						</AlertDialogFooter>
 					</AlertDialogContent>
 				</AlertDialog>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

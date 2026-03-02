@@ -18,14 +18,14 @@ import {
 	SelectValue,
 } from "#shared/ui/select"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#shared/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -253,19 +253,19 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 				)}
 			</div>
 
-			<Drawer
+			<Dialog
 				open={isTimezoneDrawerOpen}
 				onOpenChange={handleCloseTimezoneDrawer}
 			>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="notifications.timezone.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="notifications.timezone.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<Form {...timezoneForm}>
 						<form
 							onSubmit={timezoneForm.handleSubmit(handleTimezoneSubmit)}
@@ -327,8 +327,8 @@ function TimezoneSection({ me }: { me: co.loaded<typeof UserAccount, Query> }) {
 							</div>
 						</form>
 					</Form>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }
@@ -406,19 +406,19 @@ function NotificationTimeSection({
 				</p>
 			</div>
 
-			<Drawer
+			<Dialog
 				open={isNotificationTimeDrawerOpen}
 				onOpenChange={handleCloseNotificationTimeDrawer}
 			>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="notifications.time.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="notifications.time.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<Form {...notificationTimeForm}>
 						<form
 							onSubmit={notificationTimeForm.handleSubmit(
@@ -493,8 +493,8 @@ function NotificationTimeSection({
 							</div>
 						</form>
 					</Form>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }
@@ -686,16 +686,16 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			<Drawer open={editDrawerOpen} onOpenChange={setEditDrawerOpen}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={editDrawerOpen} onOpenChange={setEditDrawerOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="notifications.devices.editDrawer.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="notifications.devices.editDrawer.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<Input
 							value={editName}
@@ -718,7 +718,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 							}}
 						/>
 					</div>
-					<DrawerFooter>
+					<DialogFooter>
 						<Button
 							variant="outline"
 							onClick={() => {
@@ -742,9 +742,9 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 						>
 							<T k="common.save" />
 						</Button>
-					</DrawerFooter>
-				</DrawerContent>
-			</Drawer>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }
@@ -1008,27 +1008,27 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 	let isPermissionDenied = permission === "denied"
 
 	return (
-		<Drawer open={open} onOpenChange={setOpen}>
-			<DrawerTrigger
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger
 				render={
 					<Button variant="outline" disabled={disabled}>
 						<T k="notifications.devices.addButton" />
 					</Button>
 				}
 			/>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="notifications.devices.addDrawer.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						{isPermissionDenied ? (
 							<T k="notifications.devices.addDrawer.description.blocked" />
 						) : (
 							<T k="notifications.devices.addDrawer.description.enabled" />
 						)}
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleAddDevice)}
@@ -1053,7 +1053,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 								</FormItem>
 							)}
 						/>
-						<DrawerFooter>
+						<DialogFooter>
 							<Button
 								type="button"
 								variant="outline"
@@ -1072,11 +1072,11 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 									<T k="notifications.devices.addButton" />
 								)}
 							</Button>
-						</DrawerFooter>
+						</DialogFooter>
 					</form>
 				</Form>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

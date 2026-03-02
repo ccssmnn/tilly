@@ -1,10 +1,10 @@
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -554,16 +554,16 @@ function EditDrawer(props: {
 	}
 
 	return (
-		<Drawer open={props.open} onOpenChange={props.onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={props.open} onOpenChange={props.onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="note.actions.edit" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="note.actions.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<NoteForm
 					note={props.note}
 					defaultValues={{
@@ -576,8 +576,8 @@ function EditDrawer(props: {
 					onSubmit={handleSubmit}
 					onCancel={() => props.onOpenChange(false)}
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 
@@ -1052,9 +1052,9 @@ function ImageCarousel({
 	if (!currentImage) return null
 
 	return (
-		<Drawer open={open} onOpenChange={onClose}>
-			<DrawerContent className="h-[90dvh] md:w-[90dvw] md:max-w-none">
-				<DrawerTitle>Image viewer</DrawerTitle>
+		<Dialog open={open} onOpenChange={onClose}>
+			<DialogContent className="h-[90dvh] md:w-[90dvw] md:max-w-none">
+				<DialogTitle>Image viewer</DialogTitle>
 				<div className="relative h-full w-full">
 					<AnimatePresence mode="wait" custom={direction}>
 						<motion.div
@@ -1132,8 +1132,8 @@ function ImageCarousel({
 						</div>
 					)}
 				</div>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

@@ -4,12 +4,12 @@ import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
 import { Alert, AlertDescription } from "#shared/ui/alert"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -131,16 +131,16 @@ function UpdateReminderResult({
 					<T k="tool.reminder.updated.message" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
-			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="tool.reminder.updated.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="tool.reminder.updated.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -195,8 +195,8 @@ function UpdateReminderResult({
 							</Button>
 						</div>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }
@@ -287,16 +287,16 @@ function RemoveReminderResult({
 					<T k="tool.reminder.deleted.message" params={{ text: textPreview }} />
 				</span>
 			</ToolMessageWrapper>
-			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="tool.reminder.deleted.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="tool.reminder.deleted.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -338,8 +338,8 @@ function RemoveReminderResult({
 							</Button>
 						</div>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

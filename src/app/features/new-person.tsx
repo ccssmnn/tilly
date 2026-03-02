@@ -1,13 +1,13 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#shared/ui/dialog"
 import { PersonForm } from "#app/features/person-form"
 import { createPerson } from "#shared/tools/person-create"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -20,7 +20,7 @@ function NewPerson({
 	render,
 	onSuccess,
 }: {
-	render: React.ComponentProps<typeof DrawerTrigger>["render"]
+	render: React.ComponentProps<typeof DialogTrigger>["render"]
 	onSuccess?: (personId: string) => void
 }) {
 	let me = useAccount(UserAccount)
@@ -50,22 +50,22 @@ function NewPerson({
 	}
 
 	return (
-		<Drawer>
-			<DrawerTrigger render={render} />
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog>
+			<DialogTrigger render={render} />
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="person.new.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="person.new.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<PersonForm
 					onSave={handleSave}
 					submitButtonText={t("person.create.button")}
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }

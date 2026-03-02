@@ -1,13 +1,13 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
 import { NoteForm } from "#app/features/note-form"
 import { PersonSelector } from "#app/features/person-selector"
@@ -22,7 +22,7 @@ import { format } from "date-fns"
 export { NewNote }
 
 function NewNote(props: {
-	render: React.ComponentProps<typeof DrawerTrigger>["render"]
+	render: React.ComponentProps<typeof DialogTrigger>["render"]
 	onSuccess?: (noteId: string) => void
 	personId?: string
 }) {
@@ -94,9 +94,9 @@ function NewNote(props: {
 	}
 
 	return (
-		<Drawer open={dialogOpen} onOpenChange={handleDrawerOpenChange}>
-			<DrawerTrigger render={props.render} />
-			<DrawerContent>
+		<Dialog open={dialogOpen} onOpenChange={handleDrawerOpenChange}>
+			<DialogTrigger render={props.render} />
+			<DialogContent>
 				<div className="relative overflow-hidden">
 					<AnimatePresence mode="wait" custom={direction}>
 						{!selectedPersonId ? (
@@ -119,14 +119,14 @@ function NewNote(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DrawerHeader>
-									<DrawerTitle>
+								<DialogHeader>
+									<DialogTitle>
 										<T k="note.select.title" />
-									</DrawerTitle>
-									<DrawerDescription>
+									</DialogTitle>
+									<DialogDescription>
 										<T k="note.select.description" />
-									</DrawerDescription>
-								</DrawerHeader>
+									</DialogDescription>
+								</DialogHeader>
 							</motion.div>
 						) : (
 							<motion.div
@@ -148,17 +148,17 @@ function NewNote(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DrawerHeader>
-									<DrawerTitle>
+								<DialogHeader>
+									<DialogTitle>
 										<T k="note.add.title" />
-									</DrawerTitle>
-									<DrawerDescription>
+									</DialogTitle>
+									<DialogDescription>
 										<T
 											k="note.add.description"
 											params={{ person: selectedPersonLabel }}
 										/>
-									</DrawerDescription>
-								</DrawerHeader>
+									</DialogDescription>
+								</DialogHeader>
 							</motion.div>
 						)}
 					</AnimatePresence>
@@ -235,7 +235,7 @@ function NewNote(props: {
 						)}
 					</AnimatePresence>
 				</div>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }

@@ -3,15 +3,15 @@ import { Group, co } from "jazz-tools"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Button } from "#shared/ui/button"
 import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#shared/ui/dialog"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -218,16 +218,16 @@ function ManageListsDialog({
 
 	return (
 		<>
-			<Drawer open={open} onOpenChange={onOpenChange}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={open} onOpenChange={onOpenChange}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="person.manageLists.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							{t("person.manageLists.description", { name: personName })}
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						{existingLists.length > 0 && (
 							<ul className="space-y-2">
@@ -276,8 +276,8 @@ function ManageListsDialog({
 							<T k="person.manageLists.createList" />
 						</Button>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 			<NewListDialog
 				open={isNewListDialogOpen}
 				onOpenChange={setIsNewListDialogOpen}
@@ -435,7 +435,7 @@ function ActionsDropdown({
 
 	return (
 		<>
-			<Drawer
+			<Dialog
 				open={actionsOpen}
 				onOpenChange={open => {
 					setActionsOpen(open)
@@ -444,18 +444,18 @@ function ActionsDropdown({
 					}
 				}}
 			>
-				<DrawerTrigger
+				<DialogTrigger
 					render={<span className="contents" />}
 					nativeButton={false}
 				>
 					{children}
-				</DrawerTrigger>
-				<DrawerContent contentClassName="max-w-md">
-					<DrawerHeader>
-						<DrawerTitle>
+				</DialogTrigger>
+				<DialogContent className="max-w-md">
+					<DialogHeader>
+						<DialogTitle>
 							<T k="person.actions.title" />
-						</DrawerTitle>
-					</DrawerHeader>
+						</DialogTitle>
+					</DialogHeader>
 					<div className="grid gap-2">
 						{showShare && (
 							<Button
@@ -481,8 +481,8 @@ function ActionsDropdown({
 							<T k="person.manageLists.title" />
 							<Collection />
 						</Button>
-						<Drawer open={isEditDrawerOpen} onOpenChange={setIsEditDrawerOpen}>
-							<DrawerTrigger
+						<Dialog open={isEditDrawerOpen} onOpenChange={setIsEditDrawerOpen}>
+							<DialogTrigger
 								render={
 									<Button
 										variant="outline"
@@ -492,19 +492,19 @@ function ActionsDropdown({
 							>
 								<T k="person.edit.title" />
 								<PencilSquare />
-							</DrawerTrigger>
-							<DrawerContent contentClassName="max-w-xl">
-								<DrawerHeader>
-									<DrawerTitle>
+							</DialogTrigger>
+							<DialogContent className="max-w-xl">
+								<DialogHeader>
+									<DialogTitle>
 										<T k="person.edit.title" />
-									</DrawerTitle>
+									</DialogTitle>
 									<p className="text-muted-foreground text-sm">
 										<T k="person.edit.description" />
 									</p>
-								</DrawerHeader>
+								</DialogHeader>
 								<PersonForm person={person} onSave={handleFormSave} />
-							</DrawerContent>
-						</Drawer>
+							</DialogContent>
+						</Dialog>
 						{isShared ? (
 							<Button
 								variant="destructive"
@@ -531,15 +531,15 @@ function ActionsDropdown({
 							</Button>
 						)}
 					</div>
-					<DrawerFooter>
-						<DrawerClose
+					<DialogFooter>
+						<DialogClose
 							render={<Button variant="outline" className="w-full" />}
 						>
 							<T k="common.cancel" />
-						</DrawerClose>
-					</DrawerFooter>
-				</DrawerContent>
-			</Drawer>
+						</DialogClose>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<AlertDialog
 				open={isDeleteDialogOpen}
 				onOpenChange={setIsDeleteDialogOpen}

@@ -1,11 +1,11 @@
 import { useState } from "react"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { updatePerson } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
@@ -62,16 +62,16 @@ function NewListDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="person.newList.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="person.newList.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<ListForm
 					defaultListName=""
 					defaultSelectedPeople={defaultSelectedPeople || new Set()}
@@ -79,7 +79,7 @@ function NewListDrawer({
 					isLoading={isLoading}
 					mode="create"
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }

@@ -9,13 +9,13 @@ import { Button } from "#shared/ui/button"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { isTextSelectionOngoing } from "#app/lib/utils"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#shared/ui/dialog"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -449,14 +449,14 @@ function RestorePersonDrawer({
 
 	return (
 		<>
-			<Drawer open={open} onOpenChange={setOpen}>
-				<DrawerTrigger>{children}</DrawerTrigger>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogTrigger>{children}</DialogTrigger>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="person.restore.title" params={{ name: person.name }} />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T
 								k="person.restore.deletionInfo"
 								params={{
@@ -493,8 +493,8 @@ function RestorePersonDrawer({
 								</>
 							)}
 							<T k="person.restore.question" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-3">
 						<Button className="h-12 w-full" onClick={handleRestore}>
 							<T k="person.restore.title" params={{ name: person.name }} />
@@ -507,8 +507,8 @@ function RestorePersonDrawer({
 							<T k="reminder.restore.permanentDelete" />
 						</Button>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 
 			<AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
 				<AlertDialogContent>
@@ -551,22 +551,22 @@ function AddNoteDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="addNote.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="addNote.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<NoteForm
 					onSubmit={handleAddNote}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 
@@ -587,22 +587,22 @@ function AddReminderDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="addReminder.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="addReminder.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<ReminderForm
 					onSubmit={handleAddReminder}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

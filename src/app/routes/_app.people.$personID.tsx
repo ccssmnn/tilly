@@ -47,11 +47,11 @@ import {
 	EmptyTitle,
 } from "#shared/ui/empty"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -633,27 +633,27 @@ function AddItemButton(props: {
 				</span>
 			</Button>
 
-			<Drawer open={noteOpen} onOpenChange={setNoteOpen}>
-				<DrawerContent contentClassName="max-w-lg">
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={noteOpen} onOpenChange={setNoteOpen}>
+				<DialogContent className="max-w-lg">
+					<DialogHeader>
+						<DialogTitle>
 							<T k="note.add.title" />
-						</DrawerTitle>
-					</DrawerHeader>
+						</DialogTitle>
+					</DialogHeader>
 					<NoteForm
 						onSubmit={handleAddNote}
 						onCancel={() => setNoteOpen(false)}
 					/>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 
-			<Drawer open={reminderOpen} onOpenChange={setReminderOpen}>
-				<DrawerContent contentClassName="max-w-lg">
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
+				<DialogContent className="max-w-lg">
+					<DialogHeader>
+						<DialogTitle>
 							<T k="reminders.add.title" />
-						</DrawerTitle>
-					</DrawerHeader>
+						</DialogTitle>
+					</DialogHeader>
 					<ReminderForm
 						defaultValues={{
 							text: "",
@@ -662,8 +662,8 @@ function AddItemButton(props: {
 						onSubmit={handleAddReminder}
 						onCancel={() => setReminderOpen(false)}
 					/>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

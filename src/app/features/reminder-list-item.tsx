@@ -1,10 +1,10 @@
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -515,16 +515,16 @@ function EditReminderDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="reminder.edit.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="reminder.edit.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<ReminderForm
 					defaultValues={{
 						text: reminder.text,
@@ -534,8 +534,8 @@ function EditReminderDrawer({
 					onSubmit={handleEdit}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 
@@ -560,28 +560,28 @@ function AddNoteDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T
 							k="reminder.addNote.title"
 							params={{ personName: person.name }}
 						/>
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T
 							k="reminder.addNote.description"
 							params={{ personName: person.name }}
 						/>
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<NoteForm
 					onSubmit={handleAddNote}
 					onCancel={() => onOpenChange(false)}
 				/>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

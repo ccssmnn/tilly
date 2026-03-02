@@ -9,13 +9,13 @@ import { toast } from "sonner"
 
 import { Button } from "#shared/ui/button"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerTitle,
-	DrawerTrigger,
-	DrawerHeader,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogTitle,
+	DialogTrigger,
+	DialogHeader,
+} from "#shared/ui/dialog"
 import { usePWA } from "#app/lib/pwa"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { useIsMobile } from "#app/hooks/use-mobile"
@@ -53,8 +53,8 @@ function OfflineIndicator() {
 	let isMobile = useIsMobile()
 
 	return (
-		<Drawer>
-			<DrawerTrigger
+		<Dialog>
+			<DialogTrigger
 				nativeButton={false}
 				render={htmlProps => (
 					<Button
@@ -78,15 +78,15 @@ function OfflineIndicator() {
 					</Button>
 				)}
 			/>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="status.offline.dialog.title" />
-					</DrawerTitle>
-					<DrawerDescription className="text-foreground leading-tight">
+					</DialogTitle>
+					<DialogDescription className="text-foreground leading-tight">
 						<T k="status.offline.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-3">
 					<Alert>
 						<Check />
@@ -101,8 +101,8 @@ function OfflineIndicator() {
 						</AlertTitle>
 					</Alert>
 				</div>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

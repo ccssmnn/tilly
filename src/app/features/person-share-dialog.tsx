@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerDescription,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+} from "#shared/ui/dialog"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -93,16 +93,16 @@ function PersonShareDrawer({
 		load()
 	}, [person, refreshKey])
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent>
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>
 						<T k="person.share.dialog.title" params={{ name: person.name }} />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="person.share.dialog.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-6">
 					<InviteLinkSection
 						person={person}
@@ -131,8 +131,8 @@ function PersonShareDrawer({
 						}
 					/>
 				</div>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

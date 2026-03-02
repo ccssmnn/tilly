@@ -11,13 +11,13 @@ import {
 } from "#shared/ui/form"
 import type { UseFormReturn } from "react-hook-form"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
@@ -315,16 +315,16 @@ function AvatarCropperDialog({
 	if (!imageSrc) return null
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent className="max-w-md">
-				<DrawerHeader>
-					<DrawerTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-md">
+				<DialogHeader>
+					<DialogTitle>
 						<T k="person.crop.title" />
-					</DrawerTitle>
-					<DrawerDescription>
+					</DialogTitle>
+					<DialogDescription>
 						<T k="person.crop.description" />
-					</DrawerDescription>
-				</DrawerHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<div className="relative h-64 w-full">
 					<Cropper
 						image={imageSrc}
@@ -336,16 +336,16 @@ function AvatarCropperDialog({
 						onZoomChange={setZoom}
 					/>
 				</div>
-				<DrawerFooter>
+				<DialogFooter>
 					<Button variant="outline" onClick={handleCancel}>
 						<T k="person.crop.cancel" />
 					</Button>
 					<Button onClick={handleCrop}>
 						<T k="person.crop.confirm" />
 					</Button>
-				</DrawerFooter>
-			</DrawerContent>
-		</Drawer>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { type InferUITool } from "ai"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
 import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import { UserMultipleIcon } from "@hugeicons/core-free-icons"
@@ -56,16 +56,16 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 					)}
 				</span>
 			</ToolMessageWrapper>
-			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="tool.people.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="tool.people.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -101,8 +101,8 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 							</div>
 						)}
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }
@@ -140,16 +140,16 @@ function GetPersonDetailsResult({
 					/>
 				</span>
 			</ToolMessageWrapper>
-			<Drawer open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>
+			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
 							<T k="tool.person.read.dialog.title" />
-						</DrawerTitle>
-						<DrawerDescription>
+						</DialogTitle>
+						<DialogDescription>
 							<T k="tool.person.read.dialog.description" />
-						</DrawerDescription>
-					</DrawerHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
@@ -191,8 +191,8 @@ function GetPersonDetailsResult({
 							</Button>
 						</div>
 					</div>
-				</DrawerContent>
-			</Drawer>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

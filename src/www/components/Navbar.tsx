@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { Button } from "#shared/ui/button"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -131,14 +131,14 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 						</Button>
 					</div>
 				</nav>
-				<Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-					<DrawerContent>
-						<DrawerHeader>
-							<DrawerTitle>Menu</DrawerTitle>
-							<DrawerDescription>
+				<Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Menu</DialogTitle>
+							<DialogDescription>
 								<T k="marketing.nav.menuDescription" />
-							</DrawerDescription>
-						</DrawerHeader>
+							</DialogDescription>
+						</DialogHeader>
 						<div className="flex flex-col gap-3">
 							{navigation.map(item => (
 								<Button key={item.name} variant="outline">
@@ -148,8 +148,8 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 								</Button>
 							))}
 						</div>
-					</DrawerContent>
-				</Drawer>
+					</DialogContent>
+				</Dialog>
 			</header>
 		</IntlProvider>
 	)

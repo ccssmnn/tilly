@@ -1,13 +1,13 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount, isDeleted } from "#shared/schema/user"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#shared/ui/dialog"
 import { ReminderForm } from "#app/features/reminder-form"
 import { PersonSelector } from "#app/features/person-selector"
 import { createReminder } from "#shared/tools/reminder-create"
@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from "motion/react"
 export { NewReminder }
 
 function NewReminder(props: {
-	render: React.ComponentProps<typeof DrawerTrigger>["render"]
+	render: React.ComponentProps<typeof DialogTrigger>["render"]
 	onSuccess?: (reminderId: string) => void
 	personId?: string
 }) {
@@ -91,9 +91,9 @@ function NewReminder(props: {
 	}
 
 	return (
-		<Drawer open={dialogOpen} onOpenChange={handleDrawerOpenChange}>
-			<DrawerTrigger render={props.render} />
-			<DrawerContent>
+		<Dialog open={dialogOpen} onOpenChange={handleDrawerOpenChange}>
+			<DialogTrigger render={props.render} />
+			<DialogContent>
 				<div className="relative overflow-hidden">
 					<AnimatePresence mode="wait" custom={direction}>
 						{!selectedPersonId ? (
@@ -116,14 +116,14 @@ function NewReminder(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DrawerHeader>
-									<DrawerTitle>
+								<DialogHeader>
+									<DialogTitle>
 										<T k="reminder.select.title" />
-									</DrawerTitle>
-									<DrawerDescription>
+									</DialogTitle>
+									<DialogDescription>
 										<T k="reminder.select.description" />
-									</DrawerDescription>
-								</DrawerHeader>
+									</DialogDescription>
+								</DialogHeader>
 							</motion.div>
 						) : (
 							<motion.div
@@ -145,17 +145,17 @@ function NewReminder(props: {
 								}}
 								transition={{ duration: 0.075 }}
 							>
-								<DrawerHeader>
-									<DrawerTitle>
+								<DialogHeader>
+									<DialogTitle>
 										<T k="reminder.add.title" />
-									</DrawerTitle>
-									<DrawerDescription>
+									</DialogTitle>
+									<DialogDescription>
 										<T
 											k="reminder.add.description"
 											params={{ person: selectedPersonLabel }}
 										/>
-									</DrawerDescription>
-								</DrawerHeader>
+									</DialogDescription>
+								</DialogHeader>
 							</motion.div>
 						)}
 					</AnimatePresence>
@@ -231,7 +231,7 @@ function NewReminder(props: {
 						)}
 					</AnimatePresence>
 				</div>
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }

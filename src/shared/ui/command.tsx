@@ -3,12 +3,12 @@ import { Command as CommandPrimitive } from "cmdk"
 
 import { cn } from "#app/lib/utils"
 import {
-	Drawer,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
-} from "#shared/ui/drawer"
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
 import { InputGroup, InputGroupAddon } from "#shared/ui/input-group"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { SearchIcon, Tick02Icon } from "@hugeicons/core-free-icons"
@@ -35,27 +35,27 @@ function CommandDrawer({
 	children,
 	className,
 	...props
-}: Omit<React.ComponentProps<typeof Drawer>, "children"> & {
+}: Omit<React.ComponentProps<typeof Dialog>, "children"> & {
 	title?: string
 	description?: string
 	className?: string
 	children: React.ReactNode
 }) {
 	return (
-		<Drawer {...props}>
-			<DrawerHeader className="sr-only">
-				<DrawerTitle>{title}</DrawerTitle>
-				<DrawerDescription>{description}</DrawerDescription>
-			</DrawerHeader>
-			<DrawerContent
+		<Dialog {...props}>
+			<DialogHeader className="sr-only">
+				<DialogTitle>{title}</DialogTitle>
+				<DialogDescription>{description}</DialogDescription>
+			</DialogHeader>
+			<DialogContent
 				className={cn(
 					"top-1/3 translate-y-0 overflow-hidden rounded-4xl! p-0",
 					className,
 				)}
 			>
 				{children}
-			</DrawerContent>
-		</Drawer>
+			</DialogContent>
+		</Dialog>
 	)
 }
 
