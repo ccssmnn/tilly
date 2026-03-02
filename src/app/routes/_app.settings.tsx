@@ -889,6 +889,7 @@ function AboutSection() {
 		>
 			<div className="space-y-3">
 				<Button
+					nativeButton={false}
 					variant="outline"
 					className="w-full justify-start"
 					render={<a href="/" target="_blank" rel="noopener noreferrer" />}
@@ -897,6 +898,7 @@ function AboutSection() {
 					<T k="settings.about.visit" />
 				</Button>
 				<Button
+					nativeButton={false}
 					variant="outline"
 					className="w-full justify-start"
 					render={
@@ -911,6 +913,7 @@ function AboutSection() {
 					<T k="settings.about.learnMore" />
 				</Button>
 				<Button
+					nativeButton={false}
 					variant="outline"
 					className="w-full justify-start"
 					render={<Link to="/tour" onClick={() => setTourSkipped(false)} />}

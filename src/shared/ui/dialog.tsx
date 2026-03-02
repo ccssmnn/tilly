@@ -1,8 +1,10 @@
 "use client"
 
 import * as React from "react"
+import { animate, motion, useMotionValue } from "motion/react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
+import { useIsMobile } from "#app/hooks/use-mobile"
 import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -32,7 +34,7 @@ function DialogOverlay({
 		<DialogPrimitive.Backdrop
 			data-slot="dialog-overlay"
 			className={cn(
-				"data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 fixed inset-0 isolate z-50 bg-black/80 duration-100 supports-backdrop-filter:backdrop-blur-xs",
+				"data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 will-change-opacity fixed inset-0 z-50 bg-black/80 duration-200 supports-backdrop-filter:backdrop-blur-xs",
 				className,
 			)}
 			{...props}
@@ -48,33 +50,158 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
 	showCloseButton?: boolean
 }) {
+	let isMobile = useIsMobile()
+	let closeRef = React.useRef<HTMLButtonElement>(null)
+	let dragY = useMotionValue(0)
+	let [isSwipeClosing, setIsSwipeClosing] = React.useState(false)
+	let dragStartY = React.useRef(0)
+	let dragStartOffset = React.useRef(0)
+	let closeResetTimeout = React.useRef<number | null>(null)
+
+	React.useEffect(() => {
+		return () => {
+			if (closeResetTimeout.current !== null) {
+				window.clearTimeout(closeResetTimeout.current)
+			}
+		}
+	}, [])
+
+	let handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (event.pointerType !== "touch") return
+
+		setIsSwipeClosing(false)
+		dragStartY.current = event.clientY
+		dragStartOffset.current = dragY.get()
+
+		let element = event.currentTarget
+
+		let onMove = (moveEvent: PointerEvent) => {
+			let deltaY = moveEvent.clientY - dragStartY.current
+			dragY.set(Math.max(0, dragStartOffset.current + deltaY))
+		}
+
+		let didEnd = false
+		let onEnd = () => {
+			if (didEnd) return
+			didEnd = true
+
+			let currentOffset = dragY.get()
+			if (currentOffset > 100) {
+				setIsSwipeClosing(true)
+				animate(dragY, window.innerHeight, {
+					duration: 0.16,
+					ease: "easeOut",
+					onComplete: () => {
+						closeRef.current?.click()
+						if (closeResetTimeout.current !== null) {
+							window.clearTimeout(closeResetTimeout.current)
+						}
+						closeResetTimeout.current = window.setTimeout(() => {
+							dragY.set(0)
+							setIsSwipeClosing(false)
+							closeResetTimeout.current = null
+						}, 260)
+					},
+				})
+			} else {
+				animate(dragY, 0, {
+					type: "spring",
+					stiffness: 300,
+					damping: 25,
+				})
+			}
+		}
+
+		element.setPointerCapture(event.pointerId)
+		element.addEventListener("pointermove", onMove)
+		element.addEventListener("pointerup", onEnd)
+		element.addEventListener("pointercancel", onEnd)
+		element.addEventListener(
+			"lostpointercapture",
+			() => {
+				element.removeEventListener("pointermove", onMove)
+				element.removeEventListener("pointerup", onEnd)
+				element.removeEventListener("pointercancel", onEnd)
+			},
+			{ once: true },
+		)
+	}
+
+	let contentClassName = cn(
+		"bg-background ring-foreground/5 fixed z-50 flex max-h-[95dvh] flex-col gap-6 overflow-y-auto p-6 text-sm shadow-lg ring-1 outline-none will-change-transform max-md:duration-200 md:duration-100",
+		"data-open:animate-in data-closed:animate-out md:data-closed:fade-out-0 md:data-open:fade-in-0 md:data-closed:zoom-out-95 md:data-open:zoom-in-95",
+		"max-md:inset-x-0 max-md:bottom-[-100px] max-md:w-screen max-md:max-w-none max-md:rounded-t-4xl max-md:rounded-b-none max-md:pb-[calc(100px+max(calc(var(--spacing)*4),env(safe-area-inset-bottom)))]",
+		"max-md:data-closed:slide-out-to-bottom max-md:data-open:slide-in-from-bottom",
+		"md:top-6 md:left-1/2 md:w-full md:max-w-[calc(100%-2rem)] md:-translate-x-1/2 md:max-w-md md:rounded-4xl",
+		className,
+	)
+
+	let mobileContentClassName = cn(
+		contentClassName,
+		isSwipeClosing && "max-md:data-closed:animate-none",
+	)
+
+	let closeButton = showCloseButton ? (
+		<DialogPrimitive.Close
+			ref={closeRef}
+			data-slot="dialog-close"
+			render={
+				<Button
+					variant="ghost"
+					className="absolute top-4 right-4"
+					size="icon-sm"
+				/>
+			}
+		>
+			<HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+			<span className="sr-only">Close</span>
+		</DialogPrimitive.Close>
+	) : null
+
+	let mobileStyle = {
+		marginTop: "env(safe-area-inset-top)",
+		paddingLeft: "max(calc(var(--spacing) * 4), env(safe-area-inset-left))",
+		paddingRight: "max(calc(var(--spacing) * 4), env(safe-area-inset-right))",
+	}
+
+	if (isMobile) {
+		return (
+			<DialogPortal>
+				<DialogOverlay />
+				<DialogPrimitive.Popup
+					data-slot="dialog-content"
+					render={
+						<motion.div
+							style={{ ...mobileStyle, y: dragY }}
+							className={mobileContentClassName}
+						/>
+					}
+					{...props}
+					initialFocus={false}
+				>
+					<div
+						onPointerDown={handlePointerDown}
+						className="-mt-4 -mb-1 flex cursor-grab touch-none justify-center pt-1 pb-1.5 select-none active:cursor-grabbing pointer-fine:hidden"
+					>
+						<div className="bg-muted-foreground/30 h-1.5 w-10 rounded-full" />
+					</div>
+					{children}
+					{closeButton}
+				</DialogPrimitive.Popup>
+			</DialogPortal>
+		)
+	}
+
 	return (
 		<DialogPortal>
 			<DialogOverlay />
 			<DialogPrimitive.Popup
 				data-slot="dialog-content"
-				className={cn(
-					"bg-background data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/5 fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-4xl p-6 text-sm ring-1 duration-100 outline-none sm:max-w-md",
-					className,
-				)}
+				className={contentClassName}
 				{...props}
 			>
 				{children}
-				{showCloseButton && (
-					<DialogPrimitive.Close
-						data-slot="dialog-close"
-						render={
-							<Button
-								variant="ghost"
-								className="absolute top-4 right-4"
-								size="icon-sm"
-							/>
-						}
-					>
-						<HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
-						<span className="sr-only">Close</span>
-					</DialogPrimitive.Close>
-				)}
+				{closeButton}
 			</DialogPrimitive.Popup>
 		</DialogPortal>
 	)

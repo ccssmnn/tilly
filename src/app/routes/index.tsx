@@ -44,11 +44,14 @@ function WelcomeIndex() {
 						animate={{ y: 0, opacity: 1 }}
 						transition={{ delay: 0.4 }}
 					>
-						<Button variant="outline">
-							<Link to="/people" onClick={() => setTourSkipped(true)}>
-								<SkipForwardFill />
-								<T k="welcome.skip" />
-							</Link>
+						<Button
+							variant="outline"
+							render={
+								<Link to="/people" onClick={() => setTourSkipped(true)} />
+							}
+						>
+							<SkipForwardFill />
+							<T k="welcome.skip" />
 						</Button>
 					</motion.div>
 				</div>
@@ -79,17 +82,14 @@ function WelcomeIndex() {
 							transition={{ delay: 0.4, duration: 0.4 }}
 							className="flex items-center gap-3"
 						>
-							<Button className="h-12">
-								<Link to="/tour">
-									<LightbulbFill />
-									<T k="welcome.takeTour" />
-								</Link>
+							<Button render={<Link to="/tour" />}>
+								<LightbulbFill />
+								<T k="welcome.takeTour" />
 							</Button>
 							<SignInButton mode="redirect" forceRedirectUrl="/app/people">
 								<Button
 									variant="secondary"
 									onClick={() => setTourSkipped(true)}
-									className="h-12"
 								>
 									<PersonCircle />
 									<T k="welcome.signIn" />

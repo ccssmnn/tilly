@@ -55,7 +55,7 @@ function OfflineIndicator() {
 	return (
 		<Dialog>
 			<DialogTrigger
-				nativeButton={false}
+				nativeButton
 				render={htmlProps => (
 					<Button
 						{...htmlProps}

@@ -98,11 +98,14 @@ function TourComponent() {
 					</Link>
 					<div className="flex-1" />
 					<motion.div layoutId="skip">
-						<Button variant="outline">
-							<Link to="/people" onClick={() => setTourSkipped(true)}>
-								<SkipForwardFill />
-								<T k="welcome.skip" />
-							</Link>
+						<Button
+							variant="outline"
+							render={
+								<Link to="/people" onClick={() => setTourSkipped(true)} />
+							}
+						>
+							<SkipForwardFill />
+							<T k="welcome.skip" />
 						</Button>
 					</motion.div>
 				</div>
@@ -151,20 +154,23 @@ function TourComponent() {
 				<div className="absolute inset-x-0 bottom-0 flex items-center justify-between">
 					<div className="w-32">
 						{currentStep > 0 && (
-							<Button variant="outline" onClick={prevStep} className="h-12">
+							<Button variant="outline" onClick={prevStep}>
 								<ChevronLeft />
 								<T k="navigation.previous" />
 							</Button>
 						)}
 					</div>
-					<div className="flex gap-2">
+					<div className="flex items-center justify-center gap-2">
 						{steps.map((_, index) => (
 							<button
 								type="button"
 								key={index}
 								onClick={() => handleDotClick(index)}
 								aria-label={`Go to step ${index + 1}`}
-								className="relative size-11 rounded-full"
+								className={cn(
+									"relative rounded-full transition-all",
+									currentStep === index ? "size-6" : "size-2",
+								)}
 							>
 								<span
 									className={cn(
@@ -179,7 +185,7 @@ function TourComponent() {
 					</div>
 					<div className="flex w-32 justify-end">
 						{currentStep !== steps.length - 1 && (
-							<Button onClick={nextStep} className="h-12">
+							<Button onClick={nextStep}>
 								<T k="navigation.next" />
 								<ChevronRight />
 							</Button>
