@@ -6,7 +6,8 @@ import {
 	useTransform,
 	type MotionValue,
 } from "motion/react"
-import { useEffect, useId, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useWebHaptics } from "web-haptics/react"
 import { cn } from "#app/lib/utils"
 
 export { SwipeableListItem, useSafariSwipeHack }
@@ -42,6 +43,7 @@ function SwipeableContent({
 	rightActions,
 	className,
 }: Omit<SwipeableListItemProps, "disabled">) {
+	let triggerSwipeHighlightFeedback = useSwipeHighlightFeedback()
 	let swipeItemRef = useRef<HTMLDivElement>(null)
 	let swipeContainerRef = useRef<HTMLDivElement>(null)
 	let rightActionsRef = useRef<HTMLDivElement>(null)
@@ -56,6 +58,7 @@ function SwipeableContent({
 
 	let swipeAmount = useMotionValue(0)
 	let isFullSwipe = useMotionValue(false)
+	let wasHighlightedRef = useRef(isFullSwipe.get())
 
 	let id = useId()
 	let closeSwipe = () => animate(swipeAmount, 0, SPRING_CONFIG)
@@ -64,6 +67,14 @@ function SwipeableContent({
 		swipeAmount.jump(0)
 		fullSwipeSnapPosition.current = null
 	}, [swipeAmount])
+
+	useEffect(() => {
+		return isFullSwipe.on("change", isHighlighted => {
+			if (isHighlighted === wasHighlightedRef.current) return
+			wasHighlightedRef.current = isHighlighted
+			triggerSwipeHighlightFeedback(isHighlighted)
+		})
+	}, [isFullSwipe, triggerSwipeHighlightFeedback])
 
 	let getSwipeHandlers = () => {
 		let refs: SwipeRefs = {
@@ -597,6 +608,93 @@ type SwipeRefs = {
 type SwipeValues = {
 	swipeAmount: MotionValue<number>
 	isFullSwipe: MotionValue<boolean>
+}
+
+function useSwipeHighlightFeedback() {
+	let { trigger: triggerHaptic } = useWebHaptics()
+	let audioContextRef = useRef<AudioContext | null>(null)
+
+	return useCallback(
+		(isHighlighted: boolean) => {
+			triggerHaptic()
+			playSwipeToggleSound(audioContextRef, isHighlighted)
+		},
+		[triggerHaptic],
+	)
+}
+
+function playSwipeToggleSound(
+	audioContextRef: React.RefObject<AudioContext | null>,
+	isHighlighted: boolean,
+) {
+	if (typeof window === "undefined") return
+
+	let AudioContextCtor =
+		window.AudioContext ||
+		(window as Window & { webkitAudioContext?: new () => AudioContext })
+			.webkitAudioContext
+	if (!AudioContextCtor) return
+
+	let context = audioContextRef.current
+	if (!context) {
+		context = new AudioContextCtor()
+		audioContextRef.current = context
+	}
+
+	if (context.state === "suspended") {
+		void context.resume()
+	}
+
+	let now = context.currentTime
+	let duration = 0.045
+
+	let bodyOscillator = context.createOscillator()
+	let bodyGain = context.createGain()
+	bodyOscillator.type = "triangle"
+	bodyOscillator.frequency.setValueAtTime(isHighlighted ? 420 : 340, now)
+	bodyOscillator.frequency.exponentialRampToValueAtTime(
+		isHighlighted ? 260 : 220,
+		now + duration,
+	)
+	bodyGain.gain.setValueAtTime(0.0001, now)
+	bodyGain.gain.exponentialRampToValueAtTime(0.13, now + 0.003)
+	bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+	bodyOscillator.connect(bodyGain)
+
+	let noiseBuffer = createTickNoiseBuffer(context, 0.025)
+	let noiseSource = context.createBufferSource()
+	let noiseFilter = context.createBiquadFilter()
+	let noiseGain = context.createGain()
+	noiseSource.buffer = noiseBuffer
+	noiseFilter.type = "bandpass"
+	noiseFilter.frequency.setValueAtTime(isHighlighted ? 2100 : 1700, now)
+	noiseFilter.Q.value = 2.4
+	noiseGain.gain.setValueAtTime(0.0001, now)
+	noiseGain.gain.exponentialRampToValueAtTime(0.05, now + 0.001)
+	noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02)
+	noiseSource.connect(noiseFilter)
+	noiseFilter.connect(noiseGain)
+
+	let output = context.createGain()
+	output.gain.value = 0.5
+	bodyGain.connect(output)
+	noiseGain.connect(output)
+	output.connect(context.destination)
+
+	bodyOscillator.start(now)
+	bodyOscillator.stop(now + duration)
+	noiseSource.start(now)
+	noiseSource.stop(now + 0.025)
+}
+
+function createTickNoiseBuffer(context: AudioContext, duration: number) {
+	let frameCount = Math.max(1, Math.floor(context.sampleRate * duration))
+	let buffer = context.createBuffer(1, frameCount, context.sampleRate)
+	let channel = buffer.getChannelData(0)
+	for (let i = 0; i < frameCount; i++) {
+		channel[i] = (Math.random() * 2 - 1) * (1 - i / frameCount)
+	}
+	return buffer
 }
 
 let BG_COLOR_MAP = {

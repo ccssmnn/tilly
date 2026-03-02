@@ -3,7 +3,6 @@ import { useState, useEffect } from "react"
 import { Button } from "#shared/ui/button"
 import { useAppStore } from "#app/lib/store"
 import { motion, AnimatePresence } from "motion/react"
-import { isIOS, useIsPWAInstalled, isAndroid } from "#app/hooks/use-pwa"
 import { TypographyH1 } from "#shared/ui/typography"
 import { cn } from "#app/lib/utils"
 import {
@@ -22,12 +21,10 @@ import {
 	SkipForwardFill,
 	GearFill,
 	Stars,
-	Phone,
 } from "react-bootstrap-icons"
 import { PersonTour } from "#app/features/person-tour"
 import { NoteTour } from "#app/features/note-tour"
 import { ReminderTour } from "#app/features/reminder-tour"
-import { InstallationInstructions } from "#app/components/pwa-install-dialog"
 
 export const Route = createFileRoute("/tour")({
 	component: TourComponent,
@@ -200,25 +197,13 @@ function TourComponent() {
 type Direction = "left" | "right" | undefined
 
 function useSteps() {
-	let isPWAInstalled = useIsPWAInstalled()
-
-	let showPWAInstallStep = (isAndroid() || isIOS()) && !isPWAInstalled
-	return showPWAInstallStep
-		? ([
-				"welcome",
-				"install-pwa",
-				"add-person",
-				"add-note",
-				"add-reminder",
-				"finish-setup",
-			] as const)
-		: ([
-				"welcome",
-				"add-person",
-				"add-note",
-				"add-reminder",
-				"finish-setup",
-			] as const)
+	return [
+		"welcome",
+		"add-person",
+		"add-note",
+		"add-reminder",
+		"finish-setup",
+	] as const
 }
 
 function renderStep(
@@ -228,8 +213,6 @@ function renderStep(
 	switch (stepId) {
 		case "welcome":
 			return <WelcomeStep />
-		case "install-pwa":
-			return <InstallPWAStep onSuccess={() => setCurrentStep(s => s + 1)} />
 		case "add-person":
 			return <PersonTour onSuccess={() => setCurrentStep(s => s + 1)} />
 		case "add-note":
@@ -255,24 +238,6 @@ function WelcomeStep() {
 					<T k="welcome.description" />
 				</EmptyDescription>
 			</EmptyHeader>
-		</Empty>
-	)
-}
-
-function InstallPWAStep(props: { onSuccess: () => void }) {
-	return (
-		<Empty>
-			<EmptyHeader>
-				<EmptyMedia variant="icon">
-					<Phone />
-				</EmptyMedia>
-				<EmptyTitle>
-					<T k="install.title" />
-				</EmptyTitle>
-			</EmptyHeader>
-			<EmptyContent>
-				<InstallationInstructions onInstallComplete={props.onSuccess} />
-			</EmptyContent>
 		</Empty>
 	)
 }

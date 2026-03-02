@@ -3,12 +3,15 @@
 import * as React from "react"
 import { animate, motion, useMotionValue } from "motion/react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
+import { useWebHaptics } from "web-haptics/react"
 
 import { useIsMobile } from "#app/hooks/use-mobile"
 import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Cancel01Icon } from "@hugeicons/core-free-icons"
+
+let SWIPE_CLOSE_THRESHOLD = 100
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 	return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -51,11 +54,13 @@ function DialogContent({
 	showCloseButton?: boolean
 }) {
 	let isMobile = useIsMobile()
+	let { trigger: triggerHaptic } = useWebHaptics()
 	let closeRef = React.useRef<HTMLButtonElement>(null)
 	let dragY = useMotionValue(0)
 	let [isSwipeClosing, setIsSwipeClosing] = React.useState(false)
 	let dragStartY = React.useRef(0)
 	let dragStartOffset = React.useRef(0)
+	let isBeyondSwipeThresholdRef = React.useRef(false)
 	let closeResetTimeout = React.useRef<number | null>(null)
 
 	React.useEffect(() => {
@@ -72,12 +77,21 @@ function DialogContent({
 		setIsSwipeClosing(false)
 		dragStartY.current = event.clientY
 		dragStartOffset.current = dragY.get()
+		isBeyondSwipeThresholdRef.current =
+			dragStartOffset.current > SWIPE_CLOSE_THRESHOLD
 
 		let element = event.currentTarget
 
 		let onMove = (moveEvent: PointerEvent) => {
 			let deltaY = moveEvent.clientY - dragStartY.current
-			dragY.set(Math.max(0, dragStartOffset.current + deltaY))
+			let nextOffset = Math.max(0, dragStartOffset.current + deltaY)
+			dragY.set(nextOffset)
+
+			let isBeyondThreshold = nextOffset > SWIPE_CLOSE_THRESHOLD
+			if (isBeyondThreshold !== isBeyondSwipeThresholdRef.current) {
+				isBeyondSwipeThresholdRef.current = isBeyondThreshold
+				triggerHaptic()
+			}
 		}
 
 		let didEnd = false
@@ -86,7 +100,8 @@ function DialogContent({
 			didEnd = true
 
 			let currentOffset = dragY.get()
-			if (currentOffset > 100) {
+			if (currentOffset > SWIPE_CLOSE_THRESHOLD) {
+				isBeyondSwipeThresholdRef.current = false
 				setIsSwipeClosing(true)
 				animate(dragY, window.innerHeight, {
 					duration: 0.16,
@@ -104,6 +119,7 @@ function DialogContent({
 					},
 				})
 			} else {
+				isBeyondSwipeThresholdRef.current = false
 				animate(dragY, 0, {
 					type: "spring",
 					stiffness: 300,

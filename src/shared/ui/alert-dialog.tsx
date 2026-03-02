@@ -1,11 +1,59 @@
+"use client"
+
 import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
+import { useWebHaptics } from "web-haptics/react"
 
 import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 
-function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
-	return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+function AlertDialog({
+	onOpenChange,
+	...props
+}: AlertDialogPrimitive.Root.Props) {
+	let { trigger: triggerHaptic } = useWebHaptics()
+	let tickTimeoutsRef = React.useRef<number[]>([])
+
+	React.useEffect(() => {
+		return () => {
+			for (let timeoutId of tickTimeoutsRef.current) {
+				window.clearTimeout(timeoutId)
+			}
+			tickTimeoutsRef.current = []
+		}
+	}, [])
+
+	let triggerErrorHaptic = React.useCallback(() => {
+		for (let timeoutId of tickTimeoutsRef.current) {
+			window.clearTimeout(timeoutId)
+		}
+		tickTimeoutsRef.current = []
+
+		for (let delay of [0, 80, 160]) {
+			let timeoutId = window.setTimeout(() => {
+				triggerHaptic()
+			}, delay)
+			tickTimeoutsRef.current.push(timeoutId)
+		}
+	}, [triggerHaptic])
+
+	let handleOpenChange = (
+		...args: Parameters<
+			NonNullable<AlertDialogPrimitive.Root.Props["onOpenChange"]>
+		>
+	) => {
+		let [open] = args
+		if (open) triggerErrorHaptic()
+		onOpenChange?.(...args)
+	}
+
+	return (
+		<AlertDialogPrimitive.Root
+			data-slot="alert-dialog"
+			onOpenChange={handleOpenChange}
+			{...props}
+		/>
+	)
 }
 
 function AlertDialogTrigger({ ...props }: AlertDialogPrimitive.Trigger.Props) {
