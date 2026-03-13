@@ -2,7 +2,7 @@ import { type ReactNode, useState } from "react"
 import { type InferUITool } from "ai"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { Alert, AlertDescription } from "#shared/ui/alert"
+import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
 	Dialog,
 	DialogContent,
@@ -24,7 +24,6 @@ import {
 	createUpdatePersonTool,
 	updatePerson,
 } from "#shared/tools/person-update"
-import { cn } from "#app/lib/utils"
 import { useAccount } from "jazz-tools/react-core"
 import { UserAccount } from "#shared/schema/user"
 
@@ -332,16 +331,12 @@ function ToolMessageWrapper({
 	dialogOpen?: boolean
 }) {
 	return (
-		<Alert
-			className={cn(
-				onClick && "hover:bg-accent cursor-pointer",
-				dialogOpen && "bg-accent",
-			)}
+		<SharedToolMessageWrapper
+			icon={UserMultipleIcon}
+			onClick={onClick}
+			dialogOpen={dialogOpen}
 		>
-			<HugeiconsIcon icon={UserMultipleIcon} className="h-4 w-4" />
-			<AlertDescription className="text-sm" onClick={onClick}>
-				{children}
-			</AlertDescription>
-		</Alert>
+			{children}
+		</SharedToolMessageWrapper>
 	)
 }

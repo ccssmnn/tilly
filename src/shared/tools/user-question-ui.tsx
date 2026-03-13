@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "#shared/ui/button"
-import { Alert, AlertDescription } from "#shared/ui/alert"
+import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
 	Card,
 	CardContent,
@@ -250,9 +250,8 @@ function UserQuestionResult({
 
 function ToolMessageWrapper({ children }: { children: ReactNode }) {
 	return (
-		<Alert>
-			<HugeiconsIcon icon={QuestionIcon} className="h-4 w-4" />
-			<AlertDescription className="text-sm">{children}</AlertDescription>
-		</Alert>
+		<SharedToolMessageWrapper icon={QuestionIcon}>
+			{children}
+		</SharedToolMessageWrapper>
 	)
 }

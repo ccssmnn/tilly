@@ -460,18 +460,18 @@ function ActionsDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent align="center">
+			<DropdownMenuContent align="center" className="w-auto">
 				<DropdownMenuItem onClick={handleDone}>
-					<T k="reminder.actions.markDone" />
 					<CheckLg />
+					<T k="reminder.actions.markDone" />
 				</DropdownMenuItem>
 				<DropdownMenuItem onClick={onEditClick}>
-					<T k="reminder.actions.edit" />
 					<PencilSquare />
+					<T k="reminder.actions.edit" />
 				</DropdownMenuItem>
 				<DropdownMenuItem onClick={onAddNoteClick}>
-					<T k="reminder.actions.addNote" />
 					<FileEarmarkText />
+					<T k="reminder.actions.addNote" />
 				</DropdownMenuItem>
 				{showPerson && (
 					<DropdownMenuItem
@@ -481,15 +481,15 @@ function ActionsDropdown({
 								params={{ personID: person.$jazz.id }}
 								onClick={() => onOpenChange(false)}
 							>
-								<T k="reminder.actions.viewPerson" />
 								<PersonFill />
+								<T k="reminder.actions.viewPerson" />
 							</Link>
 						}
 					/>
 				)}
 				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
-					<T k="reminder.actions.delete" />
 					<Trash />
+					<T k="reminder.actions.delete" />
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
@@ -617,17 +617,17 @@ function RestoreReminderDropdown({
 		<>
 			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 				{children}
-				<DropdownMenuContent align="center">
+				<DropdownMenuContent align="center" className="w-auto">
 					<DropdownMenuItem onClick={handleRestore}>
-						<T k="reminder.restore.button" />
 						<ArrowCounterclockwise />
+						<T k="reminder.restore.button" />
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						variant="destructive"
 						onClick={() => setConfirmDeleteOpen(true)}
 					>
-						<T k="reminder.restore.permanentDelete" />
 						<Trash />
+						<T k="reminder.restore.permanentDelete" />
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
@@ -680,14 +680,14 @@ function DoneReminderDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent align="center">
+			<DropdownMenuContent align="center" className="w-auto">
 				<DropdownMenuItem onClick={handleUndone}>
-					<T k="reminder.done.markUndone" />
 					<ArrowCounterclockwise />
+					<T k="reminder.done.markUndone" />
 				</DropdownMenuItem>
 				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
-					<T k="reminder.actions.delete" />
 					<Trash />
+					<T k="reminder.actions.delete" />
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

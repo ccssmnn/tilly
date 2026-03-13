@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from "react"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { Alert, AlertDescription } from "#shared/ui/alert"
+import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
 	Dialog,
 	DialogContent,
@@ -16,7 +16,6 @@ import { useChatHistory } from "#app/hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import { createAddNoteTool } from "#shared/tools/note-create"
 import { updateNote } from "#shared/tools/note-update"
-import { cn } from "#app/lib/utils"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import type { InferToolOutput } from "ai"
@@ -177,16 +176,12 @@ function ToolMessageWrapper({
 	dialogOpen?: boolean
 }) {
 	return (
-		<Alert
-			className={cn(
-				onClick && "hover:bg-accent cursor-pointer",
-				dialogOpen && "bg-accent",
-			)}
+		<SharedToolMessageWrapper
+			icon={File02Icon}
+			onClick={onClick}
+			dialogOpen={dialogOpen}
 		>
-			<HugeiconsIcon icon={File02Icon} className="h-4 w-4" />
-			<AlertDescription className="text-sm" onClick={onClick}>
-				{children}
-			</AlertDescription>
-		</Alert>
+			{children}
+		</SharedToolMessageWrapper>
 	)
 }

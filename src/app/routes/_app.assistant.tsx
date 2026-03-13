@@ -715,7 +715,6 @@ function UserInput(props: {
 													variant="destructive"
 													onClick={props.stopGeneratingResponse}
 													size="icon-sm"
-													className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
 													aria-label="Stop response generation"
 													title="Stop response generation"
 												>
@@ -725,9 +724,9 @@ function UserInput(props: {
 												<InputGroupButton
 													type="submit"
 													size="icon-sm"
-													className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
 													disabled={props.disabled}
 													aria-label="Send message"
+													variant="default"
 													title="Send message"
 												>
 													<Send />

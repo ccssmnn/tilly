@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from "react"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { Alert, AlertDescription } from "#shared/ui/alert"
+import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
 	Dialog,
 	DialogContent,
@@ -26,7 +26,6 @@ import {
 import type { AddToolResultFunction } from "#shared/tools/tools"
 import type { InferUITool } from "ai"
 import { updatePerson } from "#shared/tools/person-update"
-import { cn } from "#app/lib/utils"
 import { T, useIntl } from "#shared/intl/setup"
 import {
 	Card,
@@ -284,16 +283,12 @@ function ToolMessageWrapper({
 	dialogOpen?: boolean
 }) {
 	return (
-		<Alert
-			className={cn(
-				onClick && "hover:bg-accent cursor-pointer",
-				dialogOpen && "bg-accent",
-			)}
+		<SharedToolMessageWrapper
+			icon={UserMultipleIcon}
+			onClick={onClick}
+			dialogOpen={dialogOpen}
 		>
-			<HugeiconsIcon icon={UserMultipleIcon} className="h-4 w-4" />
-			<AlertDescription className="text-sm" onClick={onClick}>
-				{children}
-			</AlertDescription>
-		</Alert>
+			{children}
+		</SharedToolMessageWrapper>
 	)
 }

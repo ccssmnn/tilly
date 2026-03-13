@@ -39,7 +39,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 } from "react-bootstrap-icons"
-import { useState, useEffect, type ReactNode } from "react"
+import { useState, useEffect, useMemo, type ReactNode } from "react"
 import { NoteForm } from "./note-form"
 import { formatDistanceToNow } from "date-fns"
 import { cn, isTextSelectionOngoing } from "#app/lib/utils"
@@ -100,6 +100,54 @@ function NoteListItem(props: {
 				.some(reminder => isDueToday(reminder))
 		: false
 
+	let deletedSwipeActions = useMemo(
+		() => ({
+			leftAction: {
+				icon: Trash,
+				label: t("note.permanentDelete.confirm"),
+				color: "destructive",
+				onAction: () => setConfirmPermanentDeleteOpen(true),
+			} satisfies SwipeAction,
+			rightActions: {
+				primary: {
+					icon: RestoreIcon,
+					label: t("note.restore.button"),
+					color: "success",
+					onAction: () => operations.restore(),
+				} satisfies SwipeAction,
+			},
+		}),
+		[operations, t],
+	)
+
+	let activeSwipeActions = useMemo(
+		() => ({
+			leftAction: {
+				icon: Trash,
+				label: t("note.actions.delete"),
+				color: "destructive",
+				onAction: () => operations.deleteNote(),
+			} satisfies SwipeAction,
+			rightActions: {
+				primary: {
+					icon: Pin,
+					label: props.note.pinned
+						? t("note.actions.unpin")
+						: t("note.actions.pin"),
+					color: "primary",
+					onAction: () => operations.togglePin(),
+				} satisfies SwipeAction,
+				secondary: {
+					icon: PencilSquare,
+					label: t("note.actions.edit"),
+					color: "warning",
+					onAction: () => setOpenDrawer("edit"),
+				} satisfies SwipeAction,
+			},
+		}),
+		[operations, props.note.pinned, t],
+	)
+
 	if (!me.$isLoaded) return null
 
 	let lines = props.note.content.split("\n")
@@ -115,48 +163,6 @@ function NoteListItem(props: {
 		if (hasCharOverflow && displayContent.length > CHAR_LIMIT) {
 			displayContent = displayContent.slice(0, CHAR_LIMIT) + "..."
 		}
-	}
-
-	let deletedSwipeActions = {
-		leftAction: {
-			icon: Trash,
-			label: t("note.permanentDelete.confirm"),
-			color: "destructive",
-			onAction: () => setConfirmPermanentDeleteOpen(true),
-		} satisfies SwipeAction,
-		rightActions: {
-			primary: {
-				icon: RestoreIcon,
-				label: t("note.restore.button"),
-				color: "success",
-				onAction: () => operations.restore(),
-			} satisfies SwipeAction,
-		},
-	}
-
-	let activeSwipeActions = {
-		leftAction: {
-			icon: Trash,
-			label: t("note.actions.delete"),
-			color: "destructive",
-			onAction: () => operations.deleteNote(),
-		} satisfies SwipeAction,
-		rightActions: {
-			primary: {
-				icon: Pin,
-				label: props.note.pinned
-					? t("note.actions.unpin")
-					: t("note.actions.pin"),
-				color: "primary",
-				onAction: () => operations.togglePin(),
-			} satisfies SwipeAction,
-			secondary: {
-				icon: PencilSquare,
-				label: t("note.actions.edit"),
-				color: "warning",
-				onAction: () => setOpenDrawer("edit"),
-			} satisfies SwipeAction,
-		},
 	}
 
 	if (props.note.deletedAt) {
@@ -241,7 +247,10 @@ function NoteListItem(props: {
 			<SwipeableListItem itemKey={props.note.$jazz.id} {...activeSwipeActions}>
 				<ActionsDropdown
 					open={openDrawer === "actions"}
-					onOpenChange={open => setOpenDrawer(open ? "actions" : undefined)}
+					onOpenChange={open => {
+						if (!open && openDrawer === "edit") return
+						setOpenDrawer(open ? "actions" : undefined)
+					}}
 					onEditClick={() => setOpenDrawer("edit")}
 					showPerson={showPerson}
 					person={props.person}
@@ -506,10 +515,10 @@ function ActionsDropdown({
 	return (
 		<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 			{children}
-			<DropdownMenuContent align="center">
-				<DropdownMenuItem onClick={onEditClick}>
-					<T k="note.actions.edit" />
+			<DropdownMenuContent align="center" className="w-auto">
+				<DropdownMenuItem onSelect={onEditClick}>
 					<PencilSquare />
+					<T k="note.actions.edit" />
 				</DropdownMenuItem>
 				{showPerson && (
 					<DropdownMenuItem
@@ -519,15 +528,15 @@ function ActionsDropdown({
 								params={{ personID: person.$jazz.id }}
 								onClick={() => onOpenChange(false)}
 							>
-								<T k="note.actions.viewPerson" />
 								<PersonFill />
+								<T k="note.actions.viewPerson" />
 							</Link>
 						}
 					/>
 				)}
-				<DropdownMenuItem variant="destructive" onClick={handleDelete}>
-					<T k="note.actions.delete" />
+				<DropdownMenuItem variant="destructive" onSelect={handleDelete}>
 					<Trash />
+					<T k="note.actions.delete" />
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
@@ -618,17 +627,17 @@ function RestoreNoteDropdown({
 		<>
 			<DropdownMenu open={open} onOpenChange={onOpenChange} modal>
 				{children}
-				<DropdownMenuContent align="center">
-					<DropdownMenuItem onClick={handleRestore}>
-						<T k="note.restore.button" />
+				<DropdownMenuContent align="center" className="w-auto">
+					<DropdownMenuItem onSelect={handleRestore}>
 						<ArrowCounterclockwise />
+						<T k="note.restore.button" />
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						variant="destructive"
-						onClick={() => setConfirmDeleteOpen(true)}
+						onSelect={() => setConfirmDeleteOpen(true)}
 					>
-						<T k="note.restore.permanentDelete" />
 						<Trash />
+						<T k="note.restore.permanentDelete" />
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
@@ -849,13 +858,17 @@ function useNoteItemOperations({
 		return true
 	}
 
-	return {
-		editNote,
-		deleteNote,
-		togglePin,
-		restore,
-		deletePermanently,
-	}
+	return useMemo(
+		() => ({
+			editNote,
+			deleteNote,
+			togglePin,
+			restore,
+			deletePermanently,
+		}),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[loadedMe.$jazz.id, note.$jazz.id],
+	)
 }
 
 let expandedNoteIDs = new Set<string>()

@@ -121,7 +121,11 @@ function SwipeableContent({
 			className={cn("relative overflow-hidden", className)}
 			style={{ touchAction: "pan-y" }}
 			onPointerDown={e => {
+				let target = e.target as HTMLElement | null
 				if (e.pointerType !== "touch") return
+				if (target?.closest("[data-swipe-action]")) {
+					return
+				}
 
 				if (activeSwipeId !== id) {
 					closeActiveSwipe()
@@ -212,7 +216,7 @@ function ActionsGroup({
 
 	// Only enable pointer events when swiped open (prevents iOS Safari clicking hidden actions)
 	let pointerEvents = useTransform(swipeAmount, value =>
-		(isLeft && value < -5) || (!isLeft && value > 5) ? "auto" : "none",
+		(isLeft && value > 5) || (!isLeft && value < -5) ? "auto" : "none",
 	)
 
 	let { measureRef: primaryMeasureRef, width: primaryLabelWidth } =
@@ -279,6 +283,7 @@ function ActionsGroup({
 
 			<motion.button
 				type="button"
+				data-swipe-action
 				onClick={() => {
 					primaryAction.onAction()
 					onReset()
@@ -302,6 +307,7 @@ function ActionsGroup({
 			{secondaryAction && (
 				<motion.button
 					type="button"
+					data-swipe-action
 					onClick={() => {
 						secondaryAction.onAction()
 						onReset()
@@ -517,10 +523,9 @@ function handlePointerUp(
 
 	if (refs.swipeState.current === "horizontal" && Math.abs(currentOffset) > 5) {
 		;(refs.didSwipeRef as React.RefObject<boolean>).current = true
-		setTimeout(
-			() => ((refs.didSwipeRef as React.RefObject<boolean>).current = false),
-			100,
-		)
+		setTimeout(() => {
+			;(refs.didSwipeRef as React.RefObject<boolean>).current = false
+		}, 100)
 	}
 
 	let rightSnapWidth = refs.rightActionsRef.current
@@ -557,7 +562,7 @@ function handlePointerUp(
 		}
 
 		targetOffset = 0
-		animate(values.swipeAmount, targetOffset, { ...SPRING_CONFIG, delay: 0.1 })
+		animate(values.swipeAmount, targetOffset, { ...SPRING_CONFIG, delay: 0.15 })
 	} else {
 		animate(values.swipeAmount, targetOffset, SPRING_CONFIG)
 	}
