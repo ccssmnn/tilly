@@ -2,14 +2,10 @@ import { useState } from "react"
 import { type InferUITool } from "ai"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	ToolMessageAccordion,
+	ToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -112,75 +108,70 @@ function AddReminderResult({ result }: { result: _AddReminderTool["output"] }) {
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				icon={Notification01Icon}
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T
-						k="tool.reminder.created.message"
-						params={{
-							text: `"${result.text.length > 50 ? result.text.substring(0, 50) + "..." : result.text}"`,
-						}}
-					/>
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={Notification01Icon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T
+					k="tool.reminder.created.message"
+					params={{
+						text: `"${result.text.length > 50 ? result.text.substring(0, 50) + "..." : result.text}"`,
+					}}
+				/>
+			}
+			content={
+				<div className="space-y-4">
+					<div>
+						<h3 className="text-base font-semibold">
 							<T k="tool.reminder.created.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</h3>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.reminder.created.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.reminder.created.dialog.section" />
-							</h4>
-							<ReminderDetails
-								text={result.text}
-								dueAt={result.dueAtDate}
-								repeat={result.repeat}
-								done={result.done}
-							/>
-						</div>
-						<div className="flex gap-3">
-							<Button variant="outline" className="flex-1">
-								<Link
-									to="/people/$personID"
-									params={{ personID: result.personId }}
-									search={{ tab: "reminders" }}
-									hash={`reminder-${result.reminderId}`}
-								>
-									<T k="tool.viewPerson" />
-								</Link>
-							</Button>
-							<Button
-								variant="destructive"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
-							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.undo" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					<div>
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.reminder.created.dialog.section" />
+						</h4>
+						<ReminderDetails
+							text={result.text}
+							dueAt={result.dueAtDate}
+							repeat={result.repeat}
+							done={result.done}
+						/>
+					</div>
+					<div className="flex gap-3">
+						<Button variant="outline" className="flex-1">
+							<Link
+								to="/people/$personID"
+								params={{ personID: result.personId }}
+								search={{ tab: "reminders" }}
+								hash={`reminder-${result.reminderId}`}
+							>
+								<T k="tool.viewPerson" />
+							</Link>
+						</Button>
+						<Button
+							variant="destructive"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.undo" />
+						</Button>
+					</div>
+				</div>
+			}
+		/>
 	)
 }
 

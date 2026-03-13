@@ -1,13 +1,9 @@
 import { useState } from "react"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
+import {
+	ToolMessageAccordion,
+	ToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import { Notification01Icon } from "@hugeicons/core-free-icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
@@ -47,89 +43,75 @@ function ListRemindersResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				icon={Notification01Icon}
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T
-						k="tool.reminder.list.message.count"
-						params={{ count: filteredCount || totalCount }}
-					/>
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={Notification01Icon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T
+					k="tool.reminder.list.message.count"
+					params={{ count: filteredCount || totalCount }}
+				/>
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<h3 className="text-base font-semibold">
 							<T k="tool.reminder.list.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</h3>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.reminder.list.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div className="space-y-2">
-							{reminders.length === 0 ? (
-								<p className="text-muted-foreground text-sm">
-									{dueOnly
-										? t("tool.reminder.list.empty.noDue")
-										: searchQuery
-											? t("tool.reminder.list.empty.noMatch")
-											: t("tool.reminder.list.empty.noActive")}
-								</p>
-							) : (
-								<div className="space-y-2 text-sm">
-									{reminders.slice(0, 5).map(reminder => (
-										<div
-											key={reminder.id}
-											className="border-border rounded-md border p-2"
-										>
-											<p className="truncate font-medium">{reminder.text}</p>
-											<p className="text-muted-foreground text-xs">
-												{reminder.person.name}
-												{reminder.dueAtDate && (
-													<span>
-														{" "}
-														•{" "}
-														{new Date(reminder.dueAtDate).toLocaleDateString(
-															locale,
-														)}
-													</span>
-												)}
-											</p>
-										</div>
-									))}
-									{reminders.length > 5 && (
-										<div className="pt-2 text-center">
-											<p className="text-muted-foreground text-xs">
-												<T
-													k="tool.reminder.list.andMore"
-													params={{ count: reminders.length - 5 }}
-												/>
-											</p>
-										</div>
-									)}
-								</div>
-							)}
-						</div>
-						<div className="flex gap-3">
-							<Button
-								variant="outline"
-								className="flex-1"
-								onClick={() => setDrawerOpen(false)}
-							>
-								<T k="common.cancel" />
-							</Button>
-							<Button className="flex-1" onClick={handleViewReminders}>
-								<T k="tool.viewReminders" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					<div className="space-y-2">
+						{reminders.length === 0 ? (
+							<p className="text-muted-foreground text-sm">
+								{dueOnly
+									? t("tool.reminder.list.empty.noDue")
+									: searchQuery
+										? t("tool.reminder.list.empty.noMatch")
+										: t("tool.reminder.list.empty.noActive")}
+							</p>
+						) : (
+							<div className="space-y-2 text-sm">
+								{reminders.slice(0, 5).map(reminder => (
+									<div
+										key={reminder.id}
+										className="border-border rounded-md border p-2"
+									>
+										<p className="truncate font-medium">{reminder.text}</p>
+										<p className="text-muted-foreground text-xs">
+											{reminder.person.name}
+											{reminder.dueAtDate && (
+												<span>
+													{" "}
+													•{" "}
+													{new Date(reminder.dueAtDate).toLocaleDateString(
+														locale,
+													)}
+												</span>
+											)}
+										</p>
+									</div>
+								))}
+								{reminders.length > 5 && (
+									<div className="pt-2 text-center">
+										<p className="text-muted-foreground text-xs">
+											<T
+												k="tool.reminder.list.andMore"
+												params={{ count: reminders.length - 5 }}
+											/>
+										</p>
+									</div>
+								)}
+							</div>
+						)}
+					</div>
+					<Button className="w-full" onClick={handleViewReminders}>
+						<T k="tool.viewReminders" />
+					</Button>
+				</div>
+			}
+		/>
 	)
 }

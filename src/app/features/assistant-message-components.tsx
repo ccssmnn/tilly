@@ -16,8 +16,10 @@ export function UserMessage({ message }: { message: TillyUIMessage }) {
 	}
 
 	return (
-		<div className="bg-primary/25 rounded-lg px-4 py-2 whitespace-pre-wrap select-text">
-			{textContent}
+		<div className="flex w-full justify-end">
+			<div className="bg-primary/25 max-w-[80%] rounded-lg px-4 py-2 whitespace-pre-wrap select-text">
+				{textContent}
+			</div>
 		</div>
 	)
 }

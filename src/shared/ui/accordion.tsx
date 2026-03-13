@@ -63,17 +63,59 @@ function AccordionTrigger({
 function AccordionContent({
 	className,
 	children,
+	onTransitionStart,
+	onTransitionEnd,
+	onAnimationStart,
+	onAnimationEnd,
 	...props
 }: AccordionPrimitive.Panel.Props) {
 	return (
 		<AccordionPrimitive.Panel
 			data-slot="accordion-content"
-			className="data-open:animate-accordion-down data-closed:animate-accordion-up overflow-hidden px-4 text-sm"
+			className="h-(--accordion-panel-height) overflow-hidden px-4 text-sm transition-[height] duration-200 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
+			onTransitionStart={event => {
+				if (import.meta.env.DEV) {
+					console.debug("[Accordion] transition start", {
+						propertyName: event.propertyName,
+						height: event.currentTarget.style.height,
+						dataset: { ...event.currentTarget.dataset },
+					})
+				}
+				onTransitionStart?.(event)
+			}}
+			onTransitionEnd={event => {
+				if (import.meta.env.DEV) {
+					console.debug("[Accordion] transition end", {
+						propertyName: event.propertyName,
+						height: event.currentTarget.style.height,
+						dataset: { ...event.currentTarget.dataset },
+					})
+				}
+				onTransitionEnd?.(event)
+			}}
+			onAnimationStart={event => {
+				if (import.meta.env.DEV) {
+					console.debug("[Accordion] animation start", {
+						animationName: event.animationName,
+						dataset: { ...event.currentTarget.dataset },
+					})
+				}
+				onAnimationStart?.(event)
+			}}
+			onAnimationEnd={event => {
+				if (import.meta.env.DEV) {
+					console.debug("[Accordion] animation end", {
+						animationName: event.animationName,
+						dataset: { ...event.currentTarget.dataset },
+					})
+				}
+				onAnimationEnd?.(event)
+			}}
 			{...props}
 		>
 			<div
 				className={cn(
-					"pointer-fine:[&_a]:hover:text-foreground h-(--accordion-panel-height) pt-0 pb-4 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
+					"pointer-fine:[&_a]:hover:text-foreground pt-0 pb-4 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
 					className,
 				)}
 			>

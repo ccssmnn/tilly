@@ -1,13 +1,9 @@
 import { useState } from "react"
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
+import {
+	ToolMessageAccordion,
+	ToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import { File02Icon } from "@hugeicons/core-free-icons"
 import { useNavigate } from "@tanstack/react-router"
 import { useAppStore } from "#app/lib/store"
@@ -70,26 +66,21 @@ function ListNotesResult({
 
 	return (
 		<>
-			<ToolMessageWrapper
+			<ToolMessageAccordion
 				icon={File02Icon}
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T k={messageKey} params={messageParams} />
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
-							<T k="tool.note.list.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T k="tool.note.list.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
+				open={dialogOpen}
+				onOpenChange={setDrawerOpen}
+				summary={<T k={messageKey} params={messageParams} />}
+				content={
 					<div className="space-y-4">
+						<div className="space-y-1">
+							<p className="text-sm font-medium">
+								<T k="tool.note.list.dialog.title" />
+							</p>
+							<p className="text-muted-foreground text-sm">
+								<T k="tool.note.list.dialog.description" />
+							</p>
+						</div>
 						<div className="space-y-1">
 							<h4 className="text-sm font-medium">
 								<T k="tool.note.list.dialog.results" />
@@ -149,27 +140,18 @@ function ListNotesResult({
 								/>
 							</p>
 						)}
-						<div className="flex gap-3">
-							<Button
-								variant="outline"
-								className="flex-1"
-								onClick={() => setDrawerOpen(false)}
-							>
-								<T k="common.cancel" />
+						{searchQuery ? (
+							<Button className="w-full" onClick={handleViewSearchResults}>
+								<T k="tool.note.list.viewSearchResults" />
 							</Button>
-							{searchQuery ? (
-								<Button className="flex-1" onClick={handleViewSearchResults}>
-									<T k="tool.note.list.viewSearchResults" />
-								</Button>
-							) : (
-								<Button className="flex-1" onClick={handleViewNotes}>
-									<T k="tool.note.list.viewNotes" />
-								</Button>
-							)}
-						</div>
+						) : (
+							<Button className="w-full" onClick={handleViewNotes}>
+								<T k="tool.note.list.viewNotes" />
+							</Button>
+						)}
 					</div>
-				</DialogContent>
-			</Dialog>
+				}
+			/>
 		</>
 	)
 }

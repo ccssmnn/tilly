@@ -1,14 +1,10 @@
 import { type ReactNode, useState } from "react"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	ToolMessageAccordion,
+	ToolMessageWrapper as SharedToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { RefreshIcon, PauseIcon, File02Icon } from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
@@ -110,91 +106,87 @@ function EditNoteResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T
-						k="tool.note.updated.message"
-						params={{
-							content: `"${result.content?.substring(0, 50) || ""}${(result.content?.length || 0) > 50 ? "..." : ""}"`,
-						}}
-					/>
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={File02Icon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T
+					k="tool.note.updated.message"
+					params={{
+						content: `"${result.content?.substring(0, 50) || ""}${(result.content?.length || 0) > 50 ? "..." : ""}"`,
+					}}
+				/>
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="text-sm font-medium">
 							<T k="tool.note.updated.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</p>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.note.updated.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						{result.content && (
-							<div>
-								<h4 className="mb-2 text-sm font-medium">
-									<T k="tool.note.updated.dialog.current" />
-								</h4>
-								<p className="text-sm whitespace-pre-line">{result.content}</p>
-								{result.pinned && (
-									<p className="text-muted-foreground mt-1 text-sm">
-										<T k="tool.note.pinned" />
-									</p>
-								)}
-							</div>
-						)}
-						{result.previous && (
-							<div className="text-muted-foreground">
-								<h4 className="mb-2 text-sm font-medium">
-									<T k="tool.note.updated.dialog.previous" />
-								</h4>
-								<p className="text-sm whitespace-pre-line">
-									{result.previous.content}
-								</p>
-								{result.previous.pinned && (
-									<p className="mt-1 text-sm">
-										<T k="tool.note.pinned" />
-									</p>
-								)}
-							</div>
-						)}
-						<div className="flex gap-3">
-							<Button variant="outline" className="flex-1">
-								<Link
-									to="/people/$personID"
-									params={{ personID: result.personId }}
-									search={{ tab: "notes" }}
-									hash={`note-${result.noteId}`}
-								>
-									<T k="tool.viewPerson" />
-								</Link>
-							</Button>
-							<Button
-								variant="destructive"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
-							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.undo" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					{result.content && (
+						<div>
+							<h4 className="mb-2 text-sm font-medium">
+								<T k="tool.note.updated.dialog.current" />
+							</h4>
+							<p className="text-sm whitespace-pre-line">{result.content}</p>
+							{result.pinned && (
+								<p className="text-muted-foreground mt-1 text-sm">
+									<T k="tool.note.pinned" />
+								</p>
+							)}
+						</div>
+					)}
+					{result.previous && (
+						<div className="text-muted-foreground">
+							<h4 className="mb-2 text-sm font-medium">
+								<T k="tool.note.updated.dialog.previous" />
+							</h4>
+							<p className="text-sm whitespace-pre-line">
+								{result.previous.content}
+							</p>
+							{result.previous.pinned && (
+								<p className="mt-1 text-sm">
+									<T k="tool.note.pinned" />
+								</p>
+							)}
+						</div>
+					)}
+					<div className="flex gap-3">
+						<Button variant="outline" className="flex-1">
+							<Link
+								to="/people/$personID"
+								params={{ personID: result.personId }}
+								search={{ tab: "notes" }}
+								hash={`note-${result.noteId}`}
+							>
+								<T k="tool.viewPerson" />
+							</Link>
+						</Button>
+						<Button
+							variant="destructive"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.undo" />
+						</Button>
+					</div>
+				</div>
+			}
+		/>
 	)
 }
 
@@ -271,64 +263,60 @@ function DeleteNoteResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T
-						k="tool.note.deleted.message"
-						params={{
-							content: `"${result.content?.substring(0, 50) || ""}${(result.content?.length || 0) > 50 ? "..." : ""}"`,
-						}}
-					/>
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={File02Icon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T
+					k="tool.note.deleted.message"
+					params={{
+						content: `"${result.content?.substring(0, 50) || ""}${(result.content?.length || 0) > 50 ? "..." : ""}"`,
+					}}
+				/>
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="text-sm font-medium">
 							<T k="tool.note.deleted.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</p>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.note.deleted.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.note.deleted.dialog.section" />
-							</h4>
-							<p className="text-sm whitespace-pre-line">{result.content}</p>
-							{result.pinned && (
-								<p className="text-muted-foreground mt-1 text-sm">
-									<T k="tool.note.pinned" />
-								</p>
-							)}
-						</div>
-						<div className="flex gap-3">
-							<Button
-								variant="secondary"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
-							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.restore" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					<div>
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.note.deleted.dialog.section" />
+						</h4>
+						<p className="text-sm whitespace-pre-line">{result.content}</p>
+						{result.pinned && (
+							<p className="text-muted-foreground mt-1 text-sm">
+								<T k="tool.note.pinned" />
+							</p>
+						)}
+					</div>
+					<div className="flex gap-3">
+						<Button
+							variant="secondary"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.restore" />
+						</Button>
+					</div>
+				</div>
+			}
+		/>
 	)
 }
 

@@ -2,14 +2,10 @@ import { type ReactNode, useState } from "react"
 import { type InferUITool } from "ai"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	ToolMessageAccordion,
+	ToolMessageWrapper as SharedToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -121,82 +117,78 @@ function UpdateReminderResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T k="tool.reminder.updated.message" params={{ text: textPreview }} />
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={Notification01Icon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T k="tool.reminder.updated.message" params={{ text: textPreview }} />
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="text-sm font-medium">
 							<T k="tool.reminder.updated.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</p>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.reminder.updated.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
+						</p>
+					</div>
+					<div>
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.reminder.updated.dialog.current" />
+						</h4>
+						<ReminderDetails
+							text={result.text}
+							dueAt={result.dueAtDate}
+							repeat={result.repeat}
+							done={result.done}
+						/>
+					</div>
+					{result.previous && (
+						<div className="text-muted-foreground">
 							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.reminder.updated.dialog.current" />
+								<T k="tool.reminder.updated.dialog.previous" />
 							</h4>
 							<ReminderDetails
-								text={result.text}
-								dueAt={result.dueAtDate}
-								repeat={result.repeat}
-								done={result.done}
+								text={result.previous.text}
+								dueAt={result.previous.dueAtDate}
+								repeat={result.previous.repeat}
+								done={result.previous.done}
 							/>
 						</div>
-						{result.previous && (
-							<div className="text-muted-foreground">
-								<h4 className="mb-2 text-sm font-medium">
-									<T k="tool.reminder.updated.dialog.previous" />
-								</h4>
-								<ReminderDetails
-									text={result.previous.text}
-									dueAt={result.previous.dueAtDate}
-									repeat={result.previous.repeat}
-									done={result.previous.done}
-								/>
-							</div>
-						)}
-						<div className="flex gap-3">
-							<Button variant="outline" className="flex-1">
-								<Link
-									to="/people/$personID"
-									params={{ personID: result.personId }}
-									search={{ tab: "reminders" }}
-									hash={`reminder-${result.reminderId}`}
-								>
-									<T k="tool.viewPerson" />
-								</Link>
-							</Button>
-							<Button
-								variant="destructive"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
+					)}
+					<div className="flex gap-3">
+						<Button variant="outline" className="flex-1">
+							<Link
+								to="/people/$personID"
+								params={{ personID: result.personId }}
+								search={{ tab: "reminders" }}
+								hash={`reminder-${result.reminderId}`}
 							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.undo" />
-							</Button>
-						</div>
+								<T k="tool.viewPerson" />
+							</Link>
+						</Button>
+						<Button
+							variant="destructive"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.undo" />
+						</Button>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+				</div>
+			}
+		/>
 	)
 }
 
@@ -277,69 +269,65 @@ function RemoveReminderResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T k="tool.reminder.deleted.message" params={{ text: textPreview }} />
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={Notification01Icon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T k="tool.reminder.deleted.message" params={{ text: textPreview }} />
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="text-sm font-medium">
 							<T k="tool.reminder.deleted.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</p>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.reminder.deleted.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.reminder.deleted.dialog.section" />
-							</h4>
-							<ReminderDetails
-								text={result.text}
-								dueAt={result.dueAtDate}
-								repeat={result.repeat}
-								done={result.done}
-							/>
-						</div>
-						<div className="flex gap-3">
-							<Button variant="outline" className="flex-1">
-								<Link
-									to="/people/$personID"
-									params={{ personID: result.personId }}
-									search={{ tab: "reminders" }}
-									hash={`reminder-${result.reminderId}`}
-								>
-									<T k="tool.viewPerson" />
-								</Link>
-							</Button>
-							<Button
-								variant="secondary"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
-							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.restore" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					<div>
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.reminder.deleted.dialog.section" />
+						</h4>
+						<ReminderDetails
+							text={result.text}
+							dueAt={result.dueAtDate}
+							repeat={result.repeat}
+							done={result.done}
+						/>
+					</div>
+					<div className="flex gap-3">
+						<Button variant="outline" className="flex-1">
+							<Link
+								to="/people/$personID"
+								params={{ personID: result.personId }}
+								search={{ tab: "reminders" }}
+								hash={`reminder-${result.reminderId}`}
+							>
+								<T k="tool.viewPerson" />
+							</Link>
+						</Button>
+						<Button
+							variant="secondary"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.restore" />
+						</Button>
+					</div>
+				</div>
+			}
+		/>
 	)
 }
 

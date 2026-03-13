@@ -4,7 +4,10 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
+import {
+	ToolMessageSummary,
+	ToolMessageWrapper as SharedToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import {
 	Card,
 	CardContent,
@@ -211,6 +214,7 @@ function UserQuestionResult({
 	result: UserQuestionToolUI["output"]
 }) {
 	let t = useIntl()
+
 	if ("error" in result) {
 		return (
 			<ToolMessageWrapper>
@@ -235,16 +239,14 @@ function UserQuestionResult({
 			: result.answerLabel || result.answer
 
 	return (
-		<ToolMessageWrapper>
-			<div className="space-y-1">
-				<div className="text-muted-foreground text-sm">
-					{t("tool.userQuestion.result.questionLabel")} {result.question}
-				</div>
-				<div className="font-medium">
+		<ToolMessageSummary icon={QuestionIcon}>
+			<span>
+				{t("tool.userQuestion.result.questionLabel")} {result.question} -{" "}
+				<span className="text-foreground font-medium">
 					{t("tool.userQuestion.result.answerLabel")} {answerDisplay}
-				</div>
-			</div>
-		</ToolMessageWrapper>
+				</span>
+			</span>
+		</ToolMessageSummary>
 	)
 }
 

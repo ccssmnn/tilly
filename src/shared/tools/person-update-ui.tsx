@@ -2,14 +2,10 @@ import { type ReactNode, useState } from "react"
 import { type InferUITool } from "ai"
 import { nanoid } from "nanoid"
 import { Button } from "#shared/ui/button"
-import { ToolMessageWrapper as SharedToolMessageWrapper } from "#shared/ui/tool-message-wrapper"
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "#shared/ui/dialog"
+	ToolMessageAccordion,
+	ToolMessageWrapper as SharedToolMessageWrapper,
+} from "#shared/ui/tool-message-wrapper"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	RefreshIcon,
@@ -115,79 +111,75 @@ function UpdatePersonResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T
-						k="tool.person.updated.message"
-						params={{ name: `"${result.current.name}"` }}
-					/>
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={UserMultipleIcon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T
+					k="tool.person.updated.message"
+					params={{ name: `"${result.current.name}"` }}
+				/>
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="text-sm font-medium">
 							<T k="tool.person.updated.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</p>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.person.updated.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.person.updated.dialog.current" />
-							</h4>
-							<p className="text-sm font-medium">{result.current.name}</p>
-							{result.current.summary && (
-								<p className="text-muted-foreground mt-1 text-sm">
-									{result.current.summary}
-								</p>
-							)}
-						</div>
-						<div className="text-muted-foreground">
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.person.updated.dialog.previous" />
-							</h4>
-							<p className="text-sm font-medium">{result.previous.name}</p>
-							{result.previous.summary && (
-								<p className="mt-1 text-sm">{result.previous.summary}</p>
-							)}
-						</div>
-						<div className="flex gap-3">
-							<Button variant="outline" className="flex-1">
-								<Link
-									to="/people/$personID"
-									params={{ personID: result.personId }}
-								>
-									<T k="tool.viewPerson" />
-								</Link>
-							</Button>
-							<Button
-								variant="destructive"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
-							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.undo" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					<div>
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.person.updated.dialog.current" />
+						</h4>
+						<p className="text-sm font-medium">{result.current.name}</p>
+						{result.current.summary && (
+							<p className="text-muted-foreground mt-1 text-sm">
+								{result.current.summary}
+							</p>
+						)}
+					</div>
+					<div className="text-muted-foreground">
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.person.updated.dialog.previous" />
+						</h4>
+						<p className="text-sm font-medium">{result.previous.name}</p>
+						{result.previous.summary && (
+							<p className="mt-1 text-sm">{result.previous.summary}</p>
+						)}
+					</div>
+					<div className="flex gap-3">
+						<Button variant="outline" className="flex-1">
+							<Link
+								to="/people/$personID"
+								params={{ personID: result.personId }}
+							>
+								<T k="tool.viewPerson" />
+							</Link>
+						</Button>
+						<Button
+							variant="destructive"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.undo" />
+						</Button>
+					</div>
+				</div>
+			}
+		/>
 	)
 }
 
@@ -262,62 +254,58 @@ function DeletePersonResult({
 	}
 
 	return (
-		<>
-			<ToolMessageWrapper
-				onClick={() => setDrawerOpen(true)}
-				dialogOpen={dialogOpen}
-			>
-				<span className="cursor-pointer">
-					<T
-						k="tool.person.deleted.message"
-						params={{ name: `"${result.name}"` }}
-					/>
-				</span>
-			</ToolMessageWrapper>
-			<Dialog open={dialogOpen} onOpenChange={setDrawerOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
+		<ToolMessageAccordion
+			icon={UserMultipleIcon}
+			open={dialogOpen}
+			onOpenChange={setDrawerOpen}
+			summary={
+				<T
+					k="tool.person.deleted.message"
+					params={{ name: `"${result.name}"` }}
+				/>
+			}
+			content={
+				<div className="space-y-4">
+					<div className="space-y-1">
+						<p className="text-sm font-medium">
 							<T k="tool.person.deleted.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
+						</p>
+						<p className="text-muted-foreground text-sm">
 							<T k="tool.person.deleted.dialog.description" />
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.person.deleted.dialog.section" />
-							</h4>
-							<p className="text-sm font-medium">{result.name}</p>
-							{result.summary && (
-								<p className="text-muted-foreground mt-1 text-sm">
-									{result.summary}
-								</p>
-							)}
-						</div>
-						<div className="flex gap-3">
-							<Button
-								variant="secondary"
-								className="flex-1"
-								onClick={handleUndo}
-								disabled={isUndoing}
-							>
-								{isUndoing ? (
-									<HugeiconsIcon
-										icon={PauseIcon}
-										className="mr-2 h-3 w-3 animate-spin"
-									/>
-								) : (
-									<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
-								)}
-								<T k="tool.restore" />
-							</Button>
-						</div>
+						</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</>
+					<div>
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.person.deleted.dialog.section" />
+						</h4>
+						<p className="text-sm font-medium">{result.name}</p>
+						{result.summary && (
+							<p className="text-muted-foreground mt-1 text-sm">
+								{result.summary}
+							</p>
+						)}
+					</div>
+					<div className="flex gap-3">
+						<Button
+							variant="secondary"
+							className="flex-1"
+							onClick={handleUndo}
+							disabled={isUndoing}
+						>
+							{isUndoing ? (
+								<HugeiconsIcon
+									icon={PauseIcon}
+									className="mr-2 h-3 w-3 animate-spin"
+								/>
+							) : (
+								<HugeiconsIcon icon={RefreshIcon} className="mr-2 h-3 w-3" />
+							)}
+							<T k="tool.restore" />
+						</Button>
+					</div>
+				</div>
+			}
+		/>
 	)
 }
 

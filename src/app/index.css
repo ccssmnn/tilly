@@ -97,6 +97,43 @@
 }
 
 @layer utilities {
+	@keyframes accordion-down {
+		from {
+			height: 0;
+			opacity: 0;
+		}
+		to {
+			height: var(--accordion-panel-height);
+			opacity: 1;
+		}
+	}
+
+	@keyframes accordion-up {
+		from {
+			height: var(--accordion-panel-height);
+			opacity: 1;
+		}
+		to {
+			height: 0;
+			opacity: 0;
+		}
+	}
+
+	.animate-accordion-down {
+		animation: accordion-down 220ms ease-out;
+	}
+
+	.animate-accordion-up {
+		animation: accordion-up 180ms ease-out;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.animate-accordion-down,
+		.animate-accordion-up {
+			animation: none;
+		}
+	}
+
 	@keyframes pulse-scale {
 		0%,
 		100% {
