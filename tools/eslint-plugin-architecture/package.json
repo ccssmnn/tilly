@@ -1,0 +1,22 @@
+{
+	"name": "eslint-plugin-architecture",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc"
+	},
+	"peerDependencies": {
+		"eslint": ">=9"
+	},
+	"dependencies": {
+		"@typescript-eslint/utils": "^8.53.1"
+	},
+	"devDependencies": {
+		"@typescript-eslint/rule-tester": "^8.53.1",
+		"@typescript-eslint/parser": "^8.53.1",
+		"typescript": "5.9.3"
+	}
+}
