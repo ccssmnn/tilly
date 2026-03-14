@@ -87,6 +87,7 @@
 		"concurrently": "^9.2.1",
 		"dotenv-cli": "^11.0.0",
 		"eslint": "^9.39.2",
+		"eslint-plugin-architecture": "file:tools/eslint-plugin-architecture",
 		"eslint-plugin-astro": "^1.5.0",
 		"eslint-plugin-react": "^7.37.5",
 		"eslint-plugin-react-hooks": "^7.0.1",

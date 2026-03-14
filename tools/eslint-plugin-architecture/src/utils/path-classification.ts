@@ -72,15 +72,14 @@ export function classifyStructuralPath(structuralPath: string): Classification {
 	}
 
 	// src/app/features/<feature>/...
-	let appFeatureMatch = p.match(
-		/^src\/app\/features\/([^/]+)\/(.+)$/,
-	)
+	let appFeatureMatch = p.match(/^src\/app\/features\/([^/]+)\/(.+)$/)
 	if (appFeatureMatch) {
 		let feature = appFeatureMatch[1]
 		let rest = appFeatureMatch[2]
 
 		for (let [dir, zone] of Object.entries(FEATURE_ZONE_MAP)) {
-			if (dir === "handlers" || dir === "use-cases" || dir === "operations") continue
+			if (dir === "handlers" || dir === "use-cases" || dir === "operations")
+				continue
 			if (rest.startsWith(dir + "/") || rest === dir) {
 				return { zone, feature }
 			}
@@ -90,9 +89,7 @@ export function classifyStructuralPath(structuralPath: string): Classification {
 	}
 
 	// src/server/features/<feature>/...
-	let serverFeatureMatch = p.match(
-		/^src\/server\/features\/([^/]+)\/(.+)$/,
-	)
+	let serverFeatureMatch = p.match(/^src\/server\/features\/([^/]+)\/(.+)$/)
 	if (serverFeatureMatch) {
 		let feature = serverFeatureMatch[1]
 		let rest = serverFeatureMatch[2]
@@ -158,9 +155,7 @@ export function classifyImport(
 	if (!resolved) return { zone: "unknown", feature: null }
 
 	// Bare feature import: src/app/features/<name> or src/app/features/<name>/index
-	let bareFeature = resolved.match(
-		/^src\/app\/features\/([^/]+)(\/index)?$/,
-	)
+	let bareFeature = resolved.match(/^src\/app\/features\/([^/]+)(\/index)?$/)
 	if (bareFeature) {
 		return { zone: "feature-index", feature: bareFeature[1] }
 	}

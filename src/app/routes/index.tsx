@@ -45,6 +45,7 @@ function WelcomeIndex() {
 						transition={{ delay: 0.4 }}
 					>
 						<Button
+							nativeButton={false}
 							variant="outline"
 							render={
 								<Link to="/people" onClick={() => setTourSkipped(true)} />
@@ -82,7 +83,12 @@ function WelcomeIndex() {
 							transition={{ delay: 0.4, duration: 0.4 }}
 							className="flex items-center gap-3"
 						>
-							<Button render={<Link to="/tour" />}>
+							<Button
+								nativeButton={false}
+								render={
+									<Link to="/tour" onClick={() => setTourSkipped(false)} />
+								}
+							>
 								<LightbulbFill />
 								<T k="welcome.takeTour" />
 							</Button>

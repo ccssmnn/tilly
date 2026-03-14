@@ -14,7 +14,8 @@ const plugin = {
 		"no-feature-part-composition": noFeaturePartComposition,
 		"no-local-part-subcomponents": noLocalPartSubcomponents,
 		"no-deep-feature-imports": noDeepFeatureImports,
-		"only-screens-and-widgets-may-import-parts": onlyScreensAndWidgetsMayImportParts,
+		"only-screens-and-widgets-may-import-parts":
+			onlyScreensAndWidgetsMayImportParts,
 		"only-routes-may-import-screens": onlyRoutesMayImportScreens,
 		"only-use-cases-may-compose-operations": onlyUseCasesMayComposeOperations,
 	},

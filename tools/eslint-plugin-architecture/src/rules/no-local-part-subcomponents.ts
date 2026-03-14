@@ -1,9 +1,13 @@
 import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
 import { classifyFile } from "../utils/path-classification.js"
-import { collectLocalComponents, getJSXComponentName } from "../utils/component-detection.js"
+import {
+	collectLocalComponents,
+	getJSXComponentName,
+} from "../utils/component-detection.js"
 
 const createRule = ESLintUtils.RuleCreator(
-	(name) => `https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
+	name =>
+		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
 export default createRule({
@@ -30,12 +34,12 @@ export default createRule({
 				let components = collectLocalComponents(node.body)
 				if (components.length <= 1) return
 
-				let componentNames = new Set(components.map((c) => c.name))
+				let componentNames = new Set(components.map(c => c.name))
 				let renderedLocals = new Map<string, Set<string>>()
 
 				for (let component of components) {
 					let rendered = new Set<string>()
-					visitJSX(component.node, (jsxNode) => {
+					visitJSX(component.node, jsxNode => {
 						let name = getJSXComponentName(jsxNode)
 						if (name && componentNames.has(name) && name !== component.name) {
 							rendered.add(name)
@@ -69,7 +73,14 @@ export default createRule({
 	},
 })
 
-const SKIP_KEYS = new Set(["parent", "loc", "range", "typeAnnotation", "returnType", "typeParameters"])
+const SKIP_KEYS = new Set([
+	"parent",
+	"loc",
+	"range",
+	"typeAnnotation",
+	"returnType",
+	"typeParameters",
+])
 
 function visitJSX(
 	node: TSESTree.Node,

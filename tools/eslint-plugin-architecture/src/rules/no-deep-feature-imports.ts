@@ -8,7 +8,8 @@ import {
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
-	(name) => `https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
+	name =>
+		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
 export default createRule({
@@ -16,7 +17,8 @@ export default createRule({
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Forbid cross-feature deep imports. Use the feature index instead.",
+			description:
+				"Forbid cross-feature deep imports. Use the feature index instead.",
 		},
 		messages: {
 			noDeepImport:
@@ -52,8 +54,9 @@ export default createRule({
 				// Routes are allowed to deep-import screens (that's their job)
 				if (currentFile.zone === "route" && imported.zone === "screen") return
 
-				let alias = Object.entries(aliases).find(([, v]) =>
-					source.startsWith(v) || source.startsWith(v.replace("src/", "")),
+				let alias = Object.entries(aliases).find(
+					([, v]) =>
+						source.startsWith(v) || source.startsWith(v.replace("src/", "")),
 				)
 				let featurePath = alias
 					? `${alias[0]}/features/${imported.feature}`

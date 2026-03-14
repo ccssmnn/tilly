@@ -1,0 +1,119 @@
+import { useMemo, useState } from "react"
+import { AnimatePresence, motion } from "motion/react"
+import { Person } from "#shared/schema/user"
+import { co } from "jazz-tools"
+import { T, useIntl } from "#shared/intl/setup"
+import { DialogHeader, DialogTitle, DialogDescription } from "#shared/ui/dialog"
+import { Avatar, AvatarFallback } from "#shared/ui/avatar"
+import { Image as JazzImage } from "jazz-tools/react"
+import {
+	Combobox,
+	ComboboxInput,
+	ComboboxContent,
+	ComboboxList,
+	ComboboxItem,
+	ComboboxEmpty,
+} from "#shared/ui/combobox"
+import {
+	ReminderFields,
+	type ReminderFieldValues,
+} from "../parts/reminder-fields"
+
+export { NewReminderForm }
+
+type PersonOption = { value: string; label: string }
+
+type NewReminderFormProps = {
+	people: co.loaded<typeof Person>[]
+	onSubmit: (personId: string, values: ReminderFieldValues) => void
+	onCancel: () => void
+}
+
+function NewReminderForm({ people, onSubmit, onCancel }: NewReminderFormProps) {
+	let t = useIntl()
+	let [selectedPerson, setSelectedPerson] = useState<PersonOption | null>(null)
+
+	let peopleById = useMemo(() => {
+		let map = new Map<string, co.loaded<typeof Person>>()
+		for (let p of people) map.set(p.$jazz.id, p)
+		return map
+	}, [people])
+
+	let personOptions: PersonOption[] = useMemo(
+		() => people.map(p => ({ value: p.$jazz.id, label: p.name })),
+		[people],
+	)
+
+	return (
+		<>
+			<DialogHeader>
+				<DialogTitle>
+					<T k="reminder.add.title" />
+				</DialogTitle>
+				<DialogDescription>
+					{selectedPerson ? (
+						<T
+							k="reminder.add.description"
+							params={{ person: selectedPerson.label }}
+						/>
+					) : (
+						<T k="reminder.select.description" />
+					)}
+				</DialogDescription>
+			</DialogHeader>
+
+			<div className="space-y-3">
+				<Combobox value={selectedPerson} onValueChange={setSelectedPerson}>
+					<ComboboxInput placeholder={t("reminder.select.search")} />
+					<ComboboxContent>
+						<ComboboxList>
+							<ComboboxEmpty>{t("reminder.select.empty")}</ComboboxEmpty>
+							{personOptions.map(option => {
+								let person = peopleById.get(option.value)
+								return (
+									<ComboboxItem key={option.value} value={option}>
+										{person && (
+											<Avatar className="size-6">
+												{person.avatar ? (
+													<JazzImage
+														imageId={person.avatar.$jazz.id}
+														alt={option.label}
+														width={24}
+														data-slot="avatar-image"
+														className="aspect-square size-full object-cover"
+													/>
+												) : (
+													<AvatarFallback className="text-xs">
+														{option.label.slice(0, 1)}
+													</AvatarFallback>
+												)}
+											</Avatar>
+										)}
+										{option.label}
+									</ComboboxItem>
+								)
+							})}
+						</ComboboxList>
+					</ComboboxContent>
+				</Combobox>
+
+				<AnimatePresence>
+					{selectedPerson && (
+						<motion.div
+							initial={{ opacity: 0, height: 0 }}
+							animate={{ opacity: 1, height: "auto" }}
+							exit={{ opacity: 0, height: 0 }}
+							transition={{ duration: 0.2, ease: "easeOut" }}
+							className="overflow-hidden"
+						>
+							<ReminderFields
+								onSubmit={values => onSubmit(selectedPerson.value, values)}
+								onCancel={onCancel}
+							/>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</div>
+		</>
+	)
+}

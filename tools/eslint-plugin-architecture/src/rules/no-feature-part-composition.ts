@@ -9,7 +9,8 @@ import {
 import { getJSXComponentName } from "../utils/component-detection.js"
 
 const createRule = ESLintUtils.RuleCreator(
-	(name) => `https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
+	name =>
+		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
 export default createRule({
@@ -17,7 +18,8 @@ export default createRule({
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Parts must not render other parts. Compose in screens or widgets.",
+			description:
+				"Parts must not render other parts. Compose in screens or widgets.",
 		},
 		messages: {
 			noPartComposition:

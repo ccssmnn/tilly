@@ -7,7 +7,8 @@ import {
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
-	(name) => `https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
+	name =>
+		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
 export default createRule({
@@ -18,7 +19,8 @@ export default createRule({
 			description: "Only use-cases may import operations.",
 		},
 		messages: {
-			operationChain: "Operations must not import other operations. Use a use-case to orchestrate.",
+			operationChain:
+				"Operations must not import other operations. Use a use-case to orchestrate.",
 			forbidden: "Only use-cases may import operations.",
 		},
 		schema: [
@@ -38,13 +40,18 @@ export default createRule({
 
 		return {
 			ImportDeclaration(node) {
-				let imported = classifyImport(node.source.value, context.filename, aliases)
+				let imported = classifyImport(
+					node.source.value,
+					context.filename,
+					aliases,
+				)
 				if (imported.zone !== "operation") return
 				if (currentFile.zone === "use-case") return
 
 				context.report({
 					node,
-					messageId: currentFile.zone === "operation" ? "operationChain" : "forbidden",
+					messageId:
+						currentFile.zone === "operation" ? "operationChain" : "forbidden",
 				})
 			},
 		}

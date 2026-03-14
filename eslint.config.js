@@ -5,6 +5,7 @@ import reactHooks from "eslint-plugin-react-hooks"
 import react from "eslint-plugin-react"
 import globals from "globals"
 import astro from "eslint-plugin-astro"
+import architecture from "eslint-plugin-architecture"
 
 let commonRules = {
 	"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
@@ -67,8 +68,30 @@ export default [
 		rules: commonRules,
 	},
 	{
+		files: ["src/app/features/reminders/**/*.{ts,tsx}"],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-feature-part-composition": "error",
+			"architecture/no-local-part-subcomponents": "error",
+			"architecture/no-deep-feature-imports": "error",
+			"architecture/only-screens-and-widgets-may-import-parts": "error",
+			"architecture/only-routes-may-import-screens": "error",
+			"architecture/only-use-cases-may-compose-operations": "error",
+		},
+	},
+	{
+		files: ["tools/**/*.ts"],
+		languageOptions: {
+			parser: tsparser,
+			parserOptions: { ecmaVersion: "latest", sourceType: "module" },
+			globals: globals.node,
+		},
+		plugins: { "@typescript-eslint": tseslint },
+		rules: { ...tseslint.configs.recommended.rules, ...commonRules },
+	},
+	{
 		ignores: [
-			"dist/",
+			"**/dist/",
 			"build/",
 			"node_modules/",
 			"*.config.{js,mjs,ts}",

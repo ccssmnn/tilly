@@ -13,6 +13,7 @@ import { Route as TourRouteImport } from './routes/tour'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRemindersTestRouteImport } from './routes/_app.reminders-test'
 import { Route as AppRemindersRouteImport } from './routes/_app.reminders'
 import { Route as AppNotesRouteImport } from './routes/_app.notes'
 import { Route as AppInviteRouteImport } from './routes/_app.invite'
@@ -37,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRemindersTestRoute = AppRemindersTestRouteImport.update({
+  id: '/reminders-test',
+  path: '/reminders-test',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRemindersRoute = AppRemindersRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/invite': typeof AppInviteRoute
   '/notes': typeof AppNotesRoute
   '/reminders': typeof AppRemindersRoute
+  '/reminders-test': typeof AppRemindersTestRoute
   '/settings': typeof AppSettingsRoute
   '/people/$personID': typeof AppPeoplePersonIDRoute
   '/people/': typeof AppPeopleIndexRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/invite': typeof AppInviteRoute
   '/notes': typeof AppNotesRoute
   '/reminders': typeof AppRemindersRoute
+  '/reminders-test': typeof AppRemindersTestRoute
   '/settings': typeof AppSettingsRoute
   '/people/$personID': typeof AppPeoplePersonIDRoute
   '/people': typeof AppPeopleIndexRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_app/invite': typeof AppInviteRoute
   '/_app/notes': typeof AppNotesRoute
   '/_app/reminders': typeof AppRemindersRoute
+  '/_app/reminders-test': typeof AppRemindersTestRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/people/$personID': typeof AppPeoplePersonIDRoute
   '/_app/people/': typeof AppPeopleIndexRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/notes'
     | '/reminders'
+    | '/reminders-test'
     | '/settings'
     | '/people/$personID'
     | '/people/'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/notes'
     | '/reminders'
+    | '/reminders-test'
     | '/settings'
     | '/people/$personID'
     | '/people'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/_app/invite'
     | '/_app/notes'
     | '/_app/reminders'
+    | '/_app/reminders-test'
     | '/_app/settings'
     | '/_app/people/$personID'
     | '/_app/people/'
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reminders-test': {
+      id: '/_app/reminders-test'
+      path: '/reminders-test'
+      fullPath: '/reminders-test'
+      preLoaderRoute: typeof AppRemindersTestRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reminders': {
@@ -228,6 +247,7 @@ interface AppRouteChildren {
   AppInviteRoute: typeof AppInviteRoute
   AppNotesRoute: typeof AppNotesRoute
   AppRemindersRoute: typeof AppRemindersRoute
+  AppRemindersTestRoute: typeof AppRemindersTestRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppPeoplePersonIDRoute: typeof AppPeoplePersonIDRoute
   AppPeopleIndexRoute: typeof AppPeopleIndexRoute
@@ -238,6 +258,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInviteRoute: AppInviteRoute,
   AppNotesRoute: AppNotesRoute,
   AppRemindersRoute: AppRemindersRoute,
+  AppRemindersTestRoute: AppRemindersTestRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppPeoplePersonIDRoute: AppPeoplePersonIDRoute,
   AppPeopleIndexRoute: AppPeopleIndexRoute,

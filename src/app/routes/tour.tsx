@@ -96,6 +96,7 @@ function TourComponent() {
 					<div className="flex-1" />
 					<motion.div layoutId="skip">
 						<Button
+							nativeButton={false}
 							variant="outline"
 							render={
 								<Link to="/people" onClick={() => setTourSkipped(true)} />

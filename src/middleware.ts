@@ -12,7 +12,7 @@ export let onRequest = defineMiddleware(async (context, next) => {
 		return context.redirect(`/${locale}/`, 301)
 	}
 
-	// Redirect /app/* to /app/ for SPA routing (prerendered page)
+	// Redirect /app/* to the static /app/ shell and preserve deep-link URL
 	if (
 		context.request.method === "GET" &&
 		context.url.pathname.startsWith("/app") &&
@@ -20,7 +20,10 @@ export let onRequest = defineMiddleware(async (context, next) => {
 		context.url.pathname !== "/app/" &&
 		!context.url.pathname.includes(".")
 	) {
-		return context.redirect("/app/", 302)
+		let deepLink = `${context.url.pathname}${context.url.search}`
+		let target = new URL("/app/", context.url)
+		target.searchParams.set("__app_redirect", deepLink)
+		return context.redirect(`${target.pathname}${target.search}`, 302)
 	}
 
 	let response = await next()

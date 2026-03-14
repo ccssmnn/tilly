@@ -7,7 +7,8 @@ import {
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
-	(name) => `https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
+	name =>
+		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
 const ALLOWED_ZONES = new Set(["route", "feature-index"])
@@ -41,7 +42,11 @@ export default createRule({
 			ImportDeclaration(node) {
 				if (node.importKind === "type") return
 
-				let imported = classifyImport(node.source.value, context.filename, aliases)
+				let imported = classifyImport(
+					node.source.value,
+					context.filename,
+					aliases,
+				)
 				if (imported.zone !== "screen") return
 				if (ALLOWED_ZONES.has(currentFile.zone)) return
 

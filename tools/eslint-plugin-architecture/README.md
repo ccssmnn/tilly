@@ -86,7 +86,7 @@ src/server/features/<feature>/
 - **No transitive analysis** — importing from a feature index that re-exports parts won't be flagged. The index IS the public API boundary.
 - **Relative imports** — resolved via path joining, not TS module resolution. Aliases cover the main case.
 - **`<Foo.Bar />` JSX patterns** — member expression component references are not tracked.
-- **PascalCase heuristic** — all PascalCase function declarations are treated as potential components in `no-local-part-subcomponents`. False positives are unlikely since the rule only reports when one PascalCase function renders another.
+- **PascalCase heuristic** — all PascalCase function declarations and variable assignments (including call expressions like `createContext`, `memo`, `forwardRef`) are treated as potential components in `no-local-part-subcomponents`. False positives are unlikely since the rule only reports when one PascalCase identifier renders another.
 - **Files outside the new structure** — flat files in `features/` (not yet migrated) classify as `unknown` and are ignored by all rules.
 
 ## Development

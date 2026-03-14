@@ -24,7 +24,11 @@ export function collectLocalComponents(
 	let components: ComponentCandidate[] = []
 
 	for (let stmt of body) {
-		if (stmt.type === "FunctionDeclaration" && stmt.id && isPascalCase(stmt.id.name)) {
+		if (
+			stmt.type === "FunctionDeclaration" &&
+			stmt.id &&
+			isPascalCase(stmt.id.name)
+		) {
 			components.push({ name: stmt.id.name, node: stmt })
 		}
 
@@ -35,7 +39,8 @@ export function collectLocalComponents(
 					isPascalCase(decl.id.name) &&
 					decl.init &&
 					(decl.init.type === "ArrowFunctionExpression" ||
-						decl.init.type === "FunctionExpression")
+						decl.init.type === "FunctionExpression" ||
+						decl.init.type === "CallExpression")
 				) {
 					components.push({ name: decl.id.name, node: decl })
 				}
@@ -44,7 +49,11 @@ export function collectLocalComponents(
 
 		if (stmt.type === "ExportNamedDeclaration" && stmt.declaration) {
 			let decl = stmt.declaration
-			if (decl.type === "FunctionDeclaration" && decl.id && isPascalCase(decl.id.name)) {
+			if (
+				decl.type === "FunctionDeclaration" &&
+				decl.id &&
+				isPascalCase(decl.id.name)
+			) {
 				components.push({ name: decl.id.name, node: decl })
 			}
 			if (decl.type === "VariableDeclaration") {
@@ -64,7 +73,11 @@ export function collectLocalComponents(
 
 		if (stmt.type === "ExportDefaultDeclaration") {
 			let decl = stmt.declaration
-			if (decl.type === "FunctionDeclaration" && decl.id && isPascalCase(decl.id.name)) {
+			if (
+				decl.type === "FunctionDeclaration" &&
+				decl.id &&
+				isPascalCase(decl.id.name)
+			) {
 				components.push({ name: decl.id.name, node: decl })
 			}
 		}

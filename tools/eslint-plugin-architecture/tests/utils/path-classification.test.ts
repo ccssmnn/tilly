@@ -8,22 +8,30 @@ import {
 
 describe("classifyFile", () => {
 	test("screen", () => {
-		let result = classifyFile("/project/src/app/features/notes/screens/NotesScreen.tsx")
+		let result = classifyFile(
+			"/project/src/app/features/notes/screens/NotesScreen.tsx",
+		)
 		expect(result).toEqual({ zone: "screen", feature: "notes" })
 	})
 
 	test("widget", () => {
-		let result = classifyFile("/project/src/app/features/notes/widgets/NotePreview.tsx")
+		let result = classifyFile(
+			"/project/src/app/features/notes/widgets/NotePreview.tsx",
+		)
 		expect(result).toEqual({ zone: "widget", feature: "notes" })
 	})
 
 	test("part", () => {
-		let result = classifyFile("/project/src/app/features/notes/parts/NoteListItem.tsx")
+		let result = classifyFile(
+			"/project/src/app/features/notes/parts/NoteListItem.tsx",
+		)
 		expect(result).toEqual({ zone: "part", feature: "notes" })
 	})
 
 	test("hook", () => {
-		let result = classifyFile("/project/src/app/features/notes/hooks/useNotes.ts")
+		let result = classifyFile(
+			"/project/src/app/features/notes/hooks/useNotes.ts",
+		)
 		expect(result).toEqual({ zone: "hook", feature: "notes" })
 	})
 
@@ -53,17 +61,23 @@ describe("classifyFile", () => {
 	})
 
 	test("handler", () => {
-		let result = classifyFile("/project/src/server/features/push/handlers/register.ts")
+		let result = classifyFile(
+			"/project/src/server/features/push/handlers/register.ts",
+		)
 		expect(result).toEqual({ zone: "handler", feature: "push" })
 	})
 
 	test("use-case", () => {
-		let result = classifyFile("/project/src/server/features/push/use-cases/send-push.ts")
+		let result = classifyFile(
+			"/project/src/server/features/push/use-cases/send-push.ts",
+		)
 		expect(result).toEqual({ zone: "use-case", feature: "push" })
 	})
 
 	test("operation", () => {
-		let result = classifyFile("/project/src/server/features/push/operations/create-token.ts")
+		let result = classifyFile(
+			"/project/src/server/features/push/operations/create-token.ts",
+		)
 		expect(result).toEqual({ zone: "operation", feature: "push" })
 	})
 
@@ -78,7 +92,9 @@ describe("classifyFile", () => {
 	})
 
 	test("nested part", () => {
-		let result = classifyFile("/project/src/app/features/notes/parts/list/NoteListItem.tsx")
+		let result = classifyFile(
+			"/project/src/app/features/notes/parts/list/NoteListItem.tsx",
+		)
 		expect(result).toEqual({ zone: "part", feature: "notes" })
 	})
 })
@@ -87,7 +103,11 @@ describe("classifyImport", () => {
 	let file = "/project/src/app/features/notes/screens/NotesScreen.tsx"
 
 	test("alias import to parts", () => {
-		let result = classifyImport("#app/features/notes/parts/NoteItem", file, DEFAULT_ALIASES)
+		let result = classifyImport(
+			"#app/features/notes/parts/NoteItem",
+			file,
+			DEFAULT_ALIASES,
+		)
 		expect(result).toEqual({ zone: "part", feature: "notes" })
 	})
 
@@ -97,7 +117,11 @@ describe("classifyImport", () => {
 	})
 
 	test("alias import to feature index (explicit)", () => {
-		let result = classifyImport("#app/features/people/index", file, DEFAULT_ALIASES)
+		let result = classifyImport(
+			"#app/features/people/index",
+			file,
+			DEFAULT_ALIASES,
+		)
 		expect(result).toEqual({ zone: "feature-index", feature: "people" })
 	})
 
@@ -120,19 +144,28 @@ describe("classifyImport", () => {
 describe("isSameFeature", () => {
 	test("same feature", () => {
 		expect(
-			isSameFeature({ zone: "screen", feature: "notes" }, { zone: "part", feature: "notes" }),
+			isSameFeature(
+				{ zone: "screen", feature: "notes" },
+				{ zone: "part", feature: "notes" },
+			),
 		).toBe(true)
 	})
 
 	test("different features", () => {
 		expect(
-			isSameFeature({ zone: "screen", feature: "notes" }, { zone: "part", feature: "people" }),
+			isSameFeature(
+				{ zone: "screen", feature: "notes" },
+				{ zone: "part", feature: "people" },
+			),
 		).toBe(false)
 	})
 
 	test("null feature", () => {
 		expect(
-			isSameFeature({ zone: "route", feature: null }, { zone: "screen", feature: "notes" }),
+			isSameFeature(
+				{ zone: "route", feature: null },
+				{ zone: "screen", feature: "notes" },
+			),
 		).toBe(false)
 	})
 })

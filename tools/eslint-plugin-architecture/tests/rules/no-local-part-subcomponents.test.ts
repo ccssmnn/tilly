@@ -78,7 +78,9 @@ ruleTester.run("no-local-part-subcomponents", rule, {
 				}
 			`,
 			filename: "/project/src/app/features/notes/parts/NoteContent.tsx",
-			errors: [{ messageId: "noSubcomponent", data: { name: "NoteContentActions" } }],
+			errors: [
+				{ messageId: "noSubcomponent", data: { name: "NoteContentActions" } },
+			],
 		},
 		{
 			// default export rendering a local component
@@ -90,6 +92,17 @@ ruleTester.run("no-local-part-subcomponents", rule, {
 			`,
 			filename: "/project/src/app/features/notes/parts/NoteContent.tsx",
 			errors: [{ messageId: "noSubcomponent", data: { name: "Header" } }],
+		},
+		{
+			// call expression (createContext, memo, forwardRef) rendered as JSX
+			code: `
+				let NoteContext = createContext(null)
+				export function NoteContent() {
+					return <NoteContext value={null}><div /></NoteContext>
+				}
+			`,
+			filename: "/project/src/app/features/notes/parts/NoteContent.tsx",
+			errors: [{ messageId: "noSubcomponent", data: { name: "NoteContext" } }],
 		},
 	],
 })
