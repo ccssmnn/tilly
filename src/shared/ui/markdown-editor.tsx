@@ -22,8 +22,8 @@ import {
 } from "react-bootstrap-icons"
 import { isMac } from "#app/hooks/use-pwa"
 
-export { MarkdownEditor }
-export type { MarkdownEditorProps }
+export { MarkdownEditor, applyMarkdownFormat }
+export type { MarkdownEditorProps, MarkdownFormatType }
 
 function MarkdownEditor({
 	value,

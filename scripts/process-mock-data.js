@@ -85,6 +85,17 @@ function processAvatar(avatarFilename) {
 	return dataURL ? { dataURL } : null
 }
 
+function processNoteImage(imageFilename) {
+	let imagePath = path.join(__dirname, "data", "note-images", imageFilename)
+	let dataURL = imageToDataURL(imagePath)
+
+	return dataURL ? { dataURL } : null
+}
+
+function processNoteImages(imageFilenames) {
+	return imageFilenames.map(processNoteImage).filter(image => image !== null)
+}
+
 function processObject(obj) {
 	if (Array.isArray(obj)) {
 		return obj.map(processObject)
@@ -100,6 +111,12 @@ function processObject(obj) {
 				(value.endsWith(".jpg") || value.endsWith(".png"))
 			) {
 				processed[key] = processAvatar(value)
+			} else if (
+				key === "images" &&
+				Array.isArray(value) &&
+				value.every(v => typeof v === "string")
+			) {
+				processed[key] = processNoteImages(value)
 			} else if (key.endsWith("At") || key === "dueAtDate") {
 				processed[key] = processTimestamp(value)
 			} else {
@@ -128,13 +145,19 @@ console.log(
 
 let totalNotes = 0
 let totalReminders = 0
+let totalImages = 0
 let dueReminders = 0
 let completedReminders = 0
 let deletedPeople = 0
 
 processedData.people.forEach(person => {
 	if (person.deleted) deletedPeople++
-	totalNotes += person.notes?.length || 0
+	if (person.notes) {
+		totalNotes += person.notes.length
+		person.notes.forEach(note => {
+			totalImages += note.images?.length || 0
+		})
+	}
 	if (person.reminders) {
 		totalReminders += person.reminders.length
 		person.reminders.forEach(reminder => {
@@ -150,7 +173,9 @@ processedData.people.forEach(person => {
 	}
 })
 
-console.log(`📝 ${totalNotes} notes, ${totalReminders} reminders`)
+console.log(
+	`📝 ${totalNotes} notes, ${totalReminders} reminders, ${totalImages} images`,
+)
 console.log(`⏰ ${dueReminders} due reminders, ${completedReminders} completed`)
 console.log(`🗑️  ${deletedPeople} deleted people`)
 console.log(`\n💡 Import this file through your app's data import feature`)

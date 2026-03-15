@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { useAccount } from "jazz-tools/react"
 import { useNavigate } from "@tanstack/react-router"
+import { useExpanded } from "#app/hooks/use-expanded"
+import { useSelectionAwareToggle } from "#app/hooks/use-selection-aware-toggle"
 import { UserAccount, Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useIntl, T } from "#shared/intl/setup"
@@ -10,18 +12,19 @@ import {
 	handleDeleteReminder,
 } from "../lib/reminder-actions"
 import { Dialog, DialogContent } from "#shared/ui/dialog"
-import {
-	DropdownMenu,
-	DropdownMenuTrigger,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-} from "#shared/ui/dropdown-menu"
 import { ReminderListItem } from "../parts/reminder-list-item"
-import { SwipeableListItem } from "../parts/swipeable-list-item"
+import { SwipeableListItem } from "#app/components/swipeable-list-item"
 import { EditReminderForm } from "./edit-reminder-form"
 import type { ReminderFieldValues } from "../parts/reminder-fields"
-import { CheckLg, PencilSquare, PersonFill, Trash } from "react-bootstrap-icons"
+import {
+	CheckLg,
+	PencilSquare,
+	PersonFill,
+	Trash,
+	ChevronUp,
+} from "react-bootstrap-icons"
+import { Button } from "#shared/ui/button"
+import { ButtonGroup } from "#shared/ui/button-group"
 
 export { ActiveReminder }
 
@@ -40,6 +43,8 @@ function ActiveReminder({
 	let me = useAccount(UserAccount)
 	let navigate = useNavigate()
 	let [editing, setEditing] = useState(false)
+	let { isExpanded, toggleExpanded } = useExpanded(reminder.$jazz.id)
+	let handleClick = useSelectionAwareToggle(isExpanded, toggleExpanded)
 
 	let ref = {
 		personId: person.$jazz.id,
@@ -57,7 +62,10 @@ function ActiveReminder({
 	}
 
 	function goToPerson() {
-		navigate({ to: "/people/$personID", params: { personID: person.$jazz.id } })
+		navigate({
+			to: "/people/$personID",
+			params: { personID: person.$jazz.id },
+		})
 	}
 
 	async function onEdit(values: ReminderFieldValues) {
@@ -66,71 +74,77 @@ function ActiveReminder({
 		if (result.ok) setEditing(false)
 	}
 
-	let listItem = (
-		<ReminderListItem
-			reminder={reminder}
-			person={person}
-			searchQuery={searchQuery}
-		/>
-	)
-
 	return (
 		<>
-			<div className="pointer-coarse:hidden">
-				<DropdownMenu>
-					<DropdownMenuTrigger className="hover:bg-accent data-popup-open:bg-accent -mx-3 w-[calc(100%+1.5rem)] cursor-default rounded-xl px-3 text-left outline-none">
-						{listItem}
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="center" className="w-auto">
-						<DropdownMenuItem onClick={markDone}>
-							<CheckLg />
-							<T k="reminder.actions.markDone" />
-						</DropdownMenuItem>
-						<DropdownMenuItem onClick={() => setEditing(true)}>
-							<PencilSquare />
-							<T k="reminder.actions.edit" />
-						</DropdownMenuItem>
-						<DropdownMenuItem onClick={goToPerson}>
-							<PersonFill />
-							<T k="reminder.actions.viewPerson" />
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem variant="destructive" onClick={remove}>
-							<Trash />
-							<T k="reminder.actions.delete" />
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
+			<SwipeableListItem
+				onClick={handleClick}
+				rightAction={{
+					variant: "success",
+					icon: <CheckLg />,
+					label: <T k="reminder.actions.markDone" />,
+					onAction: markDone,
+				}}
+				leftAction={{
+					variant: "destructive",
+					icon: <Trash />,
+					label: <T k="reminder.actions.delete" />,
+					onAction: remove,
+				}}
+			>
+				<ReminderListItem
+					reminder={reminder}
+					person={person}
+					searchQuery={searchQuery}
+				/>
+			</SwipeableListItem>
 
-			<div className="pointer-fine:hidden">
-				<SwipeableListItem
-					onClick={() => setEditing(true)}
-					rightActions={[
-						{
-							variant: "success",
-							icon: <CheckLg />,
-							label: <T k="reminder.actions.markDone" />,
-							onAction: markDone,
-						},
-						{
-							variant: "warning",
-							icon: <PersonFill />,
-							label: <T k="reminder.actions.viewPerson" />,
-							onAction: goToPerson,
-						},
-					]}
-					leftActions={[
-						{
-							variant: "destructive",
-							icon: <Trash />,
-							label: <T k="reminder.actions.delete" />,
-							onAction: remove,
-						},
-					]}
-				>
-					{listItem}
-				</SwipeableListItem>
+			<div
+				className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
+				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+			>
+				<div className="overflow-hidden">
+					<div className="ml-19 flex items-center gap-3 pb-4">
+						<ButtonGroup>
+							<Button variant="outline" onClick={markDone}>
+								<CheckLg />
+								<span className="max-sm:sr-only">
+									<T k="reminder.actions.markDone" />
+								</span>
+							</Button>
+							<Button variant="outline" onClick={() => setEditing(true)}>
+								<PencilSquare />
+								<span className="max-sm:sr-only">
+									<T k="reminder.actions.edit" />
+								</span>
+							</Button>
+							<Button variant="outline" onClick={goToPerson}>
+								<PersonFill />
+								<span className="max-sm:sr-only">
+									<T k="reminder.actions.viewPerson" />
+								</span>
+							</Button>
+							<Button
+								variant="outline"
+								onClick={remove}
+								className="text-destructive"
+							>
+								<Trash />
+								<span className="max-sm:sr-only">
+									<T k="reminder.actions.delete" />
+								</span>
+							</Button>
+						</ButtonGroup>
+						<div className="flex-1" />
+						<ButtonGroup>
+							<Button variant="outline" onClick={toggleExpanded}>
+								<ChevronUp />
+								<span className="max-sm:sr-only">
+									<T k="note.showLess" />
+								</span>
+							</Button>
+						</ButtonGroup>
+					</div>
+				</div>
 			</div>
 
 			<Dialog open={editing} onOpenChange={setEditing}>

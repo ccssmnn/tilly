@@ -1,6 +1,7 @@
 .astro
 .vercel
 .tanstack
+.claude
 
 pnpm-debug.log*
 

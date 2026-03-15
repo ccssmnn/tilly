@@ -45,7 +45,7 @@ function ReminderListItem({
 				</Avatar>
 			</div>
 			<div className="min-w-0 flex-1 space-y-1">
-				<div className="flex items-start gap-3 select-text">
+				<div className="flex items-start gap-3" data-selectable>
 					<div
 						className={cn(
 							"inline-flex items-center gap-1 text-sm [&>svg]:size-3",
@@ -59,7 +59,7 @@ function ReminderListItem({
 						<TextHighlight text={person.name} query={searchQuery} />
 					</p>
 				</div>
-				<p className="text-md/tight text-left select-text">
+				<p className="text-md/tight text-left" data-selectable>
 					<TextHighlight text={reminder.text} query={searchQuery} />
 				</p>
 			</div>
@@ -101,7 +101,10 @@ function DoneReminderListItem({
 				<span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-emerald-400" />
 			</div>
 			<div className="min-w-0 flex-1 space-y-1">
-				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+				<div
+					className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium"
+					data-selectable
+				>
 					<span className="inline-flex items-center gap-1 text-emerald-500 [&>svg]:size-3">
 						<CheckLg />
 						<span>{doneLabel}</span>
@@ -110,7 +113,7 @@ function DoneReminderListItem({
 						<TextHighlight text={person.name} query={searchQuery} />
 					</span>
 				</div>
-				<p className="text-md/tight text-left select-text">
+				<p className="text-md/tight text-left" data-selectable>
 					<TextHighlight text={reminder.text} query={searchQuery} />
 				</p>
 			</div>
@@ -153,7 +156,10 @@ function DeletedReminderListItem({
 				</Avatar>
 			</div>
 			<div className="min-w-0 flex-1 space-y-1">
-				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+				<div
+					className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium"
+					data-selectable
+				>
 					<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
 						<Trash />
 						<span>{deletedLabel}</span>
@@ -162,7 +168,7 @@ function DeletedReminderListItem({
 						<TextHighlight text={person.name} query={searchQuery} />
 					</span>
 				</div>
-				<p className="text-md/tight text-left select-text">
+				<p className="text-md/tight text-left" data-selectable>
 					<TextHighlight text={reminder.text} query={searchQuery} />
 				</p>
 			</div>

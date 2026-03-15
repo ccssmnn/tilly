@@ -4,6 +4,7 @@ import {
 	motion,
 	useMotionValue,
 	useTransform,
+	useReducedMotion,
 	type MotionValue,
 } from "motion/react"
 import {
@@ -30,21 +31,18 @@ type SwipeAction = {
 
 type SwipeableListItemProps = {
 	children: ReactNode
-	rightActions?: [SwipeAction] | [SwipeAction, SwipeAction]
-	leftActions?: [SwipeAction] | [SwipeAction, SwipeAction]
+	rightAction?: SwipeAction
+	leftAction?: SwipeAction
 	onClick?: () => void
 }
 
 function SwipeableListItem({
 	children,
-	rightActions,
-	leftActions,
+	rightAction,
+	leftAction,
 	onClick,
 }: SwipeableListItemProps) {
-	let rpAction = rightActions?.[0]
-	let rsAction = rightActions?.[1]
-	let lpAction = leftActions?.[0]
-	let lsAction = leftActions?.[1]
+	let prefersReducedMotion = useReducedMotion()
 
 	let triggerFeedback = useSwipeHighlightFeedback()
 	let containerRef = useRef<HTMLDivElement>(null)
@@ -63,77 +61,51 @@ function SwipeableListItem({
 	let isFullSwipe = useMotionValue(false)
 	let wasHighlighted = useRef(false)
 
-	let hasRight = !!rpAction
-	let hasLeft = !!lpAction
-	let hasMultiRight = !!rsAction
-	let hasMultiLeft = !!lsAction
+	let hasRight = !!rightAction
+	let hasLeft = !!leftAction
 
 	let [isFull, setIsFull] = useState(false)
 	let [isOpen, setIsOpen] = useState(false)
 
-	// Measure label widths
-	let { measureRef: rpMeasureRef, width: rpWidth } = useLabelWidth(
-		rpAction?.label,
+	let { measureRef: rightMeasureRef, width: rightWidth } = useLabelWidth(
+		rightAction?.label,
 	)
-	let { measureRef: rsMeasureRef, width: rsWidth } = useLabelWidth(
-		rsAction?.label,
-	)
-	let { measureRef: lpMeasureRef, width: lpWidth } = useLabelWidth(
-		lpAction?.label,
-	)
-	let { measureRef: lsMeasureRef, width: lsWidth } = useLabelWidth(
-		lsAction?.label,
+	let { measureRef: leftMeasureRef, width: leftWidth } = useLabelWidth(
+		leftAction?.label,
 	)
 
-	// Compute base widths for snap calculations
-	let rightBaseWidth = hasRight
-		? rpWidth + (hasMultiRight ? rsWidth + ACTION_GAP : 0) + ACTION_GAP * 2
-		: 0
-	let leftBaseWidth = hasLeft
-		? lpWidth + (hasMultiLeft ? lsWidth + ACTION_GAP : 0) + ACTION_GAP * 2
-		: 0
+	let rightBaseWidth = hasRight ? rightWidth + ACTION_GAP * 2 : 0
+	let leftBaseWidth = hasLeft ? leftWidth + ACTION_GAP * 2 : 0
 
-	// Appear transforms (right-side actions sit on the left, hence isLeft=true)
-	let rpAppear = useAppearTransform(swipeAmount, true, ACTION_GAP, rpWidth)
-	let rsAppear = useAppearTransform(
+	let rightAppear = useAppearTransform(
 		swipeAmount,
 		true,
-		rpWidth + ACTION_GAP * 2,
-		rsWidth,
+		ACTION_GAP,
+		rightWidth,
 	)
-	let lpAppear = useAppearTransform(swipeAmount, false, ACTION_GAP, lpWidth)
-	let lsAppear = useAppearTransform(
-		swipeAmount,
-		false,
-		lpWidth + ACTION_GAP * 2,
-		lsWidth,
-	)
+	let leftAppear = useAppearTransform(swipeAmount, false, ACTION_GAP, leftWidth)
 
-	// Stretch: primary grows when swiped beyond total actions width
-	let rpStretchThreshold = hasMultiRight
-		? rpWidth + rsWidth + ACTION_GAP * 3
-		: rpWidth + ACTION_GAP * 2
-	let lpStretchThreshold = hasMultiLeft
-		? lpWidth + lsWidth + ACTION_GAP * 3
-		: lpWidth + ACTION_GAP * 2
-	let rpButtonWidth = useStretchTransform(
+	let rightStretchThreshold = rightWidth + ACTION_GAP * 2
+	let leftStretchThreshold = leftWidth + ACTION_GAP * 2
+	let rightButtonWidth = useStretchTransform(
 		swipeAmount,
 		true,
-		rpStretchThreshold,
-		rpWidth,
+		rightStretchThreshold,
+		rightWidth,
 	)
-	let lpButtonWidth = useStretchTransform(
+	let leftButtonWidth = useStretchTransform(
 		swipeAmount,
 		false,
-		lpStretchThreshold,
-		lpWidth,
+		leftStretchThreshold,
+		leftWidth,
 	)
 
 	let id = useId()
 	let reset = useCallback(() => {
-		animate(swipeAmount, 0, SPRING)
+		let animationConfig = prefersReducedMotion ? { duration: 0 } : SPRING
+		animate(swipeAmount, 0, animationConfig)
 		setIsOpen(false)
-	}, [swipeAmount])
+	}, [swipeAmount, prefersReducedMotion])
 
 	useEffect(() => {
 		swipeAmount.jump(0)
@@ -214,7 +186,10 @@ function SwipeableListItem({
 						if (Math.abs(dx) < 15 && Math.abs(dy) < 15) return
 						if (Math.abs(dx) < Math.abs(dy) * 2) {
 							gestureState.current = null
-							animate(swipeAmount, startOffset.current, SPRING)
+							let animationConfig = prefersReducedMotion
+								? { duration: 0 }
+								: SPRING
+							animate(swipeAmount, startOffset.current, animationConfig)
 							return
 						}
 						gestureState.current = "horizontal"
@@ -224,9 +199,7 @@ function SwipeableListItem({
 					if (!hasRight && delta > 0) delta = 0
 					if (!hasLeft && delta < 0) delta = 0
 
-					let isMulti = delta > 0 ? hasMultiRight : hasMultiLeft
-					let threshold =
-						w * (isMulti ? FULL_SWIPE_THRESHOLD_MULTI : FULL_SWIPE_THRESHOLD)
+					let threshold = w * FULL_SWIPE_THRESHOLD
 					let beyondThreshold = Math.abs(delta) > threshold
 
 					if (beyondThreshold) {
@@ -288,24 +261,34 @@ function SwipeableListItem({
 							"[data-swipe-action]",
 						) as HTMLButtonElement | null
 						if (primaryButton) {
-							animate([
-								[
-									containerRef.current!,
-									{ scaleY: 1.02, scaleX: 0.98, pointerEvents: "none" },
-									{ duration: 0.1, ease: "easeOut" },
-								],
-								[
-									containerRef.current!,
-									{ scaleY: 1, scaleX: 1, pointerEvents: "auto" },
-									{ duration: 0.4, type: "spring" },
-								],
-							])
-							primaryButton.click()
+							if (prefersReducedMotion) {
+								primaryButton.click()
+							} else {
+								animate([
+									[
+										containerRef.current!,
+										{ scaleY: 1.02, scaleX: 0.98, pointerEvents: "none" },
+										{ duration: 0.1, ease: "easeOut" },
+									],
+									[
+										containerRef.current!,
+										{ scaleY: 1, scaleX: 1, pointerEvents: "auto" },
+										{ duration: 0.4, type: "spring" },
+									],
+								])
+								primaryButton.click()
+							}
 						}
 						target = 0
-						animate(swipeAmount, target, { ...SPRING, delay: 0.15 })
+						let animationConfig = prefersReducedMotion
+							? { duration: 0 }
+							: { ...SPRING, delay: 0.15 }
+						animate(swipeAmount, target, animationConfig)
 					} else {
-						animate(swipeAmount, target, SPRING)
+						let animationConfig = prefersReducedMotion
+							? { duration: 0 }
+							: SPRING
+						animate(swipeAmount, target, animationConfig)
 					}
 
 					if (target !== 0) {
@@ -351,193 +334,111 @@ function SwipeableListItem({
 				{children}
 			</motion.div>
 
-			{rpAction && (
+			{rightAction && (
 				<motion.div
 					ref={rightActionsRef}
 					className="absolute inset-y-0 left-0 flex items-center gap-1.5 px-1.5 select-none"
 					style={{ pointerEvents: rightPointerEvents }}
 				>
 					<span
-						ref={rpMeasureRef}
+						ref={rightMeasureRef}
 						className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
 					>
-						{rpAction.label}
+						{rightAction.label}
 					</span>
-					{rsAction && (
-						<span
-							ref={rsMeasureRef}
-							className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
-						>
-							{rsAction.label}
-						</span>
-					)}
 
 					<motion.div
 						className="flex flex-col items-center justify-center gap-0.5"
-						style={{ scale: rpAppear.scale, opacity: rpAppear.opacity }}
+						style={{
+							scale: rightAppear.scale,
+							opacity: rightAppear.opacity,
+						}}
 					>
 						<motion.button
 							type="button"
 							data-swipe-action
 							tabIndex={isOpen ? 0 : -1}
 							onClick={() => {
-								rpAction.onAction()
+								rightAction.onAction()
 								reset()
 							}}
 							className={cn(
 								buttonVariants({ variant: "secondary", size: "icon" }),
 								"min-w-0 transition-colors duration-150 [&_svg:not([class*='size-'])]:size-5",
 								isFull
-									? cn(BG_COLOR_MAP[rpAction.variant], "text-white")
-									: TEXT_COLOR_MAP[rpAction.variant],
+									? cn(BG_COLOR_MAP[rightAction.variant], "text-white")
+									: TEXT_COLOR_MAP[rightAction.variant],
 							)}
 							style={{
-								width: rpButtonWidth,
+								width: rightButtonWidth,
 								height: BUTTON_HEIGHT,
 								borderRadius: BUTTON_HEIGHT / 2,
 							}}
 						>
-							<span className="sr-only">{rpAction.label}</span>
-							{rpAction.icon}
+							<span className="sr-only">{rightAction.label}</span>
+							{rightAction.icon}
 						</motion.button>
 						<span
 							aria-hidden
 							className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap"
 						>
-							{rpAction.label}
+							{rightAction.label}
 						</span>
 					</motion.div>
-
-					{rsAction && (
-						<motion.div
-							className="flex flex-col items-center justify-center gap-0.5"
-							style={{ scale: rsAppear.scale, opacity: rsAppear.opacity }}
-						>
-							<button
-								type="button"
-								data-swipe-action
-								tabIndex={isOpen ? 0 : -1}
-								onClick={() => {
-									rsAction.onAction()
-									reset()
-								}}
-								className={cn(
-									buttonVariants({ variant: "secondary", size: "icon" }),
-									"min-w-0 [&_svg:not([class*='size-'])]:size-5",
-									TEXT_COLOR_MAP[rsAction.variant],
-								)}
-								style={{
-									width: rsWidth,
-									height: BUTTON_HEIGHT,
-									borderRadius: BUTTON_HEIGHT / 2,
-								}}
-							>
-								<span className="sr-only">{rsAction.label}</span>
-								{rsAction.icon}
-							</button>
-							<span
-								aria-hidden
-								className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap"
-							>
-								{rsAction.label}
-							</span>
-						</motion.div>
-					)}
 				</motion.div>
 			)}
 
-			{lpAction && (
+			{leftAction && (
 				<motion.div
 					ref={leftActionsRef}
 					className="absolute inset-y-0 right-0 flex flex-row-reverse items-center gap-1.5 px-1.5 select-none"
 					style={{ pointerEvents: leftPointerEvents }}
 				>
 					<span
-						ref={lpMeasureRef}
+						ref={leftMeasureRef}
 						className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
 					>
-						{lpAction.label}
+						{leftAction.label}
 					</span>
-					{lsAction && (
-						<span
-							ref={lsMeasureRef}
-							className="pointer-events-none invisible absolute text-[10px] leading-tight whitespace-nowrap"
-						>
-							{lsAction.label}
-						</span>
-					)}
 
 					<motion.div
 						className="flex flex-col items-center justify-center gap-0.5"
-						style={{ scale: lpAppear.scale, opacity: lpAppear.opacity }}
+						style={{
+							scale: leftAppear.scale,
+							opacity: leftAppear.opacity,
+						}}
 					>
 						<motion.button
 							type="button"
 							data-swipe-action
 							tabIndex={isOpen ? 0 : -1}
 							onClick={() => {
-								lpAction.onAction()
+								leftAction.onAction()
 								reset()
 							}}
 							className={cn(
 								buttonVariants({ variant: "secondary", size: "icon" }),
 								"min-w-0 transition-colors duration-150 [&_svg:not([class*='size-'])]:size-5",
 								isFull
-									? cn(BG_COLOR_MAP[lpAction.variant], "text-white")
-									: TEXT_COLOR_MAP[lpAction.variant],
+									? cn(BG_COLOR_MAP[leftAction.variant], "text-white")
+									: TEXT_COLOR_MAP[leftAction.variant],
 							)}
 							style={{
-								width: lpButtonWidth,
+								width: leftButtonWidth,
 								height: BUTTON_HEIGHT,
 								borderRadius: BUTTON_HEIGHT / 2,
 							}}
 						>
-							<span className="sr-only">{lpAction.label}</span>
-							{lpAction.icon}
+							<span className="sr-only">{leftAction.label}</span>
+							{leftAction.icon}
 						</motion.button>
 						<span
 							aria-hidden
 							className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap"
 						>
-							{lpAction.label}
+							{leftAction.label}
 						</span>
 					</motion.div>
-
-					{lsAction && (
-						<motion.div
-							className="flex flex-col items-center justify-center gap-0.5"
-							style={{ scale: lsAppear.scale, opacity: lsAppear.opacity }}
-						>
-							<button
-								type="button"
-								data-swipe-action
-								tabIndex={isOpen ? 0 : -1}
-								onClick={() => {
-									lsAction.onAction()
-									reset()
-								}}
-								className={cn(
-									buttonVariants({ variant: "secondary", size: "icon" }),
-									"min-w-0 [&_svg:not([class*='size-'])]:size-5",
-									TEXT_COLOR_MAP[lsAction.variant],
-								)}
-								style={{
-									width: lsWidth,
-									height: BUTTON_HEIGHT,
-									borderRadius: BUTTON_HEIGHT / 2,
-								}}
-							>
-								<span className="sr-only">{lsAction.label}</span>
-								{lsAction.icon}
-							</button>
-							<span
-								aria-hidden
-								className="text-muted-foreground text-[10px] leading-tight whitespace-nowrap"
-							>
-								{lsAction.label}
-							</span>
-						</motion.div>
-					)}
 				</motion.div>
 			)}
 		</motion.div>
@@ -695,7 +596,6 @@ let BUTTON_HEIGHT = 52
 let ACTION_GAP = 6
 let SPRING = { type: "spring", stiffness: 500, damping: 35 } as const
 let FULL_SWIPE_THRESHOLD = 0.5
-let FULL_SWIPE_THRESHOLD_MULTI = 0.7
 let RESISTANCE = 0.3
 let APPEAR_INITIAL_SCALE = 0.3
 

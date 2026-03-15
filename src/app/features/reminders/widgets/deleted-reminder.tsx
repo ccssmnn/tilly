@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { useAccount } from "jazz-tools/react"
 import { useNavigate } from "@tanstack/react-router"
+import { useExpanded } from "#app/hooks/use-expanded"
+import { useSelectionAwareToggle } from "#app/hooks/use-selection-aware-toggle"
 import { UserAccount, Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useIntl, T } from "#shared/intl/setup"
@@ -8,17 +10,17 @@ import {
 	handleRestoreReminder,
 	handlePermanentlyDeleteReminder,
 } from "../lib/reminder-actions"
-import {
-	DropdownMenu,
-	DropdownMenuTrigger,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-} from "#shared/ui/dropdown-menu"
 import { DeletedReminderListItem } from "../parts/reminder-list-item"
-import { SwipeableListItem } from "../parts/swipeable-list-item"
+import { SwipeableListItem } from "#app/components/swipeable-list-item"
 import { ConfirmPermanentDelete } from "../parts/confirm-permanent-delete"
-import { Trash, ArrowCounterclockwise, PersonFill } from "react-bootstrap-icons"
+import {
+	Trash,
+	ArrowCounterclockwise,
+	PersonFill,
+	ChevronUp,
+} from "react-bootstrap-icons"
+import { Button } from "#shared/ui/button"
+import { ButtonGroup } from "#shared/ui/button-group"
 
 export { DeletedReminder }
 
@@ -37,6 +39,8 @@ function DeletedReminder({
 	let me = useAccount(UserAccount)
 	let navigate = useNavigate()
 	let [confirmingDelete, setConfirmingDelete] = useState(false)
+	let { isExpanded, toggleExpanded } = useExpanded(reminder.$jazz.id)
+	let handleClick = useSelectionAwareToggle(isExpanded, toggleExpanded)
 
 	let ref = {
 		personId: person.$jazz.id,
@@ -49,7 +53,10 @@ function DeletedReminder({
 	}
 
 	function goToPerson() {
-		navigate({ to: "/people/$personID", params: { personID: person.$jazz.id } })
+		navigate({
+			to: "/people/$personID",
+			params: { personID: person.$jazz.id },
+		})
 	}
 
 	async function onConfirmPermanentDelete() {
@@ -57,64 +64,71 @@ function DeletedReminder({
 		if (result.ok) setConfirmingDelete(false)
 	}
 
-	let listItem = (
-		<DeletedReminderListItem
-			reminder={reminder}
-			person={person}
-			searchQuery={searchQuery}
-		/>
-	)
-
 	return (
 		<>
-			<div className="pointer-coarse:hidden">
-				<DropdownMenu>
-					<DropdownMenuTrigger className="hover:bg-accent data-popup-open:bg-accent -mx-3 w-[calc(100%+1.5rem)] cursor-default rounded-xl px-3 text-left outline-none">
-						{listItem}
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="center" className="w-auto">
-						<DropdownMenuItem onClick={restore}>
-							<ArrowCounterclockwise />
-							<T k="reminder.restore.button" />
-						</DropdownMenuItem>
-						<DropdownMenuItem onClick={goToPerson}>
-							<PersonFill />
-							<T k="reminder.actions.viewPerson" />
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() => setConfirmingDelete(true)}
-						>
-							<Trash />
-							<T k="reminder.permanentDelete.confirm" />
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
+			<SwipeableListItem
+				onClick={handleClick}
+				rightAction={{
+					variant: "success",
+					icon: <ArrowCounterclockwise />,
+					label: <T k="reminder.restore.button" />,
+					onAction: restore,
+				}}
+				leftAction={{
+					variant: "destructive",
+					icon: <Trash />,
+					label: <T k="reminder.permanentDelete.confirm" />,
+					onAction: () => setConfirmingDelete(true),
+				}}
+			>
+				<DeletedReminderListItem
+					reminder={reminder}
+					person={person}
+					searchQuery={searchQuery}
+				/>
+			</SwipeableListItem>
 
-			<div className="pointer-fine:hidden">
-				<SwipeableListItem
-					onClick={goToPerson}
-					rightActions={[
-						{
-							variant: "success",
-							icon: <ArrowCounterclockwise />,
-							label: <T k="reminder.restore.button" />,
-							onAction: restore,
-						},
-					]}
-					leftActions={[
-						{
-							variant: "destructive",
-							icon: <Trash />,
-							label: <T k="reminder.permanentDelete.confirm" />,
-							onAction: () => setConfirmingDelete(true),
-						},
-					]}
-				>
-					{listItem}
-				</SwipeableListItem>
+			<div
+				className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
+				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+			>
+				<div className="overflow-hidden">
+					<div className="ml-19 flex items-center gap-3 pb-4">
+						<ButtonGroup>
+							<Button variant="outline" onClick={restore}>
+								<ArrowCounterclockwise />
+								<span className="max-sm:sr-only">
+									<T k="reminder.restore.button" />
+								</span>
+							</Button>
+							<Button variant="outline" onClick={goToPerson}>
+								<PersonFill />
+								<span className="max-sm:sr-only">
+									<T k="reminder.actions.viewPerson" />
+								</span>
+							</Button>
+							<Button
+								variant="outline"
+								onClick={() => setConfirmingDelete(true)}
+								className="text-destructive"
+							>
+								<Trash />
+								<span className="max-sm:sr-only">
+									<T k="reminder.permanentDelete.confirm" />
+								</span>
+							</Button>
+						</ButtonGroup>
+						<div className="flex-1" />
+						<ButtonGroup>
+							<Button variant="outline" onClick={toggleExpanded}>
+								<ChevronUp />
+								<span className="max-sm:sr-only">
+									<T k="note.showLess" />
+								</span>
+							</Button>
+						</ButtonGroup>
+					</div>
+				</div>
 			</div>
 
 			<ConfirmPermanentDelete

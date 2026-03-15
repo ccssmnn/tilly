@@ -1,14 +1,7 @@
 name: tilly
 icon: public/apple-touch-icon.png
 processes:
-  Jazz Sync Server:
-    command: bunx jazz-run sync
-    working_dir: null
-    auto_start: true
-    auto_restart: false
-    restart_when_changed: []
-    env: {}
-  Dev Server:
+  Dev:
     command: bun run dev
     working_dir: null
     auto_start: true

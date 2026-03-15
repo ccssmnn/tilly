@@ -903,13 +903,9 @@ function NoteImageGridThumbnails({
 	showPerson?: boolean
 	onImageClick: (index: number) => void
 }) {
-	let imageCount = note.imageCount ?? 0
-
 	let loadedNote = useCoState(Note, note.$jazz.id, {
 		resolve: { images: { $each: true } },
 	})
-
-	if (imageCount === 0) return null
 
 	let imageArray =
 		loadedNote?.$isLoaded && loadedNote.images?.$isLoaded
@@ -917,6 +913,8 @@ function NoteImageGridThumbnails({
 					(img): img is ImageItem => img?.$isLoaded === true,
 				)
 			: []
+
+	let imageCount = note.imageCount ?? imageArray.length
 
 	return (
 		<div
@@ -937,7 +935,7 @@ function NoteImageGridThumbnails({
 							isDeleted && "pointer-events-none",
 							imageCount === 3 && index === 0
 								? "col-span-1 row-span-2"
-								: "aspect-4/3 md:aspect-video",
+								: "aspect-[4/3] md:aspect-video",
 						)}
 						onClick={() => {
 							if (!isDeleted && image) {

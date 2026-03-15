@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { T, useIntl } from "#shared/intl/setup"
@@ -32,6 +32,8 @@ type NewReminderFormProps = {
 function NewReminderForm({ people, onSubmit, onCancel }: NewReminderFormProps) {
 	let t = useIntl()
 	let [selectedPerson, setSelectedPerson] = useState<PersonOption | null>(null)
+	let [inputValue, setInputValue] = useState("")
+	let prefersReducedMotion = useReducedMotion()
 
 	let peopleById = useMemo(() => {
 		let map = new Map<string, co.loaded<typeof Person>>()
@@ -43,6 +45,12 @@ function NewReminderForm({ people, onSubmit, onCancel }: NewReminderFormProps) {
 		() => people.map(p => ({ value: p.$jazz.id, label: p.name })),
 		[people],
 	)
+
+	let filteredOptions = useMemo(() => {
+		if (!inputValue) return personOptions
+		let lower = inputValue.toLowerCase()
+		return personOptions.filter(o => o.label.toLowerCase().includes(lower))
+	}, [personOptions, inputValue])
 
 	return (
 		<>
@@ -63,12 +71,17 @@ function NewReminderForm({ people, onSubmit, onCancel }: NewReminderFormProps) {
 			</DialogHeader>
 
 			<div className="space-y-3">
-				<Combobox value={selectedPerson} onValueChange={setSelectedPerson}>
+				<Combobox
+					value={selectedPerson}
+					onValueChange={setSelectedPerson}
+					onInputValueChange={setInputValue}
+					filter={null}
+				>
 					<ComboboxInput placeholder={t("reminder.select.search")} />
 					<ComboboxContent>
 						<ComboboxList>
 							<ComboboxEmpty>{t("reminder.select.empty")}</ComboboxEmpty>
-							{personOptions.map(option => {
+							{filteredOptions.map(option => {
 								let person = peopleById.get(option.value)
 								return (
 									<ComboboxItem key={option.value} value={option}>
@@ -100,10 +113,19 @@ function NewReminderForm({ people, onSubmit, onCancel }: NewReminderFormProps) {
 				<AnimatePresence>
 					{selectedPerson && (
 						<motion.div
-							initial={{ opacity: 0, height: 0 }}
+							initial={{
+								opacity: prefersReducedMotion ? 1 : 0,
+								height: prefersReducedMotion ? "auto" : 0,
+							}}
 							animate={{ opacity: 1, height: "auto" }}
-							exit={{ opacity: 0, height: 0 }}
-							transition={{ duration: 0.2, ease: "easeOut" }}
+							exit={{
+								opacity: prefersReducedMotion ? 1 : 0,
+								height: prefersReducedMotion ? "auto" : 0,
+							}}
+							transition={{
+								duration: prefersReducedMotion ? 0 : 0.2,
+								ease: "easeOut",
+							}}
 							className="overflow-hidden"
 						>
 							<ReminderFields

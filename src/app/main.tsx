@@ -47,7 +47,7 @@ function JazzWithClerk() {
 				fallback={<SplashScreenStatic />}
 			>
 				<RouterWithJazz />
-				<Toaster richColors />
+				<Toaster />
 			</JazzReactProviderWithClerk>
 		</PWAContext.Provider>
 	)

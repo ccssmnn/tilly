@@ -38,7 +38,7 @@ function ConfirmPermanentDelete({
 					<AlertDialogCancel>
 						<T k="reminder.permanentDelete.cancel" />
 					</AlertDialogCancel>
-					<AlertDialogAction onClick={onConfirm}>
+					<AlertDialogAction variant="destructive" onClick={onConfirm}>
 						<T k="reminder.permanentDelete.confirm" />
 					</AlertDialogAction>
 				</AlertDialogFooter>

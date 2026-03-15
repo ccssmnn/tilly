@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "astro dev",
+		"dev": "bun scripts/dev.ts",
 		"build": "astro build",
 		"build:prod": "astro build",
 		"build:node": "ASTRO_ADAPTER=node astro build",

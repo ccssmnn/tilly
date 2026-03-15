@@ -5,7 +5,7 @@ import { useIntl } from "#shared/intl/setup"
 import { useRemindersData } from "../lib/data"
 import { handleCreateReminder } from "../lib/reminder-actions"
 import { Dialog, DialogContent } from "#shared/ui/dialog"
-import { VirtualizedList } from "../parts/virtualized-list"
+import { VirtualizedList } from "#app/components/virtualized-list"
 import { RemindersPageTitle } from "../parts/reminders-page-title"
 import {
 	ReminderToolbar,
