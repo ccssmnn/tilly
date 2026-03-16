@@ -12,16 +12,16 @@ import { T } from "#shared/intl/setup"
 import type {
 	createGetPersonDetailsTool,
 	createListPeopleTool,
-} from "./person-read"
-
-type _ListPeopleTool = InferUITool<ReturnType<typeof createListPeopleTool>>
-type _GetPersonDetailsTool = InferUITool<
-	ReturnType<typeof createGetPersonDetailsTool>
->
+} from "#shared/tools/person-read"
 
 export { ListPeopleResult, GetPersonDetailsResult }
 
-function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
+type ListPeopleToolUI = InferUITool<ReturnType<typeof createListPeopleTool>>
+type GetPersonDetailsToolUI = InferUITool<
+	ReturnType<typeof createGetPersonDetailsTool>
+>
+
+function ListPeopleResult({ result }: { result: ListPeopleToolUI["output"] }) {
 	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
 	let { setPeopleSearchQuery } = useAppStore()
@@ -101,7 +101,7 @@ function ListPeopleResult({ result }: { result: _ListPeopleTool["output"] }) {
 function GetPersonDetailsResult({
 	result,
 }: {
-	result: _GetPersonDetailsTool["output"]
+	result: GetPersonDetailsToolUI["output"]
 }) {
 	let [dialogOpen, setDrawerOpen] = useState(false)
 

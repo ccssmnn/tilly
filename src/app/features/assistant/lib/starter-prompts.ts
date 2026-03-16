@@ -3,13 +3,11 @@ import {
 	isDeleted,
 	Person as PersonSchema,
 	sortByUpdatedAt,
-	UserAccount,
 } from "#shared/schema/user"
 import type { co } from "jazz-tools"
-import { useAccount } from "jazz-tools/react"
 import type { useIntl } from "#shared/intl"
 
-export { getDueReminders, useStarterPrompts }
+export { getDueReminders, getStarterPrompts }
 export type { Person, StarterPrompt }
 
 type Person = co.loaded<typeof PersonSchema, { reminders: { $each: true } }>
@@ -119,20 +117,4 @@ function getStarterPrompts(
 		},
 		followUpPrompt,
 	]
-}
-
-function useStarterPrompts(t: ReturnType<typeof useIntl>): StarterPrompt[] {
-	let people = useAccount(UserAccount, {
-		resolve: {
-			root: { people: { $each: { reminders: { $each: true } } } },
-		},
-		select: account => {
-			if (!account.$isLoaded) return []
-			return Array.from(account.root.people).filter(
-				p => p.$isLoaded && !isDeleted(p),
-			) as unknown as Person[]
-		},
-	})
-
-	return getStarterPrompts(people, t)
 }

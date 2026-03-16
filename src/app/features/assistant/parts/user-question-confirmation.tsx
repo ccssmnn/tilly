@@ -1,13 +1,9 @@
-import { type ReactNode, useState } from "react"
+import { useState } from "react"
 import { T, useIntl } from "#shared/intl/setup"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "#shared/ui/button"
-import {
-	ToolMessageSummary,
-	ToolMessageWrapper as SharedToolMessageWrapper,
-} from "#shared/ui/tool-message-wrapper"
 import {
 	Card,
 	CardContent,
@@ -28,7 +24,7 @@ import {
 import type { AddToolResultFunction } from "#shared/tools/tools"
 import type { InferUITool } from "ai"
 
-export { UserQuestionConfirmation, UserQuestionResult }
+export { UserQuestionConfirmation }
 
 type UserQuestionToolUI = InferUITool<typeof userQuestionTool>
 
@@ -205,55 +201,5 @@ function UserQuestionConfirmation({
 				)}
 			</CardFooter>
 		</Card>
-	)
-}
-
-function UserQuestionResult({
-	result,
-}: {
-	result: UserQuestionToolUI["output"]
-}) {
-	let t = useIntl()
-
-	if ("error" in result) {
-		return (
-			<ToolMessageWrapper>
-				❌ {typeof result.error === "string" ? result.error : result.error}
-			</ToolMessageWrapper>
-		)
-	}
-
-	if ("cancelled" in result) {
-		return (
-			<ToolMessageWrapper>
-				<span className="text-muted-foreground">🚫 {result.reason}</span>
-			</ToolMessageWrapper>
-		)
-	}
-
-	let answerDisplay =
-		typeof result.answer === "boolean"
-			? result.answer
-				? t("tool.userQuestion.yes")
-				: t("tool.userQuestion.no")
-			: result.answerLabel || result.answer
-
-	return (
-		<ToolMessageSummary icon={QuestionIcon}>
-			<span>
-				{t("tool.userQuestion.result.questionLabel")} {result.question} -{" "}
-				<span className="text-foreground font-medium">
-					{t("tool.userQuestion.result.answerLabel")} {answerDisplay}
-				</span>
-			</span>
-		</ToolMessageSummary>
-	)
-}
-
-function ToolMessageWrapper({ children }: { children: ReactNode }) {
-	return (
-		<SharedToolMessageWrapper icon={QuestionIcon}>
-			{children}
-		</SharedToolMessageWrapper>
 	)
 }

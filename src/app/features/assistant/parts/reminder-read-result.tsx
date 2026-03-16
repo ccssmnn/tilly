@@ -11,9 +11,9 @@ import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { createListRemindersTool } from "#shared/tools/reminder-read"
 import type { InferToolOutput } from "ai"
 
-export { ListRemindersResult }
+export { ReminderReadResult }
 
-function ListRemindersResult({
+function ReminderReadResult({
 	result,
 }: {
 	result: InferToolOutput<ReturnType<typeof createListRemindersTool>>

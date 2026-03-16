@@ -1,0 +1,206 @@
+import { useRef } from "react"
+import { z } from "zod"
+import { useForm, useWatch } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { nanoid } from "nanoid"
+import { Button } from "#shared/ui/button"
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupTextarea,
+} from "#shared/ui/input-group"
+import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
+import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
+import { TypographyH2, TypographyMuted } from "#shared/ui/typography"
+import { Send, Pause, Arrow90degUp } from "react-bootstrap-icons"
+import { useAccount } from "jazz-tools/react"
+import { UserAccount } from "#shared/schema/user"
+import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
+import { useIntl } from "#shared/intl/setup"
+import { T } from "#shared/intl/setup"
+import { useStarterPrompts } from "../hooks/use-starter-prompts"
+import { resolve } from "../lib/data"
+import type { TillyUIMessage } from "#shared/tools/tools"
+
+export { EmptyChatState }
+
+function EmptyChatState({
+	onSubmit,
+	isOnline,
+	isBusy,
+	abort,
+}: {
+	onSubmit: (message: TillyUIMessage) => void
+	isOnline: boolean
+	isBusy: boolean
+	abort?: () => void
+}) {
+	let me = useAccount(UserAccount, { resolve })
+	let t = useIntl()
+	let starters = useStarterPrompts(t)
+
+	let form = useForm({
+		resolver: zodResolver(z.object({ prompt: z.string() })),
+		defaultValues: { prompt: "" },
+	})
+
+	let promptValue = useWatch({
+		control: form.control,
+		name: "prompt",
+		defaultValue: "",
+	})
+
+	let autoFocusRef = useAutoFocusInput()
+	let textareaRef = useRef<HTMLTextAreaElement>(null)
+
+	function handleSubmit(data: { prompt: string }) {
+		if (!me.$isLoaded) return
+		if (!data.prompt.trim()) return
+
+		let metadata = {
+			userName: me.profile?.name || "Anonymous",
+			timezone: me.root.notificationSettings?.timezone || "UTC",
+			locale: me.root.language || "en",
+			// eslint-disable-next-line react-hooks/purity
+			timestamp: Date.now(),
+		}
+
+		let newMessage: TillyUIMessage = {
+			id: nanoid(),
+			role: "user",
+			parts: [{ type: "text", text: data.prompt }],
+			metadata,
+		}
+
+		onSubmit(newMessage)
+		form.reset()
+	}
+
+	function submitOnKeyCtrlEnter(
+		event: React.KeyboardEvent<HTMLTextAreaElement>,
+	) {
+		if (event.key !== "Enter") return
+
+		let shouldSubmit = event.metaKey || event.ctrlKey || event.shiftKey
+		if (!shouldSubmit) return
+
+		if (!promptValue.trim()) return
+		if (form.formState.isSubmitting) return
+
+		event.preventDefault()
+
+		form.handleSubmit(handleSubmit)()
+		textareaRef.current?.blur()
+	}
+
+	function prefillStarter(text: string) {
+		form.setValue("prompt", text)
+		textareaRef.current?.focus()
+	}
+
+	return (
+		<div className="flex flex-col items-center gap-6 py-12 text-center">
+			<div className="space-y-4">
+				<Avatar className="mx-auto size-20">
+					<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly" />
+					<AvatarFallback>T</AvatarFallback>
+				</Avatar>
+				<div className="space-y-2">
+					<TypographyH2>
+						<T k="assistant.emptyState.welcome" />
+					</TypographyH2>
+					<TypographyMuted className="max-w-md">
+						<T k="assistant.emptyState.description" />
+					</TypographyMuted>
+				</div>
+			</div>
+
+			<div className="w-full max-w-xl">
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(handleSubmit)}>
+						<p id="assistant-empty-input-hint" className="sr-only">
+							Press Cmd, Ctrl, or Shift plus Enter to send.
+						</p>
+						<FormField
+							control={form.control}
+							name="prompt"
+							render={({ field }) => (
+								<FormItem>
+									<FormControl>
+										<InputGroup className="h-auto rounded-3xl">
+											<InputGroupTextarea
+												placeholder={
+													!isOnline
+														? t("assistant.placeholder.offline")
+														: t("assistant.placeholder.initial")
+												}
+												rows={2}
+												maxHeight={240}
+												className="min-h-20 max-w-full overflow-x-hidden overflow-y-auto text-base md:text-sm"
+												aria-describedby="assistant-empty-input-hint"
+												disabled={!isOnline || isBusy}
+												{...field}
+												onKeyDown={submitOnKeyCtrlEnter}
+												ref={(r: HTMLTextAreaElement | null) => {
+													textareaRef.current = r
+													autoFocusRef.current = r
+													field.ref(r)
+												}}
+											/>
+											<InputGroupAddon
+												align="block-end"
+												className="justify-end"
+											>
+												{abort ? (
+													<InputGroupButton
+														type="button"
+														variant="destructive"
+														onClick={abort}
+														size="icon-sm"
+														className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
+														aria-label="Stop response generation"
+														title="Stop response generation"
+													>
+														<Pause />
+													</InputGroupButton>
+												) : (
+													<InputGroupButton
+														type="submit"
+														size="icon-sm"
+														className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
+														disabled={!isOnline || isBusy}
+														aria-label="Send message"
+														title="Send message"
+														variant="default"
+													>
+														<Send />
+													</InputGroupButton>
+												)}
+											</InputGroupAddon>
+										</InputGroup>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
+					</form>
+				</Form>
+			</div>
+			<div className="flex w-full max-w-xl flex-col gap-2">
+				{starters.slice(0, 3).map(starter => (
+					<Button
+						key={starter.key}
+						type="button"
+						variant="ghost"
+						className="h-auto min-h-11 min-w-0 justify-start text-left text-wrap whitespace-normal"
+						onClick={() => prefillStarter(starter.text)}
+						disabled={!isOnline || isBusy}
+					>
+						<Arrow90degUp className="shrink-0" />
+						<span className="wrap-break-words min-w-0">{starter.text}</span>
+					</Button>
+				))}
+			</div>
+		</div>
+	)
+}
