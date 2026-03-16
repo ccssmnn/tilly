@@ -68,7 +68,9 @@ export default [
 		rules: commonRules,
 	},
 	{
-		files: ["src/app/features/{reminders,notes,assistant}/**/*.{ts,tsx}"],
+		files: [
+			"src/app/features/{people,reminders,notes,assistant}/**/*.{ts,tsx}",
+		],
 		plugins: { architecture },
 		rules: {
 			"architecture/no-feature-part-composition": "error",

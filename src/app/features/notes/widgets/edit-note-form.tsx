@@ -2,7 +2,7 @@ import { Note } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { T } from "#shared/intl/setup"
 import { DialogHeader, DialogTitle, DialogDescription } from "#shared/ui/dialog"
-import { NoteForm } from "#app/features/notes/parts/note-form"
+import { NoteForm } from "./note-form"
 
 export { EditNoteForm }
 

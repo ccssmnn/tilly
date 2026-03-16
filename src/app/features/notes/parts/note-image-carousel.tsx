@@ -36,27 +36,6 @@ function NoteImageCarousel({
 				)
 			: []
 
-	return (
-		<ImageCarousel
-			images={imageArray}
-			selectedIndex={selectedIndex}
-			open={open && imageArray.length > 0}
-			onClose={onClose}
-		/>
-	)
-}
-
-function ImageCarousel({
-	images,
-	selectedIndex,
-	open,
-	onClose,
-}: {
-	images: ImageItem[]
-	selectedIndex: number
-	open: boolean
-	onClose: () => void
-}) {
 	let [currentIndex, setCurrentIndex] = useState(selectedIndex)
 	let [prevSelectedIndex, setPrevSelectedIndex] = useState(selectedIndex)
 	if (selectedIndex !== prevSelectedIndex) {
@@ -71,7 +50,9 @@ function ImageCarousel({
 		setDirection("left")
 		setTimeout(
 			() =>
-				setCurrentIndex(prev => (prev === 0 ? images.length - 1 : prev - 1)),
+				setCurrentIndex(prev =>
+					prev === 0 ? imageArray.length - 1 : prev - 1,
+				),
 			10,
 		)
 	}
@@ -80,7 +61,9 @@ function ImageCarousel({
 		setDirection("right")
 		setTimeout(
 			() =>
-				setCurrentIndex(prev => (prev === images.length - 1 ? 0 : prev + 1)),
+				setCurrentIndex(prev =>
+					prev === imageArray.length - 1 ? 0 : prev + 1,
+				),
 			10,
 		)
 	}
@@ -100,8 +83,8 @@ function ImageCarousel({
 		return () => window.removeEventListener("keydown", handleKeyDown)
 	})
 
-	let currentImage = images[currentIndex]
-	if (!currentImage) return null
+	let currentImage = imageArray[currentIndex]
+	if (!currentImage || imageArray.length === 0) return null
 
 	return (
 		<Dialog open={open} onOpenChange={onClose}>
@@ -153,14 +136,14 @@ function ImageCarousel({
 						</motion.div>
 					</AnimatePresence>
 
-					{images.length > 1 && (
+					{imageArray.length > 1 && (
 						<div className="absolute inset-x-0 bottom-0 flex h-24 items-center justify-center gap-4">
 							<Button onClick={handlePrevious} size="sm" variant="secondary">
 								<ChevronLeft />
 								<T k="navigation.previous" />
 							</Button>
 							<div className="flex gap-2">
-								{images.map((_, index) => (
+								{imageArray.map((_, index) => (
 									<button
 										type="button"
 										key={index}

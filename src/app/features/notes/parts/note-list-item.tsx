@@ -8,10 +8,13 @@ import { PinFill, Trash } from "react-bootstrap-icons"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage, useCoState } from "jazz-tools/react"
-import { Markdown } from "#shared/ui/markdown"
 import { T } from "#shared/intl/setup"
-import { type ReactNode, useEffect, useRef, useState } from "react"
 import { SharedIndicator } from "#app/features/person-shared-indicator"
+import {
+	CollapsibleContent,
+	contentHasOverflow,
+} from "#app/components/collapsible-content"
+import { MarkdownWithHighlight } from "#app/components/markdown-with-highlight"
 
 export {
 	ActiveNoteListItem,
@@ -162,64 +165,6 @@ function DeletedNoteListItem({
 	)
 }
 
-// -- Expand / Collapse --
-
-let COLLAPSED_HEIGHT = 96 // ~4 lines at default line-height
-let CHAR_LIMIT = 280
-let LINE_LIMIT = 4
-
-function contentHasOverflow(content: string): boolean {
-	let lines = content.split("\n")
-	return content.length > CHAR_LIMIT || lines.length > LINE_LIMIT
-}
-
-function CollapsibleContent({
-	isExpanded,
-	hasOverflow,
-	children,
-}: {
-	isExpanded: boolean
-	hasOverflow: boolean
-	children: ReactNode
-}) {
-	let innerRef = useRef<HTMLDivElement>(null)
-	let [expandedHeight, setExpandedHeight] = useState(COLLAPSED_HEIGHT)
-
-	useEffect(() => {
-		if (!hasOverflow) return
-
-		function updateHeight() {
-			let nextHeight = innerRef.current?.scrollHeight ?? COLLAPSED_HEIGHT
-			setExpandedHeight(nextHeight)
-		}
-
-		updateHeight()
-
-		let element = innerRef.current
-		if (!element || typeof ResizeObserver === "undefined") return
-
-		let observer = new ResizeObserver(() => updateHeight())
-		observer.observe(element)
-
-		return () => observer.disconnect()
-	}, [children, hasOverflow])
-
-	if (!hasOverflow) return children
-
-	return (
-		<div
-			className={cn(
-				"overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none",
-				!isExpanded &&
-					"[mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]",
-			)}
-			style={{ maxHeight: isExpanded ? expandedHeight : COLLAPSED_HEIGHT }}
-		>
-			<div ref={innerRef}>{children}</div>
-		</div>
-	)
-}
-
 // -- Images --
 
 type ImageItem = co.loaded<ReturnType<typeof co.image>>
@@ -293,51 +238,4 @@ function NoteImageGrid({
 			})}
 		</div>
 	)
-}
-
-// -- Markdown --
-
-function MarkdownWithHighlight({
-	content,
-	searchQuery,
-}: {
-	content: string
-	searchQuery?: string
-}) {
-	if (!searchQuery?.trim()) {
-		return <Markdown>{content}</Markdown>
-	}
-
-	let terms = extractSearchTerms(searchQuery.trim())
-	if (terms.length === 0) {
-		return <Markdown>{content}</Markdown>
-	}
-
-	let pattern = terms.map(escapeRegExp).join("|")
-	let parts = content.split(new RegExp(`(${pattern})`, "gi"))
-	let highlighted = parts
-		.map(part => {
-			let isMatch = terms.some(
-				term => part.toLowerCase() === term.toLowerCase(),
-			)
-			return isMatch
-				? `<mark class="bg-yellow-200 text-yellow-900">${part}</mark>`
-				: part
-		})
-		.join("")
-
-	return <Markdown>{highlighted}</Markdown>
-}
-
-function extractSearchTerms(query: string): string[] {
-	let terms: string[] = []
-	let hashtagMatch = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	if (hashtagMatch) terms.push(hashtagMatch[1])
-	let rest = query.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
-	if (rest) terms.push(rest)
-	return terms
-}
-
-function escapeRegExp(s: string) {
-	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }

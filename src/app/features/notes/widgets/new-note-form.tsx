@@ -13,7 +13,7 @@ import {
 	ComboboxList,
 	ComboboxItem,
 } from "#shared/ui/combobox"
-import { NoteForm } from "#app/features/notes/parts/note-form"
+import { NoteForm } from "./note-form"
 import { format } from "date-fns"
 
 export { NewNoteForm }
