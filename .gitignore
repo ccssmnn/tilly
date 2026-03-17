@@ -3,6 +3,9 @@
 .tanstack
 .claude
 
+opencode.json
+.mcp.json
+
 pnpm-debug.log*
 
 node_modules

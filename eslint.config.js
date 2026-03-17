@@ -69,7 +69,7 @@ export default [
 	},
 	{
 		files: [
-			"src/app/features/{people,reminders,notes,assistant}/**/*.{ts,tsx}",
+			"src/app/features/{people,reminders,notes,assistant,settings}/**/*.{ts,tsx}",
 		],
 		plugins: { architecture },
 		rules: {
