@@ -75,12 +75,35 @@ export default [
 		rules: {
 			"architecture/no-feature-part-composition": "error",
 			"architecture/no-local-part-subcomponents": "error",
+			"architecture/no-widget-composition": "error",
+			"architecture/no-local-widget-subcomponents": "error",
+			"architecture/no-utility-definitions-in-ui-modules": "error",
 			"architecture/no-deep-feature-imports": "error",
+			"architecture/no-loose-feature-module-imports": "error",
 			"architecture/only-screens-and-widgets-may-import-parts": "error",
 			"architecture/only-routes-may-import-screens": "error",
-			"architecture/only-use-cases-may-compose-operations": "error",
 		},
 	},
+	{
+		files: ["src/app/routes/**/*.{ts,tsx}"],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-loose-feature-module-imports": "error",
+		},
+	},
+	// TODO: enable architecture rules for server features after migrating to handlers/parts/operations structure
+	// {
+	// 	files: ["src/server/features/**/*.ts"],
+	// 	plugins: { architecture },
+	// 	rules: {
+	// 		"architecture/no-feature-part-composition": "error",
+	// 		"architecture/no-utility-definitions-in-ui-modules": "error",
+	// 		"architecture/no-deep-feature-imports": "error",
+	// 		"architecture/only-screens-and-widgets-may-import-parts": "error",
+	// 		"architecture/only-router-may-import-handlers": "error",
+	// 		"architecture/only-handlers-may-import-operations": "error",
+	// 	},
+	// },
 	{
 		files: ["tools/**/*.ts"],
 		languageOptions: {

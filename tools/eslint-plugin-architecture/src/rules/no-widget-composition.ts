@@ -2,6 +2,7 @@ import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
+	isSameFeature,
 	DEFAULT_ALIASES,
 	type AliasMap,
 	type Classification,
@@ -13,21 +14,17 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
-function isServerFile(filename: string): boolean {
-	return filename.replace(/\\/g, "/").includes("/src/server/")
-}
-
 export default createRule({
-	name: "no-feature-part-composition",
+	name: "no-widget-composition",
 	meta: {
 		type: "problem",
 		docs: {
 			description:
-				"Parts must not compose other parts. Compose in screens, widgets, handlers, or operations.",
+				"Widgets must not render other widgets. Compose widgets in screens.",
 		},
 		messages: {
-			noPartComposition:
-				"Parts must not compose other parts. Compose parts in screens, widgets, handlers, or operations instead.",
+			noWidgetComposition:
+				"Widgets must not render other widgets. Compose widgets in screens instead.",
 		},
 		schema: [
 			{
@@ -44,9 +41,8 @@ export default createRule({
 		let aliases = options.aliases ?? DEFAULT_ALIASES
 		let currentFile = classifyFile(context.filename)
 
-		if (currentFile.zone !== "part") return {}
+		if (currentFile.zone !== "widget") return {}
 
-		let isServer = isServerFile(context.filename)
 		let importClassifications = new Map<string, Classification>()
 
 		return {
@@ -58,15 +54,9 @@ export default createRule({
 					context.filename,
 					aliases,
 				)
-				if (classification.zone !== "part") return
+				if (classification.zone !== "widget") return
+				if (isSameFeature(classification, currentFile)) return
 
-				// Backend: block the import itself (no JSX to check)
-				if (isServer) {
-					context.report({ node, messageId: "noPartComposition" })
-					return
-				}
-
-				// Frontend: track for JSX rendering check
 				for (let specifier of node.specifiers) {
 					importClassifications.set(specifier.local.name, classification)
 				}
@@ -76,7 +66,7 @@ export default createRule({
 				let name = getJSXComponentName(node)
 				if (!name) return
 				if (importClassifications.has(name)) {
-					context.report({ node, messageId: "noPartComposition" })
+					context.report({ node, messageId: "noWidgetComposition" })
 				}
 			},
 		}

@@ -14,6 +14,17 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			filename: "/project/src/app/features/notes/widgets/NotePreview.tsx",
 		},
 		{
+			// handler imports part — same feature
+			code: `import { sendNotification } from "#server/features/push/parts/send-notification"`,
+			filename: "/project/src/server/features/push/handlers/push-handler.ts",
+		},
+		{
+			// operation imports part — same feature
+			code: `import { formatPayload } from "#server/features/push/parts/format-payload"`,
+			filename:
+				"/project/src/server/features/push/operations/send-push.ts",
+		},
+		{
 			// relative import from screen to part
 			code: `import { NoteItem } from "../parts/NoteItem"`,
 			filename: "/project/src/app/features/notes/screens/NotesScreen.tsx",
@@ -58,6 +69,19 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			// feature index must not re-export parts
 			code: `import { NoteItem } from "#app/features/notes/parts/NoteItem"`,
 			filename: "/project/src/app/features/notes/index.ts",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// server lib importing a part
+			code: `import { sendNotification } from "#server/features/push/parts/send-notification"`,
+			filename: "/project/src/server/features/push/lib/utils.ts",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// cross-feature operation importing a part
+			code: `import { formatPayload } from "#server/features/push/parts/format-payload"`,
+			filename:
+				"/project/src/server/features/chat/operations/send-chat.ts",
 			errors: [{ messageId: "forbidden" }],
 		},
 	],

@@ -53,6 +53,16 @@ ruleTester.run("no-feature-part-composition", rule, {
 			`,
 			filename: "/project/src/app/features/notes/parts/NoteContent.tsx",
 		},
+		{
+			// server part importing non-part (lib)
+			code: `import { db } from "#server/lib/db"`,
+			filename: "/project/src/server/features/push/parts/send-notification.ts",
+		},
+		{
+			// server part type-only import from another part
+			code: `import type { TokenPayload } from "./validate-token"`,
+			filename: "/project/src/server/features/push/parts/create-token.ts",
+		},
 	],
 	invalid: [
 		{
@@ -86,6 +96,18 @@ ruleTester.run("no-feature-part-composition", rule, {
 				}
 			`,
 			filename: "/project/src/app/features/notes/parts/NoteContent.tsx",
+			errors: [{ messageId: "noPartComposition" }],
+		},
+		{
+			// server part importing another server part
+			code: `import { validateToken } from "./validate-token"`,
+			filename: "/project/src/server/features/push/parts/create-token.ts",
+			errors: [{ messageId: "noPartComposition" }],
+		},
+		{
+			// server part importing part via alias
+			code: `import { validateToken } from "#server/features/push/parts/validate-token"`,
+			filename: "/project/src/server/features/push/parts/create-token.ts",
 			errors: [{ messageId: "noPartComposition" }],
 		},
 	],

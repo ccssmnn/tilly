@@ -67,18 +67,46 @@ describe("classifyFile", () => {
 		expect(result).toEqual({ zone: "handler", feature: "push" })
 	})
 
-	test("use-case", () => {
-		let result = classifyFile(
-			"/project/src/server/features/push/use-cases/send-push.ts",
-		)
-		expect(result).toEqual({ zone: "use-case", feature: "push" })
-	})
-
 	test("operation", () => {
 		let result = classifyFile(
-			"/project/src/server/features/push/operations/create-token.ts",
+			"/project/src/server/features/push/operations/send-push.ts",
 		)
 		expect(result).toEqual({ zone: "operation", feature: "push" })
+	})
+
+	test("server part", () => {
+		let result = classifyFile(
+			"/project/src/server/features/push/parts/send-notification.ts",
+		)
+		expect(result).toEqual({ zone: "part", feature: "push" })
+	})
+
+	test("server lib", () => {
+		let result = classifyFile(
+			"/project/src/server/features/push/lib/web-push.ts",
+		)
+		expect(result).toEqual({ zone: "feature-lib", feature: "push" })
+	})
+
+	test("server feature-index", () => {
+		let result = classifyFile(
+			"/project/src/server/features/push/index.ts",
+		)
+		expect(result).toEqual({ zone: "feature-index", feature: "push" })
+	})
+
+	test("operations in app features are unknown", () => {
+		let result = classifyFile(
+			"/project/src/app/features/notes/operations/something.ts",
+		)
+		expect(result).toEqual({ zone: "unknown", feature: "notes" })
+	})
+
+	test("handlers in app features are unknown", () => {
+		let result = classifyFile(
+			"/project/src/app/features/notes/handlers/something.ts",
+		)
+		expect(result).toEqual({ zone: "unknown", feature: "notes" })
 	})
 
 	test("flat feature file classifies as unknown with feature name", () => {
@@ -138,6 +166,28 @@ describe("classifyImport", () => {
 	test("package import returns unknown", () => {
 		let result = classifyImport("react", file, DEFAULT_ALIASES)
 		expect(result).toEqual({ zone: "unknown", feature: null })
+	})
+
+	test("alias import to server operation", () => {
+		let serverFile =
+			"/project/src/server/features/push/handlers/push-handler.ts"
+		let result = classifyImport(
+			"#server/features/push/operations/send-push",
+			serverFile,
+			DEFAULT_ALIASES,
+		)
+		expect(result).toEqual({ zone: "operation", feature: "push" })
+	})
+
+	test("alias import to server feature index (bare)", () => {
+		let serverFile =
+			"/project/src/server/features/chat/handlers/chat-handler.ts"
+		let result = classifyImport(
+			"#server/features/push",
+			serverFile,
+			DEFAULT_ALIASES,
+		)
+		expect(result).toEqual({ zone: "feature-index", feature: "push" })
 	})
 })
 

@@ -1,9 +1,14 @@
 import noFeaturePartComposition from "./rules/no-feature-part-composition.js"
 import noLocalPartSubcomponents from "./rules/no-local-part-subcomponents.js"
+import noWidgetComposition from "./rules/no-widget-composition.js"
+import noLocalWidgetSubcomponents from "./rules/no-local-widget-subcomponents.js"
+import noUtilityDefinitionsInUiModules from "./rules/no-utility-definitions-in-ui-modules.js"
 import noDeepFeatureImports from "./rules/no-deep-feature-imports.js"
+import noLooseFeatureModuleImports from "./rules/no-loose-feature-module-imports.js"
 import onlyScreensAndWidgetsMayImportParts from "./rules/only-screens-and-widgets-may-import-parts.js"
 import onlyRoutesMayImportScreens from "./rules/only-routes-may-import-screens.js"
-import onlyUseCasesMayComposeOperations from "./rules/only-use-cases-may-compose-operations.js"
+import onlyRouterMayImportHandlers from "./rules/only-router-may-import-handlers.js"
+import onlyHandlersMayImportOperations from "./rules/only-handlers-may-import-operations.js"
 
 const plugin = {
 	meta: {
@@ -13,11 +18,16 @@ const plugin = {
 	rules: {
 		"no-feature-part-composition": noFeaturePartComposition,
 		"no-local-part-subcomponents": noLocalPartSubcomponents,
+		"no-widget-composition": noWidgetComposition,
+		"no-local-widget-subcomponents": noLocalWidgetSubcomponents,
+		"no-utility-definitions-in-ui-modules": noUtilityDefinitionsInUiModules,
 		"no-deep-feature-imports": noDeepFeatureImports,
+		"no-loose-feature-module-imports": noLooseFeatureModuleImports,
 		"only-screens-and-widgets-may-import-parts":
 			onlyScreensAndWidgetsMayImportParts,
 		"only-routes-may-import-screens": onlyRoutesMayImportScreens,
-		"only-use-cases-may-compose-operations": onlyUseCasesMayComposeOperations,
+		"only-router-may-import-handlers": onlyRouterMayImportHandlers,
+		"only-handlers-may-import-operations": onlyHandlersMayImportOperations,
 	},
 }
 

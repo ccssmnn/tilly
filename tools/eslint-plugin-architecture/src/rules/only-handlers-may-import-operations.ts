@@ -2,6 +2,7 @@ import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
+	isSameFeature,
 	DEFAULT_ALIASES,
 	type AliasMap,
 } from "../utils/path-classification.js"
@@ -12,16 +13,18 @@ const createRule = ESLintUtils.RuleCreator(
 )
 
 export default createRule({
-	name: "only-use-cases-may-compose-operations",
+	name: "only-handlers-may-import-operations",
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Only use-cases may import operations.",
+			description:
+				"Only handlers may import operations. Operations must not import other operations.",
 		},
 		messages: {
 			operationChain:
-				"Operations must not import other operations. Use a use-case to orchestrate.",
-			forbidden: "Only use-cases may import operations.",
+				"Operations must not import other operations. Keep the dependency tree flat.",
+			forbidden:
+				"Only handlers may import operations. Current file is in '{{zone}}'.",
 		},
 		schema: [
 			{
@@ -40,18 +43,28 @@ export default createRule({
 
 		return {
 			ImportDeclaration(node) {
+				if (node.importKind === "type") return
+
 				let imported = classifyImport(
 					node.source.value,
 					context.filename,
 					aliases,
 				)
 				if (imported.zone !== "operation") return
-				if (currentFile.zone === "use-case") return
+				if (currentFile.zone === "feature-index") return
+
+				if (
+					currentFile.zone === "handler" &&
+					isSameFeature(currentFile, imported)
+				) {
+					return
+				}
 
 				context.report({
 					node,
 					messageId:
 						currentFile.zone === "operation" ? "operationChain" : "forbidden",
+					data: { zone: currentFile.zone },
 				})
 			},
 		}

@@ -11,7 +11,6 @@ export type Zone =
 	| "shared-ui"
 	| "route"
 	| "handler"
-	| "use-case"
 	| "operation"
 	| "unknown"
 
@@ -36,9 +35,10 @@ const FEATURE_ZONE_MAP: Record<string, Zone> = {
 	hooks: "hook",
 	lib: "feature-lib",
 	handlers: "handler",
-	"use-cases": "use-case",
 	operations: "operation",
 }
+
+const APP_EXCLUDED_ZONES = new Set(["handlers", "operations"])
 
 function normalize(filePath: string): string {
 	return filePath.replace(/\\/g, "/")
@@ -63,9 +63,9 @@ export function classifyFile(absolutePath: string): Classification {
 export function classifyStructuralPath(structuralPath: string): Classification {
 	let p = normalize(structuralPath)
 
-	// src/app/features/<feature>/index.ts (or just src/app/features/<feature>)
+	// src/{app,server}/features/<feature>/index.ts (or bare feature path)
 	let featureIndexMatch = p.match(
-		/^src\/app\/features\/([^/]+)(\/index(\.\w+)?)?$/,
+		/^src\/(?:app|server)\/features\/([^/]+)(\/index(\.\w+)?)?$/,
 	)
 	if (featureIndexMatch) {
 		return { zone: "feature-index", feature: featureIndexMatch[1] }
@@ -78,8 +78,7 @@ export function classifyStructuralPath(structuralPath: string): Classification {
 		let rest = appFeatureMatch[2]
 
 		for (let [dir, zone] of Object.entries(FEATURE_ZONE_MAP)) {
-			if (dir === "handlers" || dir === "use-cases" || dir === "operations")
-				continue
+			if (APP_EXCLUDED_ZONES.has(dir)) continue
 			if (rest.startsWith(dir + "/") || rest === dir) {
 				return { zone, feature }
 			}
@@ -154,8 +153,10 @@ export function classifyImport(
 	let resolved = resolveImportPath(importSource, currentFilePath, aliases)
 	if (!resolved) return { zone: "unknown", feature: null }
 
-	// Bare feature import: src/app/features/<name> or src/app/features/<name>/index
-	let bareFeature = resolved.match(/^src\/app\/features\/([^/]+)(\/index)?$/)
+	// Bare feature import: src/{app,server}/features/<name> or .../index
+	let bareFeature = resolved.match(
+		/^src\/(?:app|server)\/features\/([^/]+)(\/index)?$/,
+	)
 	if (bareFeature) {
 		return { zone: "feature-index", feature: bareFeature[1] }
 	}

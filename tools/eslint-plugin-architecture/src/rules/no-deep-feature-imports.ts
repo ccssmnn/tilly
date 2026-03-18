@@ -51,12 +51,12 @@ export default createRule({
 				if (imported.zone === "unknown") return
 				if (isSameFeature(currentFile, imported)) return
 
-				// Routes are allowed to deep-import screens (that's their job)
+				// Routes deep-import screens, router deep-imports handlers
 				if (currentFile.zone === "route" && imported.zone === "screen") return
+				if (currentFile.feature === null && imported.zone === "handler") return
 
 				let alias = Object.entries(aliases).find(
-					([, v]) =>
-						source.startsWith(v) || source.startsWith(v.replace("src/", "")),
+					([key]) => source.startsWith(key + "/") || source === key,
 				)
 				let featurePath = alias
 					? `${alias[0]}/features/${imported.feature}`

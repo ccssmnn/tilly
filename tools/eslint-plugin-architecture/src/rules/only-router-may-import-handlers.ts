@@ -2,7 +2,6 @@ import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
-	isSameFeature,
 	DEFAULT_ALIASES,
 	type AliasMap,
 } from "../utils/path-classification.js"
@@ -12,19 +11,15 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
-const ALLOWED_ZONES = new Set(["screen", "widget", "handler", "operation"])
-
 export default createRule({
-	name: "only-screens-and-widgets-may-import-parts",
+	name: "only-router-may-import-handlers",
 	meta: {
 		type: "problem",
 		docs: {
-			description:
-				"Only screens, widgets, handlers, and operations may import feature parts.",
+			description: "Only the router may import handlers.",
 		},
 		messages: {
-			forbidden:
-				"Only screens, widgets, handlers, and operations may import parts. Current file is in '{{zone}}'.",
+			forbidden: "Only the router may import handlers.",
 		},
 		schema: [
 			{
@@ -50,20 +45,11 @@ export default createRule({
 					context.filename,
 					aliases,
 				)
-				if (imported.zone !== "part") return
+				if (imported.zone !== "handler") return
+				if (currentFile.zone === "feature-index") return
+				if (currentFile.feature === null) return
 
-				if (
-					ALLOWED_ZONES.has(currentFile.zone) &&
-					isSameFeature(currentFile, imported)
-				) {
-					return
-				}
-
-				context.report({
-					node,
-					messageId: "forbidden",
-					data: { zone: currentFile.zone },
-				})
+				context.report({ node, messageId: "forbidden" })
 			},
 		}
 	},
