@@ -96,10 +96,6 @@ export let UserProfile = co.profile({
 	name: z.string(),
 })
 
-export let Settings = co.map({
-	version: z.literal(1),
-})
-
 export let UserAccountRoot = co.map({
 	people: co.list(Person),
 	inactivePeople: co.list(Person).optional(),

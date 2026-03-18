@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { UserAccount, Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useIntl, T } from "#shared/intl/setup"
+import { cn } from "#app/lib/utils"
 import {
 	handleRestoreNote,
 	handlePermanentlyDeleteNote,
@@ -32,9 +33,15 @@ type DeletedNoteProps = {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
 	searchQuery?: string
+	hidePerson?: boolean
 }
 
-function DeletedNote({ note, person, searchQuery }: DeletedNoteProps) {
+function DeletedNote({
+	note,
+	person,
+	searchQuery,
+	hidePerson,
+}: DeletedNoteProps) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
 	let navigate = useNavigate()
@@ -87,6 +94,7 @@ function DeletedNote({ note, person, searchQuery }: DeletedNoteProps) {
 					isExpanded={isExpanded}
 					hasOverflow={hasOverflow}
 					searchQuery={searchQuery}
+					hidePerson={hidePerson}
 				/>
 			</SwipeableListItem>
 
@@ -95,7 +103,12 @@ function DeletedNote({ note, person, searchQuery }: DeletedNoteProps) {
 				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
 			>
 				<div className="overflow-hidden">
-					<div className="ml-19 flex items-center gap-3 pb-4">
+					<div
+						className={cn(
+							"flex items-center gap-3 pb-4",
+							!hidePerson && "ml-19",
+						)}
+					>
 						<ButtonGroup>
 							<Button variant="outline" onClick={restore}>
 								<ArrowCounterclockwise />
@@ -103,12 +116,14 @@ function DeletedNote({ note, person, searchQuery }: DeletedNoteProps) {
 									<T k="note.restore.button" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={goToPerson}>
-								<PersonFill />
-								<span className="max-sm:sr-only">
-									<T k="note.actions.viewPerson" />
-								</span>
-							</Button>
+							{!hidePerson && (
+								<Button variant="outline" onClick={goToPerson}>
+									<PersonFill />
+									<span className="max-sm:sr-only">
+										<T k="note.actions.viewPerson" />
+									</span>
+								</Button>
+							)}
 							<Button
 								variant="outline"
 								onClick={() => setConfirmingDelete(true)}
@@ -133,7 +148,12 @@ function DeletedNote({ note, person, searchQuery }: DeletedNoteProps) {
 				</div>
 			</div>
 
-			<NoteImageGrid note={note} isDeleted={true} onImageClick={() => {}} />
+			<NoteImageGrid
+				note={note}
+				isDeleted={true}
+				hidePerson={hidePerson}
+				onImageClick={() => {}}
+			/>
 
 			<ConfirmPermanentDelete
 				open={confirmingDelete}

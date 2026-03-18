@@ -73,16 +73,14 @@ ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 			code: `
 				export async function sendPush(payload: unknown) { return payload }
 			`,
-			filename:
-				"/project/src/server/features/push/operations/send-push.ts",
+			filename: "/project/src/server/features/push/operations/send-push.ts",
 		},
 		{
 			// server part — functions allowed (parts ARE the logic)
 			code: `
 				export function formatPayload(data: unknown) { return JSON.stringify(data) }
 			`,
-			filename:
-				"/project/src/server/features/push/parts/format-payload.ts",
+			filename: "/project/src/server/features/push/parts/format-payload.ts",
 		},
 	],
 	invalid: [

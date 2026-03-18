@@ -12,13 +12,13 @@ import {
 	NotesSearch,
 	NewNoteButton,
 } from "../parts/notes-toolbar"
-import { ListFilterButton } from "#app/features/list-filter-button"
+import { ListFilterButton } from "#app/features/people"
 import {
 	EmptyNotes,
 	EmptyNoteSearch,
 	NoDeletedNotes,
 } from "../parts/note-fallbacks"
-import { NewNoteForm } from "../widgets/new-note-form"
+import { NewNoteForm } from "../parts/new-note-form"
 import { ActiveNote } from "../widgets/active-note"
 import { DeletedNote } from "../widgets/deleted-note"
 

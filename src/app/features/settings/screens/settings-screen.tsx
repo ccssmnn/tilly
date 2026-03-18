@@ -1,8 +1,8 @@
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
-import { useHasPlusAccess } from "#app/features/plus"
+import { useHasPlusAccess } from "#app/hooks/use-plus-access"
 import { useIsPWAInstalled } from "#app/hooks/use-pwa"
-import { NotificationSettings } from "#app/features/notification-settings"
+import { NotificationSection } from "../widgets/notification-section"
 import { settingsResolve, type SettingsAccount } from "../lib/data"
 import { SettingsPageTitle } from "../parts/settings-page-title"
 import { AccountSection } from "../widgets/account-section"
@@ -27,14 +27,14 @@ function SettingsScreen({ fallback }: SettingsScreenProps) {
 	let isPWAInstalled = useIsPWAInstalled()
 
 	return (
-		<div className="space-y-6 pb-20 md:mt-10 md:pb-6">
+		<div className="space-y-8 pb-20 md:mt-10 md:space-y-6 md:pb-6">
 			<SettingsPageTitle />
 			<div className="divide-border divide-y">
 				<AccountSection />
 				<ProfileSection me={me} />
 				{hasPlusAccess && <AssistantSection me={me} />}
 				<LanguageSection me={me} />
-				<NotificationSettings me={me} />
+				<NotificationSection me={me} />
 				{!isPWAInstalled && <PWASection />}
 				<AppSection />
 				<DataSection me={me} />

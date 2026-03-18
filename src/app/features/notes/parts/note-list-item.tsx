@@ -9,7 +9,7 @@ import { TextHighlight } from "#shared/ui/text-highlight"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage, useCoState } from "jazz-tools/react"
 import { T } from "#shared/intl/setup"
-import { SharedIndicator } from "#app/features/person-shared-indicator"
+import { SharedIndicator } from "#app/components/shared-indicator"
 import {
 	CollapsibleContent,
 	contentHasOverflow,
@@ -30,6 +30,7 @@ type NoteListItemProps = {
 	isExpanded: boolean
 	hasOverflow: boolean
 	searchQuery?: string
+	hidePerson?: boolean
 }
 
 function ActiveNoteListItem({
@@ -39,6 +40,7 @@ function ActiveNoteListItem({
 	isExpanded,
 	hasOverflow,
 	searchQuery,
+	hidePerson,
 }: NoteListItemProps) {
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
@@ -48,36 +50,47 @@ function ActiveNoteListItem({
 		{ addSuffix: true, locale: dfnsLocale },
 	)
 
-	let hasDueReminders = person.reminders?.$isLoaded
-		? Array.from(person.reminders.values())
-				.filter(
-					(r): r is typeof r & { $isLoaded: true } => r != null && r.$isLoaded,
-				)
-				.filter(r => !isDeleted(r) && r.done !== true)
-				.some(r => isDueToday(r))
-		: false
+	let hasDueReminders =
+		!hidePerson && person.reminders?.$isLoaded
+			? Array.from(person.reminders.values())
+					.filter(
+						(r): r is typeof r & { $isLoaded: true } =>
+							r != null && r.$isLoaded,
+					)
+					.filter(r => !isDeleted(r) && r.done !== true)
+					.some(r => isDueToday(r))
+			: false
 
 	return (
-		<div className="flex w-full items-start gap-3 py-4 text-left">
-			<Avatar className="size-16">
-				{person.avatar ? (
-					<JazzImage
-						imageId={person.avatar.$jazz.id}
-						loading="lazy"
-						alt={person.name}
-						width={64}
-						data-slot="avatar-image"
-						className="aspect-square size-full object-cover shadow-inner"
-					/>
-				) : (
-					<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-				)}
-			</Avatar>
+		<div
+			className={cn(
+				"flex w-full items-start gap-3 text-left",
+				hidePerson ? "py-2" : "py-4",
+			)}
+		>
+			{!hidePerson && (
+				<Avatar className="size-16">
+					{person.avatar ? (
+						<JazzImage
+							imageId={person.avatar.$jazz.id}
+							loading="lazy"
+							alt={person.name}
+							width={64}
+							data-slot="avatar-image"
+							className="aspect-square size-full object-cover shadow-inner"
+						/>
+					) : (
+						<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+					)}
+				</Avatar>
+			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div className="flex items-center gap-3" data-selectable>
-					<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-						<TextHighlight text={person.name} query={searchQuery} />
-					</p>
+					{!hidePerson && (
+						<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+							<TextHighlight text={person.name} query={searchQuery} />
+						</p>
+					)}
 					{hasDueReminders && (
 						<div className="bg-primary size-2 rounded-full" />
 					)}
@@ -113,6 +126,7 @@ function DeletedNoteListItem({
 	isExpanded,
 	hasOverflow,
 	searchQuery,
+	hidePerson,
 }: NoteListItemProps) {
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
@@ -124,30 +138,39 @@ function DeletedNoteListItem({
 	)
 
 	return (
-		<div className="flex w-full items-start gap-3 py-4 text-left">
-			<Avatar className="size-16 grayscale">
-				{person.avatar ? (
-					<JazzImage
-						imageId={person.avatar.$jazz.id}
-						loading="lazy"
-						alt={person.name}
-						width={64}
-						data-slot="avatar-image"
-						className="aspect-square size-full object-cover shadow-inner"
-					/>
-				) : (
-					<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-				)}
-			</Avatar>
+		<div
+			className={cn(
+				"flex w-full items-start gap-3 text-left",
+				hidePerson ? "py-2" : "py-4",
+			)}
+		>
+			{!hidePerson && (
+				<Avatar className="size-16 grayscale">
+					{person.avatar ? (
+						<JazzImage
+							imageId={person.avatar.$jazz.id}
+							loading="lazy"
+							alt={person.name}
+							width={64}
+							data-slot="avatar-image"
+							className="aspect-square size-full object-cover shadow-inner"
+						/>
+					) : (
+						<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+					)}
+				</Avatar>
+			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
 					<span className="text-destructive inline-flex items-center gap-1 [&>svg]:size-3">
 						<Trash />
 						<span>{deletedText}</span>
 					</span>
-					<span className="text-muted-foreground font-normal">
-						<TextHighlight text={person.name} query={searchQuery} />
-					</span>
+					{!hidePerson && (
+						<span className="text-muted-foreground font-normal">
+							<TextHighlight text={person.name} query={searchQuery} />
+						</span>
+					)}
 				</div>
 				<CollapsibleContent isExpanded={isExpanded} hasOverflow={hasOverflow}>
 					<div
@@ -173,10 +196,12 @@ function NoteImageGrid({
 	note,
 	isDeleted: noteIsDeleted,
 	onImageClick,
+	hidePerson,
 }: {
 	note: co.loaded<typeof Note>
 	isDeleted: boolean
 	onImageClick: (index: number) => void
+	hidePerson?: boolean
 }) {
 	let loadedNote = useCoState(Note, note.$jazz.id, {
 		resolve: { images: { $each: true } },
@@ -191,10 +216,13 @@ function NoteImageGrid({
 
 	let imageCount = note.imageCount ?? imageArray.length
 
+	if (imageCount === 0) return null
+
 	return (
 		<div
 			className={cn(
-				"ml-[76px] grid grid-flow-col gap-1 pb-4",
+				"grid grid-flow-col gap-1 pb-4",
+				!hidePerson && "ml-[76px]",
 				imageCount === 1 ? "grid-cols-1" : "grid-cols-2",
 				imageCount > 2 ? "grid-rows-2" : "grid-rows-1",
 			)}

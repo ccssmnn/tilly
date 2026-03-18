@@ -1,7 +1,7 @@
 import { UserAccount, Person, Note, isDeleted } from "#shared/schema/user"
 import { useAccount } from "jazz-tools/react"
 import { co, type ResolveQuery } from "jazz-tools"
-import { hasHashtag } from "#app/features/list-utilities"
+import { hasHashtag } from "#app/features/people"
 
 export { preloadNotesWithPeople, useNotesData, type NotesData, type NotePair }
 

@@ -19,6 +19,7 @@ import {
 	PersonFill,
 	ChevronUp,
 } from "react-bootstrap-icons"
+import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
 
@@ -27,12 +28,14 @@ export { DeletedReminder }
 type DeletedReminderProps = {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
+	showPerson?: boolean
 	searchQuery?: string
 }
 
 function DeletedReminder({
 	reminder,
 	person,
+	showPerson,
 	searchQuery,
 }: DeletedReminderProps) {
 	let t = useIntl()
@@ -83,7 +86,7 @@ function DeletedReminder({
 			>
 				<DeletedReminderListItem
 					reminder={reminder}
-					person={person}
+					person={showPerson !== false ? person : undefined}
 					searchQuery={searchQuery}
 				/>
 			</SwipeableListItem>
@@ -93,7 +96,12 @@ function DeletedReminder({
 				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
 			>
 				<div className="overflow-hidden">
-					<div className="ml-19 flex items-center gap-3 pb-4">
+					<div
+						className={cn(
+							"flex items-center gap-3 pb-4",
+							showPerson !== false && "ml-19",
+						)}
+					>
 						<ButtonGroup>
 							<Button variant="outline" onClick={restore}>
 								<ArrowCounterclockwise />

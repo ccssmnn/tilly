@@ -14,6 +14,7 @@ import {
 	PersonFill,
 	ChevronUp,
 } from "react-bootstrap-icons"
+import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
 
@@ -22,10 +23,16 @@ export { DoneReminder }
 type DoneReminderProps = {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
+	showPerson?: boolean
 	searchQuery?: string
 }
 
-function DoneReminder({ reminder, person, searchQuery }: DoneReminderProps) {
+function DoneReminder({
+	reminder,
+	person,
+	showPerson,
+	searchQuery,
+}: DoneReminderProps) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
 	let navigate = useNavigate()
@@ -73,7 +80,7 @@ function DoneReminder({ reminder, person, searchQuery }: DoneReminderProps) {
 			>
 				<DoneReminderListItem
 					reminder={reminder}
-					person={person}
+					person={showPerson !== false ? person : undefined}
 					searchQuery={searchQuery}
 				/>
 			</SwipeableListItem>
@@ -83,7 +90,12 @@ function DoneReminder({ reminder, person, searchQuery }: DoneReminderProps) {
 				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
 			>
 				<div className="overflow-hidden">
-					<div className="ml-19 flex items-center gap-3 pb-4">
+					<div
+						className={cn(
+							"flex items-center gap-3 pb-4",
+							showPerson !== false && "ml-19",
+						)}
+					>
 						<ButtonGroup>
 							<Button variant="outline" onClick={markUndone}>
 								<ArrowCounterclockwise />

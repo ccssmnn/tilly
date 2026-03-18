@@ -6,7 +6,7 @@ import { useLocale } from "#shared/intl/setup"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage } from "jazz-tools/react"
-import { SharedIndicator } from "#app/features/person-shared-indicator"
+import { SharedIndicator } from "#app/components/shared-indicator"
 import { Trash } from "react-bootstrap-icons"
 import { T } from "#shared/intl/setup"
 

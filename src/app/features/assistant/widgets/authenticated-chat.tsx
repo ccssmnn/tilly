@@ -6,6 +6,7 @@ import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import type { TillyUIMessage } from "#shared/tools/tools"
 import { resolve, type LoadedAssistantAccount } from "../lib/data"
+import { createAddToolResult } from "../lib/add-tool-result"
 import { useChatMessaging } from "../hooks/use-chat-messaging"
 import { useStaleGenerationTimeout } from "../hooks/use-stale-generation-timeout"
 import { useNotificationAcknowledgment } from "../hooks/use-notification-acknowledgment"
@@ -13,13 +14,13 @@ import { AssistantLayout } from "../parts/assistant-layout"
 import { OfflineAlert } from "../parts/offline-alert"
 import { EmptyChatState } from "../parts/empty-chat-state"
 import { UserMessage } from "../parts/user-message"
+import { AssistantMessage } from "./assistant-message"
 import { LoadingIndicator } from "../parts/loading-indicator"
 import { SendingError } from "../parts/sending-error"
 import { GenerationError } from "../parts/generation-error"
 import { ClearChatHint } from "../parts/clear-chat-hint"
 import { ClearChatButton } from "../parts/clear-chat-button"
 import { ChatInput } from "../parts/chat-input"
-import { AssistantMessage } from "./assistant-message"
 
 export { AuthenticatedChat }
 
@@ -114,36 +115,4 @@ function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
 			</div>
 		</AssistantLayout>
 	)
-}
-
-function createAddToolResult(
-	messages: TillyUIMessage[],
-	sendMessage: (msg: TillyUIMessage, idx?: number) => Promise<void>,
-) {
-	return async ({
-		toolCallId,
-		output,
-	}: {
-		toolCallId: string
-		output: unknown
-	}) => {
-		let messageIndex = messages.findIndex(msg => {
-			if (msg.role !== "assistant") return false
-			return msg.parts?.some(
-				p => "toolCallId" in p && p.toolCallId === toolCallId,
-			)
-		})
-
-		if (messageIndex === -1) return
-
-		let msg = messages[messageIndex]
-		let updatedParts = msg.parts?.map(part => {
-			if (!("toolCallId" in part)) return part
-			if (part.toolCallId !== toolCallId) return part
-			return { ...part, output, state: "output-available" as const }
-		}) as TillyUIMessage["parts"]
-
-		let updatedMessage: TillyUIMessage = { ...msg, parts: updatedParts }
-		await sendMessage(updatedMessage, messageIndex)
-	}
 }

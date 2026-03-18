@@ -11,7 +11,7 @@ import { T, useIntl } from "#shared/intl/setup"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { WifiOff01Icon } from "@hugeicons/core-free-icons"
-import { SettingsSection } from "#app/components/settings-section"
+import { SettingsSection } from "#app/features/settings/parts/settings-section"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { resetAppStore } from "#app/lib/store"
 import {
@@ -99,9 +99,7 @@ function AccountSection() {
 											variant="secondary"
 											className={mobileActionButtonClass}
 											render={
-												<a
-													href={`${PUBLIC_CLERK_ACCOUNTS_URL}/user/billing`}
-												/>
+												<a href={`${PUBLIC_CLERK_ACCOUNTS_URL}/user/billing`} />
 											}
 										>
 											<T k="settings.account.manageSubscription" />

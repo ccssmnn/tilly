@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/clerk-react"
-import { useHasPlusAccess } from "#app/features/plus"
+import { useHasPlusAccess } from "#app/hooks/use-plus-access"
 import { AssistantLayout } from "../parts/assistant-layout"
 import { AssistantLoading } from "../parts/assistant-loading"
 import { SubscribePrompt } from "../parts/subscribe-prompt"

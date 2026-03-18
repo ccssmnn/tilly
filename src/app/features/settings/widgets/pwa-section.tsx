@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Button } from "#shared/ui/button"
 import { T, useIntl } from "#shared/intl/setup"
-import { SettingsSection } from "#app/components/settings-section"
+import { SettingsSection } from "#app/features/settings/parts/settings-section"
 import { isMobileDevice, useIsPWAInstalled } from "#app/hooks/use-pwa"
 import { PWAInstallDialog } from "#app/components/pwa-install-dialog"
 import { mobileActionButtonClass, sectionStackClass } from "../lib/layout"

@@ -14,7 +14,8 @@ import {
 import { Dialog, DialogContent } from "#shared/ui/dialog"
 import { ReminderListItem } from "../parts/reminder-list-item"
 import { SwipeableListItem } from "#app/components/swipeable-list-item"
-import { EditReminderForm } from "./edit-reminder-form"
+import { DialogHeader, DialogTitle, DialogDescription } from "#shared/ui/dialog"
+import { ReminderFields } from "../parts/reminder-fields"
 import type { ReminderFieldValues } from "../parts/reminder-fields"
 import {
 	CheckLg,
@@ -23,6 +24,7 @@ import {
 	Trash,
 	ChevronUp,
 } from "react-bootstrap-icons"
+import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
 
@@ -31,12 +33,14 @@ export { ActiveReminder }
 type ActiveReminderProps = {
 	reminder: co.loaded<typeof Reminder>
 	person: co.loaded<typeof Person>
+	showPerson?: boolean
 	searchQuery?: string
 }
 
 function ActiveReminder({
 	reminder,
 	person,
+	showPerson,
 	searchQuery,
 }: ActiveReminderProps) {
 	let t = useIntl()
@@ -93,7 +97,7 @@ function ActiveReminder({
 			>
 				<ReminderListItem
 					reminder={reminder}
-					person={person}
+					person={showPerson !== false ? person : undefined}
 					searchQuery={searchQuery}
 				/>
 			</SwipeableListItem>
@@ -103,7 +107,12 @@ function ActiveReminder({
 				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
 			>
 				<div className="overflow-hidden">
-					<div className="ml-19 flex items-center gap-3 pb-4">
+					<div
+						className={cn(
+							"flex items-center gap-3 pb-4",
+							showPerson !== false && "ml-19",
+						)}
+					>
 						<ButtonGroup>
 							<Button variant="outline" onClick={markDone}>
 								<CheckLg />
@@ -149,8 +158,20 @@ function ActiveReminder({
 
 			<Dialog open={editing} onOpenChange={setEditing}>
 				<DialogContent>
-					<EditReminderForm
-						reminder={reminder}
+					<DialogHeader>
+						<DialogTitle>
+							<T k="reminder.edit.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="reminder.edit.description" />
+						</DialogDescription>
+					</DialogHeader>
+					<ReminderFields
+						defaultValues={{
+							text: reminder.text,
+							dueAtDate: reminder.dueAtDate,
+							repeat: reminder.repeat,
+						}}
 						onSubmit={onEdit}
 						onCancel={() => setEditing(false)}
 					/>

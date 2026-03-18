@@ -1,25 +1,32 @@
-import { useState } from "react"
+import { useSyncExternalStore } from "react"
 
-let expandedIDs = new Set<string>()
+let expandedId: string | null = null
+let listeners = new Set<() => void>()
+
+function subscribe(listener: () => void) {
+	listeners.add(listener)
+	return () => listeners.delete(listener)
+}
+
+function notify() {
+	for (let listener of listeners) listener()
+}
 
 export function useExpanded(id: string) {
-	let [prevId, setPrevId] = useState(id)
-	let [isExpanded, setIsExpanded] = useState(() => expandedIDs.has(id))
-
-	if (id !== prevId) {
-		setPrevId(id)
-		setIsExpanded(expandedIDs.has(id))
-	}
+	let currentExpandedId = useSyncExternalStore(subscribe, () => expandedId)
+	let isExpanded = currentExpandedId === id
 
 	function toggleExpanded() {
+		expandedId = isExpanded ? null : id
+		notify()
+	}
+
+	function closeExpanded() {
 		if (isExpanded) {
-			setIsExpanded(false)
-			expandedIDs.delete(id)
-		} else {
-			setIsExpanded(true)
-			expandedIDs.add(id)
+			expandedId = null
+			notify()
 		}
 	}
 
-	return { isExpanded, toggleExpanded }
+	return { isExpanded, toggleExpanded, closeExpanded }
 }

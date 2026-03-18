@@ -13,7 +13,7 @@ import {
 } from "#shared/ui/dialog"
 import { T, useIntl } from "#shared/intl/setup"
 import { toast } from "sonner"
-import { SettingsSection } from "#app/components/settings-section"
+import { SettingsSection } from "#app/features/settings/parts/settings-section"
 import { mobileActionButtonClass, sectionStackClass } from "../lib/layout"
 import type { SettingsAccount } from "../lib/data"
 
@@ -26,8 +26,7 @@ function AssistantSection({ me }: { me: SettingsAccount }) {
 	let usageTracking = me.root.usageTracking
 	let usagePercentage = Math.round(usageTracking?.weeklyPercentUsed ?? 0)
 	let usageResetDateString =
-		usageTracking?.resetDate?.toLocaleDateString(me.root.language ?? "en") ??
-		""
+		usageTracking?.resetDate?.toLocaleDateString(me.root.language ?? "en") ?? ""
 
 	let hasPushDevices =
 		(me.root.notificationSettings?.pushDevices?.length ?? 0) > 0

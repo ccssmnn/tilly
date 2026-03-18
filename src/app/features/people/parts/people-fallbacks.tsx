@@ -15,7 +15,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#shared/ui/empty"
-import { NewPerson } from "#app/features/new-person"
+import { NewPerson } from "../widgets/new-person"
 
 export {
 	NoPeopleState,

@@ -4,12 +4,8 @@ import { useNavigate } from "@tanstack/react-router"
 import { UserAccount, Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useIntl, T } from "#shared/intl/setup"
-import {
-	handleEditNote,
-	handleDeleteNote,
-	handleTogglePin,
-} from "../lib/note-actions"
-import { Dialog, DialogContent } from "#shared/ui/dialog"
+import { cn } from "#app/lib/utils"
+import { handleDeleteNote, handleTogglePin } from "../lib/note-actions"
 import {
 	ActiveNoteListItem,
 	NoteImageGrid,
@@ -18,15 +14,8 @@ import {
 import { useExpanded } from "#app/hooks/use-expanded"
 import { useSelectionAwareToggle } from "#app/hooks/use-selection-aware-toggle"
 import { NoteImageCarousel } from "../parts/note-image-carousel"
-import { EditNoteForm } from "./edit-note-form"
 import { SwipeableListItem } from "#app/components/swipeable-list-item"
-import {
-	PencilSquare,
-	Trash,
-	PersonFill,
-	Pin,
-	ChevronUp,
-} from "react-bootstrap-icons"
+import { Trash, PersonFill, Pin, ChevronUp } from "react-bootstrap-icons"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
 
@@ -36,13 +25,18 @@ type ActiveNoteProps = {
 	note: co.loaded<typeof Note>
 	person: co.loaded<typeof Person>
 	searchQuery?: string
+	hidePerson?: boolean
 }
 
-function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
+function ActiveNote({
+	note,
+	person,
+	searchQuery,
+	hidePerson,
+}: ActiveNoteProps) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
 	let navigate = useNavigate()
-	let [editing, setEditing] = useState(false)
 	let [carouselOpen, setCarouselOpen] = useState(false)
 	let [selectedImageIndex, setSelectedImageIndex] = useState(0)
 	let { isExpanded, toggleExpanded } = useExpanded(note.$jazz.id)
@@ -67,17 +61,6 @@ function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
 			to: "/people/$personID",
 			params: { personID: person.$jazz.id },
 		})
-	}
-
-	async function onEdit(values: {
-		content: string
-		pinned: boolean
-		images?: File[]
-		removedImageIds?: string[]
-	}) {
-		if (!me.$isLoaded) return
-		let result = await handleEditNote(me, ref, values, t)
-		if (result.ok) setEditing(false)
 	}
 
 	return (
@@ -108,6 +91,7 @@ function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
 					isExpanded={isExpanded}
 					hasOverflow={hasOverflow}
 					searchQuery={searchQuery}
+					hidePerson={hidePerson}
 				/>
 			</SwipeableListItem>
 
@@ -116,14 +100,13 @@ function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
 				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
 			>
 				<div className="overflow-hidden">
-					<div className="ml-19 flex items-center gap-3 pb-4">
+					<div
+						className={cn(
+							"flex items-center gap-3 pb-4",
+							!hidePerson && "ml-19",
+						)}
+					>
 						<ButtonGroup>
-							<Button variant="outline" onClick={() => setEditing(true)}>
-								<PencilSquare />
-								<span className="max-sm:sr-only">
-									<T k="note.actions.edit" />
-								</span>
-							</Button>
 							<Button variant="outline" onClick={togglePin}>
 								<Pin />
 								<span className="max-sm:sr-only">
@@ -134,12 +117,14 @@ function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
 									)}
 								</span>
 							</Button>
-							<Button variant="outline" onClick={goToPerson}>
-								<PersonFill />
-								<span className="max-sm:sr-only">
-									<T k="note.actions.viewPerson" />
-								</span>
-							</Button>
+							{!hidePerson && (
+								<Button variant="outline" onClick={goToPerson}>
+									<PersonFill />
+									<span className="max-sm:sr-only">
+										<T k="note.actions.viewPerson" />
+									</span>
+								</Button>
+							)}
 							<Button
 								variant="outline"
 								onClick={remove}
@@ -167,6 +152,7 @@ function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
 			<NoteImageGrid
 				note={note}
 				isDeleted={false}
+				hidePerson={hidePerson}
 				onImageClick={index => {
 					setSelectedImageIndex(index)
 					setCarouselOpen(true)
@@ -179,16 +165,6 @@ function ActiveNote({ note, person, searchQuery }: ActiveNoteProps) {
 				open={carouselOpen}
 				onClose={() => setCarouselOpen(false)}
 			/>
-
-			<Dialog open={editing} onOpenChange={setEditing}>
-				<DialogContent>
-					<EditNoteForm
-						note={note}
-						onSubmit={onEdit}
-						onCancel={() => setEditing(false)}
-					/>
-				</DialogContent>
-			</Dialog>
 		</>
 	)
 }

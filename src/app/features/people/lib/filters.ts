@@ -3,7 +3,7 @@ import {
 	sortByUpdatedAt,
 	sortByDeletedAt,
 } from "#shared/schema/user"
-import { hasHashtag } from "#app/features/list-utilities"
+import { hasHashtag } from "./list-utilities"
 
 export { filterPeople }
 export type { PeopleFilterOptions }

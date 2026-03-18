@@ -25,8 +25,8 @@ import {
 } from "#shared/ui/dialog"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
-import { NoteForm } from "#app/features/note-form"
-import { ReminderForm } from "#app/features/reminder-form"
+import { InlineNoteForm as NoteForm } from "#app/features/notes"
+import { ReminderForm } from "#app/features/reminders"
 import {
 	Trash,
 	FileEarmarkText,
@@ -116,7 +116,7 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 				<Link
 					to="/people/$personID"
 					params={{ personID: person.$jazz.id }}
-					className="pointer-fine:hover:bg-muted active:bg-accent flex flex-1 rounded-lg transition-colors duration-150"
+					className="active:bg-accent flex flex-1 rounded-lg transition-colors duration-150"
 					draggable={false}
 					onDragStart={e => e.preventDefault()}
 					onClick={handleLinkClick}

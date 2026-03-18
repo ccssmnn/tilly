@@ -312,7 +312,10 @@ async function generateAIResponse(params: {
 		let gw = createGateway({ apiKey: AI_GATEWAY_API_KEY })
 
 		let result = streamText({
-			model: gw("google/gemini-2.5-flash"),
+			// @ai-sdk/gateway@3 returns LanguageModelV3 but ai@5 expects LanguageModelV2
+			model: gw("google/gemini-2.5-flash") as unknown as Parameters<
+				typeof streamText
+			>[0]["model"],
 			messages: params.modelMessages,
 			system: makeStaticSystemPrompt(),
 			tools: allTools,

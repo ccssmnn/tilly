@@ -21,8 +21,7 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 		{
 			// operation imports part — same feature
 			code: `import { formatPayload } from "#server/features/push/parts/format-payload"`,
-			filename:
-				"/project/src/server/features/push/operations/send-push.ts",
+			filename: "/project/src/server/features/push/operations/send-push.ts",
 		},
 		{
 			// relative import from screen to part
@@ -80,8 +79,7 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 		{
 			// cross-feature operation importing a part
 			code: `import { formatPayload } from "#server/features/push/parts/format-payload"`,
-			filename:
-				"/project/src/server/features/chat/operations/send-chat.ts",
+			filename: "/project/src/server/features/chat/operations/send-chat.ts",
 			errors: [{ messageId: "forbidden" }],
 		},
 	],

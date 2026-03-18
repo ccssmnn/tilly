@@ -148,49 +148,6 @@ function createIdbStorage<T>(
 	}
 }
 
-export let fileUtils = {
-	fileToSerializable: async function (file: File) {
-		return {
-			name: file.name,
-			type: file.type,
-			size: file.size,
-			lastModified: file.lastModified,
-			data: await fileToBase64(file),
-		}
-	},
-
-	serializableToFile: function (obj: {
-		name: string
-		type: string
-		size: number
-		lastModified: number
-		data: string
-	}): File {
-		let bytes = atob(obj.data)
-		let array = new Uint8Array(bytes.length)
-		for (let i = 0; i < bytes.length; i++) {
-			array[i] = bytes.charCodeAt(i)
-		}
-		return new File([array], obj.name, {
-			type: obj.type,
-			lastModified: obj.lastModified,
-		})
-	},
-}
-
-function fileToBase64(file: File): Promise<string> {
-	return new Promise(function (resolve, reject) {
-		let reader = new FileReader()
-		reader.onload = function () {
-			let result = reader.result as string
-			let base64 = result.split(",")[1]
-			resolve(base64)
-		}
-		reader.onerror = reject
-		reader.readAsDataURL(file)
-	})
-}
-
 export let useAppStore = create<AppState>()(
 	persist(
 		set => ({

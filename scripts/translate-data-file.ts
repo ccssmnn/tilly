@@ -8,7 +8,7 @@ import {
 	type FileNote,
 	type FilePerson,
 	type FileReminder,
-} from "../src/app/features/data-file-schema"
+} from "../src/app/features/settings/lib/data-file-schema"
 
 export { translateDataFile }
 

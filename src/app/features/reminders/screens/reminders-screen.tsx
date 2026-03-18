@@ -12,7 +12,7 @@ import {
 	ReminderSearch,
 	NewReminderButton,
 } from "../parts/reminder-toolbar"
-import { ListFilterButton } from "#app/features/list-filter-button"
+import { ListFilterButton } from "#app/features/people"
 import {
 	EmptyReminders,
 	EmptyReminderSearch,

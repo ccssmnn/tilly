@@ -94,7 +94,7 @@ function DeletedPerson({ person, searchQuery, noLazy }: DeletedPersonProps) {
 			>
 				<Dialog open={restoreOpen} onOpenChange={setRestoreOpen}>
 					<DialogTrigger>
-						<div className="pointer-fine:hover:bg-muted active:bg-accent flex flex-1 cursor-pointer rounded-lg transition-colors duration-150">
+						<div className="active:bg-accent flex flex-1 cursor-pointer rounded-lg transition-colors duration-150">
 							<DeletedPersonListItem
 								person={person}
 								searchQuery={searchQuery}

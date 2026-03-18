@@ -89,9 +89,7 @@ describe("classifyFile", () => {
 	})
 
 	test("server feature-index", () => {
-		let result = classifyFile(
-			"/project/src/server/features/push/index.ts",
-		)
+		let result = classifyFile("/project/src/server/features/push/index.ts")
 		expect(result).toEqual({ zone: "feature-index", feature: "push" })
 	})
 

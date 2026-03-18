@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "#shared/ui/button"
 import { T, useIntl } from "#shared/intl/setup"
 import { toast } from "sonner"
-import { SettingsSection } from "#app/components/settings-section"
+import { SettingsSection } from "#app/features/settings/parts/settings-section"
 import { usePWA } from "#app/lib/pwa"
 import { mobileActionButtonClass, sectionStackClass } from "../lib/layout"
 
