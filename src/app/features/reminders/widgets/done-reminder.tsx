@@ -6,6 +6,7 @@ import { UserAccount, Reminder, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useIntl, T } from "#shared/intl/setup"
 import { handleMarkUndone, handleDeleteReminder } from "../lib/reminder-actions"
+import { getReferenceDate } from "../lib/reminder-dates"
 import { DoneReminderListItem } from "../parts/reminder-list-item"
 import { SwipeableListItem } from "#app/components/swipeable-list-item"
 import {
@@ -82,6 +83,7 @@ function DoneReminder({
 					reminder={reminder}
 					person={showPerson !== false ? person : undefined}
 					searchQuery={searchQuery}
+					referenceDate={getReferenceDate(reminder)}
 				/>
 			</SwipeableListItem>
 

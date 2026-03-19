@@ -11,34 +11,35 @@ import { useState } from "react"
 import Cropper from "react-easy-crop"
 import { tryCatch } from "#shared/lib/trycatch"
 import { T } from "#shared/intl/setup"
-import { getCroppedImg } from "../lib/image-crop"
 
 export { AvatarCropperDialog }
+
+type CropArea = { x: number; y: number; width: number; height: number }
 
 function AvatarCropperDialog({
 	open,
 	onOpenChange,
 	imageSrc,
 	onCrop,
+	getCroppedImg,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	imageSrc: string | null
 	onCrop: (croppedFile: File) => void
+	getCroppedImg: (
+		imageSrc: string,
+		pixelCrop: CropArea,
+		fileName: string,
+	) => Promise<File>
 }) {
 	let [crop, setCrop] = useState({ x: 0, y: 0 })
 	let [zoom, setZoom] = useState(1)
-	let [croppedAreaPixels, setCroppedAreaPixels] = useState<{
-		x: number
-		y: number
-		width: number
-		height: number
-	} | null>(null)
+	let [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(
+		null,
+	)
 
-	function onCropComplete(
-		_: unknown,
-		croppedAreaPixels: { x: number; y: number; width: number; height: number },
-	) {
+	function onCropComplete(_: unknown, croppedAreaPixels: CropArea) {
 		setCroppedAreaPixels(croppedAreaPixels)
 	}
 

@@ -12,7 +12,7 @@ import {
 	NotesSearch,
 	NewNoteButton,
 } from "../parts/notes-toolbar"
-import { ListFilterButton } from "#app/features/people"
+import { ListFilterButton, useAvailableLists } from "#app/features/people"
 import {
 	EmptyNotes,
 	EmptyNoteSearch,
@@ -47,6 +47,7 @@ export function NotesScreen({ fallback }: NotesScreenProps) {
 		statusFilter,
 		listFilter,
 	})
+	let availableLists = useAvailableLists(people)
 
 	async function onCreateNote(
 		personId: string,
@@ -81,6 +82,7 @@ export function NotesScreen({ fallback }: NotesScreenProps) {
 									trailing={
 										<ListFilterButton
 											people={people}
+											availableLists={availableLists}
 											listFilter={listFilter}
 											onListFilterChange={setListFilter}
 											statusOptions={statusOptions}

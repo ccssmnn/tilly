@@ -1,7 +1,6 @@
 import noFeaturePartComposition from "./rules/no-feature-part-composition.js"
-import noLocalPartSubcomponents from "./rules/no-local-part-subcomponents.js"
+import noLocalSubcomponents from "./rules/no-local-subcomponents.js"
 import noWidgetComposition from "./rules/no-widget-composition.js"
-import noLocalWidgetSubcomponents from "./rules/no-local-widget-subcomponents.js"
 import noUtilityDefinitionsInUiModules from "./rules/no-utility-definitions-in-ui-modules.js"
 import noDeepFeatureImports from "./rules/no-deep-feature-imports.js"
 import noLooseFeatureModuleImports from "./rules/no-loose-feature-module-imports.js"
@@ -17,9 +16,8 @@ const plugin = {
 	},
 	rules: {
 		"no-feature-part-composition": noFeaturePartComposition,
-		"no-local-part-subcomponents": noLocalPartSubcomponents,
+		"no-local-subcomponents": noLocalSubcomponents,
 		"no-widget-composition": noWidgetComposition,
-		"no-local-widget-subcomponents": noLocalWidgetSubcomponents,
 		"no-utility-definitions-in-ui-modules": noUtilityDefinitionsInUiModules,
 		"no-deep-feature-imports": noDeepFeatureImports,
 		"no-loose-feature-module-imports": noLooseFeatureModuleImports,

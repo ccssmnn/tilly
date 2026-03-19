@@ -11,10 +11,7 @@ import {
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
 import { Sliders, Plus } from "react-bootstrap-icons"
-import {
-	useAvailableLists,
-	type PersonWithSummary,
-} from "../lib/list-utilities"
+import type { AvailableList, PersonWithSummary } from "../lib/list-utilities"
 import { EditListDialog } from "../widgets/edit-list-dialog"
 import { NewListDialog } from "../widgets/new-list-dialog"
 import { useIntl, T } from "#shared/intl"
@@ -35,6 +32,7 @@ type SortOption = {
 
 function ListFilterButton({
 	people,
+	availableLists,
 	listFilter,
 	onListFilterChange,
 	statusOptions,
@@ -45,6 +43,7 @@ function ListFilterButton({
 	onSortChange,
 }: {
 	people: PersonWithSummary[]
+	availableLists: AvailableList[]
 	listFilter: string | null
 	onListFilterChange: (filter: string | null) => void
 	statusOptions: StatusOption[]
@@ -55,7 +54,6 @@ function ListFilterButton({
 	onSortChange?: (mode: string) => void
 }) {
 	let t = useIntl()
-	let availableLists = useAvailableLists(people)
 	let [dropdownOpen, setDropdownOpen] = useState(false)
 	let [editListOpen, setEditListOpen] = useState(false)
 	let [editingHashtag, setEditingHashtag] = useState("")

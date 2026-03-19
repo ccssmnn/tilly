@@ -1,31 +1,24 @@
-import { CRON_SECRET } from "astro:env/server"
-import { getServerWorker, WorkerTimeoutError } from "../lib/utils"
-
 import { toZonedTime, format } from "date-fns-tz"
-import { Hono } from "hono"
-import { bearerAuth } from "hono/bearer-auth"
 import { co, type ResolveQuery } from "jazz-tools"
-import {
-	getEnabledDevices,
-	sendNotificationToDevice,
-	markNotificationSettingsAsDelivered,
-	removeDeviceByEndpoint,
-} from "./push-shared"
-import type { NotificationPayload } from "./push-shared"
 import { NotificationSettings } from "#shared/schema/user"
 import { ServerAccount, NotificationSettingsRef } from "#shared/schema/server"
 import {
 	baseServerMessages,
 	deServerMessages,
 } from "#shared/intl/messages.server"
-import {
-	isPastNotificationTime,
-	wasDeliveredToday,
-	isStaleRef,
-} from "./push-cron-utils"
 import { tryCatch } from "#shared/lib/trycatch"
+import {
+	getEnabledDevices,
+	removeDeviceByEndpoint,
+	markAsDelivered,
+} from "../lib/device-management"
+import { sendNotificationToDevice } from "../lib/send-notification"
+import type { NotificationPayload } from "../lib/send-notification"
+import { isPastNotificationTime, wasDeliveredToday } from "../lib/notification-time"
+import { isStaleRef } from "../lib/stale-ref"
 
-export { cronDeliveryApp }
+export { deliverNotifications }
+export type { DeliveryResult }
 
 let serverRefsQuery = {
 	root: {
@@ -38,117 +31,99 @@ let serverRefsQuery = {
 type LoadedRef = co.loaded<typeof NotificationSettingsRef>
 type LoadedNotificationSettings = co.loaded<typeof NotificationSettings>
 
-let cronDeliveryApp = new Hono().get(
-	"/deliver-notifications",
-	bearerAuth({ token: CRON_SECRET }),
-	async c => {
-		console.log("🔔 Starting notification delivery cron job")
-		let deliveryResults: Array<{
-			userId: string
-			success: boolean
-		}> = []
-		let processingPromises: Promise<void>[] = []
-		let maxConcurrentUsers = 50
+type DeliveryResult = {
+	message: string
+	results: Array<{ userId: string; success: boolean }>
+}
 
-		let worker
-		try {
-			worker = await getServerWorker()
-		} catch (error) {
-			if (error instanceof WorkerTimeoutError) {
-				return c.json({ error: error.message, code: "worker-timeout" }, 504)
-			}
-			throw error
+async function deliverNotifications(
+	worker: co.loaded<typeof ServerAccount>,
+): Promise<DeliveryResult> {
+	let deliveryResults: Array<{ userId: string; success: boolean }> = []
+	let processingPromises: Promise<void>[] = []
+	let maxConcurrentUsers = 50
+
+	let serverAccount = await worker.$jazz.ensureLoaded({
+		resolve: serverRefsQuery,
+	})
+
+	if (!serverAccount || !serverAccount.root) {
+		console.log("⚠️ Missing server account or root, aborting cron")
+		return { message: "Missing server account or root", results: [] }
+	}
+
+	let refs = serverAccount.root.notificationSettingsRefsV2
+	if (!refs) {
+		console.log("🔔 No notification settings refs found")
+		return { message: "No notification settings refs found", results: [] }
+	}
+
+	let staleRefKeys: string[] = []
+	let currentUtc = new Date()
+
+	for (let [notificationSettingsId, ref] of Object.entries(refs)) {
+		if (!ref) continue
+
+		let notificationSettings = ref.notificationSettings
+		if (!notificationSettings?.$isLoaded) {
+			console.log(`⚠️ User ${ref.userId}: Settings not loaded, skipping`)
+			continue
 		}
-		let serverAccount = await worker.$jazz.ensureLoaded({
-			resolve: serverRefsQuery,
-		})
 
-		if (!serverAccount || !serverAccount.root) {
-			console.log("⚠️ Missing server account or root, aborting cron")
-			return c.json({
-				message: "Missing server account or root",
-				results: [],
+		if (
+			isStaleRef(ref.lastSyncedAt, notificationSettings.latestReminderDueDate)
+		) {
+			staleRefKeys.push(notificationSettingsId)
+			console.log(`🗑️ Marking stale ref for removal: ${ref.userId}`)
+			continue
+		}
+
+		await waitForConcurrencyLimit(processingPromises, maxConcurrentUsers)
+
+		let userPromise = processNotificationRef(
+			ref,
+			notificationSettings,
+			currentUtc,
+		)
+			.then(result => {
+				if (result.status === "processed") {
+					deliveryResults.push(result)
+				}
 			})
-		}
-
-		let refs = serverAccount.root.notificationSettingsRefsV2
-		if (!refs) {
-			console.log("🔔 No notification settings refs found")
-			return c.json({
-				message: "No notification settings refs found",
-				results: [],
+			.catch(error => {
+				let message =
+					typeof error === "string"
+						? error
+						: error instanceof Error
+							? error.message
+							: String(error)
+				console.log(`❌ User ${ref.userId}: ${message}`)
 			})
-		}
+			.finally(() => removeFromList(processingPromises, userPromise))
 
-		let staleRefKeys: string[] = []
-		let currentUtc = new Date()
+		processingPromises.push(userPromise)
+	}
 
-		for (let [notificationSettingsId, ref] of Object.entries(refs)) {
-			if (!ref) continue
+	await Promise.allSettled(processingPromises)
 
-			let notificationSettings = ref.notificationSettings
-			if (!notificationSettings?.$isLoaded) {
-				console.log(`⚠️ User ${ref.userId}: Settings not loaded, skipping`)
-				continue
-			}
+	for (let key of staleRefKeys) {
+		refs.$jazz.delete(key)
+	}
 
-			// Check if ref is stale (no app open in 30 days after last sync or latest reminder)
-			if (
-				isStaleRef(ref.lastSyncedAt, notificationSettings.latestReminderDueDate)
-			) {
-				staleRefKeys.push(notificationSettingsId)
-				console.log(`🗑️ Marking stale ref for removal: ${ref.userId}`)
-				continue
-			}
+	if (staleRefKeys.length > 0) {
+		console.log(`🗑️ Removed ${staleRefKeys.length} stale refs`)
+	}
 
-			await waitForConcurrencyLimit(processingPromises, maxConcurrentUsers)
+	let syncResult = await tryCatch(worker.$jazz.waitForSync())
+	if (!syncResult.ok) {
+		console.error("❌ Failed to sync mutations:", syncResult.error)
+	}
 
-			let userPromise = processNotificationRef(
-				ref,
-				notificationSettings,
-				currentUtc,
-			)
-				.then(result => {
-					if (result.status === "processed") {
-						deliveryResults.push(result)
-					}
-				})
-				.catch(error => {
-					let message =
-						typeof error === "string"
-							? error
-							: error instanceof Error
-								? error.message
-								: String(error)
-					console.log(`❌ User ${ref.userId}: ${message}`)
-				})
-				.finally(() => removeFromList(processingPromises, userPromise))
-
-			processingPromises.push(userPromise)
-		}
-
-		await Promise.allSettled(processingPromises)
-
-		for (let key of staleRefKeys) {
-			refs.$jazz.delete(key)
-		}
-
-		if (staleRefKeys.length > 0) {
-			console.log(`🗑️ Removed ${staleRefKeys.length} stale refs`)
-		}
-
-		// Single sync at end for all mutations
-		let syncResult = await tryCatch(worker.$jazz.waitForSync())
-		if (!syncResult.ok) {
-			console.error("❌ Failed to sync mutations:", syncResult.error)
-		}
-
-		return c.json({
-			message: `Processed ${deliveryResults.length} notification deliveries`,
-			results: deliveryResults,
-		})
-	},
-)
+	return {
+		message: `Processed ${deliveryResults.length} notification deliveries`,
+		results: deliveryResults,
+	}
+}
 
 type ProcessResult =
 	| { status: "skipped"; reason: string }
@@ -162,7 +137,6 @@ async function processNotificationRef(
 ): Promise<ProcessResult> {
 	let { userId } = ref
 
-	// Check notification time
 	if (!isPastNotificationTime(notificationSettings, currentUtc)) {
 		let userTimezone = notificationSettings.timezone || "UTC"
 		let userNotificationTime = notificationSettings.notificationTime || "12:00"
@@ -174,7 +148,6 @@ async function processNotificationRef(
 		}
 	}
 
-	// Check if already delivered today
 	if (wasDeliveredToday(notificationSettings, currentUtc)) {
 		let userTimezone = notificationSettings.timezone || "UTC"
 		let lastDelivered = notificationSettings.lastDeliveredAt
@@ -191,21 +164,18 @@ async function processNotificationRef(
 
 	console.log(`✅ User ${userId}: Passed notification time checks`)
 
-	// Get enabled devices
 	let enabledDevices = getEnabledDevices(notificationSettings)
 	if (enabledDevices.length === 0) {
 		console.log(`✅ User ${userId}: No enabled devices`)
-		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
+		markAsDelivered(notificationSettings, currentUtc)
 		console.log(`✅ User ${userId}: Marked as delivered (no devices to notify)`)
 		return { status: "skipped", reason: "No enabled devices" }
 	}
 
 	console.log(`📤 User ${userId}: Notifying ${enabledDevices.length} device(s)`)
 
-	// Create localized payload
 	let payload = createLocalizedNotificationPayload(userId, notificationSettings)
 
-	// Send to all devices
 	let deviceResults: { success: boolean }[] = []
 
 	for (let device of enabledDevices) {
@@ -233,7 +203,7 @@ async function processNotificationRef(
 	let userSuccess = deviceResults.some(r => r.success)
 
 	if (userSuccess) {
-		markNotificationSettingsAsDelivered(notificationSettings, currentUtc)
+		markAsDelivered(notificationSettings, currentUtc)
 		console.log(`✅ User ${userId}: Completed notification delivery`)
 		return { status: "processed", userId, success: true }
 	} else {
@@ -256,7 +226,6 @@ function removeFromList<T>(list: T[], item: T) {
 	if (index > -1) list.splice(index, 1)
 }
 
-// Create localized notification payload with {count} placeholder for SW interpolation
 function createLocalizedNotificationPayload(
 	userId: string,
 	notificationSettings: LoadedNotificationSettings,

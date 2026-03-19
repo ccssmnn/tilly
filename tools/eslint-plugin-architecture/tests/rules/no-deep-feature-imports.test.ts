@@ -41,7 +41,7 @@ ruleTester.run("no-deep-feature-imports", rule, {
 		},
 		{
 			// same server feature deep import is fine
-			code: `import { sendNotification } from "#server/features/push/parts/send-notification"`,
+			code: `import { sendNotification } from "#server/features/push/lib/send-notification"`,
 			filename: "/project/src/server/features/push/handlers/push-handler.ts",
 		},
 		{
@@ -93,7 +93,7 @@ ruleTester.run("no-deep-feature-imports", rule, {
 		},
 		{
 			// cross server feature deep import
-			code: `import { sendNotification } from "#server/features/push/parts/send-notification"`,
+			code: `import { sendNotification } from "#server/features/push/lib/send-notification"`,
 			filename: "/project/src/server/features/chat/handlers/chat-handler.ts",
 			errors: [
 				{

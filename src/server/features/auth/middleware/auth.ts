@@ -1,7 +1,8 @@
 import { type AuthObject, type User } from "@clerk/backend"
 import { createMiddleware } from "hono/factory"
+import { clerkClient } from "../lib/clerk-client"
 
-import { clerkClient } from "./auth-client"
+export { authMiddleware, requireAuth }
 
 type AuthAppContext = {
 	Variables: {
@@ -19,7 +20,7 @@ type AuthenticatedAppContext = {
 	}
 }
 
-export let authMiddleware = createMiddleware<AuthAppContext>(
+let authMiddleware = createMiddleware<AuthAppContext>(
 	async (c, next) => {
 		c.set("requestStartTime", performance.now())
 
@@ -41,7 +42,7 @@ export let authMiddleware = createMiddleware<AuthAppContext>(
 	},
 )
 
-export let requireAuth = createMiddleware<AuthenticatedAppContext>(
+let requireAuth = createMiddleware<AuthenticatedAppContext>(
 	async (c, next) => {
 		let auth = c.get("auth")
 		let user = c.get("user")

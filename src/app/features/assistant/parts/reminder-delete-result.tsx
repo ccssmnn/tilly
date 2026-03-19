@@ -13,15 +13,19 @@ import {
 	Notification01Icon,
 } from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
-import { useChatHistory } from "../hooks/use-chat-history"
-import { T, useIntl } from "#shared/intl/setup"
+import { T, useIntl, useLocale } from "#shared/intl/setup"
 import {
 	createRemoveReminderTool,
 	updateReminder,
 } from "#shared/tools/reminder-update"
-import { ReminderDetails } from "../lib/reminder-details"
 import { useAccount } from "jazz-tools/react-core"
 import { UserAccount } from "#shared/schema/user"
+import type { TillyUIMessage } from "#shared/tools/tools"
+import {
+	Calendar01Icon,
+	CheckmarkCircle01Icon,
+	CircleIcon,
+} from "@hugeicons/core-free-icons"
 
 export { ReminderDeleteResult }
 
@@ -31,15 +35,17 @@ type RemoveReminderToolUI = InferUITool<
 
 function ReminderDeleteResult({
 	result,
+	addMessage,
 }: {
 	result: RemoveReminderToolUI["output"]
+	addMessage: (message: TillyUIMessage) => void
 }) {
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDrawerOpen] = useState(false)
-	let { addMessage } = useChatHistory()
 	let t = useIntl()
+	let locale = useLocale()
 
 	if ("error" in result) {
 		return (
@@ -127,12 +133,12 @@ function ReminderDeleteResult({
 						<h4 className="mb-2 text-sm font-medium">
 							<T k="tool.reminder.deleted.dialog.section" />
 						</h4>
-						<ReminderDetails
-							text={result.text}
-							dueAt={result.dueAtDate}
-							repeat={result.repeat}
-							done={result.done}
-						/>
+						{ReminderDetails(t, locale, {
+							text: result.text,
+							dueAt: result.dueAtDate,
+							repeat: result.repeat,
+							done: result.done,
+						})}
 					</div>
 					<div className="flex gap-3">
 						<Button variant="outline" className="flex-1">
@@ -165,5 +171,61 @@ function ReminderDeleteResult({
 				</div>
 			}
 		/>
+	)
+}
+
+/* eslint-disable react/prop-types -- called as function, not rendered as JSX */
+function ReminderDetails(
+	t: ReturnType<typeof useIntl>,
+	locale: string,
+	props: {
+		text: string
+		dueAt?: string
+		repeat?: { interval: number; unit: "day" | "week" | "month" | "year" }
+		done?: boolean
+	},
+) {
+	return (
+		<>
+			<p className="text-sm">{props.text}</p>
+			<div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm">
+				{props.repeat ? (
+					<HugeiconsIcon icon={RefreshIcon} className="h-4 w-4" />
+				) : (
+					<HugeiconsIcon icon={Calendar01Icon} className="h-4 w-4" />
+				)}
+				<span className="whitespace-nowrap">
+					{props.dueAt
+						? new Date(props.dueAt).toLocaleDateString(locale)
+						: t("tool.reminder.noDate")}
+				</span>
+				{props.repeat && (
+					<span className="whitespace-nowrap">
+						<T
+							k="tool.reminder.repeats"
+							params={{ interval: props.repeat.interval, unit: props.repeat.unit }}
+						/>
+					</span>
+				)}
+				{props.done !== undefined && (
+					<span className="flex items-center gap-1 whitespace-nowrap">
+						{props.done ? (
+							<>
+								<HugeiconsIcon
+									icon={CheckmarkCircle01Icon}
+									className="h-3 w-3 text-green-600"
+								/>{" "}
+								<T k="tool.reminder.done" />
+							</>
+						) : (
+							<>
+								<HugeiconsIcon icon={CircleIcon} className="h-3 w-3" />{" "}
+								<T k="tool.reminder.notDone" />
+							</>
+						)}
+					</span>
+				)}
+			</div>
+		</>
 	)
 }

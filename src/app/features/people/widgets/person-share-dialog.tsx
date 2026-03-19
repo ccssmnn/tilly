@@ -16,6 +16,7 @@ import { CollaboratorsSection } from "../parts/collaborators-section"
 import {
 	getInviteGroupsWithMembers,
 	getPendingInviteGroups,
+	removeInviteGroup,
 	type InviteGroupWithMembers,
 	type PendingInviteGroup,
 } from "../lib/person-sharing"
@@ -92,6 +93,7 @@ function PersonShareDrawer({
 									prev.filter(p => p.groupId !== groupId),
 								)
 							}
+							onRemoveInviteGroup={removeInviteGroup}
 						/>
 					)}
 					<CollaboratorsSection
@@ -102,6 +104,7 @@ function PersonShareDrawer({
 						onGroupRemoved={groupId =>
 							setInviteGroups(prev => prev.filter(g => g.groupId !== groupId))
 						}
+						onRemoveInviteGroup={removeInviteGroup}
 					/>
 				</div>
 			</DialogContent>

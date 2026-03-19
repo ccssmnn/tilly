@@ -4,7 +4,9 @@ import {
 	classifyImport,
 	isSameFeature,
 	DEFAULT_ALIASES,
+	DEFAULT_FEATURE_ROOTS,
 	type AliasMap,
+	type FeatureRootConfig,
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
@@ -31,15 +33,33 @@ export default createRule({
 				type: "object",
 				properties: {
 					aliases: { type: "object", additionalProperties: { type: "string" } },
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
 				},
 				additionalProperties: false,
 			},
 		],
 	},
-	defaultOptions: [{ aliases: undefined as AliasMap | undefined }],
+	defaultOptions: [
+		{
+			aliases: undefined as AliasMap | undefined,
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
-		let currentFile = classifyFile(context.filename)
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let currentFile = classifyFile(context.filename, featureRoots)
 
 		return {
 			ImportDeclaration(node) {
@@ -49,12 +69,13 @@ export default createRule({
 					node.source.value,
 					context.filename,
 					aliases,
+					featureRoots,
 				)
 				if (imported.zone !== "operation") return
 				if (currentFile.zone === "feature-index") return
 
 				if (
-					currentFile.zone === "handler" &&
+					(currentFile.zone === "handler" || currentFile.zone === "app") &&
 					isSameFeature(currentFile, imported)
 				) {
 					return

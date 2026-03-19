@@ -6,8 +6,10 @@ import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import type { TillyUIMessage } from "#shared/tools/tools"
 import { resolve, type LoadedAssistantAccount } from "../lib/data"
+import { classifySendingError } from "../lib/error-handling"
 import { createAddToolResult } from "../lib/add-tool-result"
 import { useChatMessaging } from "../hooks/use-chat-messaging"
+import { useStarterPrompts } from "../hooks/use-starter-prompts"
 import { useStaleGenerationTimeout } from "../hooks/use-stale-generation-timeout"
 import { useNotificationAcknowledgment } from "../hooks/use-notification-acknowledgment"
 import { AssistantLayout } from "../parts/assistant-layout"
@@ -42,6 +44,7 @@ function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
 	)
 
 	let { isSending, failedToSend, sendMessage, abort } = useChatMessaging(me)
+	let starters = useStarterPrompts(t)
 
 	useStaleGenerationTimeout(assistant)
 	useNotificationAcknowledgment(assistant)
@@ -58,6 +61,8 @@ function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
 
 				{isEmpty ? (
 					<EmptyChatState
+						me={me}
+						starters={starters}
 						onSubmit={sendMessage}
 						isOnline={isOnline}
 						isBusy={isBusy}
@@ -83,7 +88,7 @@ function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
 							<LoadingIndicator state="generating" />
 						) : null}
 
-						<SendingError error={failedToSend} />
+						<SendingError error={failedToSend} errorKind={classifySendingError(failedToSend)} />
 						<GenerationError error={assistant?.errorMessage} />
 
 						{!isBusy && (
@@ -98,6 +103,7 @@ function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
 						<div className="h-22" />
 
 						<ChatInput
+							me={me}
 							placeholder={
 								isGenerating
 									? t("assistant.placeholder.generating")

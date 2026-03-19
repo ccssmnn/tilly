@@ -3,8 +3,11 @@ import {
 	classifyFile,
 	classifyImport,
 	DEFAULT_ALIASES,
+	DEFAULT_FEATURE_ROOTS,
 	type AliasMap,
 	type Classification,
+	type FeatureRootConfig,
+	type Zone,
 } from "../utils/path-classification.js"
 import { getJSXComponentName } from "../utils/component-detection.js"
 
@@ -13,9 +16,7 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
-function isServerFile(filename: string): boolean {
-	return filename.replace(/\\/g, "/").includes("/src/server/")
-}
+const LEAF_ZONES: Set<Zone> = new Set(["part", "feature-lib", "hook"])
 
 export default createRule({
 	name: "no-feature-part-composition",
@@ -23,30 +24,47 @@ export default createRule({
 		type: "problem",
 		docs: {
 			description:
-				"Parts must not compose other parts. Compose in screens, widgets, handlers, or operations.",
+				"Leaf modules (parts, lib, hooks) must not compose other modules of the same kind.",
 		},
 		messages: {
 			noPartComposition:
-				"Parts must not compose other parts. Compose parts in screens, widgets, handlers, or operations instead.",
+				"Leaf modules (parts, lib, hooks) must not compose other modules of the same kind. Compose in screens, widgets, handlers, or operations instead.",
 		},
 		schema: [
 			{
 				type: "object",
 				properties: {
 					aliases: { type: "object", additionalProperties: { type: "string" } },
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
 				},
 				additionalProperties: false,
 			},
 		],
 	},
-	defaultOptions: [{ aliases: undefined as AliasMap | undefined }],
+	defaultOptions: [
+		{
+			aliases: undefined as AliasMap | undefined,
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
-		let currentFile = classifyFile(context.filename)
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let currentFile = classifyFile(context.filename, featureRoots)
 
-		if (currentFile.zone !== "part") return {}
+		if (!LEAF_ZONES.has(currentFile.zone)) return {}
 
-		let isServer = isServerFile(context.filename)
 		let importClassifications = new Map<string, Classification>()
 
 		return {
@@ -57,16 +75,17 @@ export default createRule({
 					node.source.value,
 					context.filename,
 					aliases,
+					featureRoots,
 				)
-				if (classification.zone !== "part") return
+				if (classification.zone !== currentFile.zone) return
 
-				// Backend: block the import itself (no JSX to check)
-				if (isServer) {
+				// Non-UI leaf zones: block the import directly
+				if (currentFile.zone !== "part") {
 					context.report({ node, messageId: "noPartComposition" })
 					return
 				}
 
-				// Frontend: track for JSX rendering check
+				// Frontend parts (UI): track for JSX rendering check
 				for (let specifier of node.specifiers) {
 					importClassifications.set(specifier.local.name, classification)
 				}

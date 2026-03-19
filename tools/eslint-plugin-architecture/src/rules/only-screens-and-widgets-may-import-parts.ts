@@ -4,7 +4,10 @@ import {
 	classifyImport,
 	isSameFeature,
 	DEFAULT_ALIASES,
+	DEFAULT_FEATURE_ROOTS,
 	type AliasMap,
+	type FeatureRootConfig,
+	type Zone,
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
@@ -12,7 +15,8 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
-const ALLOWED_ZONES = new Set(["screen", "widget", "handler", "operation"])
+const LEAF_ZONES: Set<Zone> = new Set(["part", "feature-lib", "hook"])
+const ALLOWED_ZONES: Set<Zone> = new Set(["screen", "widget", "handler", "operation", "middleware", "app"])
 
 export default createRule({
 	name: "only-screens-and-widgets-may-import-parts",
@@ -20,26 +24,44 @@ export default createRule({
 		type: "problem",
 		docs: {
 			description:
-				"Only screens, widgets, handlers, and operations may import feature parts.",
+				"Only composition-layer modules (screens, widgets, handlers, operations) may import leaf modules (parts, lib, hooks).",
 		},
 		messages: {
 			forbidden:
-				"Only screens, widgets, handlers, and operations may import parts. Current file is in '{{zone}}'.",
+				"Only screens, widgets, handlers, and operations may import leaf modules (parts, lib, hooks). Current file is in '{{zone}}'.",
 		},
 		schema: [
 			{
 				type: "object",
 				properties: {
 					aliases: { type: "object", additionalProperties: { type: "string" } },
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
 				},
 				additionalProperties: false,
 			},
 		],
 	},
-	defaultOptions: [{ aliases: undefined as AliasMap | undefined }],
+	defaultOptions: [
+		{
+			aliases: undefined as AliasMap | undefined,
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
-		let currentFile = classifyFile(context.filename)
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let currentFile = classifyFile(context.filename, featureRoots)
 
 		return {
 			ImportDeclaration(node) {
@@ -49,8 +71,9 @@ export default createRule({
 					node.source.value,
 					context.filename,
 					aliases,
+					featureRoots,
 				)
-				if (imported.zone !== "part") return
+				if (!LEAF_ZONES.has(imported.zone)) return
 
 				if (
 					ALLOWED_ZONES.has(currentFile.zone) &&

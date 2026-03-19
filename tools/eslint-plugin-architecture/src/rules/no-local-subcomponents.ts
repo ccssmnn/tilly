@@ -1,5 +1,10 @@
 import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
-import { classifyFile } from "../utils/path-classification.js"
+import {
+	classifyFile,
+	DEFAULT_FEATURE_ROOTS,
+	type FeatureRootConfig,
+	type Zone,
+} from "../utils/path-classification.js"
 import {
 	collectLocalComponents,
 	getJSXComponentName,
@@ -10,24 +15,62 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
+const ZONES_WITH_NO_LOCAL_SUBCOMPONENTS: Set<Zone> = new Set([
+	"screen",
+	"widget",
+	"part",
+])
+
+const EXTRACTION_HINT: Record<string, string> = {
+	screen: "Extract '{{name}}' to a widget or part.",
+	widget: "Extract '{{name}}' to a part.",
+	part: "Extract '{{name}}' to its own part or move composition to a screen/widget.",
+}
+
 export default createRule({
-	name: "no-local-widget-subcomponents",
+	name: "no-local-subcomponents",
 	meta: {
 		type: "problem",
 		docs: {
 			description:
-				"Widget files must not define sub-components that render each other.",
+				"Screen, widget, and part files must not define sub-components that render each other.",
 		},
 		messages: {
 			noSubcomponent:
-				"Widget files must not contain sub-components. Extract '{{name}}' to a part.",
+				"{{zone}} files must not contain sub-components. {{hint}}",
 		},
-		schema: [],
+		schema: [
+			{
+				type: "object",
+				properties: {
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
+				},
+				additionalProperties: false,
+			},
+		],
 	},
-	defaultOptions: [],
-	create(context) {
-		let currentFile = classifyFile(context.filename)
-		if (currentFile.zone !== "widget") return {}
+	defaultOptions: [
+		{
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
+	create(context, [options]) {
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let currentFile = classifyFile(context.filename, featureRoots)
+		if (!ZONES_WITH_NO_LOCAL_SUBCOMPONENTS.has(currentFile.zone)) return {}
+
+		let zone = currentFile.zone
 
 		return {
 			Program(node: TSESTree.Program) {
@@ -59,12 +102,20 @@ export default createRule({
 					}
 				}
 
+				let zoneLabel =
+					zone.charAt(0).toUpperCase() + zone.slice(1)
+				let hintTemplate = EXTRACTION_HINT[zone]
+
 				for (let component of components) {
 					if (reportedNames.has(component.name)) {
 						context.report({
 							node: component.node,
 							messageId: "noSubcomponent",
-							data: { name: component.name },
+							data: {
+								zone: zoneLabel,
+								name: component.name,
+								hint: hintTemplate.replace("{{name}}", component.name),
+							},
 						})
 					}
 				}

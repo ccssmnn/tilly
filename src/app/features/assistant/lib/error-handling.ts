@@ -1,8 +1,25 @@
 export {
+	classifySendingError,
 	isUsageLimitError,
 	isRequestTooLargeError,
 	isEmptyMessagesError,
 	isWorkerTimeoutError,
+	type SendingErrorKind,
+}
+
+type SendingErrorKind =
+	| "usage-limit"
+	| "request-too-large"
+	| "empty-messages"
+	| "worker-timeout"
+	| "unknown"
+
+function classifySendingError(error: unknown): SendingErrorKind {
+	if (isUsageLimitError(error)) return "usage-limit"
+	if (isRequestTooLargeError(error)) return "request-too-large"
+	if (isEmptyMessagesError(error)) return "empty-messages"
+	if (isWorkerTimeoutError(error)) return "worker-timeout"
+	return "unknown"
 }
 
 type ErrorPayload = {

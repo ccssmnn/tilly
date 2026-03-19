@@ -50,24 +50,19 @@ Files in `parts/**` must not compose other parts. Parts are atomic — compositi
 - **Frontend parts**: must not render other parts (JSX check)
 - **Backend parts**: must not import other parts (import check)
 
-### `no-local-part-subcomponents`
+### `no-local-subcomponents`
 
-Files in `parts/**` must not define multiple PascalCase components where one renders another.
+Files in `screens/**`, `widgets/**`, and `parts/**` must not define multiple PascalCase components where one renders another. Extract sub-components to the appropriate layer (widgets or parts).
 
 ### `no-widget-composition`
 
 Files in `widgets/**` must not render widgets from other features. Same-feature widget composition is allowed.
 
-### `no-local-widget-subcomponents`
-
-Files in `widgets/**` must not define multiple PascalCase components where one renders another. Extract sub-components into `parts/**`.
-
 ### `no-utility-definitions-in-ui-modules`
 
 Structural modules must not define utility functions or hooks. Extract to `hooks/` or `lib/`.
 
-- **Frontend**: applies to `screens/**`, `widgets/**`, `parts/**`
-- **Backend**: applies to `handlers/**` only (operations and parts ARE the business logic)
+Applies to `screens/**`, `widgets/**`, `parts/**`, `handlers/**`, `operations/**` by default. Configurable via `structuralZones`.
 
 ### `no-loose-feature-module-imports`
 
@@ -75,7 +70,21 @@ Feature modules that have been migrated to the structured layout must be importe
 
 ## Configuration
 
-All import-based rules accept an `aliases` option:
+All rules accept a `featureRoots` option to define where features live and which zones each root supports:
+
+```js
+{
+  "architecture/no-deep-feature-imports": ["error", {
+    featureRoots: [
+      { path: "src/app/features", allowedZones: ["screens", "widgets", "parts", "hooks", "lib"] },
+      { path: "src/server/features", allowedZones: ["handlers", "operations", "lib", "middleware", "apps"] },
+      { path: "src/shared/features", allowedZones: ["lib"] },
+    ]
+  }]
+}
+```
+
+Import-based rules also accept an `aliases` option for path alias resolution:
 
 ```js
 {
@@ -89,7 +98,7 @@ All import-based rules accept an `aliases` option:
 }
 ```
 
-Defaults match the tilly tsconfig paths.
+Both options have defaults matching the tilly tsconfig paths and standard app/server feature roots.
 
 ## Expected directory structure
 
@@ -119,7 +128,7 @@ src/server/features/<feature>/
 - **No transitive analysis** — importing from a feature index that re-exports parts won't be flagged. The index IS the public API boundary.
 - **Relative imports** — resolved via path joining, not TS module resolution. Aliases cover the main case.
 - **`<Foo.Bar />` JSX patterns** — member expression component references are not tracked.
-- **PascalCase heuristic** — all PascalCase function declarations and variable assignments are treated as potential components in `no-local-part-subcomponents` and `no-local-widget-subcomponents`.
+- **PascalCase heuristic** — all PascalCase function declarations and variable assignments are treated as potential components in `no-local-subcomponents`.
 - **Utility detection heuristic** — `no-utility-definitions-in-ui-modules` identifies non-component, non-type top-level declarations.
 - **Files outside the new structure** — flat files in `features/` classify as `unknown` and are ignored by all rules.
 

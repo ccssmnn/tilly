@@ -2,7 +2,7 @@ import { tryCatch } from "#shared/lib/trycatch"
 import { type User } from "@clerk/backend"
 import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
 import { createMiddleware } from "hono/factory"
-import { clerkClient } from "./auth-client"
+import { clerkClient } from "../lib/clerk-client"
 
 export { requirePlus }
 

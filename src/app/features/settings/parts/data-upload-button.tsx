@@ -26,8 +26,7 @@ import { createImage } from "jazz-tools/media"
 import { cn } from "#app/lib/utils"
 import { Person, Note, UserAccount, Reminder } from "#shared/schema/user"
 import { co, Group } from "jazz-tools"
-import { FileDataSchema, type FileData } from "../lib/data-file-schema"
-import { dataURLToFile } from "../lib/data-utils"
+import type { FileData } from "../lib/data-file-schema"
 import { T, useIntl } from "#shared/intl/setup"
 import { permanentlyDeletePerson } from "#shared/lib/delete-covalue"
 
@@ -37,7 +36,15 @@ let uploadFormSchema = z.object({
 	}),
 })
 
-export function UploadButton({ userID }: { userID: string }) {
+export function UploadButton({
+	userID,
+	fileDataSchema,
+	dataURLToFile,
+}: {
+	userID: string
+	fileDataSchema: z.ZodType<FileData>
+	dataURLToFile: (dataURL: string, filename?: string) => Promise<File>
+}) {
 	let t = useIntl()
 	let [open, setOpen] = useState(false)
 
@@ -49,7 +56,7 @@ export function UploadButton({ userID }: { userID: string }) {
 		let file = values.file[0]
 		if (!file) return
 		let text = await file.text()
-		let check = FileDataSchema.safeParse(JSON.parse(text))
+		let check = fileDataSchema.safeParse(JSON.parse(text))
 		if (!check.success) {
 			toast.error(t("data.import.invalidFormat"))
 			console.error(check.error, check.error.issues)

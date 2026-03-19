@@ -18,6 +18,7 @@ import {
 } from "#shared/ui/form"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Textarea } from "#shared/ui/textarea"
 import { useState } from "react"
 import { nanoid } from "nanoid"
@@ -26,7 +27,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { isMac } from "#app/hooks/use-pwa"
 import { T, useIntl } from "#shared/intl/setup"
-import { createReminderFormSchema } from "../lib/reminder-form-schema"
 
 export { ReminderForm }
 
@@ -40,7 +40,16 @@ function ReminderForm({
 	onSubmit: (data: ReminderFormValues) => void
 }) {
 	let t = useIntl()
-	let reminderFormSchema = createReminderFormSchema(t)
+	let reminderFormSchema = z.object({
+		text: z.string().min(1, t("reminder.form.text.required")),
+		dueAtDate: z.string().min(1, t("reminder.form.date.required")),
+		repeat: z
+			.object({
+				interval: z.coerce.number(),
+				unit: z.enum(["day", "week", "month", "year"]),
+			})
+			.optional(),
+	})
 	let form = useForm({
 		resolver: zodResolver(reminderFormSchema),
 		defaultValues: {

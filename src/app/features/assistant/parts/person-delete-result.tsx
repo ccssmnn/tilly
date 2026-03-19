@@ -12,7 +12,6 @@ import {
 	PauseIcon,
 	UserMultipleIcon,
 } from "@hugeicons/core-free-icons"
-import { useChatHistory } from "../hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import {
 	createDeletePersonTool,
@@ -20,6 +19,7 @@ import {
 } from "#shared/tools/person-update"
 import { useAccount } from "jazz-tools/react-core"
 import { UserAccount } from "#shared/schema/user"
+import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { PersonDeleteResult }
 
@@ -27,14 +27,15 @@ type DeletePersonToolUI = InferUITool<ReturnType<typeof createDeletePersonTool>>
 
 function PersonDeleteResult({
 	result,
+	addMessage,
 }: {
 	result: DeletePersonToolUI["output"]
+	addMessage: (message: TillyUIMessage) => void
 }) {
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDrawerOpen] = useState(false)
-	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {

@@ -8,11 +8,6 @@ export {
 import type { Loaded } from "jazz-tools"
 import { UserAccount } from "#shared/schema/user"
 import { updatePerson } from "#shared/tools/person-update"
-import {
-	removeHashtagFromSummary,
-	addHashtagToSummary,
-	replaceHashtagInSummary,
-} from "./list-utilities"
 
 type PersonEntry = {
 	$jazz: { id: string }
@@ -92,4 +87,34 @@ async function renameTagForRemainingPeople({
 
 function normalizeHashtag(name: string) {
 	return `#${name.toLowerCase().replace(/[^a-z0-9_]/g, "")}`
+}
+
+function removeHashtagFromSummary(
+	summary: string | undefined,
+	hashtag: string,
+): string {
+	if (!summary) return ""
+	let escaped = hashtag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+	return summary
+		.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), "")
+		.replace(/\s+/g, " ")
+		.trim()
+}
+
+function addHashtagToSummary(
+	summary: string | undefined,
+	hashtag: string,
+): string {
+	let current = summary?.trim() || ""
+	return current ? `${current} ${hashtag}` : hashtag
+}
+
+function replaceHashtagInSummary(
+	summary: string | undefined,
+	oldTag: string,
+	newTag: string,
+): string {
+	if (!summary) return ""
+	let escaped = oldTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+	return summary.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), newTag).trim()
 }

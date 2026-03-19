@@ -1,6 +1,5 @@
 import { useRef, useState } from "react"
 import { Assistant } from "#shared/schema/user"
-import { consumeUntil } from "../lib/consume-until"
 import type { LoadedAssistantAccount } from "../lib/data"
 import type { TillyUIMessage } from "#shared/tools/tools"
 
@@ -72,4 +71,26 @@ function useChatMessaging(me: LoadedAssistantAccount) {
 	}
 
 	return { isSending, failedToSend, sendMessage, abort }
+}
+
+async function consumeUntil(
+	reader: ReadableStreamDefaultReader,
+	marker: string,
+) {
+	let decoder = new TextDecoder()
+	let found = false
+
+	let readStream = async (resolve: () => void) => {
+		while (true) {
+			let { done, value } = await reader.read()
+			if (done) break
+
+			let chunk = decoder.decode(value, { stream: true })
+			if (!found && chunk.includes(marker)) {
+				found = true
+				resolve()
+			}
+		}
+	}
+	return new Promise<void>(readStream)
 }

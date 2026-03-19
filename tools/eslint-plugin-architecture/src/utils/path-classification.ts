@@ -12,14 +12,22 @@ export type Zone =
 	| "route"
 	| "handler"
 	| "operation"
+	| "middleware"
+	| "app"
 	| "unknown"
 
 export type Classification = {
 	zone: Zone
 	feature: string | null
+	root: string | null
 }
 
 export type AliasMap = Record<string, string>
+
+export type FeatureRootConfig = {
+	path: string
+	allowedZones?: string[]
+}
 
 export const DEFAULT_ALIASES: AliasMap = {
 	"#app": "src/app",
@@ -27,6 +35,17 @@ export const DEFAULT_ALIASES: AliasMap = {
 	"#server": "src/server",
 	"#www": "src/www",
 }
+
+export const DEFAULT_FEATURE_ROOTS: FeatureRootConfig[] = [
+	{
+		path: "src/app/features",
+		allowedZones: ["screens", "widgets", "parts", "hooks", "lib"],
+	},
+	{
+		path: "src/server/features",
+		allowedZones: ["handlers", "operations", "lib", "middleware", "apps"],
+	},
+]
 
 const FEATURE_ZONE_MAP: Record<string, Zone> = {
 	screens: "screen",
@@ -36,12 +55,16 @@ const FEATURE_ZONE_MAP: Record<string, Zone> = {
 	lib: "feature-lib",
 	handlers: "handler",
 	operations: "operation",
+	middleware: "middleware",
+	apps: "app",
 }
-
-const APP_EXCLUDED_ZONES = new Set(["handlers", "operations"])
 
 function normalize(filePath: string): string {
 	return filePath.replace(/\\/g, "/")
+}
+
+function escapeRegex(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 function findSrcRelativePath(absolutePath: string): string | null {
@@ -54,70 +77,72 @@ function findSrcRelativePath(absolutePath: string): string | null {
 	return normalized.slice(srcIndex + 1)
 }
 
-export function classifyFile(absolutePath: string): Classification {
+export function classifyFile(
+	absolutePath: string,
+	featureRoots: FeatureRootConfig[] = DEFAULT_FEATURE_ROOTS,
+): Classification {
 	let rel = findSrcRelativePath(absolutePath)
-	if (!rel) return { zone: "unknown", feature: null }
-	return classifyStructuralPath(rel)
+	if (!rel) return { zone: "unknown", feature: null, root: null }
+	return classifyStructuralPath(rel, featureRoots)
 }
 
-export function classifyStructuralPath(structuralPath: string): Classification {
+export function classifyStructuralPath(
+	structuralPath: string,
+	featureRoots: FeatureRootConfig[] = DEFAULT_FEATURE_ROOTS,
+): Classification {
 	let p = normalize(structuralPath)
 
-	// src/{app,server}/features/<feature>/index.ts (or bare feature path)
-	let featureIndexMatch = p.match(
-		/^src\/(?:app|server)\/features\/([^/]+)(\/index(\.\w+)?)?$/,
-	)
-	if (featureIndexMatch) {
-		return { zone: "feature-index", feature: featureIndexMatch[1] }
-	}
+	for (let rootConfig of featureRoots) {
+		let rootPath = normalize(rootConfig.path)
 
-	// src/app/features/<feature>/...
-	let appFeatureMatch = p.match(/^src\/app\/features\/([^/]+)\/(.+)$/)
-	if (appFeatureMatch) {
-		let feature = appFeatureMatch[1]
-		let rest = appFeatureMatch[2]
-
-		for (let [dir, zone] of Object.entries(FEATURE_ZONE_MAP)) {
-			if (APP_EXCLUDED_ZONES.has(dir)) continue
-			if (rest.startsWith(dir + "/") || rest === dir) {
-				return { zone, feature }
-			}
+		// feature index: root/<feature>/index.ts or root/<feature>
+		let indexPattern = new RegExp(
+			`^${escapeRegex(rootPath)}/([^/]+)(/index(\\.\\w+)?)?$`,
+		)
+		let indexMatch = p.match(indexPattern)
+		if (indexMatch) {
+			return { zone: "feature-index", feature: indexMatch[1], root: rootPath }
 		}
 
-		return { zone: "unknown", feature }
-	}
+		// feature subpath: root/<feature>/...
+		let featurePattern = new RegExp(
+			`^${escapeRegex(rootPath)}/([^/]+)/(.+)$`,
+		)
+		let featureMatch = p.match(featurePattern)
+		if (featureMatch) {
+			let feature = featureMatch[1]
+			let rest = featureMatch[2]
+			let allowedDirs = rootConfig.allowedZones
+				? new Set(rootConfig.allowedZones)
+				: new Set(Object.keys(FEATURE_ZONE_MAP))
 
-	// src/server/features/<feature>/...
-	let serverFeatureMatch = p.match(/^src\/server\/features\/([^/]+)\/(.+)$/)
-	if (serverFeatureMatch) {
-		let feature = serverFeatureMatch[1]
-		let rest = serverFeatureMatch[2]
-
-		for (let [dir, zone] of Object.entries(FEATURE_ZONE_MAP)) {
-			if (rest.startsWith(dir + "/") || rest === dir) {
-				return { zone, feature }
+			for (let [dir, zone] of Object.entries(FEATURE_ZONE_MAP)) {
+				if (!allowedDirs.has(dir)) continue
+				if (rest.startsWith(dir + "/") || rest === dir) {
+					return { zone, feature, root: rootPath }
+				}
 			}
-		}
 
-		return { zone: "unknown", feature }
+			return { zone: "unknown", feature, root: rootPath }
+		}
 	}
 
 	// src/app/components/**
 	if (p.startsWith("src/app/components/")) {
-		return { zone: "app-component", feature: null }
+		return { zone: "app-component", feature: null, root: null }
 	}
 
 	// src/shared/ui/**
 	if (p.startsWith("src/shared/ui/")) {
-		return { zone: "shared-ui", feature: null }
+		return { zone: "shared-ui", feature: null, root: null }
 	}
 
 	// src/app/routes/**
 	if (p.startsWith("src/app/routes/")) {
-		return { zone: "route", feature: null }
+		return { zone: "route", feature: null, root: null }
 	}
 
-	return { zone: "unknown", feature: null }
+	return { zone: "unknown", feature: null, root: null }
 }
 
 export function resolveImportPath(
@@ -149,19 +174,24 @@ export function classifyImport(
 	importSource: string,
 	currentFilePath: string,
 	aliases: AliasMap = DEFAULT_ALIASES,
+	featureRoots: FeatureRootConfig[] = DEFAULT_FEATURE_ROOTS,
 ): Classification {
 	let resolved = resolveImportPath(importSource, currentFilePath, aliases)
-	if (!resolved) return { zone: "unknown", feature: null }
+	if (!resolved) return { zone: "unknown", feature: null, root: null }
 
-	// Bare feature import: src/{app,server}/features/<name> or .../index
-	let bareFeature = resolved.match(
-		/^src\/(?:app|server)\/features\/([^/]+)(\/index)?$/,
-	)
-	if (bareFeature) {
-		return { zone: "feature-index", feature: bareFeature[1] }
+	// Bare feature import: root/<name> or root/<name>/index
+	for (let rootConfig of featureRoots) {
+		let rootPath = normalize(rootConfig.path)
+		let pattern = new RegExp(
+			`^${escapeRegex(rootPath)}/([^/]+)(/index)?$`,
+		)
+		let match = resolved.match(pattern)
+		if (match) {
+			return { zone: "feature-index", feature: match[1], root: rootPath }
+		}
 	}
 
-	return classifyStructuralPath(resolved)
+	return classifyStructuralPath(resolved, featureRoots)
 }
 
 export function isSameFeature(a: Classification, b: Classification): boolean {

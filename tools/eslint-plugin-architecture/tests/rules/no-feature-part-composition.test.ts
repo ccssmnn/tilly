@@ -54,14 +54,29 @@ ruleTester.run("no-feature-part-composition", rule, {
 			filename: "/project/src/app/features/notes/parts/NoteContent.tsx",
 		},
 		{
-			// server part importing non-part (lib)
+			// server lib importing non-lib (shared)
 			code: `import { db } from "#server/lib/db"`,
-			filename: "/project/src/server/features/push/parts/send-notification.ts",
+			filename: "/project/src/server/features/push/lib/send-notification.ts",
 		},
 		{
-			// server part type-only import from another part
+			// server lib type-only import from another lib
 			code: `import type { TokenPayload } from "./validate-token"`,
-			filename: "/project/src/server/features/push/parts/create-token.ts",
+			filename: "/project/src/server/features/push/lib/create-token.ts",
+		},
+		{
+			// app lib importing non-lib (shared)
+			code: `import { format } from "#shared/lib/format"`,
+			filename: "/project/src/app/features/notes/lib/utils.ts",
+		},
+		{
+			// app hook importing non-hook (shared)
+			code: `import { format } from "#shared/lib/format"`,
+			filename: "/project/src/app/features/notes/hooks/useNotes.ts",
+		},
+		{
+			// hook type-only import from another hook is fine
+			code: `import type { UseNotesResult } from "./useNotes"`,
+			filename: "/project/src/app/features/notes/hooks/useOther.ts",
 		},
 	],
 	invalid: [
@@ -99,15 +114,33 @@ ruleTester.run("no-feature-part-composition", rule, {
 			errors: [{ messageId: "noPartComposition" }],
 		},
 		{
-			// server part importing another server part
+			// server lib importing another server lib
 			code: `import { validateToken } from "./validate-token"`,
-			filename: "/project/src/server/features/push/parts/create-token.ts",
+			filename: "/project/src/server/features/push/lib/create-token.ts",
 			errors: [{ messageId: "noPartComposition" }],
 		},
 		{
-			// server part importing part via alias
-			code: `import { validateToken } from "#server/features/push/parts/validate-token"`,
-			filename: "/project/src/server/features/push/parts/create-token.ts",
+			// server lib importing lib via alias
+			code: `import { validateToken } from "#server/features/push/lib/validate-token"`,
+			filename: "/project/src/server/features/push/lib/create-token.ts",
+			errors: [{ messageId: "noPartComposition" }],
+		},
+		{
+			// app lib importing another app lib
+			code: `import { format } from "./format"`,
+			filename: "/project/src/app/features/notes/lib/utils.ts",
+			errors: [{ messageId: "noPartComposition" }],
+		},
+		{
+			// hook importing another hook
+			code: `import { useNotes } from "./useNotes"`,
+			filename: "/project/src/app/features/notes/hooks/useOther.ts",
+			errors: [{ messageId: "noPartComposition" }],
+		},
+		{
+			// hook importing hook via alias
+			code: `import { useNotes } from "#app/features/notes/hooks/useNotes"`,
+			filename: "/project/src/app/features/notes/hooks/useOther.ts",
 			errors: [{ messageId: "noPartComposition" }],
 		},
 	],

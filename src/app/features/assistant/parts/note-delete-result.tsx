@@ -7,24 +7,25 @@ import {
 } from "#shared/ui/tool-message-wrapper"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { RefreshIcon, PauseIcon, File02Icon } from "@hugeicons/core-free-icons"
-import { useChatHistory } from "../hooks/use-chat-history"
 import { T, useIntl } from "#shared/intl/setup"
 import { createDeleteNoteTool, updateNote } from "#shared/tools/note-update"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import type { InferToolOutput } from "ai"
+import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { NoteDeleteResult }
 
 function NoteDeleteResult({
 	result,
+	addMessage,
 }: {
 	result: InferToolOutput<ReturnType<typeof createDeleteNoteTool>>
+	addMessage: (message: TillyUIMessage) => void
 }) {
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDrawerOpen] = useState(false)
-	let { addMessage } = useChatHistory()
 	let t = useIntl()
 	let me = useAccount(UserAccount)
 

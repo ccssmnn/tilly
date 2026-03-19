@@ -12,13 +12,13 @@ import {
 	UserMultipleIcon,
 } from "@hugeicons/core-free-icons"
 import { Link } from "@tanstack/react-router"
-import { useChatHistory } from "../hooks/use-chat-history"
 import { createPersonTool } from "#shared/tools/person-create"
 import { updatePerson } from "#shared/tools/person-update"
 import type { InferUITool } from "ai"
 import { T, useIntl } from "#shared/intl/setup"
 import { useAccount } from "jazz-tools/react-core"
 import { UserAccount } from "#shared/schema/user"
+import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { PersonCreateResult }
 
@@ -26,14 +26,15 @@ type CreatePersonToolUI = InferUITool<typeof createPersonTool>
 
 function PersonCreateResult({
 	result,
+	addMessage,
 }: {
 	result: CreatePersonToolUI["output"]
+	addMessage: (message: TillyUIMessage) => void
 }) {
 	let me = useAccount(UserAccount)
 	let [isUndoing, setIsUndoing] = useState(false)
 	let [isUndone, setIsUndone] = useState(false)
 	let [dialogOpen, setDrawerOpen] = useState(false)
-	let { addMessage } = useChatHistory()
 	let t = useIntl()
 
 	if ("error" in result) {

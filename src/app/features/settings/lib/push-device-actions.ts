@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { apiClient } from "#app/lib/api-client"
 import { tryCatch } from "#shared/lib/trycatch"
 import type { useIntl } from "#shared/intl/setup"
-import { unsubscribeFromPushNotifications } from "./push-notifications"
+import { getServiceWorkerRegistration } from "#app/lib/service-worker"
 import type {
 	NotificationQuery,
 	NotificationSettingsType,
@@ -160,4 +160,25 @@ function updatePushDevice(
 			d.endpoint === endpoint ? { ...d, ...updates } : d,
 		),
 	)
+}
+
+async function unsubscribeFromPushNotifications(): Promise<boolean> {
+	let registrationResult = await tryCatch(getServiceWorkerRegistration())
+	if (!registrationResult.ok) return false
+
+	let registration = registrationResult.data
+	if (!registration) return false
+
+	let subscriptionResult = await tryCatch(
+		registration.pushManager.getSubscription(),
+	)
+	if (!subscriptionResult.ok) return false
+
+	let subscription = subscriptionResult.data
+	if (subscription) {
+		let unsubscribeResult = await tryCatch(subscription.unsubscribe())
+		return unsubscribeResult.ok ? unsubscribeResult.data : false
+	}
+
+	return false
 }

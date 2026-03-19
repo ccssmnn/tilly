@@ -14,14 +14,24 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			filename: "/project/src/app/features/notes/widgets/NotePreview.tsx",
 		},
 		{
-			// handler imports part — same feature
-			code: `import { sendNotification } from "#server/features/push/parts/send-notification"`,
+			// handler imports lib — same feature (server)
+			code: `import { sendNotification } from "#server/features/push/lib/send-notification"`,
 			filename: "/project/src/server/features/push/handlers/push-handler.ts",
 		},
 		{
-			// operation imports part — same feature
-			code: `import { formatPayload } from "#server/features/push/parts/format-payload"`,
+			// operation imports lib — same feature (server)
+			code: `import { formatPayload } from "#server/features/push/lib/format-payload"`,
 			filename: "/project/src/server/features/push/operations/send-push.ts",
+		},
+		{
+			// screen imports lib — same feature (client)
+			code: `import { formatNote } from "#app/features/notes/lib/format"`,
+			filename: "/project/src/app/features/notes/screens/NotesScreen.tsx",
+		},
+		{
+			// screen imports hook — same feature (client)
+			code: `import { useNotes } from "#app/features/notes/hooks/useNotes"`,
+			filename: "/project/src/app/features/notes/screens/NotesScreen.tsx",
 		},
 		{
 			// relative import from screen to part
@@ -29,14 +39,19 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			filename: "/project/src/app/features/notes/screens/NotesScreen.tsx",
 		},
 		{
-			// non-part import is fine from anywhere
-			code: `import { useNotes } from "#app/features/notes/hooks/useNotes"`,
+			// non-leaf import is fine from anywhere
+			code: `import { NoteItem } from "#app/features/notes"`,
 			filename: "/project/src/app/features/notes/hooks/useOtherHook.ts",
 		},
 		{
 			// type-only import exempt
 			code: `import type { NoteItemProps } from "#app/features/notes/parts/NoteItem"`,
 			filename: "/project/src/app/features/notes/hooks/useNotes.ts",
+		},
+		{
+			// middleware imports lib — same feature (server)
+			code: `import { clerkClient } from "../lib/clerk-client"`,
+			filename: "/project/src/server/features/auth/middleware/auth.ts",
 		},
 	],
 	invalid: [
@@ -65,21 +80,39 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			errors: [{ messageId: "forbidden" }],
 		},
 		{
-			// feature index must not re-export parts
+			// feature index must not import parts (re-export with export-from is OK)
 			code: `import { NoteItem } from "#app/features/notes/parts/NoteItem"`,
 			filename: "/project/src/app/features/notes/index.ts",
 			errors: [{ messageId: "forbidden" }],
 		},
 		{
-			// server lib importing a part
-			code: `import { sendNotification } from "#server/features/push/parts/send-notification"`,
-			filename: "/project/src/server/features/push/lib/utils.ts",
+			// cross-feature operation importing lib
+			code: `import { formatPayload } from "#server/features/push/lib/format-payload"`,
+			filename: "/project/src/server/features/chat/operations/send-chat.ts",
 			errors: [{ messageId: "forbidden" }],
 		},
 		{
-			// cross-feature operation importing a part
-			code: `import { formatPayload } from "#server/features/push/parts/format-payload"`,
-			filename: "/project/src/server/features/chat/operations/send-chat.ts",
+			// hook importing from lib (leaf→leaf)
+			code: `import { format } from "#app/features/notes/lib/format"`,
+			filename: "/project/src/app/features/notes/hooks/useNotes.ts",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// part importing from lib (leaf→leaf)
+			code: `import { format } from "#app/features/notes/lib/format"`,
+			filename: "/project/src/app/features/notes/parts/NoteItem.tsx",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// lib importing from hooks (leaf→leaf)
+			code: `import { useNotes } from "#app/features/notes/hooks/useNotes"`,
+			filename: "/project/src/app/features/notes/lib/utils.ts",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// part importing from hooks (leaf→leaf)
+			code: `import { useNotes } from "#app/features/notes/hooks/useNotes"`,
+			filename: "/project/src/app/features/notes/parts/NoteItem.tsx",
 			errors: [{ messageId: "forbidden" }],
 		},
 	],

@@ -8,10 +8,7 @@ import { co, Group, type ID } from "jazz-tools"
 import { X, Link45deg } from "react-bootstrap-icons"
 import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
-import {
-	removeInviteGroup,
-	type PendingInviteGroup,
-} from "../lib/person-sharing"
+import type { PendingInviteGroup } from "../lib/person-sharing"
 
 export { PendingInvitesSection }
 
@@ -28,11 +25,13 @@ function PendingInvitesSection({
 	pendingInvites,
 	isLoading,
 	onInviteCancelled,
+	onRemoveInviteGroup,
 }: {
 	person: LoadedPerson
 	pendingInvites: PendingInviteGroup[]
 	isLoading: boolean
 	onInviteCancelled: (groupId: string) => void
+	onRemoveInviteGroup: (person: LoadedPerson, groupId: ID<Group>) => void
 }) {
 	let t = useIntl()
 	let locale = useLocale()
@@ -43,7 +42,7 @@ function PendingInvitesSection({
 	function handleCancelPendingInvite(groupId: string) {
 		setCancellingInviteId(groupId)
 
-		let result = tryCatch(() => removeInviteGroup(person, groupId as ID<Group>))
+		let result = tryCatch(() => onRemoveInviteGroup(person, groupId as ID<Group>))
 		setCancellingInviteId(null)
 
 		if (!result.ok) {

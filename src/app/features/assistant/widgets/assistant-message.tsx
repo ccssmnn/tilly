@@ -17,6 +17,7 @@ import { ReminderDeleteResult } from "../parts/reminder-delete-result"
 import { ReminderReadResult } from "../parts/reminder-read-result"
 import { UserQuestionConfirmation } from "../parts/user-question-confirmation"
 import { UserQuestionResult } from "../parts/user-question-result"
+import { useChatHistory } from "../hooks/use-chat-history"
 import type { AddToolResultFunction, TillyUIMessage } from "#shared/tools/tools"
 
 export { AssistantMessage }
@@ -47,6 +48,8 @@ function AssistantMessage({
 	message: TillyUIMessage
 	addToolResult?: AddToolResultFunction
 }) {
+	let { addMessage } = useChatHistory()
+
 	if (message.role !== "assistant") return null
 
 	if (!message.parts) {
@@ -129,11 +132,11 @@ function AssistantMessage({
 			}
 
 			let toolName = part.type.replace("tool-", "")
-			let Renderer = toolResultRenderers[toolName as ToolName]
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			let Renderer = toolResultRenderers[toolName as ToolName] as any
 			if (Renderer) {
 				renderedParts.push(
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					<Renderer key={`tool-${i}`} result={part.output as any} />,
+					<Renderer key={`tool-${i}`} result={part.output} addMessage={addMessage} />,
 				)
 			}
 		}

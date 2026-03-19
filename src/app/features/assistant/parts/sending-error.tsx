@@ -2,35 +2,36 @@ import { Link } from "@tanstack/react-router"
 import { Alert, AlertDescription, AlertTitle } from "#shared/ui/alert"
 import { Button } from "#shared/ui/button"
 import { T } from "#shared/intl/setup"
-import {
-	isUsageLimitError,
-	isRequestTooLargeError,
-	isWorkerTimeoutError,
-	isEmptyMessagesError,
-} from "../lib/error-handling"
+import type { SendingErrorKind } from "../lib/error-handling"
 
 export { SendingError }
 
-function SendingError({ error }: { error: Error | null }) {
+function SendingError({
+	error,
+	errorKind,
+}: {
+	error: Error | null
+	errorKind: SendingErrorKind
+}) {
 	if (!error) return null
 
 	return (
 		<Alert variant="destructive">
 			<AlertTitle>
-				{isUsageLimitError(error) ? (
+				{errorKind === "usage-limit" ? (
 					<T k="assistant.usageLimit.title" />
-				) : isRequestTooLargeError(error) ? (
+				) : errorKind === "request-too-large" ? (
 					<T k="assistant.requestTooLarge.title" />
-				) : isWorkerTimeoutError(error) ? (
+				) : errorKind === "worker-timeout" ? (
 					<T k="assistant.workerTimeout.title" />
-				) : isEmptyMessagesError(error) ? (
+				) : errorKind === "empty-messages" ? (
 					<T k="assistant.sendError.title" />
 				) : (
 					<T k="assistant.sendError.title" />
 				)}
 			</AlertTitle>
 			<AlertDescription>
-				{isUsageLimitError(error) ? (
+				{errorKind === "usage-limit" ? (
 					<div className="space-y-2">
 						<T k="assistant.usageLimit.description" />
 						<Button variant="outline" size="sm" className="mt-2">
@@ -39,11 +40,11 @@ function SendingError({ error }: { error: Error | null }) {
 							</Link>
 						</Button>
 					</div>
-				) : isRequestTooLargeError(error) ? (
+				) : errorKind === "request-too-large" ? (
 					<T k="assistant.requestTooLarge.description" />
-				) : isWorkerTimeoutError(error) ? (
+				) : errorKind === "worker-timeout" ? (
 					<T k="assistant.workerTimeout.description" />
-				) : isEmptyMessagesError(error) ? (
+				) : errorKind === "empty-messages" ? (
 					<T k="assistant.emptyMessages.description" />
 				) : (
 					<span className="select-text">{error.message}</span>

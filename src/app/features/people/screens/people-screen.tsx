@@ -5,6 +5,7 @@ import { usePeopleData } from "../lib/data"
 import { VirtualizedList } from "#app/components/virtualized-list"
 import { NewPerson } from "../widgets/new-person"
 import { ListFilterButton } from "../parts/list-filter-button"
+import { useAvailableLists } from "../lib/list-utilities"
 import { useAppStore } from "#app/lib/store"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 import { PeoplePageTitle } from "../parts/people-page-title"
@@ -49,6 +50,7 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 		sortMode: peopleSortMode,
 	})
 
+	let availableLists = useAvailableLists(allPeople)
 	let didSearch = deferredSearchQuery !== "" || peopleListFilter !== null
 	let hasResults = people.length > 0
 	let eagerCount = calculateEagerLoadCount()
@@ -101,6 +103,7 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 								trailing={
 									<ListFilterButton
 										people={allPeople}
+										availableLists={availableLists}
 										listFilter={peopleListFilter}
 										onListFilterChange={setPeopleListFilter}
 										statusOptions={statusOptions}

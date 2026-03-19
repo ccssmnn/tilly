@@ -8,7 +8,6 @@ import { Calendar, ArrowRepeat, Trash, CheckLg } from "react-bootstrap-icons"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage } from "jazz-tools/react"
-import { getReferenceDate, getDeletedDate } from "../lib/reminder-dates"
 
 export { ReminderListItem, DoneReminderListItem, DeletedReminderListItem }
 
@@ -16,6 +15,14 @@ type ReminderListItemProps = {
 	reminder: co.loaded<typeof Reminder>
 	person?: co.loaded<typeof Person>
 	searchQuery?: string
+}
+
+type DoneReminderListItemProps = ReminderListItemProps & {
+	referenceDate: Date
+}
+
+type DeletedReminderListItemProps = ReminderListItemProps & {
+	deletedDate: Date
 }
 
 function ReminderListItem({
@@ -76,12 +83,13 @@ function DoneReminderListItem({
 	reminder,
 	person,
 	searchQuery,
-}: ReminderListItemProps) {
+	referenceDate,
+}: DoneReminderListItemProps) {
 	let t = useIntl()
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 
-	let doneRelativeTime = formatDistanceToNow(getReferenceDate(reminder), {
+	let doneRelativeTime = formatDistanceToNow(referenceDate, {
 		addSuffix: true,
 		locale: dfnsLocale,
 	})
@@ -134,12 +142,13 @@ function DeletedReminderListItem({
 	reminder,
 	person,
 	searchQuery,
-}: ReminderListItemProps) {
+	deletedDate,
+}: DeletedReminderListItemProps) {
 	let t = useIntl()
 	let locale = useLocale()
 	let dfnsLocale = locale === "de" ? dfnsDe : undefined
 
-	let deletedRelativeTime = formatDistanceToNow(getDeletedDate(reminder), {
+	let deletedRelativeTime = formatDistanceToNow(deletedDate, {
 		addSuffix: true,
 		locale: dfnsLocale,
 	})

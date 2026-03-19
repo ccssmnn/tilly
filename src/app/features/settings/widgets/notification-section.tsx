@@ -6,7 +6,19 @@ import { ExclamationTriangle } from "react-bootstrap-icons"
 import { T, useIntl } from "#shared/intl/setup"
 import { isInAppBrowser } from "#app/hooks/use-pwa"
 import { useCurrentEndpoint } from "../hooks/use-current-endpoint"
-import { getBrowserRecommendation } from "../lib/device"
+import { getDeviceName, getBrowserRecommendation } from "../lib/device"
+import {
+	handleToggleDeviceEnabled,
+	handleSendTestNotification,
+	handleRemoveDevice,
+	handleSaveDeviceName,
+} from "../lib/push-device-actions"
+import {
+	requestNotificationPermission,
+	getNotificationPermission,
+	subscribeToPushNotifications,
+} from "../lib/push-notifications"
+import { triggerNotificationRegistration } from "../lib/notification-registration"
 import type { NotificationQuery } from "../lib/notification-types"
 import { TimezoneSection } from "../parts/timezone-section"
 import { NotificationTimeSection } from "../parts/notification-time-section"
@@ -24,7 +36,7 @@ function NotificationSection({
 	let t = useIntl()
 	let isAuthenticated = useIsAuthenticated()
 
-	let [currentEndpoint] = useCurrentEndpoint()
+	let [currentEndpoint, refreshEndpoint] = useCurrentEndpoint()
 
 	let devices = me?.root.notificationSettings?.pushDevices || []
 	let isCurrentDeviceAdded =
@@ -84,6 +96,12 @@ function NotificationSection({
 													key={device.endpoint}
 													device={device}
 													me={me}
+													currentEndpoint={currentEndpoint}
+													refreshEndpoint={refreshEndpoint}
+													onToggleEnabled={handleToggleDeviceEnabled}
+													onSendTest={handleSendTestNotification}
+													onRemove={handleRemoveDevice}
+													onSaveName={handleSaveDeviceName}
 												/>
 											))}
 										</div>
@@ -107,7 +125,16 @@ function NotificationSection({
 							</div>
 
 							{!isCurrentDeviceAdded && canAddDevice && (
-								<AddDeviceDrawer me={me} disabled={!isAuthenticated} />
+								<AddDeviceDrawer
+									me={me}
+									disabled={!isAuthenticated}
+									refreshEndpoint={refreshEndpoint}
+									initialPermission={getNotificationPermission()}
+									defaultDeviceName={getDeviceName()}
+									requestPermission={requestNotificationPermission}
+									subscribeToPush={subscribeToPushNotifications}
+									triggerRegistration={triggerNotificationRegistration}
+								/>
 							)}
 						</div>
 

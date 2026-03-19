@@ -4,7 +4,9 @@ import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	resolveImportPath,
 	DEFAULT_ALIASES,
+	DEFAULT_FEATURE_ROOTS,
 	type AliasMap,
+	type FeatureRootConfig,
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
@@ -12,8 +14,20 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
-const FEATURES_DIRECT_IMPORT_PATTERN =
-	/^src\/(?:app|server)\/features\/([^/]+)$/
+function normalize(filePath: string): string {
+	return filePath.replace(/\\/g, "/")
+}
+
+function escapeRegex(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function buildFeatureDirectImportPattern(
+	featureRoots: FeatureRootConfig[],
+): RegExp {
+	let rootPatterns = featureRoots.map(r => escapeRegex(normalize(r.path)))
+	return new RegExp(`^(?:${rootPatterns.join("|")})/([^/]+)$`)
+}
 
 function findProjectRoot(filename: string): string | null {
 	let dir = path.dirname(filename)
@@ -49,15 +63,34 @@ export default createRule({
 						type: "object",
 						additionalProperties: { type: "string" },
 					},
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
 				},
 				additionalProperties: false,
 			},
 		],
 	},
-	defaultOptions: [{ aliases: undefined as AliasMap | undefined }],
+	defaultOptions: [
+		{
+			aliases: undefined as AliasMap | undefined,
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let projectRoot = findProjectRoot(context.filename)
+		let pattern = buildFeatureDirectImportPattern(featureRoots)
 
 		return {
 			ImportDeclaration(node) {
@@ -71,7 +104,7 @@ export default createRule({
 				)
 				if (!resolved) return
 
-				let match = resolved.match(FEATURES_DIRECT_IMPORT_PATTERN)
+				let match = resolved.match(pattern)
 				if (!match) return
 
 				if (isDirectory(projectRoot, resolved)) return

@@ -10,6 +10,7 @@ import {
 	handleRestoreReminder,
 	handlePermanentlyDeleteReminder,
 } from "../lib/reminder-actions"
+import { getDeletedDate } from "../lib/reminder-dates"
 import { DeletedReminderListItem } from "../parts/reminder-list-item"
 import { SwipeableListItem } from "#app/components/swipeable-list-item"
 import { ConfirmPermanentDelete } from "../parts/confirm-permanent-delete"
@@ -88,6 +89,7 @@ function DeletedReminder({
 					reminder={reminder}
 					person={showPerson !== false ? person : undefined}
 					searchQuery={searchQuery}
+					deletedDate={getDeletedDate(reminder)}
 				/>
 			</SwipeableListItem>
 

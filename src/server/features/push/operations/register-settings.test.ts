@@ -8,7 +8,7 @@ import {
 import { Group, co } from "jazz-tools"
 import { NotificationSettings } from "#shared/schema/user"
 import { ServerAccount, ServerAccountRoot } from "#shared/schema/server"
-import { registerNotificationSettingsWithServer } from "./push-register-logic"
+import { registerNotificationSettingsWithServer } from "./register-settings"
 
 describe("registerNotificationSettingsWithServer", () => {
 	let serverAccount: co.loaded<typeof ServerAccount>

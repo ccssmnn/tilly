@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { z } from "zod"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { nanoid } from "nanoid"
@@ -26,7 +27,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { isMac } from "#app/hooks/use-pwa"
-import { createReminderFormSchema } from "../lib/reminder-form-schema"
 
 export { ReminderFields, type ReminderFieldValues }
 
@@ -49,7 +49,16 @@ function ReminderFields({
 	onCancel: () => void
 }) {
 	let t = useIntl()
-	let schema = createReminderFormSchema(t)
+	let schema = z.object({
+		text: z.string().min(1, t("reminder.form.text.required")),
+		dueAtDate: z.string().min(1, t("reminder.form.date.required")),
+		repeat: z
+			.object({
+				interval: z.coerce.number(),
+				unit: z.enum(["day", "week", "month", "year"]),
+			})
+			.optional(),
+	})
 	let form = useForm({
 		resolver: zodResolver(schema),
 		defaultValues: {

@@ -69,18 +69,17 @@ ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 				"/project/src/app/features/settings/widgets/notification-section.tsx",
 		},
 		{
-			// server operation — functions allowed (operations ARE the logic)
+			// function in operation — allowed when structuralZones excludes operation
 			code: `
 				export async function sendPush(payload: unknown) { return payload }
 			`,
 			filename: "/project/src/server/features/push/operations/send-push.ts",
-		},
-		{
-			// server part — functions allowed (parts ARE the logic)
-			code: `
-				export function formatPayload(data: unknown) { return JSON.stringify(data) }
-			`,
-			filename: "/project/src/server/features/push/parts/format-payload.ts",
+			options: [
+				{
+					featureRoots: undefined,
+					structuralZones: ["screen", "widget", "part", "handler"],
+				},
+			],
 		},
 	],
 	invalid: [
@@ -174,6 +173,40 @@ ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 			`,
 			filename: "/project/src/server/features/push/handlers/push-handler.ts",
 			errors: [{ messageId: "noUtility", data: { name: "formatPayload" } }],
+		},
+		{
+			// utility function in operation
+			code: `
+				function getCachedTokenCount(metadata: unknown) { return 0 }
+				export async function processMessage() { return getCachedTokenCount({}) }
+			`,
+			filename:
+				"/project/src/server/features/chat/operations/process-message.ts",
+			errors: [
+				{ messageId: "noUtility", data: { name: "getCachedTokenCount" } },
+				{ messageId: "noUtility", data: { name: "processMessage" } },
+			],
+		},
+		{
+			// utility function in server part
+			code: `
+				function formatPayload(data: unknown) { return JSON.stringify(data) }
+				export function buildPayload() { return formatPayload({}) }
+			`,
+			filename: "/project/src/server/features/push/parts/build-payload.ts",
+			options: [
+				{
+					featureRoots: [
+						{ path: "src/app/features", allowedZones: ["screens", "widgets", "parts", "hooks", "lib"] },
+						{ path: "src/server/features", allowedZones: ["handlers", "operations", "parts", "lib"] },
+					],
+					structuralZones: undefined,
+				},
+			],
+			errors: [
+				{ messageId: "noUtility", data: { name: "formatPayload" } },
+				{ messageId: "noUtility", data: { name: "buildPayload" } },
+			],
 		},
 	],
 })

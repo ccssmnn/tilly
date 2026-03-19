@@ -1,5 +1,10 @@
 import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
-import { classifyFile } from "../utils/path-classification.js"
+import {
+	classifyFile,
+	DEFAULT_FEATURE_ROOTS,
+	type FeatureRootConfig,
+	type Zone,
+} from "../utils/path-classification.js"
 import { isPascalCase } from "../utils/component-detection.js"
 
 const createRule = ESLintUtils.RuleCreator(
@@ -7,12 +12,13 @@ const createRule = ESLintUtils.RuleCreator(
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
 
-const APP_ZONES = new Set(["screen", "widget", "part"])
-const SERVER_ZONES = new Set(["handler"])
-
-function isServerFile(filename: string): boolean {
-	return filename.replace(/\\/g, "/").includes("/src/server/")
-}
+const DEFAULT_STRUCTURAL_ZONES: Zone[] = [
+	"screen",
+	"widget",
+	"part",
+	"handler",
+	"operation",
+]
 
 export default createRule({
 	name: "no-utility-definitions-in-ui-modules",
@@ -20,7 +26,7 @@ export default createRule({
 		type: "problem",
 		docs: {
 			description:
-				"Structural modules (screens, widgets, parts, handlers) must not define utility functions or hooks. Use hooks/ and lib/ instead.",
+				"Structural modules (screens, widgets, parts, handlers, operations) must not define utility functions or hooks. Use hooks/ and lib/ instead.",
 		},
 		messages: {
 			noUtility:
@@ -28,13 +34,44 @@ export default createRule({
 			noHook:
 				"Move '{{name}}' to hooks/. Structural modules should only contain wiring, not hook definitions.",
 		},
-		schema: [],
+		schema: [
+			{
+				type: "object",
+				properties: {
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
+					structuralZones: {
+						type: "array",
+						items: { type: "string" },
+					},
+				},
+				additionalProperties: false,
+			},
+		],
 	},
-	defaultOptions: [],
-	create(context) {
-		let currentFile = classifyFile(context.filename)
-		let zones = isServerFile(context.filename) ? SERVER_ZONES : APP_ZONES
-		if (!zones.has(currentFile.zone)) return {}
+	defaultOptions: [
+		{
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+			structuralZones: undefined as Zone[] | undefined,
+		},
+	],
+	create(context, [options]) {
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let structuralZones = new Set(
+			options.structuralZones ?? DEFAULT_STRUCTURAL_ZONES,
+		)
+		let currentFile = classifyFile(context.filename, featureRoots)
+		if (!structuralZones.has(currentFile.zone)) return {}
 
 		function reportFunction(name: string, node: TSESTree.Node) {
 			if (isPascalCase(name)) return

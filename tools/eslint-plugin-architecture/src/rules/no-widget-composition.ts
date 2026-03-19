@@ -4,8 +4,10 @@ import {
 	classifyImport,
 	isSameFeature,
 	DEFAULT_ALIASES,
+	DEFAULT_FEATURE_ROOTS,
 	type AliasMap,
 	type Classification,
+	type FeatureRootConfig,
 } from "../utils/path-classification.js"
 import { getJSXComponentName } from "../utils/component-detection.js"
 
@@ -31,15 +33,33 @@ export default createRule({
 				type: "object",
 				properties: {
 					aliases: { type: "object", additionalProperties: { type: "string" } },
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
 				},
 				additionalProperties: false,
 			},
 		],
 	},
-	defaultOptions: [{ aliases: undefined as AliasMap | undefined }],
+	defaultOptions: [
+		{
+			aliases: undefined as AliasMap | undefined,
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
-		let currentFile = classifyFile(context.filename)
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let currentFile = classifyFile(context.filename, featureRoots)
 
 		if (currentFile.zone !== "widget") return {}
 
@@ -53,6 +73,7 @@ export default createRule({
 					node.source.value,
 					context.filename,
 					aliases,
+					featureRoots,
 				)
 				if (classification.zone !== "widget") return
 				if (isSameFeature(classification, currentFile)) return

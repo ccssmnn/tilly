@@ -1,19 +1,19 @@
 import { useEffect, useRef } from "react"
 import { useAccount } from "jazz-tools/react"
 import {
+	Account,
 	Group,
 	generateAuthToken,
+	deleteCoValues,
 	type co,
+	type ID,
 	type ResolveQuery,
 } from "jazz-tools"
 import { PUBLIC_JAZZ_WORKER_ACCOUNT } from "astro:env/client"
-import { UserAccount } from "#shared/schema/user"
+import { NotificationSettings, UserAccount } from "#shared/schema/user"
+import { ServerAccount } from "#shared/schema/server"
 import { tryCatch } from "#shared/lib/trycatch"
-import {
-	migrateNotificationSettings,
-	addServerToGroup,
-} from "#app/features/settings/lib/notification-migration"
-import { triggerNotificationRegistration } from "#app/features/settings/lib/notification-registration"
+import { apiClient } from "#app/lib/api-client"
 import { findLatestFutureDate } from "#app/lib/reminder-utils"
 
 export { useRegisterNotifications }
@@ -158,4 +158,126 @@ function extractReminders(
 		}
 	}
 	return reminders
+}
+
+type RegistrationResult = { ok: true } | { ok: false; error: string }
+
+async function triggerNotificationRegistration(
+	notificationSettingsId: string,
+	authToken: string,
+): Promise<RegistrationResult> {
+	let result = await tryCatch(
+		apiClient.push.register.$post(
+			{
+				json: { notificationSettingsId },
+			},
+			{
+				headers: {
+					Authorization: `Jazz ${authToken}`,
+				},
+			},
+		),
+	)
+
+	if (!result.ok) {
+		console.error("[Notifications] Registration failed:", result.error)
+		return { ok: false, error: "Network error" }
+	}
+
+	if (!result.data.ok) {
+		let errorData = await tryCatch(
+			result.data.json() as Promise<{ message?: string }>,
+		)
+		let errorMessage = errorData.ok
+			? errorData.data.message || "Unknown error"
+			: "Unknown error"
+		console.error("[Notifications] Registration error:", errorMessage)
+		return { ok: false, error: errorMessage }
+	}
+
+	console.log("[Notifications] Registration triggered successfully")
+	return { ok: true }
+}
+
+type MigrationContext = {
+	loadAs: Account
+	rootLanguage?: "de" | "en"
+}
+
+async function migrateNotificationSettings(
+	oldSettings: co.loaded<typeof NotificationSettings>,
+	serverAccountId: string,
+	context: MigrationContext,
+): Promise<{
+	newSettings: co.loaded<typeof NotificationSettings>
+	cleanup: () => Promise<void>
+}> {
+	let group = Group.create()
+
+	await addServerToGroup(group, serverAccountId, context)
+
+	let settingsData = {
+		version: 1 as const,
+		timezone: oldSettings.timezone,
+		notificationTime: oldSettings.notificationTime,
+		lastDeliveredAt: oldSettings.lastDeliveredAt,
+		language: oldSettings.language || context.rootLanguage,
+		latestReminderDueDate: oldSettings.latestReminderDueDate,
+		pushDevices: oldSettings.pushDevices.map(device => ({
+			isEnabled: device.isEnabled,
+			deviceName: device.deviceName,
+			endpoint: device.endpoint,
+			keys: {
+				p256dh: device.keys.p256dh,
+				auth: device.keys.auth,
+			},
+		})),
+	}
+
+	let newSettings = NotificationSettings.create(settingsData, { owner: group })
+
+	let cleanup = async () => {
+		let owner = oldSettings.$jazz.owner
+		if (owner instanceof Group) {
+			let hasAdminPermission = owner.members.some(
+				m =>
+					m.account?.$jazz.id === context.loadAs.$jazz.id && m.role === "admin",
+			)
+			if (!hasAdminPermission) {
+				console.error(
+					"[NotificationSettingsMigration] Caller lacks admin permission on owning group",
+				)
+				throw new Error("Caller lacks admin permission on owning group")
+			}
+		}
+
+		try {
+			await deleteCoValues(NotificationSettings, oldSettings.$jazz.id)
+		} catch (error) {
+			console.error(
+				"[NotificationSettingsMigration] Failed to delete old settings:",
+				error,
+			)
+			throw error
+		}
+	}
+
+	return { newSettings, cleanup }
+}
+
+async function addServerToGroup(
+	group: Group,
+	serverAccountId: string,
+	context: MigrationContext,
+): Promise<void> {
+	let serverAccount = await ServerAccount.load(
+		serverAccountId as ID<typeof ServerAccount>,
+		{ loadAs: context.loadAs },
+	)
+
+	if (!serverAccount || !serverAccount.$isLoaded) {
+		throw new Error("Failed to load server account")
+	}
+
+	group.addMember(serverAccount, "writer")
 }

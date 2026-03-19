@@ -27,14 +27,6 @@ import {
 import { T, useIntl } from "#shared/intl/setup"
 import { toast } from "sonner"
 import { tryCatch } from "#shared/lib/trycatch"
-import { useCurrentEndpoint } from "../hooks/use-current-endpoint"
-import {
-	requestNotificationPermission,
-	getNotificationPermission,
-	subscribeToPushNotifications,
-} from "../lib/push-notifications"
-import { getDeviceName } from "../lib/device"
-import { triggerNotificationRegistration } from "../lib/notification-registration"
 import type { NotificationQuery } from "../lib/notification-types"
 
 export { AddDeviceDrawer }
@@ -42,16 +34,35 @@ export { AddDeviceDrawer }
 interface AddDeviceDrawerProps {
 	me: co.loaded<typeof UserAccount, NotificationQuery>
 	disabled?: boolean
+	refreshEndpoint: () => void
+	initialPermission: NotificationPermission
+	defaultDeviceName: string
+	requestPermission: () => Promise<NotificationPermission>
+	subscribeToPush: () => Promise<{
+		endpoint: string
+		keys: { p256dh: string; auth: string }
+	}>
+	triggerRegistration: (
+		notificationSettingsId: string,
+		authToken: string,
+	) => Promise<{ ok: true } | { ok: false; error: string }>
 }
 
-function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
+function AddDeviceDrawer({
+	me,
+	disabled,
+	refreshEndpoint,
+	initialPermission,
+	defaultDeviceName,
+	requestPermission,
+	subscribeToPush,
+	triggerRegistration,
+}: AddDeviceDrawerProps) {
 	let t = useIntl()
 	let notifications = me?.root.notificationSettings
-	let [, refreshEndpoint] = useCurrentEndpoint()
 	let [open, setOpen] = useState(false)
-	let [permission, setPermission] = useState<NotificationPermission>(
-		getNotificationPermission(),
-	)
+	let [permission, setPermission] =
+		useState<NotificationPermission>(initialPermission)
 
 	let addDeviceSchema = z.object({
 		deviceName: z.string().min(1, t("notifications.devices.name.required")),
@@ -60,7 +71,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 	let form = useForm<z.infer<typeof addDeviceSchema>>({
 		resolver: zodResolver(addDeviceSchema),
 		defaultValues: {
-			deviceName: getDeviceName(),
+			deviceName: defaultDeviceName,
 		},
 	})
 
@@ -110,7 +121,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 	}
 
 	async function handleAddDevice(values: z.infer<typeof addDeviceSchema>) {
-		let permissionResult = await tryCatch(requestNotificationPermission())
+		let permissionResult = await tryCatch(requestPermission())
 		if (!permissionResult.ok) {
 			toast.error(t("notifications.devices.permissionError"))
 			return
@@ -123,7 +134,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 			return
 		}
 
-		let subscriptionResult = await tryCatch(subscribeToPushNotifications())
+		let subscriptionResult = await tryCatch(subscribeToPush())
 		if (!subscriptionResult.ok) {
 			toast.error(t("notifications.toast.subscribeFailed"))
 			return
@@ -137,7 +148,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 
 		if (notifications?.$jazz.id) {
 			let authToken = generateAuthToken(me)
-			let registrationResult = await triggerNotificationRegistration(
+			let registrationResult = await triggerRegistration(
 				notifications.$jazz.id,
 				authToken,
 			)
@@ -145,7 +156,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 				toast.warning(t("notifications.toast.registrationFailed"))
 				setOpen(false)
 				form.reset({
-					deviceName: getDeviceName(),
+					deviceName: defaultDeviceName,
 				})
 				return
 			}
@@ -157,7 +168,7 @@ function AddDeviceDrawer({ me, disabled }: AddDeviceDrawerProps) {
 		setOpen(false)
 
 		form.reset({
-			deviceName: getDeviceName(),
+			deviceName: defaultDeviceName,
 		})
 	}
 

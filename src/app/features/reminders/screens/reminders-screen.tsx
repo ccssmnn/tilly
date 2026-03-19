@@ -12,7 +12,7 @@ import {
 	ReminderSearch,
 	NewReminderButton,
 } from "../parts/reminder-toolbar"
-import { ListFilterButton } from "#app/features/people"
+import { ListFilterButton, useAvailableLists } from "#app/features/people"
 import {
 	EmptyReminders,
 	EmptyReminderSearch,
@@ -52,6 +52,7 @@ export function RemindersScreen({ fallback }: RemindersScreenProps) {
 		statusFilter,
 		listFilter,
 	})
+	let availableLists = useAvailableLists(people)
 
 	async function onCreateReminder(
 		personId: string,
@@ -89,6 +90,7 @@ export function RemindersScreen({ fallback }: RemindersScreenProps) {
 								trailing={
 									<ListFilterButton
 										people={people}
+											availableLists={availableLists}
 										listFilter={listFilter}
 										onListFilterChange={setListFilter}
 										statusOptions={statusOptions}

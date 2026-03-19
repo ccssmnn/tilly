@@ -14,31 +14,31 @@ import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Avatar, AvatarFallback, AvatarImage } from "#shared/ui/avatar"
 import { TypographyH2, TypographyMuted } from "#shared/ui/typography"
 import { Send, Pause, Arrow90degUp } from "react-bootstrap-icons"
-import { useAccount } from "jazz-tools/react"
-import { UserAccount } from "#shared/schema/user"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useIntl } from "#shared/intl/setup"
 import { T } from "#shared/intl/setup"
-import { useStarterPrompts } from "../hooks/use-starter-prompts"
-import { resolve } from "../lib/data"
+import type { LoadedAssistantAccount } from "../lib/data"
+import type { StarterPrompt } from "../hooks/use-starter-prompts"
 import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { EmptyChatState }
 
 function EmptyChatState({
+	me,
+	starters,
 	onSubmit,
 	isOnline,
 	isBusy,
 	abort,
 }: {
+	me: LoadedAssistantAccount
+	starters: StarterPrompt[]
 	onSubmit: (message: TillyUIMessage) => void
 	isOnline: boolean
 	isBusy: boolean
 	abort?: () => void
 }) {
-	let me = useAccount(UserAccount, { resolve })
 	let t = useIntl()
-	let starters = useStarterPrompts(t)
 
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),

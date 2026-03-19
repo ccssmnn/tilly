@@ -15,8 +15,7 @@ import {
 } from "#shared/ui/dialog"
 import { UserAccount } from "#shared/schema/user"
 import { cn } from "#app/lib/utils"
-import { type FileData, type FilePerson } from "../lib/data-file-schema"
-import { blobToDataURL } from "../lib/data-utils"
+import type { FileData, FilePerson } from "../lib/data-file-schema"
 import { T, useIntl } from "#shared/intl/setup"
 
 let exportQuery = {
@@ -44,6 +43,7 @@ let exportQuery = {
 
 export function ExportButton(props: {
 	account: co.loaded<typeof UserAccount>
+	blobToDataURL: (blob: Blob) => Promise<string>
 }) {
 	let t = useIntl()
 	let [isExporting, setIsExporting] = useState(false)
@@ -74,7 +74,7 @@ export function ExportButton(props: {
 					let a = await person.avatar.$jazz.ensureLoaded({ resolve: true })
 					let bestImage = highestResAvailable(a, 2048, 2048)
 					let blob = bestImage?.image.toBlob()
-					let dataURL = blob ? await blobToDataURL(blob) : undefined
+					let dataURL = blob ? await props.blobToDataURL(blob) : undefined
 					if (dataURL) {
 						avatar = { dataURL }
 					}
@@ -101,7 +101,7 @@ export function ExportButton(props: {
 												let bestImage = highestResAvailable(img, 2048, 2048)
 												let blob = bestImage?.image.toBlob()
 												let dataURL = blob
-													? await blobToDataURL(blob)
+													? await props.blobToDataURL(blob)
 													: undefined
 												return dataURL ? { dataURL } : null
 											}),

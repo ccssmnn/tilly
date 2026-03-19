@@ -16,10 +16,7 @@ import { toast } from "sonner"
 import { T, useIntl } from "#shared/intl/setup"
 import { co, Group, type ID } from "jazz-tools"
 import { X, PersonFill } from "react-bootstrap-icons"
-import {
-	removeInviteGroup,
-	type InviteGroupWithMembers,
-} from "../lib/person-sharing"
+import type { InviteGroupWithMembers } from "../lib/person-sharing"
 
 export { CollaboratorsSection }
 
@@ -37,12 +34,14 @@ function CollaboratorsSection({
 	isLoading,
 	isAdmin,
 	onGroupRemoved,
+	onRemoveInviteGroup,
 }: {
 	person: LoadedPerson
 	inviteGroups: InviteGroupWithMembers[]
 	isLoading: boolean
 	isAdmin: boolean
 	onGroupRemoved: (groupId: string) => void
+	onRemoveInviteGroup: (person: LoadedPerson, groupId: ID<Group>) => void
 }) {
 	let t = useIntl()
 	let [removingCollaboratorId, setRemovingCollaboratorId] = useState<
@@ -65,7 +64,7 @@ function CollaboratorsSection({
 		if (!confirmRemoveGroup) return
 
 		let result = tryCatch(() =>
-			removeInviteGroup(person, confirmRemoveGroup.groupId as ID<Group>),
+			onRemoveInviteGroup(person, confirmRemoveGroup.groupId as ID<Group>),
 		)
 		setRemovingCollaboratorId(null)
 		setConfirmRemoveGroup(null)

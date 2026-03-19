@@ -25,6 +25,7 @@ import {
 } from "../lib/person-form-schema"
 import { AvatarField } from "../parts/avatar-field"
 import { AvatarCropperDialog } from "../parts/avatar-cropper-dialog"
+import { getCroppedImg } from "../lib/image-crop"
 
 export { PersonForm }
 
@@ -180,6 +181,7 @@ function PersonForm({
 				onOpenChange={setCropperOpen}
 				imageSrc={selectedImage}
 				onCrop={handleCropComplete}
+				getCroppedImg={getCroppedImg}
 			/>
 		</Form>
 	)

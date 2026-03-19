@@ -2,8 +2,8 @@ import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { z } from "zod"
 import { authenticateRequest } from "jazz-tools"
-import { getServerWorker, WorkerTimeoutError } from "../lib/utils"
-import { registerNotificationSettingsWithServer } from "./push-register-logic"
+import { getServerWorker, WorkerTimeoutError } from "#server/lib/utils"
+import { registerNotificationSettingsWithServer } from "../operations/register-settings"
 
 export { pushRegisterApp }
 

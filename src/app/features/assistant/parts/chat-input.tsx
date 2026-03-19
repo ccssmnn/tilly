@@ -11,24 +11,23 @@ import {
 } from "#shared/ui/input-group"
 import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Send, Pause } from "react-bootstrap-icons"
-import { useAccount } from "jazz-tools/react"
-import { UserAccount } from "#shared/schema/user"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
 import { cn } from "#app/lib/utils"
-import { resolve } from "../lib/data"
+import type { LoadedAssistantAccount } from "../lib/data"
 import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { ChatInput }
 
 function ChatInput(props: {
+	me: LoadedAssistantAccount
 	onSubmit: (message: TillyUIMessage) => void
 	chatSize: number
 	stopGeneratingResponse?: () => void
 	placeholder: string
 	disabled?: boolean
 }) {
-	let me = useAccount(UserAccount, { resolve })
+	let me = props.me
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
 		defaultValues: { prompt: "" },

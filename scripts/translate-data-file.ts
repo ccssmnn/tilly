@@ -1,5 +1,5 @@
 import { createGateway } from "@ai-sdk/gateway"
-import { generateObject } from "ai"
+import { generateText, Output } from "ai"
 import { readFile, writeFile } from "fs/promises"
 import { z } from "zod"
 import {
@@ -91,10 +91,12 @@ async function translateInBatches(
 			schemaProperties[key] = z.string()
 		}
 
-		let result = await generateObject({
+		let result = await generateText({
 			model: gateway("google/gemini-2.0-flash"),
-			schema: z.object({
-				translations: z.object(schemaProperties),
+			output: Output.object({
+				schema: z.object({
+					translations: z.object(schemaProperties),
+				}),
 			}),
 			prompt: `Translate the following texts to ${targetLanguage}. Return a JSON object with the same keys, but with translated values. Preserve the tone and meaning.
 
@@ -104,7 +106,7 @@ ${JSON.stringify(kvObject, null, 2)}`,
 
 		for (let i = 0; i < batch.length; i++) {
 			let key = createEntryKey(batch[i])
-			let translatedText = result.object.translations[`entry_${i}`]
+			let translatedText = result.output?.translations[`entry_${i}`]
 			if (translatedText) {
 				translations.set(key, translatedText)
 			}

@@ -10,13 +10,13 @@ import {
 } from "astro:env/server"
 import { addDays, isPast } from "date-fns"
 import { co, Group, type ResolveQuery } from "jazz-tools"
-import { clerkClient } from "./auth-client"
+import { clerkClient } from "#server/features/auth"
 import { getServerWorker, initUserWorker } from "./utils"
 
 export { checkInputSize, checkUsageLimits, updateUsage }
 export type { ModelMessages }
 
-type ModelMessages = ReturnType<typeof convertToModelMessages>
+type ModelMessages = Awaited<ReturnType<typeof convertToModelMessages>>
 
 function checkInputSize(messages: ModelMessages) {
 	let estimatedTokens = estimateTokenCount(messages)

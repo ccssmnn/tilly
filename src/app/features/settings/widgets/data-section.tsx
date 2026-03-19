@@ -4,6 +4,8 @@ import { ExportButton as DownloadButton } from "../parts/data-download-button"
 import { UploadButton } from "../parts/data-upload-button"
 import { sectionStackClass } from "../lib/layout"
 import type { SettingsAccount } from "../lib/data"
+import { FileDataSchema } from "../lib/data-file-schema"
+import { blobToDataURL, dataURLToFile } from "../lib/data-utils"
 import { DeleteDataButton } from "../parts/delete-data-button"
 
 export { DataSection }
@@ -24,7 +26,7 @@ function DataSection({ me }: { me: SettingsAccount }) {
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.data.export.description" />
 					</p>
-					<DownloadButton account={me} />
+					<DownloadButton account={me} blobToDataURL={blobToDataURL} />
 				</div>
 
 				<div className="space-y-2">
@@ -34,7 +36,7 @@ function DataSection({ me }: { me: SettingsAccount }) {
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.data.import.description" />
 					</p>
-					<UploadButton userID={me.$jazz.id} />
+					<UploadButton userID={me.$jazz.id} fileDataSchema={FileDataSchema} dataURLToFile={dataURLToFile} />
 				</div>
 
 				<div className="space-y-2">

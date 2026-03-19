@@ -58,6 +58,7 @@ function AccountSection() {
 									<Button
 										variant="secondary"
 										className={mobileActionButtonClass}
+										nativeButton={false}
 										render={<a href={`${PUBLIC_CLERK_ACCOUNTS_URL}/user`} />}
 									>
 										<T k="settings.account.manageAccount" />
@@ -98,6 +99,7 @@ function AccountSection() {
 										<Button
 											variant="secondary"
 											className={mobileActionButtonClass}
+											nativeButton={false}
 											render={
 												<a href={`${PUBLIC_CLERK_ACCOUNTS_URL}/user/billing`} />
 											}

@@ -21,13 +21,6 @@ import {
 import { T, useIntl } from "#shared/intl/setup"
 import { PencilSquare, Trash, Power, BellFill } from "react-bootstrap-icons"
 import { cn } from "#app/lib/utils"
-import { useCurrentEndpoint } from "../hooks/use-current-endpoint"
-import {
-	handleToggleDeviceEnabled,
-	handleSendTestNotification,
-	handleRemoveDevice,
-	handleSaveDeviceName,
-} from "../lib/push-device-actions"
 import type { NotificationQuery } from "../lib/notification-types"
 
 export { DeviceListItem }
@@ -44,12 +37,47 @@ interface DeviceListItemProps {
 		}
 	}
 	me: co.loaded<typeof UserAccount, NotificationQuery>
+	currentEndpoint: string | null | undefined
+	refreshEndpoint: () => void
+	onToggleEnabled: (
+		device: DeviceListItemProps["device"],
+		isCurrentDevice: boolean,
+		notifications: DeviceListItemProps["me"]["root"]["notificationSettings"],
+		t: ReturnType<typeof useIntl>,
+	) => void
+	onSendTest: (
+		endpoint: string,
+		me: co.loaded<typeof UserAccount, NotificationQuery>,
+		t: ReturnType<typeof useIntl>,
+	) => void
+	onRemove: (
+		endpoint: string,
+		isCurrentDevice: boolean,
+		notifications: DeviceListItemProps["me"]["root"]["notificationSettings"],
+		refreshEndpoint: () => void,
+		t: ReturnType<typeof useIntl>,
+	) => void
+	onSaveName: (
+		endpoint: string,
+		editName: string,
+		notifications: DeviceListItemProps["me"]["root"]["notificationSettings"],
+		onClose: () => void,
+		t: ReturnType<typeof useIntl>,
+	) => void
 }
 
-function DeviceListItem({ device, me }: DeviceListItemProps) {
+function DeviceListItem({
+	device,
+	me,
+	currentEndpoint,
+	refreshEndpoint,
+	onToggleEnabled,
+	onSendTest,
+	onRemove,
+	onSaveName,
+}: DeviceListItemProps) {
 	let t = useIntl()
 	let notifications = me?.root.notificationSettings
-	let [currentEndpoint, refreshEndpoint] = useCurrentEndpoint()
 	let isCurrentDevice = device.endpoint === currentEndpoint
 	let [dropdownOpen, setDropdownOpen] = useState(false)
 	let [editDrawerOpen, setEditDrawerOpen] = useState(false)
@@ -102,7 +130,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 				<DropdownMenuContent align="center">
 					<DropdownMenuItem
 						onClick={() =>
-							handleToggleDeviceEnabled(
+							onToggleEnabled(
 								device,
 								isCurrentDevice,
 								notifications,
@@ -119,7 +147,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 					</DropdownMenuItem>
 					{device.isEnabled && (
 						<DropdownMenuItem
-							onClick={() => handleSendTestNotification(device.endpoint, me, t)}
+							onClick={() => onSendTest(device.endpoint, me, t)}
 						>
 							<T k="notifications.devices.sendTest" />
 							<BellFill />
@@ -131,7 +159,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={() =>
-							handleRemoveDevice(
+							onRemove(
 								device.endpoint,
 								isCurrentDevice,
 								notifications,
@@ -164,7 +192,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 							placeholder=""
 							onKeyDown={e => {
 								if (e.key === "Enter") {
-									handleSaveDeviceName(
+									onSaveName(
 										device.endpoint,
 										editName,
 										notifications,
@@ -191,7 +219,7 @@ function DeviceListItem({ device, me }: DeviceListItemProps) {
 						</Button>
 						<Button
 							onClick={() =>
-								handleSaveDeviceName(
+								onSaveName(
 									device.endpoint,
 									editName,
 									notifications,

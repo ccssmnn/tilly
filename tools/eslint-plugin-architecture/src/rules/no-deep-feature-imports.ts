@@ -4,7 +4,9 @@ import {
 	classifyImport,
 	isSameFeature,
 	DEFAULT_ALIASES,
+	DEFAULT_FEATURE_ROOTS,
 	type AliasMap,
+	type FeatureRootConfig,
 } from "../utils/path-classification.js"
 
 const createRule = ESLintUtils.RuleCreator(
@@ -29,22 +31,40 @@ export default createRule({
 				type: "object",
 				properties: {
 					aliases: { type: "object", additionalProperties: { type: "string" } },
+					featureRoots: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								path: { type: "string" },
+								allowedZones: { type: "array", items: { type: "string" } },
+							},
+							required: ["path"],
+							additionalProperties: false,
+						},
+					},
 				},
 				additionalProperties: false,
 			},
 		],
 	},
-	defaultOptions: [{ aliases: undefined as AliasMap | undefined }],
+	defaultOptions: [
+		{
+			aliases: undefined as AliasMap | undefined,
+			featureRoots: undefined as FeatureRootConfig[] | undefined,
+		},
+	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
-		let currentFile = classifyFile(context.filename)
+		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
+		let currentFile = classifyFile(context.filename, featureRoots)
 
 		return {
 			ImportDeclaration(node) {
 				if (node.importKind === "type") return
 
 				let source = node.source.value
-				let imported = classifyImport(source, context.filename, aliases)
+				let imported = classifyImport(source, context.filename, aliases, featureRoots)
 
 				if (imported.feature === null) return
 				if (imported.zone === "feature-index") return
@@ -55,11 +75,8 @@ export default createRule({
 				if (currentFile.zone === "route" && imported.zone === "screen") return
 				if (currentFile.feature === null && imported.zone === "handler") return
 
-				let alias = Object.entries(aliases).find(
-					([key]) => source.startsWith(key + "/") || source === key,
-				)
-				let featurePath = alias
-					? `${alias[0]}/features/${imported.feature}`
+				let featurePath = imported.root
+					? findAliasedPath(imported.root, imported.feature!, aliases)
 					: `features/${imported.feature}`
 
 				context.report({
@@ -71,3 +88,17 @@ export default createRule({
 		}
 	},
 })
+
+function findAliasedPath(
+	root: string,
+	feature: string,
+	aliases: AliasMap,
+): string {
+	let fullPath = `${root}/${feature}`
+	for (let [alias, target] of Object.entries(aliases)) {
+		if (fullPath.startsWith(target + "/") || fullPath === target) {
+			return alias + fullPath.slice(target.length)
+		}
+	}
+	return fullPath
+}
