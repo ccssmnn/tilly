@@ -102,8 +102,7 @@ export default createRule({
 					}
 				}
 
-				let zoneLabel =
-					zone.charAt(0).toUpperCase() + zone.slice(1)
+				let zoneLabel = zone.charAt(0).toUpperCase() + zone.slice(1)
 				let hintTemplate = EXTRACTION_HINT[zone]
 
 				for (let component of components) {

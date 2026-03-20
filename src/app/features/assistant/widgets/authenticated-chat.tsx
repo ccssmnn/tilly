@@ -88,7 +88,10 @@ function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
 							<LoadingIndicator state="generating" />
 						) : null}
 
-						<SendingError error={failedToSend} errorKind={classifySendingError(failedToSend)} />
+						<SendingError
+							error={failedToSend}
+							errorKind={classifySendingError(failedToSend)}
+						/>
 						<GenerationError error={assistant?.errorMessage} />
 
 						{!isBusy && (

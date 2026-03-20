@@ -36,7 +36,11 @@ function DataSection({ me }: { me: SettingsAccount }) {
 					<p className="text-muted-foreground text-sm">
 						<T k="settings.data.import.description" />
 					</p>
-					<UploadButton userID={me.$jazz.id} fileDataSchema={FileDataSchema} dataURLToFile={dataURLToFile} />
+					<UploadButton
+						userID={me.$jazz.id}
+						fileDataSchema={FileDataSchema}
+						dataURLToFile={dataURLToFile}
+					/>
 				</div>
 
 				<div className="space-y-2">

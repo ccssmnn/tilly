@@ -83,10 +83,7 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
 	)
 }
 
-function FormLabel({
-	className,
-	...props
-}: React.ComponentProps<"label">) {
+function FormLabel({ className, ...props }: React.ComponentProps<"label">) {
 	const { error, formItemId } = useFormField()
 
 	return (
@@ -102,7 +99,9 @@ function FormLabel({
 
 function FormControl({
 	children,
-}: { children: React.ReactElement<Record<string, unknown>> }) {
+}: {
+	children: React.ReactElement<Record<string, unknown>>
+}) {
 	const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
 	return React.cloneElement(children, {

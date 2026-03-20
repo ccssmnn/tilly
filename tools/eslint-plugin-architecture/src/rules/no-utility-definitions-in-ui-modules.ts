@@ -73,8 +73,27 @@ export default createRule({
 		let currentFile = classifyFile(context.filename, featureRoots)
 		if (!structuralZones.has(currentFile.zone)) return {}
 
-		function reportFunction(name: string, node: TSESTree.Node) {
+		function collectReexportedNames(program: TSESTree.Program): Set<string> {
+			let names = new Set<string>()
+			for (let stmt of program.body) {
+				if (stmt.type === "ExportNamedDeclaration" && !stmt.declaration) {
+					for (let spec of stmt.specifiers) {
+						if (spec.local.type === "Identifier") {
+							names.add(spec.local.name)
+						}
+					}
+				}
+			}
+			return names
+		}
+
+		function reportFunction(
+			name: string,
+			node: TSESTree.Node,
+			reexportedNames: Set<string>,
+		) {
 			if (isPascalCase(name)) return
+			if (reexportedNames.has(name)) return
 			if (name.startsWith("use")) {
 				context.report({ node, messageId: "noHook", data: { name } })
 			} else {
@@ -82,13 +101,16 @@ export default createRule({
 			}
 		}
 
-		function checkStatement(stmt: TSESTree.ProgramStatement) {
+		function checkStatement(
+			stmt: TSESTree.ProgramStatement,
+			reexportedNames: Set<string>,
+		) {
 			if (stmt.type === "FunctionDeclaration" && stmt.id) {
-				reportFunction(stmt.id.name, stmt)
+				reportFunction(stmt.id.name, stmt, reexportedNames)
 			}
 
 			if (stmt.type === "VariableDeclaration") {
-				checkVariableDeclaration(stmt)
+				checkVariableDeclaration(stmt, reexportedNames)
 			}
 
 			if (
@@ -98,19 +120,23 @@ export default createRule({
 				let decl = stmt.declaration
 				if (!decl) return
 				if (decl.type === "FunctionDeclaration" && decl.id) {
-					reportFunction(decl.id.name, decl)
+					reportFunction(decl.id.name, decl, reexportedNames)
 				}
 				if (decl.type === "VariableDeclaration") {
-					checkVariableDeclaration(decl)
+					checkVariableDeclaration(decl, reexportedNames)
 				}
 			}
 		}
 
-		function checkVariableDeclaration(node: TSESTree.VariableDeclaration) {
+		function checkVariableDeclaration(
+			node: TSESTree.VariableDeclaration,
+			reexportedNames: Set<string>,
+		) {
 			for (let decl of node.declarations) {
 				if (decl.id.type !== "Identifier") continue
 				let name = decl.id.name
 				if (isPascalCase(name)) continue
+				if (reexportedNames.has(name)) continue
 				if (!decl.init) continue
 				if (
 					decl.init.type === "ArrowFunctionExpression" ||
@@ -131,8 +157,9 @@ export default createRule({
 
 		return {
 			Program(node: TSESTree.Program) {
+				let reexportedNames = collectReexportedNames(node)
 				for (let stmt of node.body) {
-					checkStatement(stmt)
+					checkStatement(stmt, reexportedNames)
 				}
 			},
 		}

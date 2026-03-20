@@ -223,7 +223,10 @@ function ReminderDetails(
 					<span className="whitespace-nowrap">
 						<T
 							k="tool.reminder.repeats"
-							params={{ interval: props.repeat.interval, unit: props.repeat.unit }}
+							params={{
+								interval: props.repeat.interval,
+								unit: props.repeat.unit,
+							}}
 						/>
 					</span>
 				)}

@@ -92,6 +92,7 @@ function DeviceListItem({
 		>
 			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal>
 				<DropdownMenuTrigger
+					className="min-w-0 flex-1 text-left"
 					onPointerDown={e => {
 						if (e.pointerType === "touch") {
 							e.preventDefault()
@@ -127,35 +128,30 @@ function DeviceListItem({
 						</div>
 					</div>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="center">
+				<DropdownMenuContent align="center" className="w-auto min-w-0">
 					<DropdownMenuItem
 						onClick={() =>
-							onToggleEnabled(
-								device,
-								isCurrentDevice,
-								notifications,
-								t,
-							)
+							onToggleEnabled(device, isCurrentDevice, notifications, t)
 						}
 					>
+						<Power />
 						{device.isEnabled ? (
 							<T k="notifications.devices.disable" />
 						) : (
 							<T k="notifications.devices.enable" />
 						)}
-						<Power />
 					</DropdownMenuItem>
 					{device.isEnabled && (
 						<DropdownMenuItem
 							onClick={() => onSendTest(device.endpoint, me, t)}
 						>
-							<T k="notifications.devices.sendTest" />
 							<BellFill />
+							<T k="notifications.devices.sendTest" />
 						</DropdownMenuItem>
 					)}
 					<DropdownMenuItem onClick={() => setEditDrawerOpen(true)}>
-						<T k="notifications.devices.editName" />
 						<PencilSquare />
+						<T k="notifications.devices.editName" />
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={() =>
@@ -169,8 +165,8 @@ function DeviceListItem({
 						}
 						variant="destructive"
 					>
-						<T k="notifications.devices.remove" />
 						<Trash />
+						<T k="notifications.devices.remove" />
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

@@ -1,3 +1,4 @@
+import { Result } from "better-result"
 import { co, type ID } from "jazz-tools"
 import { NotificationSettings } from "#shared/schema/user"
 import {
@@ -5,64 +6,73 @@ import {
 	NotificationSettingsRefsRecord,
 	ServerAccount,
 } from "#shared/schema/server"
-import { tryCatch } from "#shared/lib/trycatch"
+import { NotFound, ServerError, SyncFailed } from "#server/lib/errors"
 
 export { registerNotificationSettingsWithServer }
-export type { RegisterResult }
+export type { RegisterError }
 
-type RegisterResult =
-	| { ok: true }
-	| { ok: false; error: string; status: 400 | 500 }
+type RegisterError = NotFound | ServerError | SyncFailed
 
 async function registerNotificationSettingsWithServer(
 	worker: co.loaded<typeof ServerAccount>,
 	notificationSettingsId: string,
 	userId: string,
-): Promise<RegisterResult> {
-	let notificationSettings = await NotificationSettings.load(
-		notificationSettingsId as ID<typeof NotificationSettings>,
-		{ loadAs: worker },
-	)
-
-	if (!notificationSettings || !notificationSettings.$isLoaded) {
-		return {
-			ok: false,
-			error: "Failed to load notification settings - ensure server has access",
-			status: 400,
-		}
-	}
-
-	if (!worker.root) {
-		return { ok: false, error: "Server root not initialized", status: 500 }
-	}
-
-	let root = await worker.$jazz.ensureLoaded({
-		resolve: { root: { notificationSettingsRefsV2: true } },
-	})
-
-	if (!root.root.notificationSettingsRefsV2) {
-		root.root.$jazz.set(
-			"notificationSettingsRefsV2",
-			NotificationSettingsRefsRecord.create({}, root.root.$jazz.owner),
+): Promise<Result<void, RegisterError>> {
+	return Result.gen(async function* () {
+		let notificationSettings = await NotificationSettings.load(
+			notificationSettingsId as ID<typeof NotificationSettings>,
+			{ loadAs: worker },
 		)
-	}
 
-	let refsV2 = root.root.notificationSettingsRefsV2!
-	let newRef = NotificationSettingsRef.create(
-		{
-			notificationSettings,
-			userId,
-			lastSyncedAt: new Date(),
-		},
-		refsV2.$jazz.owner,
-	)
-	refsV2.$jazz.set(notificationSettingsId, newRef)
+		if (!notificationSettings || !notificationSettings.$isLoaded) {
+			return Result.err(
+				new NotFound({
+					message:
+						"Failed to load notification settings - ensure server has access",
+				}),
+			)
+		}
 
-	let syncResult = await tryCatch(worker.$jazz.waitForSync())
-	if (!syncResult.ok) {
-		console.error("Failed to sync registration:", syncResult.error)
-		return { ok: false, error: "Failed to sync registration", status: 500 }
-	}
+		if (!worker.root) {
+			return Result.err(
+				new ServerError({ message: "Server root not initialized" }),
+			)
+		}
 
-	return { ok: true }
+		let root = await worker.$jazz.ensureLoaded({
+			resolve: { root: { notificationSettingsRefsV2: true } },
+		})
+
+		if (!root.root.notificationSettingsRefsV2) {
+			root.root.$jazz.set(
+				"notificationSettingsRefsV2",
+				NotificationSettingsRefsRecord.create({}, root.root.$jazz.owner),
+			)
+		}
+
+		let refsV2 = root.root.notificationSettingsRefsV2!
+		let newRef = NotificationSettingsRef.create(
+			{
+				notificationSettings,
+				userId,
+				lastSyncedAt: new Date(),
+			},
+			refsV2.$jazz.owner,
+		)
+		refsV2.$jazz.set(notificationSettingsId, newRef)
+
+		yield* Result.await(
+			Result.tryPromise({
+				try: () => worker.$jazz.waitForSync(),
+				catch: e => {
+					console.error("Failed to sync registration:", e)
+					return new SyncFailed({
+						message: "Failed to sync registration",
+					})
+				},
+			}),
+		)
+
+		return Result.ok(undefined)
+	})
 }

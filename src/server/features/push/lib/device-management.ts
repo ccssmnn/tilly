@@ -2,7 +2,12 @@ import { UserAccount } from "#shared/schema/user"
 import type { co, ResolveQuery } from "jazz-tools"
 import type { PushDevice } from "./send-notification"
 
-export { getEnabledDevices, removeDeviceByEndpoint, markAsDelivered, settingsQuery }
+export {
+	getEnabledDevices,
+	removeDeviceByEndpoint,
+	markAsDelivered,
+	settingsQuery,
+}
 export type { LoadedNotificationSettings, LoadedUserAccountSettings }
 
 let settingsQuery = {

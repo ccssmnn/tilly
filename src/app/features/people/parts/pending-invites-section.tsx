@@ -42,7 +42,9 @@ function PendingInvitesSection({
 	function handleCancelPendingInvite(groupId: string) {
 		setCancellingInviteId(groupId)
 
-		let result = tryCatch(() => onRemoveInviteGroup(person, groupId as ID<Group>))
+		let result = tryCatch(() =>
+			onRemoveInviteGroup(person, groupId as ID<Group>),
+		)
 		setCancellingInviteId(null)
 
 		if (!result.ok) {

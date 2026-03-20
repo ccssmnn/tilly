@@ -1,4 +1,4 @@
-import { tryCatch } from "#shared/lib/trycatch"
+import { Result } from "better-result"
 import { type User } from "@clerk/backend"
 import { PUBLIC_ENABLE_PAYWALL } from "astro:env/client"
 import { createMiddleware } from "hono/factory"
@@ -58,38 +58,39 @@ let requirePlus = createMiddleware<RequirePlusAppContext>(async (c, next) => {
 })
 
 async function getSubscriptionStatus(user: User): Promise<SubscriptionStatus> {
-	let billingResult = await tryCatch(
+	let billingResult = await Result.tryPromise(() =>
 		clerkClient.billing.getUserBillingSubscription(user.id),
 	)
-	if (!billingResult.ok) {
-		console.warn(
-			`[Subscription] ${user.id} | Failed to load billing subscription`,
-			billingResult.error,
-		)
-		return {
-			hasPlusAccess: false,
-			tier: "free",
-			isTrial: false,
-			nextPaymentDate: null,
-			source: "fallback",
-		}
-	}
 
-	let subscription = billingResult.data
+	return billingResult.match<SubscriptionStatus>({
+		ok: subscription => {
+			if (!subscription) {
+				return {
+					hasPlusAccess: false,
+					tier: "free",
+					isTrial: false,
+					nextPaymentDate: null,
+					source: "remote",
+				}
+			}
 
-	if (!subscription) {
-		return {
-			hasPlusAccess: false,
-			tier: "free",
-			isTrial: false,
-			nextPaymentDate: null,
-			source: "remote",
-		}
-	}
-
-	let snapshot = subscriptionSnapshotFromRemote(subscription)
-
-	return { ...snapshot, source: "remote" }
+			let snapshot = subscriptionSnapshotFromRemote(subscription)
+			return { ...snapshot, source: "remote" }
+		},
+		err: e => {
+			console.warn(
+				`[Subscription] ${user.id} | Failed to load billing subscription`,
+				e,
+			)
+			return {
+				hasPlusAccess: false,
+				tier: "free",
+				isTrial: false,
+				nextPaymentDate: null,
+				source: "fallback",
+			}
+		},
+	})
 }
 
 function subscriptionSnapshotFromRemote(

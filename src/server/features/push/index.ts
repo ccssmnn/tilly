@@ -2,7 +2,6 @@ export {
 	sendNotificationToDevice,
 	type NotificationPayload,
 	type PushDevice,
-	type SendResult,
 } from "./lib/send-notification"
 export {
 	getEnabledDevices,

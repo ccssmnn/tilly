@@ -3,6 +3,7 @@ import { Hono } from "hono"
 import { z } from "zod"
 import { authenticateRequest } from "jazz-tools"
 import { getServerWorker, WorkerTimeoutError } from "#server/lib/utils"
+import { errorToStatus } from "#server/lib/errors"
 import { registerNotificationSettingsWithServer } from "../operations/register-settings"
 
 export { pushRegisterApp }
@@ -55,10 +56,9 @@ let pushRegisterApp = new Hono().post(
 			userId,
 		)
 
-		if (!result.ok) {
-			return c.json({ message: result.error }, result.status)
-		}
-
-		return c.json({ message: "Registered successfully" })
+		return result.match({
+			ok: () => c.json({ message: "Registered successfully" }),
+			err: e => c.json({ message: e.message }, errorToStatus(e)),
+		})
 	},
 )

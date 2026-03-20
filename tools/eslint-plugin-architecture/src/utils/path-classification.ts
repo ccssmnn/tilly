@@ -105,9 +105,7 @@ export function classifyStructuralPath(
 		}
 
 		// feature subpath: root/<feature>/...
-		let featurePattern = new RegExp(
-			`^${escapeRegex(rootPath)}/([^/]+)/(.+)$`,
-		)
+		let featurePattern = new RegExp(`^${escapeRegex(rootPath)}/([^/]+)/(.+)$`)
 		let featureMatch = p.match(featurePattern)
 		if (featureMatch) {
 			let feature = featureMatch[1]
@@ -182,9 +180,7 @@ export function classifyImport(
 	// Bare feature import: root/<name> or root/<name>/index
 	for (let rootConfig of featureRoots) {
 		let rootPath = normalize(rootConfig.path)
-		let pattern = new RegExp(
-			`^${escapeRegex(rootPath)}/([^/]+)(/index)?$`,
-		)
+		let pattern = new RegExp(`^${escapeRegex(rootPath)}/([^/]+)(/index)?$`)
 		let match = resolved.match(pattern)
 		if (match) {
 			return { zone: "feature-index", feature: match[1], root: rootPath }

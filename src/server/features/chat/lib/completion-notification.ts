@@ -77,7 +77,7 @@ async function sendCompletionNotification(
 		)
 
 		let successCount = results.filter(
-			r => r.status === "fulfilled" && r.value.ok,
+			r => r.status === "fulfilled" && r.value.isOk(),
 		).length
 		logger(
 			`Completion notification sent to ${successCount}/${devices.length} devices`,

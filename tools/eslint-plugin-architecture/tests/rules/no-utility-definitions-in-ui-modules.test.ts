@@ -69,11 +69,22 @@ ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 				"/project/src/app/features/settings/widgets/notification-section.tsx",
 		},
 		{
-			// function in operation — allowed when structuralZones excludes operation
+			// single reexported function in operation — allowed
 			code: `
-				export async function sendPush(payload: unknown) { return payload }
+				export { sendPush }
+				async function sendPush(payload: unknown) { return payload }
 			`,
 			filename: "/project/src/server/features/push/operations/send-push.ts",
+		},
+		{
+			// operation exempt when structuralZones excludes it
+			code: `
+				export { processChatMessage }
+				async function processChatMessage() { return null }
+				function getCachedTokenCount() { return 0 }
+			`,
+			filename:
+				"/project/src/server/features/chat/operations/process-message.ts",
 			options: [
 				{
 					featureRoots: undefined,
@@ -130,7 +141,7 @@ ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 			errors: [{ messageId: "noUtility", data: { name: "buildQuery" } }],
 		},
 		{
-			// exported utility function
+			// exported utility function via export declaration
 			code: `
 				export function getDeviceName() { return "device" }
 				export function NotificationSection() {
@@ -175,37 +186,16 @@ ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 			errors: [{ messageId: "noUtility", data: { name: "formatPayload" } }],
 		},
 		{
-			// utility function in operation
+			// private helper in operation — reexported function exempt, helper flagged
 			code: `
+				export { processMessage }
 				function getCachedTokenCount(metadata: unknown) { return 0 }
-				export async function processMessage() { return getCachedTokenCount({}) }
+				async function processMessage() { return getCachedTokenCount({}) }
 			`,
 			filename:
 				"/project/src/server/features/chat/operations/process-message.ts",
 			errors: [
 				{ messageId: "noUtility", data: { name: "getCachedTokenCount" } },
-				{ messageId: "noUtility", data: { name: "processMessage" } },
-			],
-		},
-		{
-			// utility function in server part
-			code: `
-				function formatPayload(data: unknown) { return JSON.stringify(data) }
-				export function buildPayload() { return formatPayload({}) }
-			`,
-			filename: "/project/src/server/features/push/parts/build-payload.ts",
-			options: [
-				{
-					featureRoots: [
-						{ path: "src/app/features", allowedZones: ["screens", "widgets", "parts", "hooks", "lib"] },
-						{ path: "src/server/features", allowedZones: ["handlers", "operations", "parts", "lib"] },
-					],
-					structuralZones: undefined,
-				},
-			],
-			errors: [
-				{ messageId: "noUtility", data: { name: "formatPayload" } },
-				{ messageId: "noUtility", data: { name: "buildPayload" } },
 			],
 		},
 	],

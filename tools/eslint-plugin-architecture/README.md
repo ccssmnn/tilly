@@ -4,11 +4,11 @@ ESLint plugin enforcing compositional architecture boundaries across frontend an
 
 ## Architecture model
 
-Both frontend and backend enforce a flat dependency tree with max 2 layers of composition depth:
+Both frontend and backend enforce a flat dependency tree:
 
 ```
 Frontend:  route → screen → widgets/parts    widgets → parts    parts → ∅
-Backend:   router → handler → operations/parts    operations → parts    parts → ∅
+Backend:   router → handler → operations → lib    lib → ∅
 ```
 
 ## Rules
@@ -29,7 +29,7 @@ Same-feature deep imports are allowed. Type-only imports are exempt. Routes may 
 
 ### `only-screens-and-widgets-may-import-parts`
 
-Only `screens/**`, `widgets/**`, `handlers/**`, and `operations/**` may import from `parts/**` (same feature only).
+Only composition-layer modules (`screens/**`, `widgets/**`, `handlers/**`, `operations/**`) may import leaf modules (`parts/**`, `lib/**`, `hooks/**`) from the same feature.
 
 ### `only-routes-may-import-screens`
 
@@ -45,10 +45,10 @@ Only `handlers/**` (same feature) and feature `index.ts` files may import from `
 
 ### `no-feature-part-composition`
 
-Files in `parts/**` must not compose other parts. Parts are atomic — composition happens in screens, widgets, handlers, or operations.
+Leaf modules (`parts/**`, `lib/**`, `hooks/**`) must not compose other leaf modules of the same kind. Composition happens in screens, widgets, handlers, or operations.
 
 - **Frontend parts**: must not render other parts (JSX check)
-- **Backend parts**: must not import other parts (import check)
+- **Backend lib**: must not import other lib (import check). Type-only imports are exempt.
 
 ### `no-local-subcomponents`
 
@@ -62,7 +62,7 @@ Files in `widgets/**` must not render widgets from other features. Same-feature 
 
 Structural modules must not define utility functions or hooks. Extract to `hooks/` or `lib/`.
 
-Applies to `screens/**`, `widgets/**`, `parts/**`, `handlers/**`, `operations/**` by default. Configurable via `structuralZones`.
+Applies to `screens/**`, `widgets/**`, `parts/**`, `handlers/**`, `operations/**` by default. Configurable via `structuralZones`. Functions reexported via `export { name }` are exempt (module's public API).
 
 ### `no-loose-feature-module-imports`
 
@@ -117,9 +117,8 @@ src/app/routes/       ← router (attaches screens to routes)
 
 src/server/features/<feature>/
   handlers/    ← transport boundary (called by router)
-  operations/  ← reusable cross-feature business logic
-  parts/       ← atomic business logic
-  lib/         ← feature utilities
+  operations/  ← business logic (composes lib)
+  lib/         ← atomic standalone utilities (no lib→lib imports)
   index.ts     ← public API
 ```
 

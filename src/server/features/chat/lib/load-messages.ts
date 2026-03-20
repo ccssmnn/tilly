@@ -1,15 +1,56 @@
+import { convertToModelMessages } from "ai"
 import { format, toZonedTime } from "date-fns-tz"
-import type { MessageMetadata, TillyUIMessage } from "#shared/tools/tools"
+import { Result } from "better-result"
+import type { Loaded, ResolveQuery } from "jazz-tools"
+import { UserAccount } from "#shared/schema/user"
+import {
+	clientTools,
+	type MessageMetadata,
+	type TillyUIMessage,
+} from "#shared/tools/tools"
+import { EmptyMessages } from "#server/lib/errors"
 
-export { addUserContextToMessage }
+export { loadModelMessages, messagesQuery }
+export type { WorkerWithMessages }
 
-function addUserContextToMessage(message: TillyUIMessage): TillyUIMessage {
+let messagesQuery = {
+	root: { assistant: { stringifiedMessages: true } },
+} as const satisfies ResolveQuery<typeof UserAccount>
+
+type WorkerWithMessages = Loaded<typeof UserAccount, typeof messagesQuery>
+
+function loadModelMessages(worker: WorkerWithMessages) {
+	return Result.await(
+		Result.tryPromise({
+			try: async () => {
+				let messages = worker.root.assistant?.stringifiedMessages
+					.map((s: string) => JSON.parse(s) as TillyUIMessage)
+					.map(addUserContext)
+
+				if (!messages || messages.length === 0) {
+					throw new EmptyMessages({ message: "No messages to process" })
+				}
+
+				return convertToModelMessages(messages, {
+					ignoreIncompleteToolCalls: true,
+					tools: clientTools,
+				})
+			},
+			catch: error => {
+				if (error instanceof EmptyMessages) return error
+				throw error
+			},
+		}),
+	)
+}
+
+function addUserContext(message: TillyUIMessage): TillyUIMessage {
 	if (message.role !== "user") return message
 
 	let meta = message.metadata
 	if (!meta) return message
 
-	let context = buildUserContext(meta)
+	let context = buildContextString(meta)
 	if (!context) return message
 
 	let contextPrefix = "<context>"
@@ -43,7 +84,7 @@ function addUserContextToMessage(message: TillyUIMessage): TillyUIMessage {
 	return { ...message, parts: [{ type: "text", text: context }] }
 }
 
-function buildUserContext(meta: MessageMetadata): string | null {
+function buildContextString(meta: MessageMetadata): string | null {
 	if (typeof meta.timestamp !== "number") return null
 	if (!meta.userName || !meta.timezone || !meta.locale) return null
 

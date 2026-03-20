@@ -59,7 +59,7 @@ describe("registerNotificationSettingsWithServer", () => {
 			"test-user-123",
 		)
 
-		expect(result.ok).toBe(true)
+		expect(result.isOk()).toBe(true)
 
 		let loadedServer = await serverAccount.$jazz.ensureLoaded({
 			resolve: { root: { notificationSettingsRefsV2: { $each: true } } },
@@ -100,7 +100,7 @@ describe("registerNotificationSettingsWithServer", () => {
 			notificationSettings.$jazz.id,
 			"test-user-123",
 		)
-		expect(firstResult.ok).toBe(true)
+		expect(firstResult.isOk()).toBe(true)
 
 		let loadedServer = await serverAccount.$jazz.ensureLoaded({
 			resolve: { root: { notificationSettingsRefsV2: { $each: true } } },
@@ -148,11 +148,16 @@ describe("registerNotificationSettingsWithServer", () => {
 			"test-user-123",
 		)
 
-		expect(result.ok).toBe(false)
-		if (!result.ok) {
-			expect(result.status).toBe(400)
-			expect(result.error).toContain("ensure server has access")
-		}
+		expect(result.isErr()).toBe(true)
+		result.match({
+			ok: () => {
+				throw new Error("Expected error")
+			},
+			err: e => {
+				expect(e._tag).toBe("NotFound")
+				expect(e.message).toContain("ensure server has access")
+			},
+		})
 	})
 
 	test("can register without active account context", async () => {
@@ -184,6 +189,6 @@ describe("registerNotificationSettingsWithServer", () => {
 			),
 		)
 
-		expect(result.ok).toBe(true)
+		expect(result.isOk()).toBe(true)
 	})
 })

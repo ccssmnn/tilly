@@ -3,6 +3,7 @@ import { Hono } from "hono"
 import { z } from "zod"
 import { authenticateRequest } from "jazz-tools"
 import { getServerWorker, WorkerTimeoutError } from "#server/lib/utils"
+import { errorToStatus } from "#server/lib/errors"
 import { sendTestNotification } from "../operations/send-test-notification"
 
 export { testNotificationApp }
@@ -35,10 +36,9 @@ let testNotificationApp = new Hono().post(
 
 		let result = await sendTestNotification(serverWorker, userId, endpoint)
 
-		if (!result.ok) {
-			return c.json({ message: result.error }, result.status)
-		}
-
-		return c.json({ message: "success" })
+		return result.match({
+			ok: () => c.json({ message: "success" }),
+			err: e => c.json({ message: e.message }, errorToStatus(e)),
+		})
 	},
 )

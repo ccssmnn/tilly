@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { streamSSE } from "hono/streaming"
 import { authMiddleware, requireAuth, requirePlus } from "#server/features/auth"
+import { errorToStatus } from "#server/lib/errors"
 import { processChatMessage } from "../operations/process-chat-message"
 
 export { chatMessagesApp }
@@ -15,16 +16,13 @@ let chatMessagesApp = new Hono()
 
 		let result = await processChatMessage(user, requestStartTime)
 
-		if (!result.ok) {
-			return c.json(
-				{ error: result.error, code: result.code },
-				result.status,
-			)
-		}
-
-		return streamSSE(c, async stream => {
-			await stream.writeSSE({ data: "generation-started" })
-			await result.generate()
-			await stream.writeSSE({ data: "generation-finished" })
+		return result.match({
+			ok: ({ generate }) =>
+				streamSSE(c, async stream => {
+					await stream.writeSSE({ data: "generation-started" })
+					await generate()
+					await stream.writeSSE({ data: "generation-finished" })
+				}),
+			err: e => c.json({ error: e.message, code: e._tag }, errorToStatus(e)),
 		})
 	})

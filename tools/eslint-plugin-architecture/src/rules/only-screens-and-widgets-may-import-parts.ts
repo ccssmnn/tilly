@@ -16,7 +16,14 @@ const createRule = ESLintUtils.RuleCreator(
 )
 
 const LEAF_ZONES: Set<Zone> = new Set(["part", "feature-lib", "hook"])
-const ALLOWED_ZONES: Set<Zone> = new Set(["screen", "widget", "handler", "operation", "middleware", "app"])
+const ALLOWED_ZONES: Set<Zone> = new Set([
+	"screen",
+	"widget",
+	"handler",
+	"operation",
+	"middleware",
+	"app",
+])
 
 export default createRule({
 	name: "only-screens-and-widgets-may-import-parts",

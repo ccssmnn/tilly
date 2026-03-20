@@ -2,7 +2,11 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
 import { chatMessagesApp } from "./features/chat"
-import { cronDeliveryApp, testNotificationApp, pushRegisterApp } from "./features/push"
+import {
+	cronDeliveryApp,
+	testNotificationApp,
+	pushRegisterApp,
+} from "./features/push"
 import { authMiddleware } from "./features/auth"
 
 let authenticatedRoutes = new Hono()

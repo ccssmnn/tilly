@@ -50,8 +50,7 @@ ruleTester.run("no-local-subcomponents", rule, {
 					return <div>people</div>
 				}
 			`,
-			filename:
-				"/project/src/app/features/people/screens/people-screen.tsx",
+			filename: "/project/src/app/features/people/screens/people-screen.tsx",
 		},
 		{
 			code: `
@@ -60,8 +59,7 @@ ruleTester.run("no-local-subcomponents", rule, {
 					return <div>{formatDate(new Date())}</div>
 				}
 			`,
-			filename:
-				"/project/src/app/features/people/screens/invite-screen.tsx",
+			filename: "/project/src/app/features/people/screens/invite-screen.tsx",
 		},
 		// --- Non-structural files — rule doesn't apply ---
 		{
@@ -140,8 +138,7 @@ ruleTester.run("no-local-subcomponents", rule, {
 					return <div><AuthenticatedView /></div>
 				}
 			`,
-			filename:
-				"/project/src/app/features/people/screens/invite-screen.tsx",
+			filename: "/project/src/app/features/people/screens/invite-screen.tsx",
 			errors: [{ messageId: "noSubcomponent" }],
 		},
 		{
@@ -151,8 +148,7 @@ ruleTester.run("no-local-subcomponents", rule, {
 					return <div><TabContent /></div>
 				}
 			`,
-			filename:
-				"/project/src/app/features/people/screens/person-screen.tsx",
+			filename: "/project/src/app/features/people/screens/person-screen.tsx",
 			errors: [{ messageId: "noSubcomponent" }],
 		},
 	],

@@ -121,12 +121,16 @@ function AddDeviceDrawer({
 	}
 
 	async function handleAddDevice(values: z.infer<typeof addDeviceSchema>) {
+		console.log("[AddDevice] Starting add device flow...")
+
 		let permissionResult = await tryCatch(requestPermission())
 		if (!permissionResult.ok) {
+			console.error("[AddDevice] Permission request threw:", permissionResult.error)
 			toast.error(t("notifications.devices.permissionError"))
 			return
 		}
 
+		console.log("[AddDevice] Permission result:", permissionResult.data)
 		setPermission(permissionResult.data)
 
 		if (permissionResult.data !== "granted") {
@@ -136,6 +140,7 @@ function AddDeviceDrawer({
 
 		let subscriptionResult = await tryCatch(subscribeToPush())
 		if (!subscriptionResult.ok) {
+			console.error("[AddDevice] subscribeToPush failed:", subscriptionResult.error)
 			toast.error(t("notifications.toast.subscribeFailed"))
 			return
 		}

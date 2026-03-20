@@ -20,6 +20,7 @@ function InviteScreen({ inviteData }: InviteScreenProps) {
 	if (state.status === "invalid") return <InvalidInviteState />
 	if (state.status === "unauthenticated") return <SignInPromptState />
 	if (state.status === "revoked") return <RevokedInviteState />
-	if (state.status === "error") return <InviteErrorState message={state.message} />
+	if (state.status === "error")
+		return <InviteErrorState message={state.message} />
 	return <InviteLoadingState />
 }

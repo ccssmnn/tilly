@@ -90,7 +90,7 @@ export function RemindersScreen({ fallback }: RemindersScreenProps) {
 								trailing={
 									<ListFilterButton
 										people={people}
-											availableLists={availableLists}
+										availableLists={availableLists}
 										listFilter={listFilter}
 										onListFilterChange={setListFilter}
 										statusOptions={statusOptions}

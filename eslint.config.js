@@ -8,8 +8,14 @@ import astro from "eslint-plugin-astro"
 import architecture from "eslint-plugin-architecture"
 
 let featureRoots = [
-	{ path: "src/app/features", allowedZones: ["screens", "widgets", "parts", "hooks", "lib"] },
-	{ path: "src/server/features", allowedZones: ["handlers", "operations", "lib", "middleware", "apps"] },
+	{
+		path: "src/app/features",
+		allowedZones: ["screens", "widgets", "parts", "hooks", "lib"],
+	},
+	{
+		path: "src/server/features",
+		allowedZones: ["handlers", "operations", "lib", "middleware", "apps"],
+	},
 ]
 
 let architectureOptions = { featureRoots }
@@ -81,21 +87,39 @@ export default [
 		ignores: ["**/*.test.ts"],
 		plugins: { architecture },
 		rules: {
-			"architecture/no-feature-part-composition": ["error", architectureOptions],
+			"architecture/no-feature-part-composition": [
+				"error",
+				architectureOptions,
+			],
 			"architecture/no-local-subcomponents": ["error", architectureOptions],
 			"architecture/no-widget-composition": ["error", architectureOptions],
-			"architecture/no-utility-definitions-in-ui-modules": ["error", architectureOptions],
+			"architecture/no-utility-definitions-in-ui-modules": [
+				"error",
+				architectureOptions,
+			],
 			"architecture/no-deep-feature-imports": ["error", architectureOptions],
-			"architecture/no-loose-feature-module-imports": ["error", architectureOptions],
-			"architecture/only-screens-and-widgets-may-import-parts": ["error", architectureOptions],
-			"architecture/only-routes-may-import-screens": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-routes-may-import-screens": [
+				"error",
+				architectureOptions,
+			],
 		},
 	},
 	{
 		files: ["src/app/routes/**/*.{ts,tsx}"],
 		plugins: { architecture },
 		rules: {
-			"architecture/no-loose-feature-module-imports": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
 		},
 	},
 	{
@@ -103,20 +127,41 @@ export default [
 		ignores: ["**/*.test.ts"],
 		plugins: { architecture },
 		rules: {
-			"architecture/no-feature-part-composition": ["error", architectureOptions],
-			"architecture/no-utility-definitions-in-ui-modules": ["error", architectureOptions],
+			"architecture/no-feature-part-composition": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/no-utility-definitions-in-ui-modules": [
+				"error",
+				architectureOptions,
+			],
 			"architecture/no-deep-feature-imports": ["error", architectureOptions],
-			"architecture/no-loose-feature-module-imports": ["error", architectureOptions],
-			"architecture/only-screens-and-widgets-may-import-parts": ["error", architectureOptions],
-			"architecture/only-router-may-import-handlers": ["error", architectureOptions],
-			"architecture/only-handlers-may-import-operations": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-router-may-import-handlers": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-handlers-may-import-operations": [
+				"error",
+				architectureOptions,
+			],
 		},
 	},
 	{
 		files: ["src/server/main.ts"],
 		plugins: { architecture },
 		rules: {
-			"architecture/no-loose-feature-module-imports": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
 		},
 	},
 	{

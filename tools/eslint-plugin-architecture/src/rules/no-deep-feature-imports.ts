@@ -64,7 +64,12 @@ export default createRule({
 				if (node.importKind === "type") return
 
 				let source = node.source.value
-				let imported = classifyImport(source, context.filename, aliases, featureRoots)
+				let imported = classifyImport(
+					source,
+					context.filename,
+					aliases,
+					featureRoots,
+				)
 
 				if (imported.feature === null) return
 				if (imported.zone === "feature-index") return

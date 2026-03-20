@@ -12,38 +12,62 @@ describe("classifyFile", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/screens/NotesScreen.tsx",
 		)
-		expect(result).toEqual({ zone: "screen", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "screen",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("widget", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/widgets/NotePreview.tsx",
 		)
-		expect(result).toEqual({ zone: "widget", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "widget",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("part", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/parts/NoteListItem.tsx",
 		)
-		expect(result).toEqual({ zone: "part", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "part",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("hook", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/hooks/useNotes.ts",
 		)
-		expect(result).toEqual({ zone: "hook", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "hook",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("feature-lib", () => {
 		let result = classifyFile("/project/src/app/features/notes/lib/utils.ts")
-		expect(result).toEqual({ zone: "feature-lib", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "feature-lib",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("feature-index", () => {
 		let result = classifyFile("/project/src/app/features/notes/index.ts")
-		expect(result).toEqual({ zone: "feature-index", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("app-component", () => {
@@ -65,80 +89,128 @@ describe("classifyFile", () => {
 		let result = classifyFile(
 			"/project/src/server/features/push/handlers/register.ts",
 		)
-		expect(result).toEqual({ zone: "handler", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "handler",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 
 	test("operation", () => {
 		let result = classifyFile(
 			"/project/src/server/features/push/operations/send-push.ts",
 		)
-		expect(result).toEqual({ zone: "operation", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "operation",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 
 	test("server parts are excluded (use lib instead)", () => {
 		let result = classifyFile(
 			"/project/src/server/features/push/parts/send-notification.ts",
 		)
-		expect(result).toEqual({ zone: "unknown", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 
 	test("server lib", () => {
 		let result = classifyFile(
 			"/project/src/server/features/push/lib/web-push.ts",
 		)
-		expect(result).toEqual({ zone: "feature-lib", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "feature-lib",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 
 	test("server feature-index", () => {
 		let result = classifyFile("/project/src/server/features/push/index.ts")
-		expect(result).toEqual({ zone: "feature-index", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 
 	test("server middleware", () => {
 		let result = classifyFile(
 			"/project/src/server/features/auth/middleware/auth.ts",
 		)
-		expect(result).toEqual({ zone: "middleware", feature: "auth", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "middleware",
+			feature: "auth",
+			root: "src/server/features",
+		})
 	})
 
 	test("server apps", () => {
 		let result = classifyFile(
 			"/project/src/server/features/chat/apps/chat-app.ts",
 		)
-		expect(result).toEqual({ zone: "app", feature: "chat", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "app",
+			feature: "chat",
+			root: "src/server/features",
+		})
 	})
 
 	test("middleware in app features are unknown", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/middleware/something.ts",
 		)
-		expect(result).toEqual({ zone: "unknown", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("apps in app features are unknown", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/apps/something.ts",
 		)
-		expect(result).toEqual({ zone: "unknown", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("operations in app features are unknown", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/operations/something.ts",
 		)
-		expect(result).toEqual({ zone: "unknown", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("handlers in app features are unknown", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/handlers/something.ts",
 		)
-		expect(result).toEqual({ zone: "unknown", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("flat feature file classifies as unknown with feature name", () => {
 		let result = classifyFile("/project/src/app/features/notes/note-form.tsx")
-		expect(result).toEqual({ zone: "unknown", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("completely unknown path", () => {
@@ -150,7 +222,11 @@ describe("classifyFile", () => {
 		let result = classifyFile(
 			"/project/src/app/features/notes/parts/list/NoteListItem.tsx",
 		)
-		expect(result).toEqual({ zone: "part", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "part",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 })
 
@@ -167,7 +243,11 @@ describe("classifyFile with custom feature roots", () => {
 			"/project/src/shared/features/sync/lib/utils.ts",
 			customRoots,
 		)
-		expect(result).toEqual({ zone: "feature-lib", feature: "sync", root: "src/shared/features" })
+		expect(result).toEqual({
+			zone: "feature-lib",
+			feature: "sync",
+			root: "src/shared/features",
+		})
 	})
 
 	test("shared feature index", () => {
@@ -175,7 +255,11 @@ describe("classifyFile with custom feature roots", () => {
 			"/project/src/shared/features/sync/index.ts",
 			customRoots,
 		)
-		expect(result).toEqual({ zone: "feature-index", feature: "sync", root: "src/shared/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "sync",
+			root: "src/shared/features",
+		})
 	})
 
 	test("unrecognized zone in custom root is unknown", () => {
@@ -183,7 +267,11 @@ describe("classifyFile with custom feature roots", () => {
 			"/project/src/shared/features/sync/screens/foo.tsx",
 			customRoots,
 		)
-		expect(result).toEqual({ zone: "unknown", feature: "sync", root: "src/shared/features" })
+		expect(result).toEqual({
+			zone: "unknown",
+			feature: "sync",
+			root: "src/shared/features",
+		})
 	})
 })
 
@@ -196,12 +284,20 @@ describe("classifyImport", () => {
 			file,
 			DEFAULT_ALIASES,
 		)
-		expect(result).toEqual({ zone: "part", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "part",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("alias import to feature index (bare)", () => {
 		let result = classifyImport("#app/features/people", file, DEFAULT_ALIASES)
-		expect(result).toEqual({ zone: "feature-index", feature: "people", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "people",
+			root: "src/app/features",
+		})
 	})
 
 	test("alias import to feature index (explicit)", () => {
@@ -210,7 +306,11 @@ describe("classifyImport", () => {
 			file,
 			DEFAULT_ALIASES,
 		)
-		expect(result).toEqual({ zone: "feature-index", feature: "people", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "people",
+			root: "src/app/features",
+		})
 	})
 
 	test("alias import to shared ui", () => {
@@ -220,7 +320,11 @@ describe("classifyImport", () => {
 
 	test("relative import within same feature", () => {
 		let result = classifyImport("../parts/NoteItem", file, DEFAULT_ALIASES)
-		expect(result).toEqual({ zone: "part", feature: "notes", root: "src/app/features" })
+		expect(result).toEqual({
+			zone: "part",
+			feature: "notes",
+			root: "src/app/features",
+		})
 	})
 
 	test("package import returns unknown", () => {
@@ -236,7 +340,11 @@ describe("classifyImport", () => {
 			serverFile,
 			DEFAULT_ALIASES,
 		)
-		expect(result).toEqual({ zone: "operation", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "operation",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 
 	test("alias import to server feature index (bare)", () => {
@@ -247,7 +355,11 @@ describe("classifyImport", () => {
 			serverFile,
 			DEFAULT_ALIASES,
 		)
-		expect(result).toEqual({ zone: "feature-index", feature: "push", root: "src/server/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "push",
+			root: "src/server/features",
+		})
 	})
 })
 
@@ -266,7 +378,11 @@ describe("classifyImport with custom feature roots", () => {
 			aliases,
 			customRoots,
 		)
-		expect(result).toEqual({ zone: "feature-index", feature: "sync", root: "src/shared/features" })
+		expect(result).toEqual({
+			zone: "feature-index",
+			feature: "sync",
+			root: "src/shared/features",
+		})
 	})
 
 	test("alias import to custom root lib", () => {
@@ -277,7 +393,11 @@ describe("classifyImport with custom feature roots", () => {
 			aliases,
 			customRoots,
 		)
-		expect(result).toEqual({ zone: "feature-lib", feature: "sync", root: "src/shared/features" })
+		expect(result).toEqual({
+			zone: "feature-lib",
+			feature: "sync",
+			root: "src/shared/features",
+		})
 	})
 })
 

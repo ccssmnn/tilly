@@ -136,7 +136,11 @@ function AssistantMessage({
 			let Renderer = toolResultRenderers[toolName as ToolName] as any
 			if (Renderer) {
 				renderedParts.push(
-					<Renderer key={`tool-${i}`} result={part.output} addMessage={addMessage} />,
+					<Renderer
+						key={`tool-${i}`}
+						result={part.output}
+						addMessage={addMessage}
+					/>,
 				)
 			}
 		}

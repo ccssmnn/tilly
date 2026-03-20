@@ -54,25 +54,21 @@ function useAcceptInvite(inviteData: InviteData | null): AcceptInviteState {
 
 				clearPendingInvite()
 
-				let person = await Person.load(
-					data.personId as ID<typeof Person>,
-					{ resolve: { avatar: true } },
-				)
+				let person = await Person.load(data.personId as ID<typeof Person>, {
+					resolve: { avatar: true },
+				})
 
 				if (!person?.$isLoaded) {
 					setState({ status: "revoked" })
 					return
 				}
 
-				let freshAccount = await UserAccount.load(
-					narrowedAccount.$jazz.id,
-					{ resolve: { root: { people: true } } },
-				)
+				let freshAccount = await UserAccount.load(narrowedAccount.$jazz.id, {
+					resolve: { root: { people: true } },
+				})
 				let alreadyHas =
 					freshAccount?.$isLoaded &&
-					freshAccount.root.people.some(
-						p => p?.$jazz.id === data.personId,
-					)
+					freshAccount.root.people.some(p => p?.$jazz.id === data.personId)
 
 				if (!alreadyHas) {
 					narrowedAccount.root.people.$jazz.push(person)

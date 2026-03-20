@@ -14,9 +14,11 @@ import type { SettingsAccount } from "../lib/data"
 
 export { LanguageSection }
 
+const languages = { en: "language.name.en", de: "language.name.de" } as const
+
 function LanguageSection({ me }: { me: SettingsAccount }) {
 	let t = useIntl()
-	let currentLang = me.root.language || "en"
+	let currentLang = (me.root.language || "en") as keyof typeof languages
 
 	function setLanguage(lang: "de" | "en") {
 		me.root.$jazz.set("language", lang)
@@ -37,9 +39,9 @@ function LanguageSection({ me }: { me: SettingsAccount }) {
 						onValueChange={val => val && setLanguage(val)}
 					>
 						<SelectTrigger className="w-full">
-							<SelectValue />
+							<SelectValue>{t(languages[currentLang])}</SelectValue>
 						</SelectTrigger>
-						<SelectContent className="w-full">
+						<SelectContent>
 							<SelectItem value="en">
 								<T k="language.name.en" />
 							</SelectItem>

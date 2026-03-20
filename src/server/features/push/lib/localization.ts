@@ -4,8 +4,9 @@ import {
 	baseServerMessages,
 	deServerMessages,
 } from "#shared/intl/messages.server"
+import type { NotificationPayload } from "./send-notification"
 
-export { getIntl, getLocalizedMessages }
+export { getIntl, getLocalizedMessages, createLocalizedNotificationPayload }
 
 function getIntl(worker: { root: { language?: string } }) {
 	let userLanguage = worker.root.language || "en"
@@ -20,4 +21,20 @@ function getIntl(worker: { root: { language?: string } }) {
 function getLocalizedMessages(worker: { root: { language?: string } }) {
 	let userLanguage = worker.root.language || "en"
 	return userLanguage === "de" ? deServerMessages : baseServerMessages
+}
+
+function createLocalizedNotificationPayload(
+	userId: string,
+	language: string | undefined,
+): NotificationPayload {
+	let messages = language === "de" ? deServerMessages : baseServerMessages
+	return {
+		titleOne: messages["server.push.dueReminders.titleOne"],
+		titleMany: messages["server.push.dueReminders.titleMany"],
+		body: messages["server.push.dueReminders.body"],
+		icon: "/favicon.ico",
+		badge: "/favicon.ico",
+		url: "/app/reminders",
+		userId,
+	}
 }
