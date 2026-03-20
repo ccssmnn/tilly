@@ -77,18 +77,14 @@ function EmptyChatState({
 		form.reset()
 	}
 
-	function submitOnKeyCtrlEnter(
-		event: React.KeyboardEvent<HTMLTextAreaElement>,
-	) {
+	function submitOnEnter(event: React.KeyboardEvent<HTMLTextAreaElement>) {
 		if (event.key !== "Enter") return
+		if (event.shiftKey) return
 
-		let shouldSubmit = event.metaKey || event.ctrlKey || event.shiftKey
-		if (!shouldSubmit) return
+		event.preventDefault()
 
 		if (!promptValue.trim()) return
 		if (form.formState.isSubmitting) return
-
-		event.preventDefault()
 
 		form.handleSubmit(handleSubmit)()
 		textareaRef.current?.blur()
@@ -102,8 +98,12 @@ function EmptyChatState({
 	return (
 		<div className="flex flex-col items-center gap-6 py-12 text-center">
 			<div className="space-y-4">
-				<Avatar className="mx-auto size-20">
-					<AvatarImage src="/app/icons/icon-192x192.png" alt="Tilly" />
+				<Avatar className="mx-auto size-20 rounded-3xl after:rounded-3xl">
+					<AvatarImage
+						src="/app/icons/icon-192x192.png"
+						alt="Tilly"
+						className="rounded-3xl"
+					/>
 					<AvatarFallback>T</AvatarFallback>
 				</Avatar>
 				<div className="space-y-2">
@@ -120,7 +120,7 @@ function EmptyChatState({
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)}>
 						<p id="assistant-empty-input-hint" className="sr-only">
-							Press Cmd, Ctrl, or Shift plus Enter to send.
+							<T k="assistant.input.hint" />
 						</p>
 						<FormField
 							control={form.control}
@@ -141,7 +141,7 @@ function EmptyChatState({
 												aria-describedby="assistant-empty-input-hint"
 												disabled={!isOnline || isBusy}
 												{...field}
-												onKeyDown={submitOnKeyCtrlEnter}
+												onKeyDown={submitOnEnter}
 												ref={(r: HTMLTextAreaElement | null) => {
 													textareaRef.current = r
 													autoFocusRef.current = r
@@ -159,22 +159,23 @@ function EmptyChatState({
 														onClick={abort}
 														size="icon-sm"
 														className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
-														aria-label="Stop response generation"
-														title="Stop response generation"
+														aria-label={t("assistant.input.stopGenerating")}
+														title={t("assistant.input.stopGenerating")}
 													>
 														<Pause />
 													</InputGroupButton>
 												) : (
 													<InputGroupButton
 														type="submit"
-														size="icon-sm"
-														className="focus-visible:ring-ring size-11 rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
+														size="sm"
+														className="focus-visible:ring-ring rounded-3xl focus-visible:ring-2 focus-visible:ring-offset-2"
 														disabled={!isOnline || isBusy}
-														aria-label="Send message"
-														title="Send message"
 														variant="default"
 													>
 														<Send />
+														<span className="max-md:sr-only">
+															<T k="assistant.input.send.short" />
+														</span>
 													</InputGroupButton>
 												)}
 											</InputGroupAddon>

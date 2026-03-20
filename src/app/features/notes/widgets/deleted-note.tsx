@@ -15,8 +15,8 @@ import {
 	contentHasOverflow,
 } from "../parts/note-list-item"
 import { useExpanded } from "#app/hooks/use-expanded"
-import { useSelectionAwareToggle } from "#app/hooks/use-selection-aware-toggle"
 import { SwipeableListItem } from "#app/components/swipeable-list-item"
+import { Collapsible } from "@base-ui/react/collapsible"
 import { ConfirmPermanentDelete } from "../parts/confirm-permanent-delete"
 import {
 	Trash,
@@ -46,8 +46,12 @@ function DeletedNote({
 	let me = useAccount(UserAccount)
 	let navigate = useNavigate()
 	let [confirmingDelete, setConfirmingDelete] = useState(false)
-	let { isExpanded, toggleExpanded } = useExpanded(note.$jazz.id)
-	let handleClick = useSelectionAwareToggle(isExpanded, toggleExpanded)
+	let { isExpanded, setExpanded } = useExpanded(note.$jazz.id)
+
+	function onOpenChange(open: boolean) {
+		if (open && window.getSelection()?.toString().trim()) return
+		setExpanded(open)
+	}
 
 	let ref = { personId: person.$jazz.id, noteId: note.$jazz.id }
 
@@ -72,37 +76,35 @@ function DeletedNote({
 
 	return (
 		<>
-			<SwipeableListItem
-				onClick={handleClick}
-				rightAction={{
-					variant: "success",
-					icon: <ArrowCounterclockwise />,
-					label: <T k="note.restore.button" />,
-					onAction: restore,
-				}}
-				leftAction={{
-					variant: "destructive",
-					icon: <Trash />,
-					label: <T k="note.permanentDelete.confirm" />,
-					onAction: () => setConfirmingDelete(true),
-				}}
-			>
-				<DeletedNoteListItem
-					note={note}
-					person={person}
-					content={note.content}
-					isExpanded={isExpanded}
-					hasOverflow={hasOverflow}
-					searchQuery={searchQuery}
-					hidePerson={hidePerson}
-				/>
-			</SwipeableListItem>
+			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
+				<SwipeableListItem
+					rightAction={{
+						variant: "success",
+						icon: <ArrowCounterclockwise />,
+						label: <T k="note.restore.button" />,
+						onAction: restore,
+					}}
+					leftAction={{
+						variant: "destructive",
+						icon: <Trash />,
+						label: <T k="note.permanentDelete.confirm" />,
+						onAction: () => setConfirmingDelete(true),
+					}}
+				>
+					<Collapsible.Trigger render={<div />} className="flex-1">
+						<DeletedNoteListItem
+							note={note}
+							person={person}
+							content={note.content}
+							isExpanded={isExpanded}
+							hasOverflow={hasOverflow}
+							searchQuery={searchQuery}
+							hidePerson={hidePerson}
+						/>
+					</Collapsible.Trigger>
+				</SwipeableListItem>
 
-			<div
-				className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
-				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
-			>
-				<div className="overflow-hidden">
+				<Collapsible.Panel keepMounted className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none">
 					<div
 						className={cn(
 							"flex items-center gap-3 pb-4",
@@ -110,6 +112,12 @@ function DeletedNote({
 						)}
 					>
 						<ButtonGroup>
+							<Button variant="outline" onClick={() => setExpanded(false)}>
+								<ChevronUp />
+								<span className="max-sm:sr-only">
+									<T k="note.showLess" />
+								</span>
+							</Button>
 							<Button variant="outline" onClick={restore}>
 								<ArrowCounterclockwise />
 								<span className="max-sm:sr-only">
@@ -124,6 +132,9 @@ function DeletedNote({
 									</span>
 								</Button>
 							)}
+						</ButtonGroup>
+						<div className="flex-1" />
+						<ButtonGroup>
 							<Button
 								variant="outline"
 								onClick={() => setConfirmingDelete(true)}
@@ -135,18 +146,9 @@ function DeletedNote({
 								</span>
 							</Button>
 						</ButtonGroup>
-						<div className="flex-1" />
-						<ButtonGroup>
-							<Button variant="outline" onClick={toggleExpanded}>
-								<ChevronUp />
-								<span className="max-sm:sr-only">
-									<T k="note.showLess" />
-								</span>
-							</Button>
-						</ButtonGroup>
 					</div>
-				</div>
-			</div>
+				</Collapsible.Panel>
+			</Collapsible.Root>
 
 			<NoteImageGrid
 				note={note}

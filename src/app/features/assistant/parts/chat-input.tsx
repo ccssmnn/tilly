@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem } from "#shared/ui/form"
 import { Send, Pause } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
+import { useIntl, T } from "#shared/intl/setup"
 import { cn } from "#app/lib/utils"
 import type { LoadedAssistantAccount } from "../lib/data"
 import type { TillyUIMessage } from "#shared/tools/tools"
@@ -27,6 +28,7 @@ function ChatInput(props: {
 	placeholder: string
 	disabled?: boolean
 }) {
+	let t = useIntl()
 	let me = props.me
 	let form = useForm({
 		resolver: zodResolver(z.object({ prompt: z.string() })),
@@ -67,18 +69,14 @@ function ChatInput(props: {
 		form.reset()
 	}
 
-	function submitOnKeyCtrlEnter(
-		event: React.KeyboardEvent<HTMLTextAreaElement>,
-	) {
+	function submitOnEnter(event: React.KeyboardEvent<HTMLTextAreaElement>) {
 		if (event.key !== "Enter") return
+		if (event.shiftKey) return
 
-		let shouldSubmit = event.metaKey || event.ctrlKey || event.shiftKey
-		if (!shouldSubmit) return
+		event.preventDefault()
 
 		if (!promptValue.trim()) return
 		if (form.formState.isSubmitting) return
-
-		event.preventDefault()
 
 		form.handleSubmit(handleSubmit)()
 		textareaRef.current?.blur()
@@ -87,7 +85,7 @@ function ChatInput(props: {
 	return (
 		<div
 			className={cn(
-				"bg-background/50 border-border fixed z-1 rounded-4xl border p-2 backdrop-blur-xl transition-[bottom,background-color,border-color,box-shadow] duration-300 motion-reduce:transition-none max-md:inset-x-3 md:bottom-3 md:left-1/2 md:w-full md:max-w-xl md:-translate-x-1/2",
+				"bg-background/50 border-border fixed z-1 rounded-4xl border backdrop-blur-xl transition-[bottom,background-color,border-color,box-shadow] duration-300 motion-reduce:transition-none max-md:inset-x-3 md:bottom-3 md:left-1/2 md:w-full md:max-w-xl md:-translate-x-1/2",
 				inputFocused && "bg-background bottom-1",
 				!inputFocused &&
 					"bottom-[calc(max(calc(var(--spacing)*3),calc(env(safe-area-inset-bottom)-var(--spacing)*4))+var(--spacing)*19)]",
@@ -96,7 +94,7 @@ function ChatInput(props: {
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)}>
 					<p id="assistant-chat-input-hint" className="sr-only">
-						Press Cmd, Ctrl, or Shift plus Enter to send.
+						<T k="assistant.input.hint" />
 					</p>
 					<FormField
 						control={form.control}
@@ -113,7 +111,7 @@ function ChatInput(props: {
 											aria-describedby="assistant-chat-input-hint"
 											disabled={props.disabled}
 											{...field}
-											onKeyDown={submitOnKeyCtrlEnter}
+											onKeyDown={submitOnEnter}
 											ref={(r: HTMLTextAreaElement | null) => {
 												textareaRef.current = r
 												autoFocusRef.current = r
@@ -126,22 +124,28 @@ function ChatInput(props: {
 													type="button"
 													variant="destructive"
 													onClick={props.stopGeneratingResponse}
-													size="icon-sm"
-													aria-label="Stop response generation"
-													title="Stop response generation"
+													size="sm"
+													aria-label={t("assistant.input.stopGenerating")}
+													title={t("assistant.input.stopGenerating")}
 												>
 													<Pause />
+													<span className="hidden md:inline">
+														<T k="assistant.input.stopGenerating.short" />
+													</span>
 												</InputGroupButton>
 											) : (
 												<InputGroupButton
 													type="submit"
-													size="icon-sm"
+													size="sm"
 													disabled={props.disabled}
-													aria-label="Send message"
+													aria-label={t("assistant.input.send")}
 													variant="default"
-													title="Send message"
+													title={t("assistant.input.send")}
 												>
 													<Send />
+													<span className="hidden md:inline">
+														<T k="assistant.input.send.short" />
+													</span>
 												</InputGroupButton>
 											)}
 										</InputGroupAddon>

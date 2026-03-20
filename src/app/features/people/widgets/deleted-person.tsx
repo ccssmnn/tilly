@@ -93,14 +93,16 @@ function DeletedPerson({ person, searchQuery, noLazy }: DeletedPersonProps) {
 				}}
 			>
 				<Dialog open={restoreOpen} onOpenChange={setRestoreOpen}>
-					<DialogTrigger>
-						<div className="active:bg-accent flex flex-1 cursor-pointer rounded-lg transition-colors duration-150">
-							<DeletedPersonListItem
-								person={person}
-								searchQuery={searchQuery}
-								noLazy={noLazy}
-							/>
-						</div>
+					<DialogTrigger
+						render={
+							<div className="active:bg-accent flex w-full cursor-pointer rounded-lg transition-colors duration-150" />
+						}
+					>
+						<DeletedPersonListItem
+							person={person}
+							searchQuery={searchQuery}
+							noLazy={noLazy}
+						/>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>

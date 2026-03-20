@@ -38,7 +38,6 @@ function ProfileSection({ me }: { me: SettingsAccount }) {
 						<DisplayField
 							value={me?.profile?.name ?? ""}
 							placeholder={<T k="settings.profile.displayName.placeholder" />}
-							className="border-border/60 bg-muted/30 h-10 flex-1 rounded-lg text-sm font-medium shadow-none"
 						/>
 						<Button
 							variant="outline"

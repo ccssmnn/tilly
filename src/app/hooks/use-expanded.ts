@@ -16,17 +16,19 @@ export function useExpanded(id: string) {
 	let currentExpandedId = useSyncExternalStore(subscribe, () => expandedId)
 	let isExpanded = currentExpandedId === id
 
-	function toggleExpanded() {
-		expandedId = isExpanded ? null : id
+	function setExpanded(open: boolean) {
+		expandedId = open ? id : null
+		if (!open) window.getSelection()?.removeAllRanges()
 		notify()
 	}
 
-	function closeExpanded() {
-		if (isExpanded) {
-			expandedId = null
-			notify()
-		}
+	function toggleExpanded() {
+		setExpanded(!isExpanded)
 	}
 
-	return { isExpanded, toggleExpanded, closeExpanded }
+	function closeExpanded() {
+		if (isExpanded) setExpanded(false)
+	}
+
+	return { isExpanded, setExpanded, toggleExpanded, closeExpanded }
 }

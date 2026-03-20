@@ -9,6 +9,7 @@ import { Image as JazzImage } from "jazz-tools/react"
 import { SharedIndicator } from "#app/components/shared-indicator"
 import { Trash } from "react-bootstrap-icons"
 import { T } from "#shared/intl/setup"
+import { Link } from "@tanstack/react-router"
 
 export { ActivePersonListItem, DeletedPersonListItem }
 export type { PersonListItemPerson }
@@ -54,31 +55,38 @@ function ActivePersonListItem({
 
 	let summaryParts = person.summary?.split(/(#[a-zA-Z0-9_]+)/)
 
+	let personLink = {
+		to: "/people/$personID" as const,
+		params: { personID: person.$jazz.id },
+	}
+
 	return (
 		<div className="items-top flex flex-1 gap-3 py-4">
-			<Avatar className="size-16">
-				{person.avatar ? (
-					<JazzImage
-						loading={noLazy ? "eager" : "lazy"}
-						imageId={person.avatar.$jazz.id}
-						alt={person.name}
-						width={64}
-						data-slot="avatar-image"
-						className="aspect-square size-full object-cover shadow-inner"
-					/>
-				) : (
-					<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-				)}
-			</Avatar>
+			<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false}>
+				<Avatar className="size-16">
+					{person.avatar ? (
+						<JazzImage
+							loading={noLazy ? "eager" : "lazy"}
+							imageId={person.avatar.$jazz.id}
+							alt={person.name}
+							width={64}
+							data-slot="avatar-image"
+							className="aspect-square size-full object-cover shadow-inner"
+						/>
+					) : (
+						<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+					)}
+				</Avatar>
+			</Link>
 			<div className="flex-1">
 				<div
 					className="flex items-center justify-between leading-none select-text"
 					onMouseDown={e => e.stopPropagation()}
 				>
 					<div className="flex items-center gap-1.5">
-						<p className="line-clamp-1 font-semibold">
+						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="line-clamp-1 font-semibold">
 							<TextHighlight text={person.name} query={searchQuery} />
-						</p>
+						</Link>
 						<SharedIndicator item={person} />
 						{hasDueReminders && (
 							<div className="bg-primary size-2 rounded-full" />

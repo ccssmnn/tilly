@@ -8,6 +8,7 @@ import { Calendar, ArrowRepeat, Trash, CheckLg } from "react-bootstrap-icons"
 import { TextHighlight } from "#shared/ui/text-highlight"
 import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage } from "jazz-tools/react"
+import { Link } from "@tanstack/react-router"
 
 export { ReminderListItem, DoneReminderListItem, DeletedReminderListItem }
 
@@ -35,10 +36,17 @@ function ReminderListItem({
 		isToday(new Date(reminder.dueAtDate)) ||
 		isBefore(new Date(reminder.dueAtDate), new Date())
 
+	let personLink = person
+		? {
+				to: "/people/$personID" as const,
+				params: { personID: person.$jazz.id },
+			}
+		: undefined
+
 	return (
 		<div className="flex w-full items-start gap-3 py-4 text-left">
-			{person && (
-				<div className="relative size-16">
+			{person && personLink && (
+				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="relative size-16">
 					<Avatar className="size-full">
 						{person.avatar ? (
 							<JazzImage
@@ -52,7 +60,7 @@ function ReminderListItem({
 							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
 						)}
 					</Avatar>
-				</div>
+				</Link>
 			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div className="flex items-start gap-3" data-selectable>
@@ -65,10 +73,10 @@ function ReminderListItem({
 						{reminder.repeat === undefined ? <Calendar /> : <ArrowRepeat />}
 						{new Date(reminder.dueAtDate).toLocaleDateString(locale)}
 					</div>
-					{person && (
-						<p className="text-muted-foreground line-clamp-1 text-left text-sm">
-							<TextHighlight text={person.name} query={searchQuery} />
-						</p>
+					{personLink && (
+						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground line-clamp-1 text-left text-sm">
+							<TextHighlight text={person!.name} query={searchQuery} />
+						</Link>
 					)}
 				</div>
 				<p className="text-md/tight text-left" data-selectable>
@@ -95,10 +103,17 @@ function DoneReminderListItem({
 	})
 	let doneLabel = t("reminder.status.done", { relativeTime: doneRelativeTime })
 
+	let personLink = person
+		? {
+				to: "/people/$personID" as const,
+				params: { personID: person.$jazz.id },
+			}
+		: undefined
+
 	return (
 		<div className="flex w-full items-start gap-3 py-4 text-left">
-			{person && (
-				<div className="relative size-16">
+			{person && personLink && (
+				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="relative size-16">
 					<Avatar className="size-full">
 						{person.avatar ? (
 							<JazzImage
@@ -113,7 +128,7 @@ function DoneReminderListItem({
 						)}
 					</Avatar>
 					<span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-emerald-400" />
-				</div>
+				</Link>
 			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div
@@ -124,10 +139,10 @@ function DoneReminderListItem({
 						<CheckLg />
 						<span>{doneLabel}</span>
 					</span>
-					{person && (
-						<span className="text-muted-foreground font-normal">
-							<TextHighlight text={person.name} query={searchQuery} />
-						</span>
+					{personLink && (
+						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground font-normal">
+							<TextHighlight text={person!.name} query={searchQuery} />
+						</Link>
 					)}
 				</div>
 				<p className="text-md/tight text-left" data-selectable>
@@ -156,10 +171,17 @@ function DeletedReminderListItem({
 		relativeTime: deletedRelativeTime,
 	})
 
+	let personLink = person
+		? {
+				to: "/people/$personID" as const,
+				params: { personID: person.$jazz.id },
+			}
+		: undefined
+
 	return (
 		<div className="flex w-full items-start gap-3 py-4 text-left">
-			{person && (
-				<div className="relative size-16">
+			{person && personLink && (
+				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="relative size-16">
 					<Avatar className="size-full grayscale">
 						{person.avatar ? (
 							<JazzImage
@@ -173,7 +195,7 @@ function DeletedReminderListItem({
 							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
 						)}
 					</Avatar>
-				</div>
+				</Link>
 			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div
@@ -184,10 +206,10 @@ function DeletedReminderListItem({
 						<Trash />
 						<span>{deletedLabel}</span>
 					</span>
-					{person && (
-						<span className="text-muted-foreground font-normal">
-							<TextHighlight text={person.name} query={searchQuery} />
-						</span>
+					{personLink && (
+						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground font-normal">
+							<TextHighlight text={person!.name} query={searchQuery} />
+						</Link>
 					)}
 				</div>
 				<p className="text-md/tight text-left" data-selectable>

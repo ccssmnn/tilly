@@ -2,10 +2,9 @@ import { useState } from "react"
 import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import { useIntl, T } from "#shared/intl/setup"
-import { Link, useNavigate } from "@tanstack/react-router"
-import { isTextSelectionOngoing } from "#app/lib/utils"
+import { useNavigate } from "@tanstack/react-router"
 import { useExpanded } from "#app/hooks/use-expanded"
-import { useLongPress } from "#app/hooks/use-long-press"
+import { Collapsible } from "@base-ui/react/collapsible"
 import {
 	handleDeletePerson,
 	handleAddNoteToPerson,
@@ -48,9 +47,7 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 	let t = useIntl()
 	let navigate = useNavigate()
 	let [dialogOpen, setDialogOpen] = useState<"note" | "reminder">()
-	let { isExpanded, toggleExpanded } = useExpanded(person.$jazz.id)
-	let { handlers: longPressHandlers, didLongPress } =
-		useLongPress(toggleExpanded)
+	let { isExpanded, setExpanded } = useExpanded(person.$jazz.id)
 
 	let ref = { personId: person.$jazz.id, personName: person.name }
 
@@ -86,57 +83,44 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 		if (result.ok) setDialogOpen(undefined)
 	}
 
-	function handleLinkClick(e: React.MouseEvent) {
-		if (didLongPress.current) {
-			e.preventDefault()
-			return
-		}
-		if (isTextSelectionOngoing()) {
-			e.preventDefault()
-			return
-		}
-	}
-
 	return (
 		<>
-			<SwipeableListItem
-				leftAction={{
-					variant: "destructive",
-					icon: <Trash />,
-					label: <T k="person.actions.delete" />,
-					onAction: deletePerson,
-				}}
-				rightAction={{
-					variant: "primary",
-					icon: <FileEarmarkText />,
-					label: <T k="person.actions.addNote" />,
-					onAction: () => setDialogOpen("note"),
-				}}
-			>
-				<Link
-					to="/people/$personID"
-					params={{ personID: person.$jazz.id }}
-					className="active:bg-accent flex flex-1 rounded-lg transition-colors duration-150"
-					draggable={false}
-					onDragStart={e => e.preventDefault()}
-					onClick={handleLinkClick}
-					{...longPressHandlers}
+			<Collapsible.Root open={isExpanded} onOpenChange={setExpanded}>
+				<SwipeableListItem
+					leftAction={{
+						variant: "destructive",
+						icon: <Trash />,
+						label: <T k="person.actions.delete" />,
+						onAction: deletePerson,
+					}}
+					rightAction={{
+						variant: "primary",
+						icon: <FileEarmarkText />,
+						label: <T k="person.actions.addNote" />,
+						onAction: () => setDialogOpen("note"),
+					}}
 				>
-					<ActivePersonListItem
-						person={person}
-						searchQuery={searchQuery}
-						noLazy={noLazy}
-					/>
-				</Link>
-			</SwipeableListItem>
+					<Collapsible.Trigger
+						render={<div />}
+						className="flex flex-1 rounded-lg"
+					>
+						<ActivePersonListItem
+							person={person}
+							searchQuery={searchQuery}
+							noLazy={noLazy}
+						/>
+					</Collapsible.Trigger>
+				</SwipeableListItem>
 
-			<div
-				className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
-				style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
-			>
-				<div className="overflow-hidden">
+				<Collapsible.Panel keepMounted className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none">
 					<div className="ml-19 flex items-center gap-3 pb-4">
 						<ButtonGroup>
+							<Button variant="outline" onClick={() => setExpanded(false)}>
+								<ChevronUp />
+								<span className="max-sm:sr-only">
+									<T k="note.showLess" />
+								</span>
+							</Button>
 							<Button variant="outline" onClick={() => setDialogOpen("note")}>
 								<FileEarmarkText />
 								<span className="max-sm:sr-only">
@@ -158,6 +142,9 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 									<T k="note.actions.viewPerson" />
 								</span>
 							</Button>
+						</ButtonGroup>
+						<div className="flex-1" />
+						<ButtonGroup>
 							<Button
 								variant="outline"
 								onClick={deletePerson}
@@ -169,18 +156,9 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 								</span>
 							</Button>
 						</ButtonGroup>
-						<div className="flex-1" />
-						<ButtonGroup>
-							<Button variant="outline" onClick={toggleExpanded}>
-								<ChevronUp />
-								<span className="max-sm:sr-only">
-									<T k="note.showLess" />
-								</span>
-							</Button>
-						</ButtonGroup>
 					</div>
-				</div>
-			</div>
+				</Collapsible.Panel>
+			</Collapsible.Root>
 
 			<Dialog
 				open={dialogOpen === "note"}

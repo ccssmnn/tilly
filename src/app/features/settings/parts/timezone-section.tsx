@@ -98,7 +98,7 @@ function TimezoneSection({
 					<T k="notifications.timezone.label" />
 				</p>
 				<div className="flex items-center gap-2">
-					<DisplayField value={currentTimezone} className="flex-1 rounded-lg" />
+					<DisplayField value={currentTimezone} />
 					<Button variant="outline" onClick={handleOpenTimezoneDrawer}>
 						<T k="notifications.timezone.change" />
 					</Button>

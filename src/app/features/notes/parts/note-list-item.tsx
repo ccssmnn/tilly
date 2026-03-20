@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "#shared/ui/avatar"
 import { Image as JazzImage, useCoState } from "jazz-tools/react"
 import { T } from "#shared/intl/setup"
 import { SharedIndicator } from "#app/components/shared-indicator"
+import { Link } from "@tanstack/react-router"
 import {
 	CollapsibleContent,
 	contentHasOverflow,
@@ -61,6 +62,13 @@ function ActiveNoteListItem({
 					.some(r => isDueToday(r))
 			: false
 
+	let personLink = !hidePerson
+		? {
+				to: "/people/$personID" as const,
+				params: { personID: person.$jazz.id },
+			}
+		: undefined
+
 	return (
 		<div
 			className={cn(
@@ -68,28 +76,30 @@ function ActiveNoteListItem({
 				hidePerson ? "py-2" : "py-4",
 			)}
 		>
-			{!hidePerson && (
-				<Avatar className="size-16">
-					{person.avatar ? (
-						<JazzImage
-							imageId={person.avatar.$jazz.id}
-							loading="lazy"
-							alt={person.name}
-							width={64}
-							data-slot="avatar-image"
-							className="aspect-square size-full object-cover shadow-inner"
-						/>
-					) : (
-						<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-					)}
-				</Avatar>
+			{personLink && (
+				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false}>
+					<Avatar className="size-16">
+						{person.avatar ? (
+							<JazzImage
+								imageId={person.avatar.$jazz.id}
+								loading="lazy"
+								alt={person.name}
+								width={64}
+								data-slot="avatar-image"
+								className="aspect-square size-full object-cover shadow-inner"
+							/>
+						) : (
+							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+						)}
+					</Avatar>
+				</Link>
 			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div className="flex items-center gap-3" data-selectable>
-					{!hidePerson && (
-						<p className="text-muted-foreground line-clamp-1 text-left text-sm">
+					{personLink && (
+						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground line-clamp-1 text-left text-sm">
 							<TextHighlight text={person.name} query={searchQuery} />
-						</p>
+						</Link>
 					)}
 					{hasDueReminders && (
 						<div className="bg-primary size-2 rounded-full" />
@@ -137,6 +147,13 @@ function DeletedNoteListItem({
 		{ addSuffix: true, locale: dfnsLocale },
 	)
 
+	let personLink = !hidePerson
+		? {
+				to: "/people/$personID" as const,
+				params: { personID: person.$jazz.id },
+			}
+		: undefined
+
 	return (
 		<div
 			className={cn(
@@ -144,21 +161,23 @@ function DeletedNoteListItem({
 				hidePerson ? "py-2" : "py-4",
 			)}
 		>
-			{!hidePerson && (
-				<Avatar className="size-16 grayscale">
-					{person.avatar ? (
-						<JazzImage
-							imageId={person.avatar.$jazz.id}
-							loading="lazy"
-							alt={person.name}
-							width={64}
-							data-slot="avatar-image"
-							className="aspect-square size-full object-cover shadow-inner"
-						/>
-					) : (
-						<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
-					)}
-				</Avatar>
+			{personLink && (
+				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false}>
+					<Avatar className="size-16 grayscale">
+						{person.avatar ? (
+							<JazzImage
+								imageId={person.avatar.$jazz.id}
+								loading="lazy"
+								alt={person.name}
+								width={64}
+								data-slot="avatar-image"
+								className="aspect-square size-full object-cover shadow-inner"
+							/>
+						) : (
+							<AvatarFallback>{person.name.slice(0, 1)}</AvatarFallback>
+						)}
+					</Avatar>
+				</Link>
 			)}
 			<div className="min-w-0 flex-1 space-y-1">
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
@@ -166,10 +185,10 @@ function DeletedNoteListItem({
 						<Trash />
 						<span>{deletedText}</span>
 					</span>
-					{!hidePerson && (
-						<span className="text-muted-foreground font-normal">
+					{personLink && (
+						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground font-normal">
 							<TextHighlight text={person.name} query={searchQuery} />
-						</span>
+						</Link>
 					)}
 				</div>
 				<CollapsibleContent isExpanded={isExpanded} hasOverflow={hasOverflow}>
