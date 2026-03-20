@@ -91,7 +91,7 @@ function DeletedNote({
 						onAction: () => setConfirmingDelete(true),
 					}}
 				>
-					<Collapsible.Trigger render={<div />} className="flex-1">
+					<Collapsible.Trigger nativeButton={false} render={<div />} className="flex-1">
 						<DeletedNoteListItem
 							note={note}
 							person={person}

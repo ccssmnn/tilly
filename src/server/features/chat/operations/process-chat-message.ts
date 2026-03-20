@@ -92,7 +92,7 @@ async function processChatMessage(
 				try {
 					let result = streamText({
 						model: createGateway({ apiKey: AI_GATEWAY_API_KEY })(
-							"google/gemini-3-flash",
+							"openai/gpt-5.4-mini",
 						),
 						messages: modelMessages,
 						system: makeStaticSystemPrompt(),

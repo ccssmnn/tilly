@@ -88,7 +88,7 @@ function ActiveNote({
 						onAction: remove,
 					}}
 				>
-					<Collapsible.Trigger render={<div />} className="flex-1">
+					<Collapsible.Trigger nativeButton={false} render={<div />} className="flex-1">
 						<ActiveNoteListItem
 							note={note}
 							person={person}

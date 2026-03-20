@@ -82,7 +82,7 @@ function DoneReminder({
 					onAction: remove,
 				}}
 			>
-				<Collapsible.Trigger render={<div />} className="flex-1">
+				<Collapsible.Trigger nativeButton={false} render={<div />} className="flex-1">
 					<DoneReminderListItem
 						reminder={reminder}
 						person={showPerson !== false ? person : undefined}

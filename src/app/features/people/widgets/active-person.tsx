@@ -101,6 +101,7 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 					}}
 				>
 					<Collapsible.Trigger
+						nativeButton={false}
 						render={<div />}
 						className="flex flex-1 rounded-lg"
 					>
