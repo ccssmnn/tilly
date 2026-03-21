@@ -39,6 +39,8 @@ const baseNotesMessages = messages({
 	"note.add.title": "Add a Note",
 	"note.add.description":
 		"Capture a moment, conversation, or experience you shared with {$person}.",
+	"note.edit.title": "Edit Note",
+	"note.edit.description": "Update the details of this note.",
 	"note.actions.title": "Note Actions",
 	"note.actions.description": "What would you like to do with this note?",
 	"note.actions.edit": "Edit",
@@ -125,6 +127,9 @@ const deNotesMessages = translate(baseNotesMessages, {
 	"note.add.title": "Notiz hinzufügen",
 	"note.add.description":
 		"Halte einen Moment, ein Gespräch oder eine gemeinsame Erfahrung mit {$person} fest.",
+	"note.edit.title": "Notiz bearbeiten",
+	"note.edit.description": "Aktualisiere die Details dieser Notiz.",
+
 	"note.actions.title": "Notizaktionen",
 	"note.actions.description": "Was möchtest du mit dieser Notiz tun?",
 	"note.actions.edit": "Bearbeiten",

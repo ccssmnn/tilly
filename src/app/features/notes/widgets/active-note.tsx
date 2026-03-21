@@ -5,7 +5,11 @@ import { UserAccount, Note, Person } from "#shared/schema/user"
 import { co } from "jazz-tools"
 import { useIntl, T } from "#shared/intl/setup"
 import { cn } from "#app/lib/utils"
-import { handleDeleteNote, handleTogglePin } from "../lib/note-actions"
+import {
+	handleDeleteNote,
+	handleEditNote,
+	handleTogglePin,
+} from "../lib/note-actions"
 import {
 	ActiveNoteListItem,
 	NoteImageGrid,
@@ -15,9 +19,25 @@ import { useExpanded } from "#app/hooks/use-expanded"
 import { NoteImageCarousel } from "../parts/note-image-carousel"
 import { SwipeableListItem } from "#app/components/swipeable-list-item"
 import { Collapsible } from "@base-ui/react/collapsible"
-import { Trash, PersonFill, Pin, ChevronUp } from "react-bootstrap-icons"
+import {
+	Trash,
+	PersonFill,
+	Pin,
+	ChevronUp,
+	PencilSquare,
+} from "react-bootstrap-icons"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#shared/ui/dialog"
+import { NoteForm } from "./inline-note-form"
+import { format } from "date-fns"
+import type { NoteFormValues } from "../lib/note-form-schema"
 
 export { ActiveNote }
 
@@ -39,6 +59,7 @@ function ActiveNote({
 	let navigate = useNavigate()
 	let [carouselOpen, setCarouselOpen] = useState(false)
 	let [selectedImageIndex, setSelectedImageIndex] = useState(0)
+	let [editDialogOpen, setEditDialogOpen] = useState(false)
 	let { isExpanded, setExpanded } = useExpanded(note.$jazz.id)
 
 	function onOpenChange(open: boolean) {
@@ -67,6 +88,12 @@ function ActiveNote({
 		})
 	}
 
+	async function onEditNote(data: NoteFormValues) {
+		if (!me.$isLoaded) return
+		let result = await handleEditNote(me, ref, data, t)
+		if (result.ok) setEditDialogOpen(false)
+	}
+
 	return (
 		<>
 			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
@@ -88,7 +115,11 @@ function ActiveNote({
 						onAction: remove,
 					}}
 				>
-					<Collapsible.Trigger nativeButton={false} render={<div />} className="flex-1">
+					<Collapsible.Trigger
+						nativeButton={false}
+						render={<div />}
+						className="flex-1"
+					>
 						<ActiveNoteListItem
 							note={note}
 							person={person}
@@ -101,7 +132,10 @@ function ActiveNote({
 					</Collapsible.Trigger>
 				</SwipeableListItem>
 
-				<Collapsible.Panel keepMounted className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none">
+				<Collapsible.Panel
+					keepMounted
+					className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
+				>
 					<div
 						className={cn(
 							"flex items-center gap-3 pb-4",
@@ -113,6 +147,12 @@ function ActiveNote({
 								<ChevronUp />
 								<span className="max-sm:sr-only">
 									<T k="note.showLess" />
+								</span>
+							</Button>
+							<Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+								<PencilSquare />
+								<span className="max-sm:sr-only">
+									<T k="note.actions.edit" />
 								</span>
 							</Button>
 							<Button variant="outline" onClick={togglePin}>
@@ -167,6 +207,31 @@ function ActiveNote({
 				open={carouselOpen}
 				onClose={() => setCarouselOpen(false)}
 			/>
+
+			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							<T k="note.edit.title" />
+						</DialogTitle>
+						<DialogDescription>
+							<T k="note.edit.description" />
+						</DialogDescription>
+					</DialogHeader>
+					<NoteForm
+						note={note}
+						defaultValues={{
+							content: note.content,
+							pinned: note.pinned ?? false,
+							createdAt: note.createdAt
+								? format(new Date(note.createdAt), "yyyy-MM-dd")
+								: "",
+						}}
+						onSubmit={onEditNote}
+						onCancel={() => setEditDialogOpen(false)}
+					/>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }
