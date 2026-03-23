@@ -6,7 +6,6 @@ import {
 } from "#shared/ui/tool-message-wrapper"
 import { Notification01Icon } from "@hugeicons/core-free-icons"
 import { useNavigate } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
 import { T, useIntl, useLocale } from "#shared/intl/setup"
 import { createListRemindersTool } from "#shared/tools/reminder-read"
 import type { InferToolOutput } from "ai"
@@ -20,7 +19,6 @@ function ReminderReadResult({
 }) {
 	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
-	let { setRemindersSearchQuery } = useAppStore()
 	let t = useIntl()
 	let locale = useLocale()
 
@@ -35,9 +33,6 @@ function ReminderReadResult({
 	let { reminders, totalCount, filteredCount, searchQuery, dueOnly } = result
 
 	let handleViewReminders = () => {
-		if (searchQuery) {
-			setRemindersSearchQuery(searchQuery)
-		}
 		setDrawerOpen(false)
 		navigate({ to: "/reminders" })
 	}

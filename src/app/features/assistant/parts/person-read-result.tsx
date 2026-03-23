@@ -7,7 +7,7 @@ import {
 } from "#shared/ui/tool-message-wrapper"
 import { UserMultipleIcon } from "@hugeicons/core-free-icons"
 import { Link, useNavigate } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
+import { usePeopleStore } from "#app/features/people"
 import { T } from "#shared/intl/setup"
 import type {
 	createGetPersonDetailsTool,
@@ -24,7 +24,7 @@ type GetPersonDetailsToolUI = InferUITool<
 function ListPeopleResult({ result }: { result: ListPeopleToolUI["output"] }) {
 	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
-	let { setPeopleSearchQuery } = useAppStore()
+	let { setSearchQuery } = usePeopleStore()
 
 	if ("error" in result) {
 		return (
@@ -83,7 +83,7 @@ function ListPeopleResult({ result }: { result: ListPeopleToolUI["output"] }) {
 								variant="outline"
 								className="flex-1"
 								onClick={() => {
-									setPeopleSearchQuery(result.searchQuery!)
+									setSearchQuery(result.searchQuery!)
 									setDrawerOpen(false)
 									navigate({ to: "/people" })
 								}}

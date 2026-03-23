@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { findLatestFutureDate } from "#app/lib/reminder-utils"
+import { findLatestFutureDate } from "./reminder-utils"
 
 describe("findLatestFutureDate", () => {
 	let today = "2025-01-15"

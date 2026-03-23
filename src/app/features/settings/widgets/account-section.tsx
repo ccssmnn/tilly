@@ -13,7 +13,9 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { WifiOff01Icon } from "@hugeicons/core-free-icons"
 import { SettingsSection } from "#app/features/settings/parts/settings-section"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
-import { resetAppStore } from "#app/lib/store"
+import { usePeopleStore } from "#app/features/people"
+import { useTourStore } from "#app/features/tour"
+import { usePWAStore } from "#app/lib/pwa-store"
 import {
 	mobileActionGroupClass,
 	mobileActionButtonClass,
@@ -74,7 +76,14 @@ function AccountSection() {
 								)}
 								<SignOutButton redirectUrl="/app">
 									<Button
-										onClick={() => resetAppStore()}
+										onClick={() => {
+											usePeopleStore.getState().setSearchQuery("")
+											usePeopleStore.getState().setListFilter(null)
+											usePeopleStore.getState().setSortMode("recent")
+											usePeopleStore.getState().setStatusFilter("active")
+											useTourStore.getState().setTourSkipped(false)
+											usePWAStore.getState().setInstallHintDismissed(false)
+										}}
 										variant="outline"
 										disabled={!isOnline}
 										className={mobileActionButtonClass}

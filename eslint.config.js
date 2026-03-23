@@ -116,10 +116,22 @@ export default [
 		files: ["src/app/routes/**/*.{ts,tsx}"],
 		plugins: { architecture },
 		rules: {
+			"architecture/no-deep-feature-imports": ["error", architectureOptions],
 			"architecture/no-loose-feature-module-imports": [
 				"error",
 				architectureOptions,
 			],
+		},
+	},
+	{
+		files: [
+			"src/app/components/**/*.{ts,tsx}",
+			"src/app/hooks/**/*.{ts,tsx}",
+			"src/app/lib/**/*.{ts,tsx}",
+		],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-deep-feature-imports": ["error", architectureOptions],
 		},
 	},
 	{

@@ -113,7 +113,10 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 					</Collapsible.Trigger>
 				</SwipeableListItem>
 
-				<Collapsible.Panel keepMounted className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none">
+				<Collapsible.Panel
+					keepMounted
+					className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
+				>
 					<div className="ml-19 flex items-center gap-3 pb-4">
 						<ButtonGroup>
 							<Button variant="outline" onClick={() => setExpanded(false)}>

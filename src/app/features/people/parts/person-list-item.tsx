@@ -62,7 +62,11 @@ function ActivePersonListItem({
 
 	return (
 		<div className="items-top flex flex-1 gap-3 py-4">
-			<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false}>
+			<Link
+				{...personLink}
+				onClick={e => e.stopPropagation()}
+				draggable={false}
+			>
 				<Avatar className="size-16">
 					{person.avatar ? (
 						<JazzImage
@@ -80,11 +84,16 @@ function ActivePersonListItem({
 			</Link>
 			<div className="flex-1">
 				<div
-					className="flex items-center justify-between leading-none select-text"
+					className="flex items-center justify-between leading-none"
 					onMouseDown={e => e.stopPropagation()}
 				>
 					<div className="flex items-center gap-1.5">
-						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="line-clamp-1 font-semibold">
+						<Link
+							{...personLink}
+							onClick={e => e.stopPropagation()}
+							draggable={false}
+							className="line-clamp-1 font-semibold"
+						>
 							<TextHighlight text={person.name} query={searchQuery} />
 						</Link>
 						<SharedIndicator item={person} />
@@ -97,10 +106,7 @@ function ActivePersonListItem({
 					</p>
 				</div>
 				{summaryParts && (
-					<div
-						className="mt-2 select-text"
-						onMouseDown={e => e.stopPropagation()}
-					>
+					<div className="mt-2" onMouseDown={e => e.stopPropagation()}>
 						<p className="text-muted-foreground line-clamp-2 text-sm">
 							{summaryParts.map((part, i) =>
 								part.startsWith("#") ? (
@@ -159,7 +165,7 @@ function DeletedPersonListItem({
 			</Avatar>
 			<div className="flex-1">
 				<div
-					className="flex items-center justify-between leading-none select-text"
+					className="flex items-center justify-between leading-none"
 					onMouseDown={e => e.stopPropagation()}
 				>
 					<div className="flex items-center gap-1.5">
@@ -186,10 +192,7 @@ function DeletedPersonListItem({
 					</p>
 				)}
 				{summaryParts && (
-					<div
-						className="mt-2 select-text"
-						onMouseDown={e => e.stopPropagation()}
-					>
+					<div className="mt-2" onMouseDown={e => e.stopPropagation()}>
 						<p className="text-muted-foreground line-clamp-2 text-sm">
 							{summaryParts.map((part, i) =>
 								part.startsWith("#") ? (

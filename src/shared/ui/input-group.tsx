@@ -57,9 +57,9 @@ function InputGroupAddon({
 					return
 				}
 				let parent = e.currentTarget.parentElement
-			let focusable =
-				parent?.querySelector("input") ?? parent?.querySelector("textarea")
-			focusable?.focus()
+				let focusable =
+					parent?.querySelector("input") ?? parent?.querySelector("textarea")
+				focusable?.focus()
 			}}
 			{...props}
 		/>

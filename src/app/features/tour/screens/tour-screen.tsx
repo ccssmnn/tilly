@@ -5,7 +5,7 @@ import { UserAccount, isDeleted } from "#shared/schema/user"
 import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { T } from "#shared/intl"
-import { useAppStore } from "#app/lib/store"
+import { useTourStore } from "../lib/store"
 import {
 	Stars,
 	GearFill,
@@ -34,7 +34,7 @@ let STEPS = [
 type StepId = (typeof STEPS)[number]
 
 export function TourScreen() {
-	let setTourSkipped = useAppStore(s => s.setTourSkipped)
+	let setTourSkipped = useTourStore(s => s.setTourSkipped)
 	let carousel = useTourCarousel(STEPS.length)
 
 	let people = useAccount(UserAccount, {

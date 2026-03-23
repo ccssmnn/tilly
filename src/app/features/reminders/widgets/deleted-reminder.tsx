@@ -89,7 +89,11 @@ function DeletedReminder({
 						onAction: () => setConfirmingDelete(true),
 					}}
 				>
-					<Collapsible.Trigger nativeButton={false} render={<div />} className="flex-1">
+					<Collapsible.Trigger
+						nativeButton={false}
+						render={<div />}
+						className="flex-1"
+					>
 						<DeletedReminderListItem
 							reminder={reminder}
 							person={showPerson !== false ? person : undefined}
@@ -99,7 +103,10 @@ function DeletedReminder({
 					</Collapsible.Trigger>
 				</SwipeableListItem>
 
-				<Collapsible.Panel keepMounted className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none">
+				<Collapsible.Panel
+					keepMounted
+					className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
+				>
 					<div
 						className={cn(
 							"flex items-center gap-3 pb-4",

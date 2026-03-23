@@ -14,7 +14,7 @@ import { NotificationSettings, UserAccount } from "#shared/schema/user"
 import { ServerAccount } from "#shared/schema/server"
 import { tryCatch } from "#shared/lib/trycatch"
 import { apiClient } from "#app/lib/api-client"
-import { findLatestFutureDate } from "#app/lib/reminder-utils"
+import { findLatestFutureDate } from "#app/features/reminders"
 
 export { useRegisterNotifications }
 

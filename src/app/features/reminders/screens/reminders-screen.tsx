@@ -3,6 +3,7 @@ import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import { useIntl } from "#shared/intl/setup"
 import { useRemindersData } from "../lib/data"
+import { useRemindersStore } from "../lib/store"
 import { handleCreateReminder } from "../lib/reminder-actions"
 import { Dialog, DialogContent } from "#shared/ui/dialog"
 import { VirtualizedList } from "#app/components/virtualized-list"
@@ -26,8 +27,6 @@ import { DoneReminder } from "../widgets/done-reminder"
 import { DeletedReminder } from "../widgets/deleted-reminder"
 import type { ReminderFieldValues } from "../parts/reminder-fields"
 
-type StatusFilter = "active" | "done" | "deleted"
-
 type RemindersScreenProps = {
 	fallback: Parameters<typeof useRemindersData>[0]
 }
@@ -35,11 +34,16 @@ type RemindersScreenProps = {
 export function RemindersScreen({ fallback }: RemindersScreenProps) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
-	let [query, setQuery] = useState("")
-	let [statusFilter, setStatusFilter] = useState<StatusFilter>("active")
-	let [listFilter, setListFilter] = useState<string | null>(null)
+	let {
+		searchQuery,
+		setSearchQuery,
+		listFilter,
+		setListFilter,
+		statusFilter,
+		setStatusFilter,
+	} = useRemindersStore()
 	let [newReminderOpen, setNewReminderOpen] = useState(false)
-	let deferredQuery = useDeferredValue(query)
+	let deferredQuery = useDeferredValue(searchQuery)
 
 	let statusOptions = [
 		{ value: "active", label: t("filter.status.active") },
@@ -85,8 +89,8 @@ export function RemindersScreen({ fallback }: RemindersScreenProps) {
 						<RemindersPageTitle />
 						<ReminderToolbar>
 							<ReminderSearch
-								query={query}
-								onChange={setQuery}
+								query={searchQuery}
+								onChange={setSearchQuery}
 								trailing={
 									<ListFilterButton
 										people={people}
@@ -96,7 +100,7 @@ export function RemindersScreen({ fallback }: RemindersScreenProps) {
 										statusOptions={statusOptions}
 										statusFilter={statusFilter}
 										onStatusFilterChange={f =>
-											setStatusFilter(f as StatusFilter)
+											setStatusFilter(f as "active" | "done" | "deleted")
 										}
 									/>
 								}

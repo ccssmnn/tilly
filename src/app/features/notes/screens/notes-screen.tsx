@@ -3,6 +3,7 @@ import { useAccount } from "jazz-tools/react"
 import { UserAccount } from "#shared/schema/user"
 import { useIntl } from "#shared/intl/setup"
 import { useNotesData } from "../lib/data"
+import { useNotesStore } from "../lib/store"
 import { handleCreateNote } from "../lib/note-actions"
 import { Dialog, DialogContent } from "#shared/ui/dialog"
 import { VirtualizedList } from "#app/components/virtualized-list"
@@ -22,8 +23,6 @@ import { NewNoteForm } from "../parts/new-note-form"
 import { ActiveNote } from "../widgets/active-note"
 import { DeletedNote } from "../widgets/deleted-note"
 
-type StatusFilter = "active" | "deleted"
-
 type NotesScreenProps = {
 	fallback: Parameters<typeof useNotesData>[0]
 }
@@ -31,11 +30,16 @@ type NotesScreenProps = {
 export function NotesScreen({ fallback }: NotesScreenProps) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
-	let [query, setQuery] = useState("")
-	let [statusFilter, setStatusFilter] = useState<StatusFilter>("active")
-	let [listFilter, setListFilter] = useState<string | null>(null)
+	let {
+		searchQuery,
+		setSearchQuery,
+		listFilter,
+		setListFilter,
+		statusFilter,
+		setStatusFilter,
+	} = useNotesStore()
 	let [newNoteOpen, setNewNoteOpen] = useState(false)
-	let deferredQuery = useDeferredValue(query)
+	let deferredQuery = useDeferredValue(searchQuery)
 
 	let statusOptions = [
 		{ value: "active", label: t("filter.status.active") },
@@ -77,8 +81,8 @@ export function NotesScreen({ fallback }: NotesScreenProps) {
 						{total > 0 && (
 							<NotesToolbar>
 								<NotesSearch
-									query={query}
-									onChange={setQuery}
+									query={searchQuery}
+									onChange={setSearchQuery}
 									trailing={
 										<ListFilterButton
 											people={people}
@@ -88,7 +92,7 @@ export function NotesScreen({ fallback }: NotesScreenProps) {
 											statusOptions={statusOptions}
 											statusFilter={statusFilter}
 											onStatusFilterChange={f =>
-												setStatusFilter(f as StatusFilter)
+												setStatusFilter(f as "active" | "deleted")
 											}
 										/>
 									}

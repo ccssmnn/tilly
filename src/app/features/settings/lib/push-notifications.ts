@@ -41,13 +41,18 @@ async function subscribeToPushNotifications(): Promise<{
 
 	let registrationResult = await tryCatch(getServiceWorkerRegistration())
 	if (!registrationResult.ok) {
-		console.error("[Push] Failed to get SW registration:", registrationResult.error)
+		console.error(
+			"[Push] Failed to get SW registration:",
+			registrationResult.error,
+		)
 		throw new Error("Failed to get service worker registration")
 	}
 
 	let registration = registrationResult.data
 	if (!registration) {
-		console.error("[Push] SW registration is null — no service worker at /app/ scope")
+		console.error(
+			"[Push] SW registration is null — no service worker at /app/ scope",
+		)
 		throw new Error("Service worker not registered")
 	}
 

@@ -77,7 +77,11 @@ function ActiveNoteListItem({
 			)}
 		>
 			{personLink && (
-				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false}>
+				<Link
+					{...personLink}
+					onClick={e => e.stopPropagation()}
+					draggable={false}
+				>
 					<Avatar className="size-16">
 						{person.avatar ? (
 							<JazzImage
@@ -97,7 +101,12 @@ function ActiveNoteListItem({
 			<div className="min-w-0 flex-1 space-y-1">
 				<div className="flex items-center gap-3" data-selectable>
 					{personLink && (
-						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground line-clamp-1 text-left text-sm">
+						<Link
+							{...personLink}
+							onClick={e => e.stopPropagation()}
+							draggable={false}
+							className="text-muted-foreground line-clamp-1 text-left text-sm"
+						>
 							<TextHighlight text={person.name} query={searchQuery} />
 						</Link>
 					)}
@@ -162,7 +171,11 @@ function DeletedNoteListItem({
 			)}
 		>
 			{personLink && (
-				<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false}>
+				<Link
+					{...personLink}
+					onClick={e => e.stopPropagation()}
+					draggable={false}
+				>
 					<Avatar className="size-16 grayscale">
 						{person.avatar ? (
 							<JazzImage
@@ -186,7 +199,12 @@ function DeletedNoteListItem({
 						<span>{deletedText}</span>
 					</span>
 					{personLink && (
-						<Link {...personLink} onClick={e => e.stopPropagation()} draggable={false} className="text-muted-foreground font-normal">
+						<Link
+							{...personLink}
+							onClick={e => e.stopPropagation()}
+							draggable={false}
+							className="text-muted-foreground font-normal"
+						>
 							<TextHighlight text={person.name} query={searchQuery} />
 						</Link>
 					)}

@@ -25,7 +25,8 @@ import {
 } from "#shared/ui/alert-dialog"
 import { T, useIntl } from "#shared/intl/setup"
 import { toast } from "sonner"
-import { useAppStore } from "#app/lib/store"
+import { usePeopleStore } from "#app/features/people"
+import { usePWAStore } from "#app/lib/pwa-store"
 import { UserAccount, Person } from "#shared/schema/user"
 import { permanentlyDeleteAllPeople } from "#shared/lib/delete-covalue"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -81,16 +82,8 @@ function DeleteDataButton({
 			account.root.$jazz.delete("assistant")
 		}
 
-		let {
-			setPeopleSearchQuery,
-			setRemindersSearchQuery,
-			setPWAInstallHintDismissed,
-			setHideInstallNavItem,
-		} = useAppStore.getState()
-		setPeopleSearchQuery("")
-		setRemindersSearchQuery("")
-		setPWAInstallHintDismissed(false)
-		setHideInstallNavItem(false)
+		usePeopleStore.getState().setSearchQuery("")
+		usePWAStore.getState().setInstallHintDismissed(false)
 
 		toast.success(t("settings.data.delete.success"))
 		form.reset()

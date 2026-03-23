@@ -3,7 +3,7 @@ import { PersonFill } from "react-bootstrap-icons"
 import { T } from "#shared/intl/setup"
 import { type co } from "jazz-tools"
 import { Note, Person, Reminder } from "#shared/schema/user"
-import { getSharingStatus } from "#app/features/people/lib/sharing-status"
+import { getSharingStatus } from "#app/features/people"
 
 export { SharedIndicator }
 

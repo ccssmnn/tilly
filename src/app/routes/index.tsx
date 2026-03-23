@@ -3,7 +3,7 @@ import { SignInButton } from "@clerk/clerk-react"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
 import { TypographyH1, TypographyLead } from "#shared/ui/typography"
-import { useAppStore } from "#app/lib/store"
+import { useTourStore } from "#app/features/tour"
 import { T } from "#shared/intl/setup"
 import {
 	SkipForwardFill,
@@ -13,7 +13,7 @@ import {
 
 export const Route = createFileRoute("/")({
 	loader: () => {
-		let tourSkipped = useAppStore.getState().tourSkipped
+		let tourSkipped = useTourStore.getState().tourSkipped
 		if (tourSkipped) {
 			throw redirect({ to: "/people" })
 		}
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
 })
 
 function WelcomeIndex() {
-	let setTourSkipped = useAppStore(state => state.setTourSkipped)
+	let setTourSkipped = useTourStore(state => state.setTourSkipped)
 
 	return (
 		<div

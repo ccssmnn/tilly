@@ -6,7 +6,6 @@ import {
 } from "#shared/ui/tool-message-wrapper"
 import { File02Icon } from "@hugeicons/core-free-icons"
 import { useNavigate } from "@tanstack/react-router"
-import { useAppStore } from "#app/lib/store"
 import { T, useIntl } from "#shared/intl/setup"
 import { createListNotesTool } from "#shared/tools/note-read"
 import type { InferToolOutput } from "ai"
@@ -20,7 +19,6 @@ function NoteReadResult({
 }) {
 	let [dialogOpen, setDrawerOpen] = useState(false)
 	let navigate = useNavigate()
-	let { setNotesSearchQuery } = useAppStore()
 	let t = useIntl()
 
 	if ("error" in result) {
@@ -57,9 +55,6 @@ function NoteReadResult({
 	}
 
 	function handleViewSearchResults() {
-		if (searchQuery) {
-			setNotesSearchQuery(searchQuery)
-		}
 		setDrawerOpen(false)
 		navigate({ to: "/notes" })
 	}

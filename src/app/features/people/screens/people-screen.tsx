@@ -6,7 +6,7 @@ import { VirtualizedList } from "#app/components/virtualized-list"
 import { NewPerson } from "../widgets/new-person"
 import { ListFilterButton } from "../parts/list-filter-button"
 import { useAvailableLists } from "../lib/list-utilities"
-import { useAppStore } from "#app/lib/store"
+import { usePeopleStore } from "../lib/store"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
 import { PeoplePageTitle } from "../parts/people-page-title"
 import { PeopleToolbar, PeopleSearch } from "../parts/people-toolbar"
@@ -32,26 +32,26 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 	let navigate = useNavigate()
 
 	let {
-		peopleSearchQuery,
-		setPeopleSearchQuery,
-		peopleListFilter,
-		setPeopleListFilter,
-		peopleStatusFilter,
-		setPeopleStatusFilter,
-		peopleSortMode,
-		setPeopleSortMode,
-	} = useAppStore()
-	let deferredSearchQuery = useDeferredValue(peopleSearchQuery)
+		searchQuery,
+		setSearchQuery,
+		listFilter,
+		setListFilter,
+		statusFilter,
+		setStatusFilter,
+		sortMode,
+		setSortMode,
+	} = usePeopleStore()
+	let deferredSearchQuery = useDeferredValue(searchQuery)
 
 	let { people, allPeople, hasPeople } = usePeopleData(fallback, {
 		query: deferredSearchQuery,
-		statusFilter: peopleStatusFilter,
-		listFilter: peopleListFilter,
-		sortMode: peopleSortMode,
+		statusFilter: statusFilter,
+		listFilter: listFilter,
+		sortMode: sortMode,
 	})
 
 	let availableLists = useAvailableLists(allPeople)
-	let didSearch = deferredSearchQuery !== "" || peopleListFilter !== null
+	let didSearch = deferredSearchQuery !== "" || listFilter !== null
 	let hasResults = people.length > 0
 	let eagerCount = calculateEagerLoadCount()
 
@@ -66,7 +66,7 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 	]
 
 	function handlePersonSuccess(personId: string) {
-		setPeopleSearchQuery("")
+		setSearchQuery("")
 		navigate({
 			to: "/people/$personID",
 			params: { personID: personId },
@@ -84,7 +84,7 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 			fallback={
 				!hasPeople ? (
 					<NoPeopleState onSuccess={handlePersonSuccess} />
-				) : peopleStatusFilter === "deleted" && !hasResults ? (
+				) : statusFilter === "deleted" && !hasResults ? (
 					<NoDeletedPeopleState />
 				) : didSearch && !hasResults ? (
 					<NoSearchResultsState searchQuery={deferredSearchQuery} />
@@ -98,23 +98,23 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 					{hasPeople && (
 						<PeopleToolbar>
 							<PeopleSearch
-								query={peopleSearchQuery}
-								onChange={setPeopleSearchQuery}
+								query={searchQuery}
+								onChange={setSearchQuery}
 								trailing={
 									<ListFilterButton
 										people={allPeople}
 										availableLists={availableLists}
-										listFilter={peopleListFilter}
-										onListFilterChange={setPeopleListFilter}
+										listFilter={listFilter}
+										onListFilterChange={setListFilter}
 										statusOptions={statusOptions}
-										statusFilter={peopleStatusFilter}
+										statusFilter={statusFilter}
 										onStatusFilterChange={filter =>
-											setPeopleStatusFilter(filter as "active" | "deleted")
+											setStatusFilter(filter as "active" | "deleted")
 										}
 										sortOptions={sortOptions}
-										sortMode={peopleSortMode}
+										sortMode={sortMode}
 										onSortChange={mode =>
-											setPeopleSortMode(mode as "recent" | "alphabetical")
+											setSortMode(mode as "recent" | "alphabetical")
 										}
 									/>
 								}

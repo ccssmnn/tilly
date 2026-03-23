@@ -9,7 +9,7 @@ import { UserAccount } from "#shared/schema/user"
 import { routeTree } from "#app/routeTree.gen"
 import { IntlProvider } from "#shared/intl/setup"
 import { messagesDe } from "#shared/intl/messages"
-import { useSyncRemindersToServiceWorker } from "#app/hooks/use-sync-reminders-to-sw"
+import { useSyncRemindersToServiceWorker } from "#app/features/reminders"
 import { PWAContext, usePWAProvider } from "#app/lib/pwa"
 import {
 	SplashScreen,

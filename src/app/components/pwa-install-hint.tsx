@@ -3,7 +3,7 @@ import { toast } from "sonner"
 import { Button } from "#shared/ui/button"
 import { useIntl } from "#shared/intl/setup"
 import { isMobileDevice, useIsPWAInstalled } from "#app/hooks/use-pwa"
-import { useAppStore } from "#app/lib/store"
+import { usePWAStore } from "#app/lib/pwa-store"
 import { PWAInstallDialog } from "./pwa-install-dialog"
 
 export { PWAInstallHint }
@@ -11,17 +11,15 @@ export { PWAInstallHint }
 function PWAInstallHint() {
 	let t = useIntl()
 	let isPWAInstalled = useIsPWAInstalled()
-	let pwaInstallHintDismissed = useAppStore(
-		state => state.pwaInstallHintDismissed,
-	)
-	let setPWAInstallHintDismissed = useAppStore(
-		state => state.setPWAInstallHintDismissed,
+	let installHintDismissed = usePWAStore(state => state.installHintDismissed)
+	let setInstallHintDismissed = usePWAStore(
+		state => state.setInstallHintDismissed,
 	)
 	let [drawerOpen, setDrawerOpen] = useState(false)
 	let [hintShown, setHintShown] = useState(false)
 
 	let shouldShowHint =
-		isMobileDevice() && !isPWAInstalled && !pwaInstallHintDismissed
+		isMobileDevice() && !isPWAInstalled && !installHintDismissed
 
 	useEffect(() => {
 		if (!shouldShowHint || hintShown) return
@@ -51,7 +49,7 @@ function PWAInstallHint() {
 							variant="ghost"
 							onClick={() => {
 								toast.dismiss(toastId)
-								setPWAInstallHintDismissed(true)
+								setInstallHintDismissed(true)
 							}}
 						>
 							{t("pwa.install.dialog.later")}
@@ -63,7 +61,7 @@ function PWAInstallHint() {
 		}, 2000)
 
 		return () => window.clearTimeout(timeout)
-	}, [hintShown, setPWAInstallHintDismissed, shouldShowHint, t])
+	}, [hintShown, setInstallHintDismissed, shouldShowHint, t])
 
 	return (
 		<PWAInstallDialog
@@ -71,9 +69,9 @@ function PWAInstallHint() {
 			onOpenChange={setDrawerOpen}
 			onInstallComplete={() => {
 				setDrawerOpen(false)
-				setPWAInstallHintDismissed(true)
+				setInstallHintDismissed(true)
 			}}
-			onDismiss={() => setPWAInstallHintDismissed(true)}
+			onDismiss={() => setInstallHintDismissed(true)}
 		/>
 	)
 }
