@@ -4,7 +4,12 @@ import { useIntl } from "#shared/intl/setup"
 import { usePeopleData } from "../lib/data"
 import { VirtualizedList } from "#app/components/virtualized-list"
 import { NewPerson } from "../widgets/new-person"
-import { ListFilterButton } from "../parts/list-filter-button"
+import {
+	ListFilter,
+	ListFilterStatus,
+	ListFilterSort,
+	ListFilterLists,
+} from "../parts/list-filter-button"
 import { useAvailableLists } from "../lib/list-utilities"
 import { usePeopleStore } from "../lib/store"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"
@@ -101,22 +106,34 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 								query={searchQuery}
 								onChange={setSearchQuery}
 								trailing={
-									<ListFilterButton
-										people={allPeople}
-										availableLists={availableLists}
-										listFilter={listFilter}
-										onListFilterChange={setListFilter}
-										statusOptions={statusOptions}
-										statusFilter={statusFilter}
-										onStatusFilterChange={filter =>
-											setStatusFilter(filter as "active" | "deleted")
+									<ListFilter
+										hasActiveFilters={
+											listFilter !== null ||
+											statusFilter !== "active" ||
+											sortMode !== "recent"
 										}
-										sortOptions={sortOptions}
-										sortMode={sortMode}
-										onSortChange={mode =>
-											setSortMode(mode as "recent" | "alphabetical")
-										}
-									/>
+									>
+										<ListFilterStatus
+											options={statusOptions}
+											value={statusFilter}
+											onChange={filter =>
+												setStatusFilter(filter as "active" | "deleted")
+											}
+										/>
+										<ListFilterSort
+											options={sortOptions}
+											value={sortMode}
+											onChange={mode =>
+												setSortMode(mode as "recent" | "alphabetical")
+											}
+										/>
+										<ListFilterLists
+											people={allPeople}
+											availableLists={availableLists}
+											value={listFilter}
+											onChange={setListFilter}
+										/>
+									</ListFilter>
 								}
 							/>
 							<NewPerson

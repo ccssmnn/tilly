@@ -13,7 +13,12 @@ import {
 	ReminderSearch,
 	NewReminderButton,
 } from "../parts/reminder-toolbar"
-import { ListFilterButton, useAvailableLists } from "#app/features/people"
+import {
+	ListFilter,
+	ListFilterStatus,
+	ListFilterLists,
+	useAvailableLists,
+} from "#app/features/people"
 import {
 	EmptyReminders,
 	EmptyReminderSearch,
@@ -92,17 +97,25 @@ export function RemindersScreen({ fallback }: RemindersScreenProps) {
 								query={searchQuery}
 								onChange={setSearchQuery}
 								trailing={
-									<ListFilterButton
-										people={people}
-										availableLists={availableLists}
-										listFilter={listFilter}
-										onListFilterChange={setListFilter}
-										statusOptions={statusOptions}
-										statusFilter={statusFilter}
-										onStatusFilterChange={f =>
-											setStatusFilter(f as "active" | "done" | "deleted")
+									<ListFilter
+										hasActiveFilters={
+											listFilter !== null || statusFilter !== "active"
 										}
-									/>
+									>
+										<ListFilterStatus
+											options={statusOptions}
+											value={statusFilter}
+											onChange={f =>
+												setStatusFilter(f as "active" | "done" | "deleted")
+											}
+										/>
+										<ListFilterLists
+											people={people}
+											availableLists={availableLists}
+											value={listFilter}
+											onChange={setListFilter}
+										/>
+									</ListFilter>
 								}
 							/>
 							<NewReminderButton onClick={() => setNewReminderOpen(true)} />

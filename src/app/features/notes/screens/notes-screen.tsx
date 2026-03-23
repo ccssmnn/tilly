@@ -13,7 +13,12 @@ import {
 	NotesSearch,
 	NewNoteButton,
 } from "../parts/notes-toolbar"
-import { ListFilterButton, useAvailableLists } from "#app/features/people"
+import {
+	ListFilter,
+	ListFilterStatus,
+	ListFilterLists,
+	useAvailableLists,
+} from "#app/features/people"
 import {
 	EmptyNotes,
 	EmptyNoteSearch,
@@ -84,17 +89,25 @@ export function NotesScreen({ fallback }: NotesScreenProps) {
 									query={searchQuery}
 									onChange={setSearchQuery}
 									trailing={
-										<ListFilterButton
-											people={people}
-											availableLists={availableLists}
-											listFilter={listFilter}
-											onListFilterChange={setListFilter}
-											statusOptions={statusOptions}
-											statusFilter={statusFilter}
-											onStatusFilterChange={f =>
-												setStatusFilter(f as "active" | "deleted")
+										<ListFilter
+											hasActiveFilters={
+												listFilter !== null || statusFilter !== "active"
 											}
-										/>
+										>
+											<ListFilterStatus
+												options={statusOptions}
+												value={statusFilter}
+												onChange={f =>
+													setStatusFilter(f as "active" | "deleted")
+												}
+											/>
+											<ListFilterLists
+												people={people}
+												availableLists={availableLists}
+												value={listFilter}
+												onChange={setListFilter}
+											/>
+										</ListFilter>
 									}
 								/>
 								<NewNoteButton onClick={() => setNewNoteOpen(true)} />

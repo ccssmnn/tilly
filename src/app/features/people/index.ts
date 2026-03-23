@@ -9,7 +9,12 @@ export { NewPerson } from "./widgets/new-person"
 export { PersonSelector } from "./parts/person-selector"
 export { getSharingStatus } from "./lib/sharing-status"
 export { SharedIndicator } from "#app/components/shared-indicator"
-export { ListFilterButton } from "./parts/list-filter-button"
+export {
+	ListFilter,
+	ListFilterStatus,
+	ListFilterSort,
+	ListFilterLists,
+} from "./parts/list-filter-button"
 export { hasHashtag, useAvailableLists } from "./lib/list-utilities"
 export type { PersonWithSummary, AvailableList } from "./lib/list-utilities"
 export { usePeopleStore } from "./lib/store"

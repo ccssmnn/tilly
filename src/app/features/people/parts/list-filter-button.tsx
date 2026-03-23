@@ -15,54 +15,114 @@ import type { AvailableList, PersonWithSummary } from "../lib/list-utilities"
 import { EditListDialog } from "../widgets/edit-list-dialog"
 import { NewListDialog } from "../widgets/new-list-dialog"
 import { useIntl, T } from "#shared/intl"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 
-export { ListFilterButton }
-export type { StatusOption, SortOption }
+export { ListFilter, ListFilterStatus, ListFilterSort, ListFilterLists }
 
-type StatusOption = {
+type Option = {
 	value: string
 	label: string
 }
 
-type SortOption = {
-	value: string
-	label: string
-}
-
-function ListFilterButton({
-	people,
-	availableLists,
-	listFilter,
-	onListFilterChange,
-	statusOptions,
-	statusFilter,
-	onStatusFilterChange,
-	sortOptions,
-	sortMode,
-	onSortChange,
+function ListFilter({
+	hasActiveFilters,
+	children,
 }: {
-	people: PersonWithSummary[]
-	availableLists: AvailableList[]
-	listFilter: string | null
-	onListFilterChange: (filter: string | null) => void
-	statusOptions: StatusOption[]
-	statusFilter: string
-	onStatusFilterChange: (filter: string) => void
-	sortOptions?: SortOption[]
-	sortMode?: string
-	onSortChange?: (mode: string) => void
+	hasActiveFilters: boolean
+	children: ReactNode
 }) {
 	let t = useIntl()
 	let [dropdownOpen, setDropdownOpen] = useState(false)
+
+	return (
+		<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+			<DropdownMenuTrigger
+				render={
+					<InputGroupButton
+						variant={hasActiveFilters ? "secondary" : "ghost"}
+						size="icon-xs"
+						onClick={() => setDropdownOpen(true)}
+						aria-label={t("person.listFilter.lists")}
+					>
+						<Sliders />
+					</InputGroupButton>
+				}
+			/>
+			<DropdownMenuContent align="end">{children}</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}
+
+function ListFilterStatus({
+	options,
+	value,
+	onChange,
+}: {
+	options: Option[]
+	value: string
+	onChange: (value: string) => void
+}) {
+	return (
+		<>
+			<DropdownMenuGroup>
+				<DropdownMenuLabel>
+					<T k="filter.status" />
+				</DropdownMenuLabel>
+			</DropdownMenuGroup>
+			<DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+				{options.map(option => (
+					<DropdownMenuRadioItem key={option.value} value={option.value}>
+						{option.label}
+					</DropdownMenuRadioItem>
+				))}
+			</DropdownMenuRadioGroup>
+		</>
+	)
+}
+
+function ListFilterSort({
+	options,
+	value,
+	onChange,
+}: {
+	options: Option[]
+	value: string
+	onChange: (value: string) => void
+}) {
+	return (
+		<>
+			<DropdownMenuSeparator />
+			<DropdownMenuGroup>
+				<DropdownMenuLabel>
+					<T k="filter.sort" />
+				</DropdownMenuLabel>
+			</DropdownMenuGroup>
+			<DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+				{options.map(option => (
+					<DropdownMenuRadioItem key={option.value} value={option.value}>
+						{option.label}
+					</DropdownMenuRadioItem>
+				))}
+			</DropdownMenuRadioGroup>
+		</>
+	)
+}
+
+function ListFilterLists({
+	people,
+	availableLists,
+	value,
+	onChange,
+}: {
+	people: PersonWithSummary[]
+	availableLists: AvailableList[]
+	value: string | null
+	onChange: (value: string | null) => void
+}) {
+	let t = useIntl()
 	let [editListOpen, setEditListOpen] = useState(false)
 	let [editingHashtag, setEditingHashtag] = useState("")
 	let [newListOpen, setNewListOpen] = useState(false)
-
-	let hasNonDefaultFilters =
-		listFilter !== null ||
-		statusFilter !== "active" ||
-		(sortMode !== undefined && sortMode !== "recent")
 
 	function editList(tag: string) {
 		setEditingHashtag(tag)
@@ -71,96 +131,35 @@ function ListFilterButton({
 
 	return (
 		<>
-			<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-				<DropdownMenuTrigger
-					render={
-						<InputGroupButton
-							variant={hasNonDefaultFilters ? "secondary" : "ghost"}
-							size="icon-xs"
-							onClick={() => setDropdownOpen(true)}
-							aria-label={t("person.listFilter.lists")}
-						>
-							<Sliders />
-						</InputGroupButton>
-					}
-				/>
-				<DropdownMenuContent align="end">
-					{/* Status section */}
-					<DropdownMenuGroup>
-						<DropdownMenuLabel>
-							<T k="filter.status" />
-						</DropdownMenuLabel>
-					</DropdownMenuGroup>
-					<DropdownMenuRadioGroup
-						value={statusFilter}
-						onValueChange={onStatusFilterChange}
-					>
-						{statusOptions.map(option => (
-							<DropdownMenuRadioItem key={option.value} value={option.value}>
-								{option.label}
-							</DropdownMenuRadioItem>
-						))}
-					</DropdownMenuRadioGroup>
-
-					{/* Sort section (only if sortOptions provided) */}
-					{sortOptions && sortMode !== undefined && onSortChange && (
-						<>
-							<DropdownMenuSeparator />
-							<DropdownMenuGroup>
-								<DropdownMenuLabel>
-									<T k="filter.sort" />
-								</DropdownMenuLabel>
-							</DropdownMenuGroup>
-							<DropdownMenuRadioGroup
-								value={sortMode}
-								onValueChange={onSortChange}
-							>
-								{sortOptions.map(option => (
-									<DropdownMenuRadioItem
-										key={option.value}
-										value={option.value}
-									>
-										{option.label}
-									</DropdownMenuRadioItem>
-								))}
-							</DropdownMenuRadioGroup>
-						</>
-					)}
-
-					{/* Lists section */}
-					<DropdownMenuSeparator />
-					<DropdownMenuGroup>
-						<DropdownMenuLabel>
-							<T k="person.listFilter.lists" />
-						</DropdownMenuLabel>
-					</DropdownMenuGroup>
-					{listFilter && (
-						<DropdownMenuItem onClick={() => editList(listFilter)}>
-							{t("person.listFilter.editList", {
-								listName: listFilter,
-							})}
-						</DropdownMenuItem>
-					)}
-					<DropdownMenuRadioGroup
-						value={listFilter ?? ""}
-						onValueChange={value => onListFilterChange(value || null)}
-					>
-						<DropdownMenuRadioItem value="">
-							{t("filter.lists.all")}
-						</DropdownMenuRadioItem>
-						{availableLists.map(list => (
-							<DropdownMenuRadioItem key={list.tag} value={list.tag}>
-								{list.tag}
-							</DropdownMenuRadioItem>
-						))}
-					</DropdownMenuRadioGroup>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={() => setNewListOpen(true)}>
-						<T k="person.listFilter.createNewList" />
-						<Plus />
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<DropdownMenuSeparator />
+			<DropdownMenuGroup>
+				<DropdownMenuLabel>
+					<T k="person.listFilter.lists" />
+				</DropdownMenuLabel>
+			</DropdownMenuGroup>
+			{value && (
+				<DropdownMenuItem onClick={() => editList(value)}>
+					{t("person.listFilter.editList", { listName: value })}
+				</DropdownMenuItem>
+			)}
+			<DropdownMenuRadioGroup
+				value={value ?? ""}
+				onValueChange={v => onChange(v || null)}
+			>
+				<DropdownMenuRadioItem value="">
+					{t("filter.lists.all")}
+				</DropdownMenuRadioItem>
+				{availableLists.map(list => (
+					<DropdownMenuRadioItem key={list.tag} value={list.tag}>
+						{list.tag}
+					</DropdownMenuRadioItem>
+				))}
+			</DropdownMenuRadioGroup>
+			<DropdownMenuSeparator />
+			<DropdownMenuItem onClick={() => setNewListOpen(true)}>
+				<T k="person.listFilter.createNewList" />
+				<Plus />
+			</DropdownMenuItem>
 			<EditListDialog
 				open={editListOpen}
 				onOpenChange={setEditListOpen}
@@ -171,9 +170,7 @@ function ListFilterButton({
 				open={newListOpen}
 				onOpenChange={setNewListOpen}
 				people={people}
-				onListCreated={hashtag => {
-					onListFilterChange(hashtag)
-				}}
+				onListCreated={hashtag => onChange(hashtag)}
 			/>
 		</>
 	)
