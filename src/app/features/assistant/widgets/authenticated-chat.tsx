@@ -26,11 +26,15 @@ import { ChatInput } from "../parts/chat-input"
 
 export { AuthenticatedChat }
 
-function AuthenticatedChat({ me: loaderMe }: { me: LoadedAssistantAccount }) {
+function AuthenticatedChat({
+	fallback,
+}: {
+	fallback: LoadedAssistantAccount
+}) {
 	let t = useIntl()
 
-	let subscribedMe = useAccount(UserAccount, { resolve })
-	let me = subscribedMe.$isLoaded ? subscribedMe : loaderMe
+	let subscribed = useAccount(UserAccount, { resolve })
+	let me = subscribed.$isLoaded ? subscribed : fallback
 	let assistant = me.root.assistant
 
 	let isOnline = useOnlineStatus()

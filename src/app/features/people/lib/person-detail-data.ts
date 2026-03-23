@@ -18,6 +18,8 @@ export {
 	usePersonReminders,
 	usePersonHasDueReminders,
 	preloadPerson,
+	personResolve,
+	type LoadedPerson,
 	type PersonLoadingState,
 }
 

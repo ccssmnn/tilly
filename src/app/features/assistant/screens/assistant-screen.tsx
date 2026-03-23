@@ -8,7 +8,7 @@ import type { LoadedAssistantAccount } from "../lib/data"
 
 export { AssistantScreen }
 
-function AssistantScreen({ me }: { me: LoadedAssistantAccount }) {
+function AssistantScreen({ fallback }: { fallback: LoadedAssistantAccount }) {
 	let auth = useAuth()
 	let { hasPlusAccess, isLoading } = useHasPlusAccess()
 
@@ -44,5 +44,5 @@ function AssistantScreen({ me }: { me: LoadedAssistantAccount }) {
 		)
 	}
 
-	return <AuthenticatedChat me={me} />
+	return <AuthenticatedChat fallback={fallback} />
 }

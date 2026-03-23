@@ -12,5 +12,5 @@ export let Route = createFileRoute("/_app/assistant")({
 
 function AssistantPage() {
 	let { me } = Route.useLoaderData()
-	return <AssistantScreen me={me} />
+	return <AssistantScreen fallback={me} />
 }

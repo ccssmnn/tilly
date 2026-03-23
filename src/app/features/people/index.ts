@@ -4,7 +4,11 @@ export { InviteScreen } from "./screens/invite-screen"
 export { getOrRestoreInviteData } from "./lib/invite"
 export { preloadPeopleWithPeople, usePeopleData } from "./lib/data"
 export type { PeopleData } from "./lib/data"
-export { preloadPerson } from "./lib/person-detail-data"
+export {
+	preloadPerson,
+	personResolve,
+	type LoadedPerson,
+} from "./lib/person-detail-data"
 export { NewPerson } from "./widgets/new-person"
 export { PersonSelector } from "./parts/person-selector"
 export { getSharingStatus } from "./lib/sharing-status"

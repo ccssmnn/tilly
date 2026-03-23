@@ -19,8 +19,7 @@ function PersonScreenRoute() {
 	return (
 		<PersonScreen
 			personId={personID}
-			loaderPerson={data.person}
-			loadingState={data.loadingState}
+			fallback={data.person}
 			tab={tab}
 			onTabChange={nextTab =>
 				navigate({

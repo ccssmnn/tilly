@@ -1,14 +1,14 @@
 import { useState, useDeferredValue } from "react"
 import { useCoState, useAccount } from "jazz-tools/react"
 import { Person, UserAccount } from "#shared/schema/user"
-import { co, type ResolveQuery } from "jazz-tools"
 import { useIntl } from "#shared/intl/setup"
 import { PersonDetails } from "../widgets/person-details"
 import {
 	usePersonNotes,
 	usePersonReminders,
 	usePersonHasDueReminders,
-	type PersonLoadingState,
+	personResolve,
+	type LoadedPerson,
 } from "../lib/person-detail-data"
 import {
 	PersonTabToolbar,
@@ -24,31 +24,23 @@ import { NewPersonReminder } from "../widgets/new-person-reminder"
 
 export { PersonScreen }
 
-let resolve = {
-	avatar: true,
-	notes: { $each: { $onError: "catch" } },
-	reminders: { $each: { $onError: "catch" } },
-} as const satisfies ResolveQuery<typeof Person>
-
 type PersonScreenProps = {
 	personId: string
-	loaderPerson: co.loaded<typeof Person, typeof resolve> | null
-	loadingState: PersonLoadingState
+	fallback: LoadedPerson | null
 	tab: "notes" | "reminders"
 	onTabChange: (tab: "notes" | "reminders") => void
 }
 
 function PersonScreen({
 	personId,
-	loaderPerson,
-	loadingState,
+	fallback,
 	tab,
 	onTabChange,
 }: PersonScreenProps) {
 	let t = useIntl()
 	let me = useAccount(UserAccount)
 
-	let subscribedPerson = useCoState(Person, personId, { resolve })
+	let subscribed = useCoState(Person, personId, { resolve: personResolve })
 	let [searchQuery, setSearchQuery] = useState("")
 	let deferredSearchQuery = useDeferredValue(searchQuery)
 
@@ -67,22 +59,14 @@ function PersonScreen({
 	)
 	let hasDueReminders = usePersonHasDueReminders(personId)
 
-	if (!loaderPerson) {
-		if (loadingState === "unauthorized") return <PersonUnauthorized />
-		return <PersonNotFound />
-	}
+	let person = subscribed.$isLoaded ? subscribed : fallback
 
-	if (
-		!subscribedPerson.$isLoaded &&
-		subscribedPerson.$jazz.loadingState !== "loading"
-	) {
-		if (subscribedPerson.$jazz.loadingState === "unauthorized") {
+	if (!person) {
+		if (subscribed.$jazz.loadingState === "unauthorized") {
 			return <PersonUnauthorized />
 		}
 		return <PersonNotFound />
 	}
-
-	let person = subscribedPerson.$isLoaded ? subscribedPerson : loaderPerson
 
 	if (!me.$isLoaded) {
 		return (
