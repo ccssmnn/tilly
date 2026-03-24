@@ -47,7 +47,8 @@ async function processChatMessage(
 		let userWorker = yield* initWorkerSafe(getUserWorker(user))
 		let serverWorker = yield* initWorkerSafe(getServerWorker)
 		yield* checkUsageLimits(user, userWorker, serverWorker)
-		let { modelMessages, worker, assistant } = yield* loadAndValidateMessages(userWorker)
+		let { modelMessages, worker, assistant } =
+			yield* loadAndValidateMessages(userWorker)
 
 		logger("Messages loaded and usage limits checked")
 		return Result.ok({

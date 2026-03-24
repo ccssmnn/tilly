@@ -1,9 +1,12 @@
+import { Result } from "better-result"
 import { UserAccount } from "#shared/schema/user"
 import type { co, ResolveQuery } from "jazz-tools"
+import { NotFound } from "#server/lib/errors"
 import type { PushDevice } from "./send-notification"
 
 export {
 	getEnabledDevices,
+	findDeviceByEndpoint,
 	removeDeviceByEndpoint,
 	markAsDelivered,
 	settingsQuery,
@@ -39,6 +42,18 @@ function removeDeviceByEndpoint(
 		devices.splice(index, 1)
 		console.log(`🗑️ Removed stale device: ${endpoint.slice(-10)}`)
 	}
+}
+
+function findDeviceByEndpoint(
+	notificationSettings: LoadedNotificationSettings,
+	endpoint: string,
+) {
+	let devices = getEnabledDevices(notificationSettings)
+	let device = devices.find(d => d.endpoint === endpoint)
+	if (!device) {
+		return Result.err(new NotFound({ message: "Device not found" }))
+	}
+	return Result.ok(device)
 }
 
 function markAsDelivered(

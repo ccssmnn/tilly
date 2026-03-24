@@ -82,9 +82,9 @@ async function getServerWorker(): Promise<ServerWorker> {
 
 type UserWorker = co.loaded<typeof UserAccount>
 
-function getUserWorker(
-	user: { unsafeMetadata: Record<string, unknown> },
-): () => Promise<UserWorker> {
+function getUserWorker(user: {
+	unsafeMetadata: Record<string, unknown>
+}): () => Promise<UserWorker> {
 	return async () => {
 		let jazzAccountId = user.unsafeMetadata.jazzAccountID as string
 		let jazzAccountSecret = user.unsafeMetadata.jazzAccountSecret as string

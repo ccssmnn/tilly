@@ -26,10 +26,7 @@ let requireServerWorker = createMiddleware<ServerWorkerContext>(
 			return next()
 		} catch (error) {
 			if (error instanceof WorkerTimeoutError) {
-				return c.json(
-					{ error: error.message, code: "worker-timeout" },
-					504,
-				)
+				return c.json({ error: error.message, code: "worker-timeout" }, 504)
 			}
 			throw error
 		}

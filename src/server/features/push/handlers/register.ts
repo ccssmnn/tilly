@@ -2,10 +2,7 @@ import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { z } from "zod"
 import { errorToStatus } from "#server/lib/errors"
-import {
-	requireServerWorker,
-	requireJazzAuth,
-} from "../middleware/push-auth"
+import { requireServerWorker, requireJazzAuth } from "../middleware/push-auth"
 import { registerNotificationSettingsWithServer } from "../operations/register-settings"
 
 export { pushRegisterApp }

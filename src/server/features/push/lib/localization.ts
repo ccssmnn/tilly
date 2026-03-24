@@ -6,7 +6,12 @@ import {
 } from "#shared/intl/messages.server"
 import type { NotificationPayload } from "./send-notification"
 
-export { getIntl, getLocalizedMessages, createLocalizedNotificationPayload }
+export {
+	getIntl,
+	getLocalizedMessages,
+	createLocalizedNotificationPayload,
+	createTestPayload,
+}
 
 function getIntl(worker: { root: { language?: string } }) {
 	let userLanguage = worker.root.language || "en"
@@ -35,6 +40,24 @@ function createLocalizedNotificationPayload(
 		icon: "/favicon.ico",
 		badge: "/favicon.ico",
 		url: "/app/reminders",
+		userId,
+	}
+}
+
+function createTestPayload(
+	language: string | undefined,
+	userId: string,
+): NotificationPayload {
+	let t =
+		language === "de"
+			? createIntl(messagesDe, "de")
+			: createIntl(messagesEn, "en")
+	return {
+		title: t("server.push.test-title"),
+		body: t("server.push.test-body"),
+		icon: "/favicon.ico",
+		badge: "/favicon.ico",
+		url: "/app/settings",
 		userId,
 	}
 }

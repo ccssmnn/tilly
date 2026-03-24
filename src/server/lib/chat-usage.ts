@@ -18,38 +18,38 @@ export type { ModelMessages }
 
 type ModelMessages = Awaited<ReturnType<typeof convertToModelMessages>>
 
-
 function checkUsageLimits(
 	user: ChatUser,
 	userWorker: UserWorker,
 	serverWorker: ServerWorker,
 ) {
-	return Result.await(Result.gen(async function* () {
-
-		let context = yield* Result.await(
-			ensureUsageContext(user, userWorker, serverWorker),
-		)
-
-		let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
-
-		if (percentUsed >= 100) {
-			let resetDate = context.usageTracking.resetDate
-			let remainingPercent = Math.max(0, 100 - percentUsed).toFixed(1)
-			let resetLabel = resetDate ? resetDate.toISOString() : "unknown"
-
-			console.warn(
-				`[Chat] ${user.id} | Usage limit exceeded | Remaining ${remainingPercent}% | Reset ${resetLabel}`,
+	return Result.await(
+		Result.gen(async function* () {
+			let context = yield* Result.await(
+				ensureUsageContext(user, userWorker, serverWorker),
 			)
 
-			return Result.err(
-				new UsageLimitExceeded({
-					message: "You've exceeded your usage limit.",
-				}),
-			)
-		}
+			let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
 
-		return Result.ok(undefined)
-	}))
+			if (percentUsed >= 100) {
+				let resetDate = context.usageTracking.resetDate
+				let remainingPercent = Math.max(0, 100 - percentUsed).toFixed(1)
+				let resetLabel = resetDate ? resetDate.toISOString() : "unknown"
+
+				console.warn(
+					`[Chat] ${user.id} | Usage limit exceeded | Remaining ${remainingPercent}% | Reset ${resetLabel}`,
+				)
+
+				return Result.err(
+					new UsageLimitExceeded({
+						message: "You've exceeded your usage limit.",
+					}),
+				)
+			}
+
+			return Result.ok(undefined)
+		}),
+	)
 }
 
 async function updateUsage(
@@ -110,7 +110,6 @@ type UsageUpdatePayload = {
 	outputTokens: number
 }
 
-
 type UsageContext = {
 	worker: UserWorker
 	usageTracking: co.loaded<typeof UsageTracking>
@@ -134,9 +133,7 @@ async function ensureUsageContext(
 			getStoredUsageTrackingId(user),
 		)
 
-		yield* Result.await(
-			attachUsageTrackingToUser(userWorker, usageTracking),
-		)
+		yield* Result.await(attachUsageTrackingToUser(userWorker, usageTracking))
 
 		return Result.ok({ worker: userWorker, usageTracking })
 	})

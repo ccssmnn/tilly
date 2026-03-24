@@ -26,11 +26,7 @@ import { ChatInput } from "../parts/chat-input"
 
 export { AuthenticatedChat }
 
-function AuthenticatedChat({
-	fallback,
-}: {
-	fallback: AssistantAccount
-}) {
+function AuthenticatedChat({ fallback }: { fallback: AssistantAccount }) {
 	let t = useIntl()
 
 	let subscribed = useAccount(UserAccount, { resolve: assistantResolve })

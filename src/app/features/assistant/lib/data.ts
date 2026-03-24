@@ -19,9 +19,7 @@ let assistantResolve = {
 
 type AssistantAccount = co.loaded<typeof UserAccount, typeof assistantResolve>
 
-async function preloadAssistant(
-	accountId: string,
-): Promise<AssistantAccount> {
+async function preloadAssistant(accountId: string): Promise<AssistantAccount> {
 	let me = await UserAccount.load(accountId, { resolve: assistantResolve })
 	if (!me.$isLoaded) throw new Error("Failed to load account")
 	return me

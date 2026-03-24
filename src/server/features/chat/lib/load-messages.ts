@@ -18,13 +18,13 @@ let messagesQuery = {
 	root: { assistant: { stringifiedMessages: true } },
 } as const satisfies ResolveQuery<typeof UserAccount>
 
-
-
 function loadAndValidateMessages(worker: co.loaded<typeof UserAccount>) {
 	return Result.await(
 		Result.tryPromise({
 			try: async () => {
-				let resolved = await worker.$jazz.ensureLoaded({ resolve: messagesQuery })
+				let resolved = await worker.$jazz.ensureLoaded({
+					resolve: messagesQuery,
+				})
 				let assistant = resolved.root.assistant
 				if (!assistant) {
 					throw new EmptyMessages({ message: "No messages to process" })

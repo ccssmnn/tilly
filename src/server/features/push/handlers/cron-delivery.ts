@@ -1,6 +1,7 @@
 import { CRON_SECRET } from "astro:env/server"
 import { Hono } from "hono"
 import { bearerAuth } from "hono/bearer-auth"
+import { errorToStatus } from "#server/lib/errors"
 import { requireServerWorker } from "../middleware/push-auth"
 import { deliverNotifications } from "../operations/deliver-notifications"
 
@@ -12,9 +13,14 @@ let cronDeliveryApp = new Hono()
 		"/deliver-notifications",
 		bearerAuth({ token: CRON_SECRET }),
 		async c => {
-			console.log("🔔 Starting notification delivery cron job")
 			let worker = c.get("serverWorker")
 			let result = await deliverNotifications(worker)
-			return c.json(result)
+
+			if (result.isErr()) {
+				let e = result.error
+				return c.json({ error: e.message, code: e._tag }, errorToStatus(e))
+			}
+
+			return c.json(result.value)
 		},
 	)

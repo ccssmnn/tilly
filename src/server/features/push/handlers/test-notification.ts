@@ -2,10 +2,7 @@ import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { z } from "zod"
 import { errorToStatus } from "#server/lib/errors"
-import {
-	requireServerWorker,
-	requireJazzAuth,
-} from "../middleware/push-auth"
+import { requireServerWorker, requireJazzAuth } from "../middleware/push-auth"
 import { sendTestNotification } from "../operations/send-test-notification"
 
 export { testNotificationApp }
@@ -21,11 +18,7 @@ let testNotificationApp = new Hono()
 			let userId = c.get("userId")
 			let { endpoint } = c.req.valid("json")
 
-			let result = await sendTestNotification(
-				serverWorker,
-				userId,
-				endpoint,
-			)
+			let result = await sendTestNotification(serverWorker, userId, endpoint)
 
 			if (result.isErr()) {
 				let e = result.error
