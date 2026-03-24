@@ -5,6 +5,7 @@ import { NotFound, type SendFailed } from "#server/lib/errors"
 import { getEnabledDevices } from "../lib/device-management"
 import { sendNotificationToDevice } from "../lib/send-notification"
 import { getIntl } from "../lib/localization"
+import { serverRefsQuery } from "../lib/server-refs-query"
 
 export { sendTestNotification }
 export type { SendTestError }
@@ -18,13 +19,7 @@ async function sendTestNotification(
 ): Promise<Result<void, SendTestError>> {
 	return Result.gen(async function* () {
 		let serverState = await serverWorker.$jazz.ensureLoaded({
-			resolve: {
-				root: {
-					notificationSettingsRefsV2: {
-						$each: { notificationSettings: true },
-					},
-				},
-			},
+			resolve: serverRefsQuery,
 		})
 
 		let refs = serverState.root.notificationSettingsRefsV2

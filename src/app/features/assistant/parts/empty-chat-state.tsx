@@ -17,7 +17,7 @@ import { Send, Pause, Arrow90degUp } from "react-bootstrap-icons"
 import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useIntl } from "#shared/intl/setup"
 import { T } from "#shared/intl/setup"
-import type { LoadedAssistantAccount } from "../lib/data"
+import type { AssistantAccount } from "../lib/data"
 import type { StarterPrompt } from "../hooks/use-starter-prompts"
 import type { TillyUIMessage } from "#shared/tools/tools"
 
@@ -31,7 +31,7 @@ function EmptyChatState({
 	isBusy,
 	abort,
 }: {
-	me: LoadedAssistantAccount
+	me: AssistantAccount
 	starters: StarterPrompt[]
 	onSubmit: (message: TillyUIMessage) => void
 	isOnline: boolean

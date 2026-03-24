@@ -1,11 +1,11 @@
 import { useRef, useState } from "react"
 import { Assistant } from "#shared/schema/user"
-import type { LoadedAssistantAccount } from "../lib/data"
+import type { AssistantAccount } from "../lib/data"
 import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { useChatMessaging }
 
-function useChatMessaging(me: LoadedAssistantAccount) {
+function useChatMessaging(me: AssistantAccount) {
 	let [isSending, setIsSending] = useState(false)
 	let [failedToSend, setFailedToSend] = useState<Error | null>(null)
 	let submitAbortControllerRef = useRef<AbortController | null>(null)

@@ -5,7 +5,7 @@ import { hasHashtag } from "#app/features/people"
 
 export { preloadNotesWithPeople, useNotesData, type NotesData, type NotePair }
 
-let resolve = {
+let notesResolve = {
 	root: {
 		people: {
 			$each: {
@@ -18,7 +18,7 @@ let resolve = {
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
-type LoadedAccount = co.loaded<typeof UserAccount, typeof resolve>
+type NotesAccount = co.loaded<typeof UserAccount, typeof notesResolve>
 
 type NotePair = {
 	note: co.loaded<typeof Note>
@@ -35,21 +35,21 @@ type NotesData = {
 
 async function preloadNotesWithPeople(
 	accountId: string,
-): Promise<LoadedAccount> {
-	let me = await UserAccount.load(accountId, { resolve })
+): Promise<NotesAccount> {
+	let me = await UserAccount.load(accountId, { resolve: notesResolve })
 	if (!me.$isLoaded) throw new Error("Failed to load account")
 	return me
 }
 
 function useNotesData(
-	fallback: LoadedAccount,
+	fallback: NotesAccount,
 	options?: {
 		query?: string
 		statusFilter?: StatusFilter
 		listFilter?: string | null
 	},
 ): NotesData {
-	let subscribed = useAccount(UserAccount, { resolve })
+	let subscribed = useAccount(UserAccount, { resolve: notesResolve })
 	let me = subscribed.$isLoaded ? subscribed : fallback
 	let searchLower = (options?.query ?? "").toLowerCase()
 	let statusFilter = options?.statusFilter ?? "active"

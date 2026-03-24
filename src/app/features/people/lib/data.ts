@@ -10,7 +10,7 @@ import { co, type ResolveQuery } from "jazz-tools"
 export { preloadPeopleWithPeople, usePeopleData }
 export type { PeopleData, LoadedPerson }
 
-let resolve = {
+let peopleResolve = {
 	root: {
 		people: {
 			$each: {
@@ -29,8 +29,8 @@ let resolve = {
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
-type LoadedAccount = co.loaded<typeof UserAccount, typeof resolve>
-type MaybeLoadedPeopleList = LoadedAccount["root"]["people"]
+type PeopleAccount = co.loaded<typeof UserAccount, typeof peopleResolve>
+type MaybeLoadedPeopleList = PeopleAccount["root"]["people"]
 type MaybeLoadedPerson = NonNullable<MaybeLoadedPeopleList>[number]
 type LoadedPerson = Extract<MaybeLoadedPerson, { $isLoaded: true }>
 
@@ -42,14 +42,14 @@ type PeopleData = {
 
 async function preloadPeopleWithPeople(
 	accountId: string,
-): Promise<LoadedAccount> {
-	let me = await UserAccount.load(accountId, { resolve })
+): Promise<PeopleAccount> {
+	let me = await UserAccount.load(accountId, { resolve: peopleResolve })
 	if (!me.$isLoaded) throw new Error("Failed to load account")
 	return me
 }
 
 function usePeopleData(
-	fallback: LoadedAccount,
+	fallback: PeopleAccount,
 	options?: {
 		query?: string
 		statusFilter?: "active" | "deleted"
@@ -57,7 +57,7 @@ function usePeopleData(
 		sortMode?: "recent" | "alphabetical"
 	},
 ): PeopleData {
-	let subscribed = useAccount(UserAccount, { resolve })
+	let subscribed = useAccount(UserAccount, { resolve: peopleResolve })
 	let me = subscribed.$isLoaded ? subscribed : fallback
 
 	let allPeople = filterVisiblePeople(me.root?.people)

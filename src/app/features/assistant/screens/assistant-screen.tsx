@@ -4,11 +4,11 @@ import { AssistantLayout } from "../parts/assistant-layout"
 import { AssistantLoading } from "../parts/assistant-loading"
 import { SubscribePrompt } from "../parts/subscribe-prompt"
 import { AuthenticatedChat } from "../widgets/authenticated-chat"
-import type { LoadedAssistantAccount } from "../lib/data"
+import type { AssistantAccount } from "../lib/data"
 
 export { AssistantScreen }
 
-function AssistantScreen({ fallback }: { fallback: LoadedAssistantAccount }) {
+function AssistantScreen({ fallback }: { fallback: AssistantAccount }) {
 	let auth = useAuth()
 	let { hasPlusAccess, isLoading } = useHasPlusAccess()
 

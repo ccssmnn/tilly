@@ -4,59 +4,52 @@ import type { convertToModelMessages } from "ai"
 import {
 	CACHED_INPUT_TOKEN_COST_PER_MILLION,
 	INPUT_TOKEN_COST_PER_MILLION,
-	MAX_REQUEST_TOKENS,
 	OUTPUT_TOKEN_COST_PER_MILLION,
 	WEEKLY_BUDGET,
 } from "astro:env/server"
 import { addDays, isPast } from "date-fns"
 import { co, Group, type ResolveQuery } from "jazz-tools"
 import { clerkClient } from "#server/features/auth"
-import { ServerError } from "#server/lib/errors"
-import { getServerWorker, initUserWorker } from "./utils"
+import { ServerError, UsageLimitExceeded } from "#server/lib/errors"
+import { getServerWorker, type UserWorker, type ServerWorker } from "./utils"
 
-export { checkInputSize, checkUsageLimits, updateUsage }
+export { estimateTokenCount, checkUsageLimits, updateUsage }
 export type { ModelMessages }
 
 type ModelMessages = Awaited<ReturnType<typeof convertToModelMessages>>
 
-function checkInputSize(messages: ModelMessages) {
-	let estimatedTokens = estimateTokenCount(messages)
-	let overflow = Math.max(0, estimatedTokens - MAX_REQUEST_TOKENS)
-	return { overflow }
-}
 
-async function checkUsageLimits(
+function checkUsageLimits(
 	user: ChatUser,
 	userWorker: UserWorker,
 	serverWorker: ServerWorker,
-): Promise<Result<UsageLimitResult, ServerError>> {
-	return Result.tryPromise({
-		try: async () => {
-			let context = await ensureUsageContext(user, userWorker, serverWorker)
-			let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
-			let exceeded = percentUsed >= 100
+) {
+	return Result.await(Result.gen(async function* () {
 
-			if (exceeded) {
-				let resetDate = context.usageTracking.resetDate
-				let remainingPercent = Math.max(0, 100 - percentUsed).toFixed(1)
-				let resetLabel = resetDate ? resetDate.toISOString() : "unknown"
+		let context = yield* Result.await(
+			ensureUsageContext(user, userWorker, serverWorker),
+		)
 
-				console.warn(
-					`[Chat] ${user.id} | Usage limit exceeded | Remaining ${remainingPercent}% | Reset ${resetLabel}`,
-				)
-			}
+		let percentUsed = context.usageTracking.weeklyPercentUsed ?? 0
 
-			return {
-				exceeded,
-				percentUsed,
-				resetDate: context.usageTracking.resetDate,
-			}
-		},
-		catch: e =>
-			new ServerError({
-				message: e instanceof Error ? e.message : String(e),
-			}),
-	})
+		if (percentUsed >= 100) {
+			let resetDate = context.usageTracking.resetDate
+			let remainingPercent = Math.max(0, 100 - percentUsed).toFixed(1)
+			let resetLabel = resetDate ? resetDate.toISOString() : "unknown"
+
+			console.warn(
+				`[Chat] ${user.id} | Usage limit exceeded | Remaining ${remainingPercent}% | Reset ${resetLabel}`,
+			)
+
+			return Result.err(
+				new UsageLimitExceeded({
+					message: "You've exceeded your usage limit.",
+				}),
+			)
+		}
+
+		return Result.ok(undefined)
+	}))
 }
 
 async function updateUsage(
@@ -80,16 +73,12 @@ async function updateUsage(
 			}),
 		)
 
-		let context = await ensureUsageContext(user, worker, serverWorker)
+		let context = yield* Result.await(
+			ensureUsageContext(user, worker, serverWorker),
+		)
 
 		let update = yield* Result.await(
-			Result.tryPromise({
-				try: () => applyUsageUpdate(context.usageTracking, usage),
-				catch: e => {
-					console.error(`[Usage] ${user.id} | Failed to update usage`, e)
-					return new ServerError({ message: "Failed to update usage" })
-				},
-			}),
+			applyUsageUpdate(context.usageTracking, usage),
 		)
 
 		context.usageTracking.$jazz.set("weeklyPercentUsed", update.percentUsed)
@@ -121,14 +110,6 @@ type UsageUpdatePayload = {
 	outputTokens: number
 }
 
-type UsageLimitResult = {
-	exceeded: boolean
-	percentUsed: number
-	resetDate: Date
-}
-
-type UserWorker = Awaited<ReturnType<typeof initUserWorker>>["worker"]
-import type { ServerWorker } from "./utils"
 
 type UsageContext = {
 	worker: UserWorker
@@ -144,17 +125,21 @@ async function ensureUsageContext(
 	user: ChatUser,
 	userWorker: UserWorker,
 	serverWorker: ServerWorker,
-): Promise<UsageContext> {
-	let usageTracking = await loadUsageTrackingForUser(
-		user,
-		userWorker,
-		serverWorker,
-		getStoredUsageTrackingId(user),
-	)
+): Promise<Result<UsageContext, ServerError>> {
+	return Result.gen(async function* () {
+		let usageTracking = await loadUsageTrackingForUser(
+			user,
+			userWorker,
+			serverWorker,
+			getStoredUsageTrackingId(user),
+		)
 
-	await attachUsageTrackingToUser(userWorker, usageTracking)
+		yield* Result.await(
+			attachUsageTrackingToUser(userWorker, usageTracking),
+		)
 
-	return { worker: userWorker, usageTracking }
+		return Result.ok({ worker: userWorker, usageTracking })
+	})
 }
 
 async function loadUsageTrackingForUser(
@@ -181,7 +166,14 @@ async function loadUsageTrackingForUser(
 
 		if (existing) {
 			await synchronizeUsageTracking(existing)
-			await ensureMetadata(user, existing)
+			let metadataResult = await ensureMetadata(user, existing)
+			metadataResult.match({
+				ok: () => {},
+				err: e =>
+					console.warn(
+						`[Usage] ${user.id} | Failed to ensure metadata: ${e.message}`,
+					),
+			})
 			return existing
 		}
 	}
@@ -205,7 +197,14 @@ async function loadUsageTrackingForUser(
 		{ owner: usageTrackingGroup },
 	)
 
-	await ensureMetadata(user, usageTracking)
+	let metadataResult = await ensureMetadata(user, usageTracking)
+	metadataResult.match({
+		ok: () => {},
+		err: e =>
+			console.warn(
+				`[Usage] ${user.id} | Failed to ensure metadata: ${e.message}`,
+			),
+	})
 
 	return usageTracking
 }
@@ -218,40 +217,28 @@ function getStoredUsageTrackingId(user: ChatUser): string | undefined {
 async function attachUsageTrackingToUser(
 	worker: UserWorker,
 	usageTracking: co.loaded<typeof UsageTracking>,
-): Promise<void> {
-	let workerWithProfile = (
-		await Result.tryPromise({
-			try: () => worker.$jazz.ensureLoaded({ resolve: usageAttachQuery }),
-			catch: e => {
-				console.error(
-					`[Usage] ${usageTracking.userId} | Failed to load worker root`,
-					e,
-				)
-				return new Error("Failed to attach usage tracking")
-			},
-		})
-	).unwrap()
+): Promise<Result<void, ServerError>> {
+	let loadResult = await Result.tryPromise({
+		try: () => worker.$jazz.ensureLoaded({ resolve: usageAttachQuery }),
+		catch: e => {
+			console.error(
+				`[Usage] ${usageTracking.userId} | Failed to load worker root`,
+				e,
+			)
+			return new ServerError({ message: "Failed to attach usage tracking" })
+		},
+	})
 
-	if (!workerWithProfile.root) {
-		return
-	}
+	return loadResult.map(workerWithProfile => {
+		if (!workerWithProfile.root) return
 
-	let currentUsage = workerWithProfile.root.usageTracking
-	let desiredUsage = usageTracking
+		let currentId = workerWithProfile.root.usageTracking?.$jazz.id
+		let desiredId = usageTracking.$jazz.id
 
-	if (!currentUsage) {
-		workerWithProfile.root.$jazz.set("usageTracking", desiredUsage)
-		return
-	}
-
-	let currentId = currentUsage.$jazz.id
-	let desiredId = desiredUsage.$jazz.id
-
-	if (currentId === desiredId) {
-		return
-	}
-
-	workerWithProfile.root.$jazz.set("usageTracking", desiredUsage)
+		if (currentId !== desiredId) {
+			workerWithProfile.root.$jazz.set("usageTracking", usageTracking)
+		}
+	})
 }
 
 async function synchronizeUsageTracking(
@@ -276,13 +263,13 @@ async function synchronizeUsageTracking(
 async function ensureMetadata(
 	user: ChatUser,
 	usageTracking: co.loaded<typeof UsageTracking>,
-): Promise<void> {
+): Promise<Result<void, ServerError>> {
 	let currentUsageId = usageTracking.$jazz.id
 	let storedValue = user.unsafeMetadata.usageTrackingId
 	let storedId = typeof storedValue === "string" ? storedValue : undefined
 
 	if (storedId === currentUsageId) {
-		return
+		return Result.ok(undefined)
 	}
 
 	let updatedMetadata = {
@@ -290,55 +277,57 @@ async function ensureMetadata(
 		usageTrackingId: currentUsageId,
 	}
 
-	;(
-		await Result.tryPromise({
-			try: () =>
-				clerkClient.users.updateUserMetadata(user.id, {
-					unsafeMetadata: updatedMetadata,
-				}),
-			catch: e => {
-				console.error(`[Usage] ${user.id} | Failed to update Clerk metadata`, e)
-				return new Error("Failed to update user metadata")
-			},
-		})
-	).unwrap()
+	let updateResult = await Result.tryPromise({
+		try: () =>
+			clerkClient.users.updateUserMetadata(user.id, {
+				unsafeMetadata: updatedMetadata,
+			}),
+		catch: e => {
+			console.error(`[Usage] ${user.id} | Failed to update Clerk metadata`, e)
+			return new ServerError({ message: "Failed to update user metadata" })
+		},
+	})
 
-	user.unsafeMetadata = updatedMetadata
+	return updateResult.map(() => {
+		user.unsafeMetadata = updatedMetadata
+	})
 }
 
 async function applyUsageUpdate(
 	usageTracking: co.loaded<typeof UsageTracking>,
 	usage: UsageUpdatePayload,
-) {
-	let serverUsageTracking = (
-		await Result.tryPromise({
-			try: () => UsageTracking.load(usageTracking.$jazz.id),
-			catch: () => new Error("Failed to load usage tracking for updates"),
-		})
-	).unwrap()
+): Promise<Result<{ cost: number; percentUsed: number }, ServerError>> {
+	let loadResult = await Result.tryPromise({
+		try: () => UsageTracking.load(usageTracking.$jazz.id),
+		catch: () =>
+			new ServerError({
+				message: "Failed to load usage tracking for updates",
+			}),
+	})
 
-	if (!serverUsageTracking.$isLoaded) {
-		throw new Error("Failed to load usage tracking for updates")
-	}
+	return loadResult.andThen(serverUsageTracking => {
+		if (!serverUsageTracking.$isLoaded) {
+			return Result.err(
+				new ServerError({
+					message: "Failed to load usage tracking for updates",
+				}),
+			)
+		}
 
-	let cost = calculateCost(
-		usage.inputTokens,
-		usage.outputTokens,
-		usage.cachedTokens,
-	)
+		let cost = calculateCost(
+			usage.inputTokens,
+			usage.outputTokens,
+			usage.cachedTokens,
+		)
 
-	let percentIncrease = (cost / WEEKLY_BUDGET) * 100
+		let percentIncrease = (cost / WEEKLY_BUDGET) * 100
+		let previousPercent = serverUsageTracking.weeklyPercentUsed ?? 0
+		let newPercent = Math.min(100, previousPercent + percentIncrease)
 
-	let previousPercent = serverUsageTracking.weeklyPercentUsed ?? 0
+		serverUsageTracking.$jazz.set("weeklyPercentUsed", newPercent)
 
-	let newPercent = Math.min(100, previousPercent + percentIncrease)
-
-	serverUsageTracking.$jazz.set("weeklyPercentUsed", newPercent)
-
-	return {
-		cost,
-		percentUsed: newPercent,
-	}
+		return Result.ok({ cost, percentUsed: newPercent })
+	})
 }
 
 function calculateCost(

@@ -5,7 +5,7 @@ import { hasHashtag } from "#app/features/people"
 
 export { preloadRemindersWithPeople, useRemindersData, type RemindersData }
 
-let resolve = {
+let remindersResolve = {
 	root: {
 		people: {
 			$each: {
@@ -18,7 +18,7 @@ let resolve = {
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
-type LoadedAccount = co.loaded<typeof UserAccount, typeof resolve>
+type RemindersAccount = co.loaded<typeof UserAccount, typeof remindersResolve>
 
 type ReminderPair = {
 	reminder: co.loaded<typeof Reminder>
@@ -35,21 +35,21 @@ type RemindersData = {
 
 async function preloadRemindersWithPeople(
 	accountId: string,
-): Promise<LoadedAccount> {
-	let me = await UserAccount.load(accountId, { resolve })
+): Promise<RemindersAccount> {
+	let me = await UserAccount.load(accountId, { resolve: remindersResolve })
 	if (!me.$isLoaded) throw new Error("Failed to load account")
 	return me
 }
 
 function useRemindersData(
-	fallback: LoadedAccount,
+	fallback: RemindersAccount,
 	options?: {
 		query?: string
 		statusFilter?: StatusFilter
 		listFilter?: string | null
 	},
 ): RemindersData {
-	let subscribed = useAccount(UserAccount, { resolve })
+	let subscribed = useAccount(UserAccount, { resolve: remindersResolve })
 	let me = subscribed.$isLoaded ? subscribed : fallback
 	let searchLower = (options?.query ?? "").toLowerCase()
 	let statusFilter = options?.statusFilter ?? "active"

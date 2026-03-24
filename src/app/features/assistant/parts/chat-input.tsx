@@ -15,13 +15,13 @@ import { useAutoFocusInput } from "#app/hooks/use-auto-focus-input"
 import { useInputFocusState } from "#app/hooks/use-input-focus-state"
 import { useIntl, T } from "#shared/intl/setup"
 import { cn } from "#app/lib/utils"
-import type { LoadedAssistantAccount } from "../lib/data"
+import type { AssistantAccount } from "../lib/data"
 import type { TillyUIMessage } from "#shared/tools/tools"
 
 export { ChatInput }
 
 function ChatInput(props: {
-	me: LoadedAssistantAccount
+	me: AssistantAccount
 	onSubmit: (message: TillyUIMessage) => void
 	chatSize: number
 	stopGeneratingResponse?: () => void

@@ -1,7 +1,7 @@
 import { toZonedTime, format } from "date-fns-tz"
 import { Result } from "better-result"
-import { co, type ResolveQuery } from "jazz-tools"
-import { ServerAccount } from "#shared/schema/server"
+import type { co } from "jazz-tools"
+import type { ServerAccount } from "#shared/schema/server"
 import {
 	getEnabledDevices,
 	removeDeviceByEndpoint,
@@ -14,17 +14,10 @@ import {
 } from "../lib/notification-time"
 import { isStaleRef } from "../lib/stale-ref"
 import { createLocalizedNotificationPayload } from "../lib/localization"
+import { serverRefsQuery } from "../lib/server-refs-query"
 
 export { deliverNotifications }
 export type { DeliveryResult }
-
-let serverRefsQuery = {
-	root: {
-		notificationSettingsRefsV2: {
-			$each: { notificationSettings: true },
-		},
-	},
-} as const satisfies ResolveQuery<typeof ServerAccount>
 
 type DeliveryResult = {
 	message: string
@@ -184,10 +177,9 @@ async function deliverNotifications(
 	}
 
 	let syncResult = await Result.tryPromise(() => worker.$jazz.waitForSync())
-	syncResult.match({
-		ok: () => {},
-		err: e => console.error("❌ Failed to sync mutations:", e),
-	})
+	if (syncResult.isErr()) {
+		console.error("❌ Failed to sync mutations:", syncResult.error)
+	}
 
 	return {
 		message: `Processed ${deliveryResults.length} notification deliveries`,

@@ -10,8 +10,8 @@ import { JAZZ_WORKER_SECRET } from "astro:env/server"
 import { UserAccount } from "#shared/schema/user"
 import { ServerAccount } from "#shared/schema/server"
 
-export { initUserWorker, getServerWorker, WorkerTimeoutError }
-export type { ServerWorker }
+export { getUserWorker, getServerWorker, WorkerTimeoutError }
+export type { ServerWorker, UserWorker }
 
 class WorkerTimeoutError extends Error {
 	constructor() {
@@ -80,45 +80,27 @@ async function getServerWorker(): Promise<ServerWorker> {
 	return serverWorkerPromise
 }
 
-async function initUserWorker(user: {
-	unsafeMetadata: Record<string, unknown>
-}): Promise<{ worker: co.loaded<typeof UserAccount>; shutdown(): void }> {
-	let jazzAccountId = user.unsafeMetadata.jazzAccountID as string
-	let jazzAccountSecret = user.unsafeMetadata.jazzAccountSecret as string
+type UserWorker = co.loaded<typeof UserAccount>
 
-	let timeoutPromise = new Promise<never>((_, reject) =>
-		setTimeout(() => reject(new WorkerTimeoutError()), 30000),
-	)
+function getUserWorker(
+	user: { unsafeMetadata: Record<string, unknown> },
+): () => Promise<UserWorker> {
+	return async () => {
+		let jazzAccountId = user.unsafeMetadata.jazzAccountID as string
+		let jazzAccountSecret = user.unsafeMetadata.jazzAccountSecret as string
 
-	let workerPromise = startWorker({
-		AccountSchema: UserAccount,
-		syncServer: PUBLIC_JAZZ_SYNC_SERVER,
-		accountID: jazzAccountId,
-		accountSecret: jazzAccountSecret,
-		skipInboxLoad: true,
-	})
+		let timeoutPromise = new Promise<never>((_, reject) =>
+			setTimeout(() => reject(new WorkerTimeoutError()), 30000),
+		)
 
-	let workerResult = await Promise.race([workerPromise, timeoutPromise])
+		let workerPromise = startWorker({
+			AccountSchema: UserAccount,
+			syncServer: PUBLIC_JAZZ_SYNC_SERVER,
+			accountID: jazzAccountId,
+			accountSecret: jazzAccountSecret,
+			skipInboxLoad: true,
+		}).then(result => result.worker)
 
-	let resolved = false
-	const shutdown = async () => {
-		if (resolved) return
-		resolved = true
-		try {
-			const result = await workerPromise
-			await result.shutdownWorker?.()
-		} catch {
-			// ignore cleanup errors
-		}
+		return Promise.race([workerPromise, timeoutPromise])
 	}
-
-	workerPromise
-		.then(() => {
-			resolved = true
-		})
-		.catch(() => {
-			resolved = true
-		})
-
-	return { worker: workerResult.worker, shutdown }
 }

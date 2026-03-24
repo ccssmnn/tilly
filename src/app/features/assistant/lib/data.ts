@@ -1,9 +1,9 @@
 import { UserAccount } from "#shared/schema/user"
 import type { co, ResolveQuery } from "jazz-tools"
 
-export { resolve, type LoadedAssistantAccount, preloadAssistant }
+export { assistantResolve, type AssistantAccount, preloadAssistant }
 
-let resolve = {
+let assistantResolve = {
 	profile: true,
 	root: {
 		people: {
@@ -17,12 +17,12 @@ let resolve = {
 	},
 } as const satisfies ResolveQuery<typeof UserAccount>
 
-type LoadedAssistantAccount = co.loaded<typeof UserAccount, typeof resolve>
+type AssistantAccount = co.loaded<typeof UserAccount, typeof assistantResolve>
 
 async function preloadAssistant(
 	accountId: string,
-): Promise<LoadedAssistantAccount> {
-	let me = await UserAccount.load(accountId, { resolve })
+): Promise<AssistantAccount> {
+	let me = await UserAccount.load(accountId, { resolve: assistantResolve })
 	if (!me.$isLoaded) throw new Error("Failed to load account")
 	return me
 }

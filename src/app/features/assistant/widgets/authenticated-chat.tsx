@@ -5,7 +5,7 @@ import { useIntl } from "#shared/intl/setup"
 import { useOnlineStatus } from "#app/hooks/use-online-status"
 import { ScrollIntoView } from "#app/components/scroll-into-view"
 import type { TillyUIMessage } from "#shared/tools/tools"
-import { resolve, type LoadedAssistantAccount } from "../lib/data"
+import { assistantResolve, type AssistantAccount } from "../lib/data"
 import { classifySendingError } from "../lib/error-handling"
 import { createAddToolResult } from "../lib/add-tool-result"
 import { useChatMessaging } from "../hooks/use-chat-messaging"
@@ -29,11 +29,11 @@ export { AuthenticatedChat }
 function AuthenticatedChat({
 	fallback,
 }: {
-	fallback: LoadedAssistantAccount
+	fallback: AssistantAccount
 }) {
 	let t = useIntl()
 
-	let subscribed = useAccount(UserAccount, { resolve })
+	let subscribed = useAccount(UserAccount, { resolve: assistantResolve })
 	let me = subscribed.$isLoaded ? subscribed : fallback
 	let assistant = me.root.assistant
 

@@ -1,64 +1,47 @@
 import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
 import { z } from "zod"
-import { authenticateRequest } from "jazz-tools"
-import { getServerWorker, WorkerTimeoutError } from "#server/lib/utils"
 import { errorToStatus } from "#server/lib/errors"
+import {
+	requireServerWorker,
+	requireJazzAuth,
+} from "../middleware/push-auth"
 import { registerNotificationSettingsWithServer } from "../operations/register-settings"
 
 export { pushRegisterApp }
 
-let pushRegisterApp = new Hono().post(
-	"/register",
-	zValidator(
-		"json",
-		z.object({
-			notificationSettingsId: z
-				.string()
-				.min(1)
-				.refine(id => /^[a-zA-Z0-9_-]+$/.test(id), {
-					message: "Invalid Jazz ID format",
-				}),
-		}),
-	),
-	async c => {
-		let { notificationSettingsId } = c.req.valid("json")
+let pushRegisterApp = new Hono()
+	.use("*", requireServerWorker)
+	.use("*", requireJazzAuth)
+	.post(
+		"/register",
+		zValidator(
+			"json",
+			z.object({
+				notificationSettingsId: z
+					.string()
+					.min(1)
+					.refine(id => /^[a-zA-Z0-9_-]+$/.test(id), {
+						message: "Invalid Jazz ID format",
+					}),
+			}),
+		),
+		async c => {
+			let { notificationSettingsId } = c.req.valid("json")
+			let serverWorker = c.get("serverWorker")
+			let userId = c.get("userId")
 
-		let worker
-		try {
-			worker = await getServerWorker()
-		} catch (error) {
-			if (error instanceof WorkerTimeoutError) {
-				return c.json({ error: error.message, code: "worker-timeout" }, 504)
+			let result = await registerNotificationSettingsWithServer(
+				serverWorker,
+				notificationSettingsId,
+				userId,
+			)
+
+			if (result.isErr()) {
+				let e = result.error
+				return c.json({ error: e.message, code: e._tag }, errorToStatus(e))
 			}
-			throw error
-		}
 
-		let authResult = await authenticateRequest(c.req.raw, {
-			loadAs: worker,
-		})
-
-		let { account, error } = authResult
-
-		if (error) {
-			return c.json({ message: error.message }, 401)
-		}
-
-		if (!account) {
-			return c.json({ message: "Authentication required" }, 401)
-		}
-
-		let userId = account.$jazz.id
-
-		let result = await registerNotificationSettingsWithServer(
-			worker,
-			notificationSettingsId,
-			userId,
-		)
-
-		return result.match({
-			ok: () => c.json({ message: "Registered successfully" }),
-			err: e => c.json({ message: e.message }, errorToStatus(e)),
-		})
-	},
-)
+			return c.json({ message: "Registered successfully" })
+		},
+	)

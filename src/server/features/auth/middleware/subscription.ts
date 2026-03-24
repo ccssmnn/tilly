@@ -33,7 +33,7 @@ let requirePlus = createMiddleware<RequirePlusAppContext>(async (c, next) => {
 	let user = c.get("user")
 	if (!user) {
 		console.warn("[Subscription] Missing authenticated user for requirePlus")
-		return c.json({ error: "Authentication required" }, 401)
+		return c.json({ error: "Authentication required", code: "unauthorized" }, 401)
 	}
 
 	let status = await getSubscriptionStatus(user)
@@ -51,7 +51,7 @@ let requirePlus = createMiddleware<RequirePlusAppContext>(async (c, next) => {
 		console.warn(
 			`[Subscription] ${user.id} | Access denied | tier=${status.tier} | trial=${status.isTrial ? "yes" : "no"} | source=${status.source}`,
 		)
-		return c.json({ error: "Plus subscription required" }, 403)
+		return c.json({ error: "Plus subscription required", code: "plus-required" }, 403)
 	}
 
 	return next()

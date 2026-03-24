@@ -45,7 +45,7 @@ let requireAuth = createMiddleware<AuthenticatedAppContext>(async (c, next) => {
 	let user = c.get("user")
 
 	if (!auth?.userId || !user) {
-		return c.json({ error: "Authentication required" }, 401)
+		return c.json({ error: "Authentication required", code: "unauthorized" }, 401)
 	}
 
 	return next()
