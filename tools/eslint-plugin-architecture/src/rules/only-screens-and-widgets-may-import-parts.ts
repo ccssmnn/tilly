@@ -1,4 +1,4 @@
-import { ESLintUtils } from "@typescript-eslint/utils"
+import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
@@ -70,30 +70,48 @@ export default createRule({
 		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let currentFile = classifyFile(context.filename, featureRoots)
 
+		function check(
+			node:
+				| TSESTree.ImportDeclaration
+				| TSESTree.ExportNamedDeclaration
+				| TSESTree.ExportAllDeclaration,
+			source: string,
+			isTypeOnly: boolean,
+		) {
+			if (isTypeOnly) return
+
+			let imported = classifyImport(
+				source,
+				context.filename,
+				aliases,
+				featureRoots,
+			)
+			if (!LEAF_ZONES.has(imported.zone)) return
+
+			if (
+				ALLOWED_ZONES.has(currentFile.zone) &&
+				isSameFeature(currentFile, imported)
+			) {
+				return
+			}
+
+			context.report({
+				node,
+				messageId: "forbidden",
+				data: { zone: currentFile.zone },
+			})
+		}
+
 		return {
 			ImportDeclaration(node) {
-				if (node.importKind === "type") return
-
-				let imported = classifyImport(
-					node.source.value,
-					context.filename,
-					aliases,
-					featureRoots,
-				)
-				if (!LEAF_ZONES.has(imported.zone)) return
-
-				if (
-					ALLOWED_ZONES.has(currentFile.zone) &&
-					isSameFeature(currentFile, imported)
-				) {
-					return
-				}
-
-				context.report({
-					node,
-					messageId: "forbidden",
-					data: { zone: currentFile.zone },
-				})
+				check(node, node.source.value, node.importKind === "type")
+			},
+			ExportNamedDeclaration(node) {
+				if (!node.source) return
+				check(node, node.source.value, node.exportKind === "type")
+			},
+			ExportAllDeclaration(node) {
+				check(node, node.source.value, node.exportKind === "type")
 			},
 		}
 	},

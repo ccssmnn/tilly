@@ -38,6 +38,5 @@ async function triggerNotificationRegistration(
 		return { ok: false, error: errorMessage }
 	}
 
-	console.log("[Notifications] Registration triggered successfully")
 	return { ok: true }
 }

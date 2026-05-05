@@ -10,7 +10,7 @@ export {
 	type LoadedPerson,
 } from "./lib/person-detail-data"
 export { NewPerson } from "./widgets/new-person"
-export { PersonSelector } from "./parts/person-selector"
+export { PersonSelector } from "./widgets/person-selector"
 export { getSharingStatus } from "./lib/sharing-status"
 export { SharedIndicator } from "#app/components/shared-indicator"
 export {
@@ -18,7 +18,7 @@ export {
 	ListFilterStatus,
 	ListFilterSort,
 	ListFilterLists,
-} from "./parts/list-filter-button"
+} from "./widgets/list-filter-button"
 export { hasHashtag, useAvailableLists } from "./lib/list-utilities"
 export type { PersonWithSummary, AvailableList } from "./lib/list-utilities"
 export { usePeopleStore } from "./lib/store"

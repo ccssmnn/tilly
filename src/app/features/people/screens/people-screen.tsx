@@ -9,7 +9,7 @@ import {
 	ListFilterStatus,
 	ListFilterSort,
 	ListFilterLists,
-} from "../parts/list-filter-button"
+} from "../widgets/list-filter-button"
 import { useAvailableLists } from "../lib/list-utilities"
 import { usePeopleStore } from "../lib/store"
 import { calculateEagerLoadCount } from "#shared/lib/viewport-utils"

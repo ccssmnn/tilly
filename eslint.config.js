@@ -121,6 +121,10 @@ export default [
 				"error",
 				architectureOptions,
 			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
 		},
 	},
 	{
@@ -132,6 +136,14 @@ export default [
 		plugins: { architecture },
 		rules: {
 			"architecture/no-deep-feature-imports": ["error", architectureOptions],
+			"architecture/only-routes-may-import-screens": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
 		},
 	},
 	{

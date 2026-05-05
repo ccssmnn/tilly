@@ -49,6 +49,11 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			filename: "/project/src/app/features/notes/hooks/useNotes.ts",
 		},
 		{
+			// type-only re-export exempt
+			code: `export type { NoteItemProps } from "./parts/NoteItem"`,
+			filename: "/project/src/app/features/notes/index.ts",
+		},
+		{
 			// middleware imports lib — same feature (server)
 			code: `import { clerkClient } from "../lib/clerk-client"`,
 			filename: "/project/src/server/features/auth/middleware/auth.ts",
@@ -80,8 +85,20 @@ ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 			errors: [{ messageId: "forbidden" }],
 		},
 		{
-			// feature index must not import parts (re-export with export-from is OK)
+			// feature index must not import parts
 			code: `import { NoteItem } from "#app/features/notes/parts/NoteItem"`,
+			filename: "/project/src/app/features/notes/index.ts",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// feature index must not re-export parts (export-from is also forbidden)
+			code: `export { NoteItem } from "#app/features/notes/parts/NoteItem"`,
+			filename: "/project/src/app/features/notes/index.ts",
+			errors: [{ messageId: "forbidden" }],
+		},
+		{
+			// feature index must not star-re-export parts
+			code: `export * from "./parts/NoteItem"`,
 			filename: "/project/src/app/features/notes/index.ts",
 			errors: [{ messageId: "forbidden" }],
 		},

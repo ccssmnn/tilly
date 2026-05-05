@@ -108,6 +108,10 @@ function SwipeableListItem({
 	}, [swipeAmount, prefersReducedMotion])
 
 	useEffect(() => {
+		return () => clearActiveSwipe(id)
+	}, [id])
+
+	useEffect(() => {
 		swipeAmount.jump(0)
 		fullSwipeSnap.current = null
 	}, [swipeAmount])
@@ -165,7 +169,7 @@ function SwipeableListItem({
 				if (e.pointerType !== "touch") return
 				if ((e.target as HTMLElement)?.closest("[data-swipe-action]")) return
 
-				if (activeSwipeId !== id) closeActiveSwipe()
+				closeOtherActiveSwipe(id)
 
 				gestureState.current = "pending"
 				startX.current = e.clientX
@@ -292,10 +296,10 @@ function SwipeableListItem({
 					}
 
 					if (target !== 0) {
-						activeSwipeId = id
-						closeActiveSwipe = reset
+						setActiveSwipe(id, reset)
 						setIsOpen(true)
 					} else {
+						clearActiveSwipe(id)
 						setIsOpen(false)
 					}
 
@@ -599,5 +603,24 @@ let FULL_SWIPE_THRESHOLD = 0.5
 let RESISTANCE = 0.3
 let APPEAR_INITIAL_SCALE = 0.3
 
-let activeSwipeId: string | null = null
-let closeActiveSwipe = () => {}
+// Coordinates the "only one row open at a time" UI invariant across all
+// SwipeableListItem instances. Lives at module scope on purpose so virtualized
+// lists with no shared parent still cooperate. Tracked instances unregister on
+// unmount, so a row that gets recycled while open can't leave a stale callback.
+let activeSwipe: { id: string; close: () => void } | null = null
+
+function setActiveSwipe(id: string, close: () => void) {
+	if (activeSwipe && activeSwipe.id !== id) activeSwipe.close()
+	activeSwipe = { id, close }
+}
+
+function clearActiveSwipe(id: string) {
+	if (activeSwipe?.id === id) activeSwipe = null
+}
+
+function closeOtherActiveSwipe(id: string) {
+	if (activeSwipe && activeSwipe.id !== id) {
+		activeSwipe.close()
+		activeSwipe = null
+	}
+}

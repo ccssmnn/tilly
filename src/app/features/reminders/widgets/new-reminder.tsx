@@ -8,7 +8,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#shared/ui/dialog"
-import { ReminderForm } from "../parts/reminder-form"
+import { ReminderForm } from "./reminder-form"
 import { PersonSelector } from "#app/features/people"
 import { createReminder } from "#shared/tools/reminder-create"
 import { tryCatch } from "#shared/lib/trycatch"

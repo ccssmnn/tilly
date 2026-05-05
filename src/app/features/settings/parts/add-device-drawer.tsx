@@ -121,8 +121,6 @@ function AddDeviceDrawer({
 	}
 
 	async function handleAddDevice(values: z.infer<typeof addDeviceSchema>) {
-		console.log("[AddDevice] Starting add device flow...")
-
 		let permissionResult = await tryCatch(requestPermission())
 		if (!permissionResult.ok) {
 			console.error(
@@ -133,7 +131,6 @@ function AddDeviceDrawer({
 			return
 		}
 
-		console.log("[AddDevice] Permission result:", permissionResult.data)
 		setPermission(permissionResult.data)
 
 		if (permissionResult.data !== "granted") {

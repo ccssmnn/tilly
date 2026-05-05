@@ -79,7 +79,6 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 	let isShareableGroup = owner instanceof Group
 
 	if (!isShareableGroup) {
-		console.log("[Notifications] Migrating to shareable group")
 		let migrationResult = await tryCatch(
 			migrateNotificationSettings(notificationSettings, serverAccountId, {
 				loadAs: me,
@@ -96,7 +95,6 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 		// Defer cleanup to next tick so new settings are persisted first
 		setTimeout(cleanup, 0)
 		notificationSettings = newSettings
-		console.log("[Notifications] Migration complete")
 	} else {
 		// Ensure server worker is a member
 		let group = owner as Group
@@ -127,8 +125,6 @@ async function registerNotificationSettings(me: LoadedAccount): Promise<void> {
 		console.error("[Notifications] Registration failed:", registerResult.error)
 		return
 	}
-
-	console.log("[Notifications] Registration successful")
 }
 
 function computeLatestReminderDueDate(me: LoadedAccount): string | undefined {
@@ -195,7 +191,6 @@ async function triggerNotificationRegistration(
 		return { ok: false, error: errorMessage }
 	}
 
-	console.log("[Notifications] Registration triggered successfully")
 	return { ok: true }
 }
 

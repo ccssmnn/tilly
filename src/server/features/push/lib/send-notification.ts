@@ -37,8 +37,6 @@ async function sendNotificationToDevice(
 	device: PushDevice,
 	payload: NotificationPayload,
 ): Promise<Result<void, SendFailed>> {
-	console.log(`📤 Sending to: ${device.endpoint.slice(-20)}`)
-
 	return Result.tryPromise({
 		try: () =>
 			webpush.sendNotification(

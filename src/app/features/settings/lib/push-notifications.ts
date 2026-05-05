@@ -37,8 +37,6 @@ async function subscribeToPushNotifications(): Promise<{
 		auth: string
 	}
 }> {
-	console.log("[Push] Starting subscription flow...")
-
 	let registrationResult = await tryCatch(getServiceWorkerRegistration())
 	if (!registrationResult.ok) {
 		console.error(
@@ -56,22 +54,13 @@ async function subscribeToPushNotifications(): Promise<{
 		throw new Error("Service worker not registered")
 	}
 
-	console.log("[Push] SW registration found:", registration.scope)
-
 	if (!PUBLIC_VAPID_KEY) {
 		console.error("[Push] PUBLIC_VAPID_KEY is empty/undefined")
 		throw new Error("VAPID public key not configured")
 	}
 
-	console.log(
-		"[Push] Subscribing with VAPID key:",
-		PUBLIC_VAPID_KEY.slice(0, 20) + "...",
-	)
-
-	// Check for existing subscription first
 	let existingSub = await registration.pushManager.getSubscription()
 	if (existingSub) {
-		console.log("[Push] Found existing subscription, unsubscribing first...")
 		await existingSub.unsubscribe()
 	}
 
@@ -88,11 +77,6 @@ async function subscribeToPushNotifications(): Promise<{
 	}
 
 	let subscription = subscriptionResult.data
-	console.log("[Push] Subscription created:", {
-		endpoint: subscription.endpoint,
-		expirationTime: subscription.expirationTime,
-	})
-
 	let p256dh = subscription.getKey("p256dh")
 	let auth = subscription.getKey("auth")
 
