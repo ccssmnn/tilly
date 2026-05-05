@@ -16,7 +16,7 @@ const createRule = ESLintUtils.RuleCreator(
 )
 
 const LEAF_ZONES: Set<Zone> = new Set(["part", "feature-lib", "hook"])
-const ALLOWED_ZONES: Set<Zone> = new Set([
+const COMPOSITION_ZONES: Set<Zone> = new Set([
 	"screen",
 	"widget",
 	"handler",
@@ -24,6 +24,10 @@ const ALLOWED_ZONES: Set<Zone> = new Set([
 	"middleware",
 	"app",
 ])
+// `feature-lib` and `hook` are leaves but form part of the public surface, so
+// the feature index may re-export them. `part` is strictly private and may
+// only be reached from the same feature's composition layer.
+const BARREL_REEXPORTABLE: Set<Zone> = new Set(["feature-lib", "hook"])
 
 export default createRule({
 	name: "only-screens-and-widgets-may-import-parts",
@@ -77,6 +81,7 @@ export default createRule({
 				| TSESTree.ExportAllDeclaration,
 			source: string,
 			isTypeOnly: boolean,
+			isReexport: boolean,
 		) {
 			if (isTypeOnly) return
 
@@ -89,7 +94,16 @@ export default createRule({
 			if (!LEAF_ZONES.has(imported.zone)) return
 
 			if (
-				ALLOWED_ZONES.has(currentFile.zone) &&
+				COMPOSITION_ZONES.has(currentFile.zone) &&
+				isSameFeature(currentFile, imported)
+			) {
+				return
+			}
+
+			if (
+				isReexport &&
+				currentFile.zone === "feature-index" &&
+				BARREL_REEXPORTABLE.has(imported.zone) &&
 				isSameFeature(currentFile, imported)
 			) {
 				return
@@ -104,14 +118,14 @@ export default createRule({
 
 		return {
 			ImportDeclaration(node) {
-				check(node, node.source.value, node.importKind === "type")
+				check(node, node.source.value, node.importKind === "type", false)
 			},
 			ExportNamedDeclaration(node) {
 				if (!node.source) return
-				check(node, node.source.value, node.exportKind === "type")
+				check(node, node.source.value, node.exportKind === "type", true)
 			},
 			ExportAllDeclaration(node) {
-				check(node, node.source.value, node.exportKind === "type")
+				check(node, node.source.value, node.exportKind === "type", true)
 			},
 		}
 	},
