@@ -1,10 +1,31 @@
 name: tilly
 icon: public/apple-touch-icon.png
 processes:
+  Lazygit:
+    command: lazygit
+    working_dir: null
+    auto_start: true
+    auto_restart: true
+    restart_when_changed: []
+    env: {}
   Dev:
     command: bun run dev
     working_dir: null
     auto_start: true
     auto_restart: false
+    restart_when_changed: []
+    env: {}
+  Sync:
+    command: bun run dev:sync
+    working_dir: null
+    auto_start: true
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
+  Helix:
+    command: hx .
+    working_dir: null
+    auto_start: true
+    auto_restart: true
     restart_when_changed: []
     env: {}

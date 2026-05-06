@@ -3,7 +3,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "bun scripts/dev.ts",
+		"dev": "portless run astro dev",
+		"dev:sync": "portless tilly-sync sh -c 'bunx jazz-run sync --port \"$PORT\" --host \"$HOST\"'",
 		"build": "astro build",
 		"build:prod": "astro build",
 		"build:node": "ASTRO_ADAPTER=node astro build",
@@ -99,6 +100,7 @@
 		"globals": "^17.6.0",
 		"jsdom": "^29.1.1",
 		"knip": "^6.11.0",
+		"portless": "^0.12.0",
 		"prettier": "^3.8.3",
 		"prettier-plugin-astro": "^0.14.1",
 		"prettier-plugin-tailwindcss": "^0.8.0",
