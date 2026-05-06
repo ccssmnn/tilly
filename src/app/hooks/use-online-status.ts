@@ -7,6 +7,29 @@ function useOnlineStatus(): boolean {
 	let [hasCheckedConnectivity, setHasCheckedConnectivity] = useState(false)
 
 	useEffect(() => {
+		async function checkConnectivity() {
+			try {
+				await fetch("/online-check", {
+					method: "GET",
+					cache: "no-cache",
+					signal: AbortSignal.timeout(2000),
+				})
+				setIsOnline(true)
+			} catch {
+				setIsOnline(false)
+			} finally {
+				setHasCheckedConnectivity(true)
+			}
+		}
+
+		function handleOnline() {
+			setIsOnline(true)
+		}
+
+		function handleOffline() {
+			setIsOnline(false)
+		}
+
 		if (navigator.onLine && !hasCheckedConnectivity) {
 			checkConnectivity()
 		}
@@ -19,29 +42,6 @@ function useOnlineStatus(): boolean {
 			window.removeEventListener("offline", handleOffline)
 		}
 	}, [hasCheckedConnectivity])
-
-	async function checkConnectivity() {
-		try {
-			await fetch("/online-check", {
-				method: "GET",
-				cache: "no-cache",
-				signal: AbortSignal.timeout(2000),
-			})
-			setIsOnline(true)
-		} catch {
-			setIsOnline(false)
-		} finally {
-			setHasCheckedConnectivity(true)
-		}
-	}
-
-	function handleOnline() {
-		setIsOnline(true)
-	}
-
-	function handleOffline() {
-		setIsOnline(false)
-	}
 
 	return isOnline
 }

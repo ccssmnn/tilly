@@ -1,14 +1,8 @@
 export {
-	getCoListLength,
 	getLoadedCoListValues,
-	hasCoListRefById,
 	removeCoListRefsById,
 	removeCoValueRefsByLoadingStates,
 	removeDeletedCoValueRefs,
-}
-
-function getCoListLength(list: unknown): number {
-	return hasCoListShape(list) ? list.length : 0
 }
 
 function getLoadedCoListValues<T extends { $isLoaded?: boolean }>(
@@ -46,15 +40,6 @@ function removeCoValueRefsByLoadingStates(
 			list.$jazz.splice(i, 1)
 		}
 	}
-}
-
-function hasCoListRefById(list: unknown, id: string): boolean {
-	if (!hasCoListShape(list)) return false
-	let listAny = list as unknown as Array<{ $jazz?: { id?: string } } | null>
-	for (let item of listAny) {
-		if (item?.$jazz?.id === id) return true
-	}
-	return false
 }
 
 function removeCoListRefsById(list: unknown, id: string): void {

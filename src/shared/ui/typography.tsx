@@ -1,6 +1,3 @@
-import { Slot as SlotPrimitive } from "radix-ui"
-
-let { Slot } = SlotPrimitive
 import { cn } from "#app/lib/utils"
 import type { JSX, ReactNode } from "react"
 
@@ -19,15 +16,9 @@ export {
 	TypographySmall,
 }
 
-function TypographyH1({
-	children,
-	className,
-	asChild,
-	...props
-}: TypographyH1Props) {
-	let Component = asChild ? Slot : "h1"
+function TypographyH1({ children, className, ...props }: TypographyH1Props) {
 	return (
-		<Component
+		<h1
 			className={cn(
 				"scroll-m-20 text-4xl font-extrabold tracking-tight text-balance",
 				className,
@@ -35,19 +26,13 @@ function TypographyH1({
 			{...props}
 		>
 			{children}
-		</Component>
+		</h1>
 	)
 }
 
-function TypographyH2({
-	children,
-	className,
-	asChild,
-	...props
-}: TypographyH2Props) {
-	let Component = asChild ? Slot : "h2"
+function TypographyH2({ children, className, ...props }: TypographyH2Props) {
 	return (
-		<Component
+		<h2
 			className={cn(
 				"text-foreground mt-10 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0",
 				className,
@@ -55,19 +40,13 @@ function TypographyH2({
 			{...props}
 		>
 			{children}
-		</Component>
+		</h2>
 	)
 }
 
-function TypographyH3({
-	children,
-	className,
-	asChild,
-	...props
-}: TypographyH3Props) {
-	let Component = asChild ? Slot : "h3"
+function TypographyH3({ children, className, ...props }: TypographyH3Props) {
 	return (
-		<Component
+		<h3
 			className={cn(
 				"mt-8 scroll-m-20 text-2xl font-semibold tracking-tight",
 				className,
@@ -75,19 +54,13 @@ function TypographyH3({
 			{...props}
 		>
 			{children}
-		</Component>
+		</h3>
 	)
 }
 
-function TypographyH4({
-	children,
-	className,
-	asChild,
-	...props
-}: TypographyH4Props) {
-	let Component = asChild ? Slot : "h4"
+function TypographyH4({ children, className, ...props }: TypographyH4Props) {
 	return (
-		<Component
+		<h4
 			className={cn(
 				"scroll-m-20 text-xl font-semibold tracking-tight",
 				className,
@@ -95,70 +68,55 @@ function TypographyH4({
 			{...props}
 		>
 			{children}
-		</Component>
+		</h4>
 	)
 }
 
-function TypographyP({
-	children,
-	className,
-	asChild,
-	...props
-}: TypographyPProps) {
-	let Component = asChild ? Slot : "p"
+function TypographyP({ children, className, ...props }: TypographyPProps) {
 	return (
-		<Component
+		<p
 			className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}
 			{...props}
 		>
 			{children}
-		</Component>
+		</p>
 	)
 }
 
 function TypographyBlockquote({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographyBlockquoteProps) {
-	let Component = asChild ? Slot : "blockquote"
 	return (
-		<Component
+		<blockquote
 			className={cn("mt-6 border-l-2 pl-6 italic", className)}
 			{...props}
 		>
 			{children}
-		</Component>
+		</blockquote>
 	)
 }
 
 function TypographyList({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographyListProps) {
-	let Component = asChild ? Slot : "ul"
 	return (
-		<Component
-			className={cn("my-6 ml-6 list-disc [&>li]:mt-2", className)}
-			{...props}
-		>
+		<ul className={cn("my-6 ml-6 list-disc [&>li]:mt-2", className)} {...props}>
 			{children}
-		</Component>
+		</ul>
 	)
 }
 
 function TypographyInlineCode({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographyInlineCodeProps) {
-	let Component = asChild ? Slot : "code"
 	return (
-		<Component
+		<code
 			className={cn(
 				"bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
 				className,
@@ -166,79 +124,64 @@ function TypographyInlineCode({
 			{...props}
 		>
 			{children}
-		</Component>
+		</code>
 	)
 }
 
 function TypographyLead({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographyLeadProps) {
-	let Component = asChild ? Slot : "p"
 	return (
-		<Component
-			className={cn("text-muted-foreground text-xl", className)}
-			{...props}
-		>
+		<p className={cn("text-muted-foreground text-xl", className)} {...props}>
 			{children}
-		</Component>
+		</p>
 	)
 }
 
 function TypographyLarge({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographyLargeProps) {
-	let Component = asChild ? Slot : "div"
 	return (
-		<Component className={cn("text-lg font-semibold", className)} {...props}>
+		<div className={cn("text-lg font-semibold", className)} {...props}>
 			{children}
-		</Component>
+		</div>
 	)
 }
 
 function TypographySmall({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographySmallProps) {
-	let Component = asChild ? Slot : "small"
 	return (
-		<Component
+		<small
 			className={cn("text-sm leading-none font-medium", className)}
 			{...props}
 		>
 			{children}
-		</Component>
+		</small>
 	)
 }
 
 function TypographyMuted({
 	children,
 	className,
-	asChild,
 	...props
 }: TypographyMutedProps) {
-	let Component = asChild ? Slot : "p"
 	return (
-		<Component
-			className={cn("text-muted-foreground text-sm", className)}
-			{...props}
-		>
+		<p className={cn("text-muted-foreground text-sm", className)} {...props}>
 			{children}
-		</Component>
+		</p>
 	)
 }
 
 type TypographyProps<T extends keyof JSX.IntrinsicElements> = {
 	children: ReactNode
 	className?: string
-	asChild?: boolean
 } & Omit<JSX.IntrinsicElements[T], "className" | "children">
 
 type TypographyH1Props = TypographyProps<"h1">

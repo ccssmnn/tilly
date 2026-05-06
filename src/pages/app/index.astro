@@ -74,6 +74,13 @@ let metaDescription =
 			<SplashScreen slot="fallback" />
 		</PWA>
 		<script>
+			let redirectPath = new URL(window.location.href).searchParams.get(
+				"__app_redirect",
+			)
+			if (redirectPath && redirectPath.startsWith("/app")) {
+				window.history.replaceState(window.history.state, "", redirectPath)
+			}
+
 			window.__pageLoadTime = Date.now()
 			function updateThemeColor() {
 				let meta = document.getElementById("theme-color")
@@ -85,16 +92,6 @@ let metaDescription =
 			}
 
 			updateThemeColor()
-
-			let observer = new MutationObserver(mutations => {
-				for (let m of mutations) {
-					if (m.type === "attributes" && m.attributeName === "class") {
-						updateThemeColor()
-					}
-				}
-			})
-
-			observer.observe(document.documentElement, { attributes: true })
 		</script>
 	</body>
 </html>

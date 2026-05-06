@@ -1,4 +1,9 @@
-import { Github, Twitter, Instagram } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+	Github01Icon,
+	NewTwitterIcon,
+	InstagramIcon,
+} from "@hugeicons/core-free-icons"
 
 export { Footer }
 
@@ -14,9 +19,9 @@ interface Props {
 }
 
 let iconMap = {
-	Twitter,
-	Github,
-	Instagram,
+	Twitter: { icon: NewTwitterIcon },
+	Github: { icon: Github01Icon },
+	Instagram: { icon: InstagramIcon },
 }
 
 function Footer({ navigation, company }: Props) {
@@ -31,7 +36,7 @@ function Footer({ navigation, company }: Props) {
 						<a
 							key={item.name}
 							href={item.href}
-							className="text-muted-foreground hover:text-foreground transition-colors"
+							className="text-muted-foreground pointer-fine:hover:text-foreground transition-colors"
 						>
 							{item.name}
 						</a>
@@ -44,7 +49,7 @@ function Footer({ navigation, company }: Props) {
 								{index > 0 && <span className="text-muted-foreground">•</span>}
 								<a
 									href={item.href}
-									className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+									className="text-muted-foreground pointer-fine:hover:text-foreground text-sm transition-colors"
 								>
 									{item.name}
 								</a>
@@ -54,15 +59,15 @@ function Footer({ navigation, company }: Props) {
 				)}
 				<div className="mt-8 flex justify-center gap-x-6">
 					{navigation.social.map(item => {
-						let IconComponent = iconMap[item.icon as keyof typeof iconMap]
+						let iconData = iconMap[item.icon as keyof typeof iconMap]
 						return (
 							<a
 								key={item.name}
 								href={item.href}
-								className="text-muted-foreground hover:text-foreground transition-colors"
+								className="text-muted-foreground pointer-fine:hover:text-foreground transition-colors"
 							>
 								<span className="sr-only">{item.name}</span>
-								<IconComponent className="h-5 w-5" />
+								<HugeiconsIcon icon={iconData.icon} className="h-5 w-5" />
 							</a>
 						)
 					})}

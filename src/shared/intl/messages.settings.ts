@@ -96,11 +96,11 @@ const baseSettingsMessages = messages({
 	"settings.data.delete.error.load": "Failed to load account data",
 	"settings.data.delete.error.rootMissing": "Account root missing",
 	"settings.about.title": "About",
-	"settings.about.description":
-		"Learn more about Tilly or redo the welcome tour.",
-	"settings.about.visit": "Visit Website",
-	"settings.about.learnMore": "Read About Journaling",
-	"settings.about.redoTour": "Take the Tour",
+	"settings.about.description": "Links to Tilly resources.",
+	"settings.about.website": "Website",
+	"settings.about.blog": "Blog",
+	"settings.about.privacy": "Privacy Policy",
+	"settings.about.github": "GitHub",
 	"settings.language.title": "Language",
 	"settings.language.description": "Choose your preferred language.",
 	"settings.language.select.label": "Language",
@@ -245,8 +245,8 @@ const baseSettingsMessages = messages({
 	"notifications.devices.table.status": "Status",
 	"notifications.devices.remove": "Remove",
 	"notifications.devices.editName": "Edit name",
-	"notifications.devices.editDialog.title": "Edit Device Name",
-	"notifications.devices.editDialog.description":
+	"notifications.devices.editDrawer.title": "Edit Device Name",
+	"notifications.devices.editDrawer.description":
 		"Change the display name for this device.",
 	"notifications.devices.remove.confirm.title": "Remove Device",
 	"notifications.devices.remove.confirm.description":
@@ -307,10 +307,10 @@ const baseSettingsMessages = messages({
 	"notifications.lastDelivery.description":
 		"When reminders were last checked and, if needed, delivered. Reset this to force another check on the next hourly run.",
 	"notifications.devices.addButton": "Add This Device",
-	"notifications.devices.addDialog.title": "Add This Device",
-	"notifications.devices.addDialog.description.enabled":
+	"notifications.devices.addDrawer.title": "Add This Device",
+	"notifications.devices.addDrawer.description.enabled":
 		"Enable push notifications for this device to receive reminders.",
-	"notifications.devices.addDialog.description.blocked":
+	"notifications.devices.addDrawer.description.blocked":
 		"Push notifications are blocked. Please enable them in your browser settings.",
 	"notifications.devices.nameLabel": "Device Name",
 	"notifications.devices.name.required": "Device name is required",
@@ -357,6 +357,7 @@ const baseSettingsMessages = messages({
 	"status.notSignedIn.benefits":
 		"Sign in to back up and sync your data, and receive push notifications",
 	"status.notSignedIn.signIn": "Sign In",
+	"status.notSignedIn.dismiss": "Dismiss",
 })
 
 let deSettingsMessages = translate(baseSettingsMessages, {
@@ -455,11 +456,11 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"settings.data.delete.error.load": "Kontodaten konnten nicht geladen werden",
 	"settings.data.delete.error.rootMissing": "Konto-Stammdaten fehlen",
 	"settings.about.title": "Über",
-	"settings.about.description":
-		"Erfahre mehr über Tilly oder wiederhole die Willkommens-Tour.",
-	"settings.about.visit": "Webseite besuchen",
-	"settings.about.learnMore": "Über Journaling lesen",
-	"settings.about.redoTour": "Tour starten",
+	"settings.about.description": "Links zu Tilly-Ressourcen.",
+	"settings.about.website": "Webseite",
+	"settings.about.blog": "Blog",
+	"settings.about.privacy": "Datenschutz",
+	"settings.about.github": "GitHub",
 	"settings.language.title": "Sprache",
 	"settings.language.description": "Wähle deine bevorzugte Sprache.",
 	"settings.language.select.label": "Sprache",
@@ -608,8 +609,8 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.devices.table.status": "Status",
 	"notifications.devices.remove": "Entfernen",
 	"notifications.devices.editName": "Namen bearbeiten",
-	"notifications.devices.editDialog.title": "Gerätenamen bearbeiten",
-	"notifications.devices.editDialog.description":
+	"notifications.devices.editDrawer.title": "Gerätenamen bearbeiten",
+	"notifications.devices.editDrawer.description":
 		"Ändere den Anzeigenamen für dieses Gerät.",
 	"notifications.devices.remove.confirm.title": "Gerät entfernen",
 	"notifications.devices.remove.confirm.description":
@@ -673,10 +674,10 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"notifications.lastDelivery.description":
 		"Wann Erinnerungen zuletzt geprüft und bei Bedarf zugestellt wurden. Setze dies zurück, um beim nächsten stündlichen Durchlauf eine erneute Prüfung zu erzwingen.",
 	"notifications.devices.addButton": "Dieses Gerät hinzufügen",
-	"notifications.devices.addDialog.title": "Dieses Gerät hinzufügen",
-	"notifications.devices.addDialog.description.enabled":
+	"notifications.devices.addDrawer.title": "Dieses Gerät hinzufügen",
+	"notifications.devices.addDrawer.description.enabled":
 		"Aktiviere Push-Benachrichtigungen für dieses Gerät, um Erinnerungen zu erhalten.",
-	"notifications.devices.addDialog.description.blocked":
+	"notifications.devices.addDrawer.description.blocked":
 		"Push-Benachrichtigungen sind blockiert. Bitte aktiviere sie in deinen Browser-Einstellungen.",
 	"notifications.devices.nameLabel": "Gerätename",
 	"notifications.devices.name.required": "Gerätename ist erforderlich",
@@ -727,4 +728,5 @@ let deSettingsMessages = translate(baseSettingsMessages, {
 	"status.notSignedIn.benefits":
 		"Melde dich an, um deine Daten zu sichern, zu synchronisieren und Push-Benachrichtigungen zu erhalten",
 	"status.notSignedIn.signIn": "Anmelden",
+	"status.notSignedIn.dismiss": "Ausblenden",
 })

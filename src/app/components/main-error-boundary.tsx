@@ -93,7 +93,7 @@ function ErrorFallback({
 					href={`/${locale}/feedback`}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="text-primary block text-sm hover:underline"
+					className="text-primary block text-sm pointer-fine:hover:underline"
 				>
 					Report this issue →
 				</a>

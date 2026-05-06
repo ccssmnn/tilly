@@ -25,7 +25,7 @@ function FAQ({ title, description, faqs }: Props) {
 				{description && <TypographyP>{description}</TypographyP>}
 			</div>
 			<div className="mx-auto mt-10 max-w-2xl md:mt-16">
-				<Accordion type="single" collapsible className="w-full">
+				<Accordion className="w-full">
 					{faqs.map((faq, index) => (
 						<AccordionItem key={index} value={`item-${index}`}>
 							<AccordionTrigger className="text-left">

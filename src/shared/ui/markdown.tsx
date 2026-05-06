@@ -31,7 +31,7 @@ const components: Partial<Components> = {
 	a: ({ children, href, ...props }) => {
 		return (
 			<a
-				className="text-primary hover:text-primary/80 font-medium underline underline-offset-4"
+				className="text-primary pointer-fine:hover:text-primary/80 font-medium underline underline-offset-4"
 				href={href}
 				target="_blank"
 				rel="noreferrer"

@@ -16,5 +16,5 @@
 		]
 	},
 	"include": [".astro/types.d.ts", "**/*"],
-	"exclude": ["dist", "vitest.config.ts", "tilly-worktree"]
+	"exclude": ["dist", "vitest.config.ts", "tilly-worktree", "scripts", "tools"]
 }

@@ -3,7 +3,7 @@ import { SignInButton } from "@clerk/clerk-react"
 import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
 import { TypographyH1, TypographyLead } from "#shared/ui/typography"
-import { useAppStore } from "#app/lib/store"
+import { useTourStore } from "#app/features/tour"
 import { T } from "#shared/intl/setup"
 import {
 	SkipForwardFill,
@@ -13,7 +13,7 @@ import {
 
 export const Route = createFileRoute("/")({
 	loader: () => {
-		let tourSkipped = useAppStore.getState().tourSkipped
+		let tourSkipped = useTourStore.getState().tourSkipped
 		if (tourSkipped) {
 			throw redirect({ to: "/people" })
 		}
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
 })
 
 function WelcomeIndex() {
-	let setTourSkipped = useAppStore(state => state.setTourSkipped)
+	let setTourSkipped = useTourStore(state => state.setTourSkipped)
 
 	return (
 		<div
@@ -44,11 +44,15 @@ function WelcomeIndex() {
 						animate={{ y: 0, opacity: 1 }}
 						transition={{ delay: 0.4 }}
 					>
-						<Button variant="outline" asChild>
-							<Link to="/people" onClick={() => setTourSkipped(true)}>
-								<SkipForwardFill />
-								<T k="welcome.skip" />
-							</Link>
+						<Button
+							nativeButton={false}
+							variant="outline"
+							render={
+								<Link to="/people" onClick={() => setTourSkipped(true)} />
+							}
+						>
+							<SkipForwardFill />
+							<T k="welcome.skip" />
 						</Button>
 					</motion.div>
 				</div>
@@ -79,17 +83,19 @@ function WelcomeIndex() {
 							transition={{ delay: 0.4, duration: 0.4 }}
 							className="flex items-center gap-3"
 						>
-							<Button asChild className="h-12">
-								<Link to="/tour">
-									<LightbulbFill />
-									<T k="welcome.takeTour" />
-								</Link>
+							<Button
+								nativeButton={false}
+								render={
+									<Link to="/tour" onClick={() => setTourSkipped(false)} />
+								}
+							>
+								<LightbulbFill />
+								<T k="welcome.takeTour" />
 							</Button>
 							<SignInButton mode="redirect" forceRedirectUrl="/app/people">
 								<Button
 									variant="secondary"
 									onClick={() => setTourSkipped(true)}
-									className="h-12"
 								>
 									<PersonCircle />
 									<T k="welcome.signIn" />

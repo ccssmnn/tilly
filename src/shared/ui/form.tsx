@@ -1,7 +1,4 @@
 import * as React from "react"
-import { Label as LabelPrimitive, Slot as SlotPrimitive } from "radix-ui"
-
-const { Slot } = SlotPrimitive
 import {
 	Controller,
 	FormProvider,
@@ -86,10 +83,7 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
 	)
 }
 
-function FormLabel({
-	className,
-	...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+function FormLabel({ className, ...props }: React.ComponentProps<"label">) {
 	const { error, formItemId } = useFormField()
 
 	return (
@@ -103,22 +97,21 @@ function FormLabel({
 	)
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+function FormControl({
+	children,
+}: {
+	children: React.ReactElement<Record<string, unknown>>
+}) {
 	const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
-	return (
-		<Slot
-			data-slot="form-control"
-			id={formItemId}
-			aria-describedby={
-				!error
-					? `${formDescriptionId}`
-					: `${formDescriptionId} ${formMessageId}`
-			}
-			aria-invalid={!!error}
-			{...props}
-		/>
-	)
+	return React.cloneElement(children, {
+		"data-slot": "form-control",
+		id: formItemId,
+		"aria-describedby": !error
+			? formDescriptionId
+			: `${formDescriptionId} ${formMessageId}`,
+		"aria-invalid": !!error || undefined,
+	})
 }
 
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {

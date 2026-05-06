@@ -9,13 +9,14 @@ import { UserAccount } from "#shared/schema/user"
 import { routeTree } from "#app/routeTree.gen"
 import { IntlProvider } from "#shared/intl/setup"
 import { messagesDe } from "#shared/intl/messages"
-import { useSyncRemindersToServiceWorker } from "#app/hooks/use-sync-reminders-to-sw"
+import { useSyncRemindersToServiceWorker } from "#app/features/reminders"
 import { PWAContext, usePWAProvider } from "#app/lib/pwa"
 import {
 	SplashScreen,
 	SplashScreenStatic,
 	useSplashDelay,
 } from "./components/splash-screen"
+import { PWAInstallHint } from "#app/components/pwa-install-hint"
 import { Toaster } from "#shared/ui/sonner"
 import { MainErrorBoundary } from "#app/components/main-error-boundary"
 
@@ -46,7 +47,7 @@ function JazzWithClerk() {
 				fallback={<SplashScreenStatic />}
 			>
 				<RouterWithJazz />
-				<Toaster richColors />
+				<Toaster />
 			</JazzReactProviderWithClerk>
 		</PWAContext.Provider>
 	)
@@ -74,10 +75,12 @@ function RouterWithJazz() {
 			<SplashScreen show={showSplash} />
 			{locale === "de" ? (
 				<IntlProvider messages={messagesDe} locale="de">
+					<PWAInstallHint />
 					<RouterProvider router={router} context={{ me: contextMe }} />
 				</IntlProvider>
 			) : (
 				<IntlProvider>
+					<PWAInstallHint />
 					<RouterProvider router={router} context={{ me: contextMe }} />
 				</IntlProvider>
 			)}

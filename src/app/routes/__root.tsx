@@ -50,13 +50,13 @@ function ErrorComponent({ error }: { error?: Error }) {
 					href={`/${locale}/feedback`}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="text-primary text-sm hover:underline"
+					className="text-primary text-sm pointer-fine:hover:underline"
 				>
 					<T k="error.feedback" />
 				</a>
 			}
 			actions={
-				<Button asChild variant="outline" className="w-full">
+				<Button variant="outline" className="w-full">
 					<Link to="/">
 						<T k="error.goBack" />
 					</Link>
@@ -98,7 +98,7 @@ function NotFoundComponent() {
 					>
 						<T k="notFound.goBack" />
 					</Button>
-					<Button asChild className="flex-1">
+					<Button className="flex-1">
 						<Link to="/people">
 							<T k="notFound.goToPeople" />
 						</Link>

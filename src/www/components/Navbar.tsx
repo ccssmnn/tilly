@@ -13,7 +13,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "#shared/ui/dropdown-menu"
-import { List } from "react-bootstrap-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Menu01Icon } from "@hugeicons/core-free-icons"
 import { IntlProvider, T } from "#shared/intl/setup"
 import { messagesDe, messagesEn } from "#shared/intl/messages"
 
@@ -59,7 +60,7 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 					</a>
 					<div className="hidden md:flex md:items-center md:gap-x-6">
 						{navigation.map(item => (
-							<Button key={item.name} asChild variant="ghost" size="sm">
+							<Button key={item.name} variant="ghost" size="sm">
 								<a href={item.href} target="_self">
 									{item.name}
 								</a>
@@ -67,20 +68,23 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 						))}
 						{languages && (
 							<DropdownMenu open={langMenuOpen} onOpenChange={setLangMenuOpen}>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={() => setLangMenuOpen(true)}
-									>
-										{currentLanguageEmoji}
-									</Button>
-								</DropdownMenuTrigger>
+								<DropdownMenuTrigger
+									render={
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => setLangMenuOpen(true)}
+										>
+											{currentLanguageEmoji}
+										</Button>
+									}
+								/>
 								<DropdownMenuContent align="center">
 									{languages.map(item => (
-										<DropdownMenuItem key={item.name} asChild>
-											<a href={item.href}>{item.name}</a>
-										</DropdownMenuItem>
+										<DropdownMenuItem
+											key={item.name}
+											render={<a href={item.href}>{item.name}</a>}
+										/>
 									))}
 								</DropdownMenuContent>
 							</DropdownMenu>
@@ -92,26 +96,29 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 								open={mobileLangMenuOpen}
 								onOpenChange={setMobileLangMenuOpen}
 							>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										className="md:hidden"
-										size="icon"
-										onClick={() => setMobileLangMenuOpen(true)}
-									>
-										{currentLanguageEmoji}
-									</Button>
-								</DropdownMenuTrigger>
+								<DropdownMenuTrigger
+									render={
+										<Button
+											variant="ghost"
+											className="md:hidden"
+											size="icon"
+											onClick={() => setMobileLangMenuOpen(true)}
+										>
+											{currentLanguageEmoji}
+										</Button>
+									}
+								/>
 								<DropdownMenuContent align="end">
 									{languages.map(item => (
-										<DropdownMenuItem key={item.name} asChild>
-											<a href={item.href}>{item.name}</a>
-										</DropdownMenuItem>
+										<DropdownMenuItem
+											key={item.name}
+											render={<a href={item.href}>{item.name}</a>}
+										/>
 									))}
 								</DropdownMenuContent>
 							</DropdownMenu>
 						)}
-						<Button asChild>
+						<Button>
 							<a href={cta.href}>{cta.text}</a>
 						</Button>
 						<Button
@@ -120,24 +127,21 @@ function Navbar({ logo, navigation, cta, locale, languages }: NavbarProps) {
 							onClick={() => setMobileMenuOpen(true)}
 							className="md:hidden"
 						>
-							<List className="size-6" />
+							<HugeiconsIcon icon={Menu01Icon} className="size-6" />
 						</Button>
 					</div>
 				</nav>
 				<Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-					<DialogContent
-						titleSlot={
-							<DialogHeader>
-								<DialogTitle>Menu</DialogTitle>
-								<DialogDescription>
-									<T k="marketing.nav.menuDescription" />
-								</DialogDescription>
-							</DialogHeader>
-						}
-					>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Menu</DialogTitle>
+							<DialogDescription>
+								<T k="marketing.nav.menuDescription" />
+							</DialogDescription>
+						</DialogHeader>
 						<div className="flex flex-col gap-3">
 							{navigation.map(item => (
-								<Button key={item.name} asChild variant="outline">
+								<Button key={item.name} variant="outline">
 									<a href={item.href} target="_self">
 										{item.name}
 									</a>

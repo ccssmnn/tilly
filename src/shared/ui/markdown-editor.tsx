@@ -1,7 +1,7 @@
 import { useState, useRef, type ChangeEvent } from "react"
-import { Textarea, useResizeTextarea } from "./textarea"
 import { Button } from "./button"
 import { Markdown } from "./markdown"
+import { InputGroup, InputGroupAddon, InputGroupTextarea } from "./input-group"
 import {
 	TooltipProvider,
 	Tooltip,
@@ -22,8 +22,8 @@ import {
 } from "react-bootstrap-icons"
 import { isMac } from "#app/hooks/use-pwa"
 
-export { MarkdownEditor }
-export type { MarkdownEditorProps }
+export { MarkdownEditor, applyMarkdownFormat }
+export type { MarkdownEditorProps, MarkdownFormatType }
 
 function MarkdownEditor({
 	value,
@@ -36,8 +36,6 @@ function MarkdownEditor({
 }: MarkdownEditorProps) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
-
-	useResizeTextarea(textareaRef, value, { maxHeight: 400, minHeight: 80 })
 
 	function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
 		onChange(e.target.value)
@@ -84,17 +82,14 @@ function MarkdownEditor({
 		{ format: "heading", icon: TypeH3, label: "markdown.heading", key: "H" },
 	] as const
 
-	return (
-		<div
-			className="flex flex-col-reverse md:flex-col"
-			onKeyDown={handleKeyDown}
-		>
-			<div className="border-border bg-muted/30 flex items-center justify-between gap-2 rounded-b-md border border-t-0 px-2 py-1 md:rounded-t-md md:rounded-b-none md:border-t md:border-b-0">
-				<TooltipProvider>
-					<div className="flex gap-1">
-						{toolButtons.map(tool => (
-							<Tooltip key={tool.format}>
-								<TooltipTrigger asChild>
+	let toolbar = (
+		<>
+			<TooltipProvider>
+				<div className="flex gap-1">
+					{toolButtons.map(tool => (
+						<Tooltip key={tool.format}>
+							<TooltipTrigger
+								render={
 									<Button
 										type="button"
 										variant="ghost"
@@ -108,78 +103,96 @@ function MarkdownEditor({
 												tool.format,
 											)
 										}
-										className="h-10 w-10 p-0 md:h-7 md:w-7"
+										className="size-11 p-0 pointer-fine:size-7"
 										disabled={showPreview}
 									>
-										<tool.icon className="h-5 w-5 md:h-4 md:w-4" />
+										<tool.icon className="h-5 w-5 pointer-fine:h-4 pointer-fine:w-4" />
 									</Button>
-								</TooltipTrigger>
-								<TooltipContent>
-									<T k={tool.label} />{" "}
-									<KbdGroup>
-										<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
-										<Kbd>{tool.key}</Kbd>
-									</KbdGroup>
-								</TooltipContent>
-							</Tooltip>
-						))}
-					</div>
-				</TooltipProvider>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onMouseDown={e => e.preventDefault()}
-					onClick={() => setShowPreview(!showPreview)}
-					disabled={!value.trim()}
-					className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
-				>
-					{showPreview ? (
-						<>
-							<PencilSquare className="h-3 w-3" />
-							<span>
-								<T k="markdown.edit" />
-							</span>
-						</>
-					) : (
-						<>
-							<Eye className="h-3 w-3" />
-							<span>
-								<T k="markdown.preview" />
-							</span>
-						</>
-					)}
-				</Button>
-			</div>
+								}
+							/>
+							<TooltipContent>
+								<T k={tool.label} />{" "}
+								<KbdGroup>
+									<Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+									<Kbd>{tool.key}</Kbd>
+								</KbdGroup>
+							</TooltipContent>
+						</Tooltip>
+					))}
+				</div>
+			</TooltipProvider>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				onMouseDown={e => e.preventDefault()}
+				onClick={() => setShowPreview(!showPreview)}
+				disabled={!value.trim()}
+				className="text-muted-foreground pointer-fine:hover:text-foreground h-11 gap-1 px-3 text-sm pointer-fine:h-7 pointer-fine:px-2 pointer-fine:text-xs"
+			>
+				{showPreview ? (
+					<>
+						<PencilSquare className="h-3 w-3" />
+						<span>
+							<T k="markdown.edit" />
+						</span>
+					</>
+				) : (
+					<>
+						<Eye className="h-3 w-3" />
+						<span>
+							<T k="markdown.preview" />
+						</span>
+					</>
+				)}
+			</Button>
+		</>
+	)
+
+	return (
+		<div onKeyDown={handleKeyDown}>
 			{showPreview ? (
 				<div
 					className={cn(
-						"border-border bg-background min-h-[100px] rounded-t-md border border-b-0 px-3 py-2 md:rounded-t-none md:rounded-b-md md:border-t-0 md:border-b",
+						"border-border bg-background overflow-hidden rounded-md border",
 						className,
 					)}
 				>
-					{value ? (
-						<Markdown>{value}</Markdown>
-					) : (
-						<p className="text-muted-foreground text-sm italic">
-							<T k="markdown.noPreview" />
-						</p>
-					)}
+					<div className="bg-muted/30 border-border flex items-center justify-between gap-2 border-b px-2 py-1">
+						{toolbar}
+					</div>
+					<div className="min-h-[100px] px-3 py-2">
+						{value ? (
+							<Markdown>{value}</Markdown>
+						) : (
+							<p className="text-muted-foreground text-sm italic">
+								<T k="markdown.noPreview" />
+							</p>
+						)}
+					</div>
 				</div>
 			) : (
-				<Textarea
-					ref={textareaRef}
-					value={value}
-					onChange={handleChange}
-					placeholder={placeholder}
-					rows={rows}
-					autoResize={false}
-					id={id}
-					className={cn(
-						"max-h-[80dvh] resize-none overflow-y-auto rounded-t-md rounded-b-none md:rounded-t-none md:rounded-b-md [&::-webkit-resizer]:hidden",
-						className,
-					)}
-				/>
+				<InputGroup className="h-auto rounded-md">
+					<InputGroupTextarea
+						ref={textareaRef}
+						value={value}
+						onChange={handleChange}
+						placeholder={placeholder}
+						rows={rows}
+						maxHeight={400}
+						id={id}
+						className={cn(
+							"max-h-[80dvh] overflow-y-auto [&::-webkit-resizer]:hidden",
+							className,
+						)}
+					/>
+					<InputGroupAddon
+						align="block-end"
+						className="bg-muted/30 border-border flex items-center justify-between gap-2 border-t px-2 py-1"
+					>
+						{toolbar}
+					</InputGroupAddon>
+				</InputGroup>
 			)}
 		</div>
 	)

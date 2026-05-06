@@ -15,7 +15,7 @@ function DisplayField({ value, placeholder, className }: DisplayFieldProps) {
 		<div
 			data-slot="display-field"
 			className={cn(
-				"bg-input border-input text-foreground flex h-9 w-full min-w-0 items-center rounded-md border px-3 text-left text-base shadow-xs transition-[color,box-shadow] md:text-sm",
+				"bg-input border-input text-foreground flex h-9 w-full min-w-0 items-center rounded-4xl border px-3 text-left text-base shadow-xs transition-[color,box-shadow] md:text-sm",
 				!hasValue && "text-muted-foreground",
 				className,
 			)}

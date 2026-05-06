@@ -1,6 +1,10 @@
 .astro
 .vercel
 .tanstack
+.claude
+
+opencode.json
+.mcp.json
 
 pnpm-debug.log*
 

@@ -2,9 +2,10 @@ import { Button } from "#shared/ui/button"
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogDescription,
 } from "#shared/ui/dialog"
 import {
 	isAndroid,
@@ -36,24 +37,21 @@ function PWAInstallDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent
-				titleSlot={
-					<DialogHeader>
-						<DialogTitle>
-							<T k="pwa.install.dialog.title" />
-						</DialogTitle>
-						<DialogDescription>
-							<T
-								k={
-									isMobileDevice()
-										? "pwa.install.dialog.description.mobile"
-										: "pwa.install.dialog.description.desktop"
-								}
-							/>
-						</DialogDescription>
-					</DialogHeader>
-				}
-			>
+			<DialogContent className="max-w-md">
+				<DialogHeader>
+					<DialogTitle>
+						<T k="pwa.install.dialog.title" />
+					</DialogTitle>
+					<DialogDescription>
+						<T
+							k={
+								isMobileDevice()
+									? "pwa.install.dialog.description.mobile"
+									: "pwa.install.dialog.description.desktop"
+							}
+						/>
+					</DialogDescription>
+				</DialogHeader>
 				<div className="space-y-4">
 					{isAndroid() && canInstall && (
 						<AndroidChromeInstructions
@@ -73,20 +71,19 @@ function PWAInstallDialog({
 							onInstallComplete={onInstallComplete}
 						/>
 					)}
-
-					<div className="pt-2">
-						<Button
-							variant="secondary"
-							onClick={() => {
-								onOpenChange(false)
-								onDismiss?.()
-							}}
-							className="w-full"
-						>
-							<T k="pwa.install.dialog.later" />
-						</Button>
-					</div>
 				</div>
+				<DialogFooter>
+					<Button
+						variant="secondary"
+						onClick={() => {
+							onOpenChange(false)
+							onDismiss?.()
+						}}
+						className="w-full sm:w-auto"
+					>
+						<T k="pwa.install.dialog.later" />
+					</Button>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	)
@@ -263,42 +260,5 @@ function GenericInstructions() {
 				</li>
 			</ol>
 		</div>
-	)
-}
-
-export function InstallationInstructions({
-	onInstallComplete,
-}: {
-	onInstallComplete?: () => void
-} = {}) {
-	let { canInstall, promptInstall } = usePWAInstallPrompt()
-
-	if (isAndroid() && canInstall) {
-		return (
-			<AndroidChromeInstructions
-				onInstall={promptInstall}
-				onInstallComplete={onInstallComplete}
-			/>
-		)
-	}
-
-	if (isAndroid() && !canInstall) {
-		return <AndroidManualInstructions />
-	}
-
-	if (isIOS()) {
-		return <IOSInstructions />
-	}
-
-	if (!isAndroid() && !isIOS() && isMobileDevice()) {
-		return <GenericInstructions />
-	}
-
-	return (
-		<DesktopInstructions
-			canInstall={canInstall}
-			onInstall={promptInstall}
-			onInstallComplete={onInstallComplete}
-		/>
 	)
 }

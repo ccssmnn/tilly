@@ -4,7 +4,7 @@
 	"people": [
 		{
 			"name": "Sarah Martinez",
-			"summary": "College friend, software engineer at Google, lives in SF with her cat Luna",
+			"summary": "College friend, software engineer at Google, lives in SF with her cat Luna #friends #work",
 			"avatar": "female1.jpg",
 			"notes": [
 				{
@@ -14,9 +14,15 @@
 					"updatedAt": "DAYS_AGO:-45"
 				},
 				{
-					"content": "I had coffee with Sarah today. She's been working on a new ML project at Google and seems really excited about it. Her cat Luna is doing well after the surgery last month. She mentioned wanting to visit Portland soon.",
+					"content": "Had coffee with Sarah this afternoon at Blue Bottle in Hayes Valley. She's been deep in a new ML project at Google — something to do with on-device inference for accessibility features. You could tell she's genuinely excited about it, not just the tech but the impact. She pulled up a demo on her phone and it was honestly impressive.\n\nLuna is recovering well from her surgery last month. Sarah showed me a photo of Luna sprawled across her keyboard, classic cat move. She mentioned wanting to visit Portland in the spring, maybe we could plan something with the whole group.\n\nWe also talked about the startup idea she's been mulling over. She's not ready to leave Google yet but she's clearly thinking about it more seriously. I should check in about that next time.",
+					"images": ["coffee-latte.jpg"],
 					"createdAt": "DAYS_AGO:-3",
 					"updatedAt": "DAYS_AGO:-3"
+				},
+				{
+					"content": "Sarah called me stressed about a production incident at work. Apparently a model they deployed had a subtle regression that only showed up in certain languages. She was on-call and spent 14 hours debugging it. Reminded me of the time we pulled all-nighters together in college, except the stakes are way higher now.\n\nShe sounded exhausted but also weirdly energized — I think she thrives under that kind of pressure. We made plans to do a proper catch-up dinner next week, somewhere nice, she deserves it after that week.",
+					"createdAt": "DAYS_AGO:-18",
+					"updatedAt": "DAYS_AGO:-18"
 				}
 			],
 			"reminders": [
@@ -38,7 +44,7 @@
 		},
 		{
 			"name": "Mike & Jessica Chen",
-			"summary": "Neighbors, married couple with 2 kids (Emma 8, Noah 5), Mike works in finance, Jessica is a teacher",
+			"summary": "Neighbors, married couple with 2 kids (Emma 8, Noah 5), Mike works in finance, Jessica is a teacher #family",
 			"avatar": "couple1.jpg",
 			"notes": [
 				{
@@ -54,9 +60,15 @@
 					"updatedAt": "DAYS_AGO:-90"
 				},
 				{
-					"content": "I helped them move their piano last weekend. Jessica made amazing homemade cookies as a thank you. Emma started piano lessons and is really enthusiastic about it. Noah is obsessed with dinosaurs right now.",
+					"content": "Helped the Chens move their piano today — an old upright that Jessica inherited from her grandmother. It weighs an absolute ton and we barely got it through the doorway. Mike and I were drenched in sweat by the end.\n\nJessica made homemade chocolate chip cookies as a thank you and they were genuinely some of the best I've ever had. I need to get that recipe. Emma was practicing scales on the piano within minutes of us setting it down, she's been begging for lessons and you can tell she's going to stick with it. Noah spent the whole time showing me his dinosaur collection and explaining (very seriously) that T-Rex actually had feathers.\n\nThey're such a great family. Really grateful to have them next door.",
+					"images": ["upright-piano.jpg", "homemade-cookies.jpg"],
 					"createdAt": "DAYS_AGO:-8",
 					"updatedAt": "DAYS_AGO:-8"
+				},
+				{
+					"content": "Ran into Jessica at the farmers market this morning. Noah was having a meltdown about not getting a second donut, classic five-year-old stuff. Jessica handled it with such patience. We chatted about the school year — she's worried about budget cuts affecting her classroom supplies. She's been buying things out of pocket which is frustrating but so typical of how much she cares.\n\nMike apparently got a big promotion last month which is great news. They're thinking about finishing their basement as a playroom for the kids.",
+					"createdAt": "DAYS_AGO:-22",
+					"updatedAt": "DAYS_AGO:-22"
 				}
 			],
 			"reminders": [
@@ -79,7 +91,7 @@
 		},
 		{
 			"name": "Dad",
-			"summary": "Retired teacher, loves gardening and woodworking, lives in Denver",
+			"summary": "Retired teacher, loves gardening and woodworking, lives in Denver #family",
 			"avatar": "male1.jpg",
 			"notes": [
 				{
@@ -95,9 +107,16 @@
 					"updatedAt": "DAYS_AGO:-200"
 				},
 				{
-					"content": "I called Dad this evening. He's been working on a new bookshelf in his workshop and is really proud of the dovetail joints he's mastered. His tomatoes are coming in great this year. He asked about my work and seemed genuinely interested in the tech stuff, which always makes me happy.",
+					"content": "Called Dad this evening. He spent most of the conversation telling me about the bookshelf he's building — he's finally mastered dovetail joints after watching about a hundred YouTube videos and wasting a lot of wood, his words. You could hear how proud he is. He sent me a photo and honestly it looks professional.\n\nHis tomatoes are coming in amazing this year, apparently the new raised beds he built are making a huge difference. He went on a tangent about soil pH that I didn't fully follow but I love that he gets so into it.\n\nHe asked about my work and I tried to explain what I'm building. He doesn't really get the tech side but he asks good questions and seems genuinely interested, which always makes me happy. He said Mom would have loved to see me doing something creative.\n\nI need to visit soon. It's been too long.",
+					"images": ["woodworking-bookshelf.jpg"],
 					"createdAt": "DAYS_AGO:-2",
 					"updatedAt": "DAYS_AGO:-2"
+				},
+				{
+					"content": "Dad's birthday last week. We did a video call with the whole family. He got emotional when we all sang happy birthday, which got me emotional too. He turned 68 and said he feels better than he did at 50, which I think is mostly true — he's way more active now than when he was teaching.\n\nHe showed off his garden through the camera, walking us through every single plant. The cherry tomatoes are his pride and joy. He's also started growing herbs for the first time — basil, rosemary, thyme. Said it makes him feel like a real chef.",
+					"images": ["vegetable-garden.jpg", "herb-garden.jpg"],
+					"createdAt": "DAYS_AGO:-35",
+					"updatedAt": "DAYS_AGO:-35"
 				}
 			],
 			"reminders": [
@@ -124,7 +143,7 @@
 		},
 		{
 			"name": "Alex Thompson",
-			"summary": "Coworker and close friend, frontend developer, loves rock climbing",
+			"summary": "Coworker and close friend, frontend developer, loves rock climbing #work #fitness",
 			"avatar": "male2.jpg",
 			"notes": [
 				{
@@ -140,9 +159,20 @@
 					"updatedAt": "DAYS_AGO:-150"
 				},
 				{
-					"content": "Had lunch with Alex today. He's training for a big climbing competition in Yosemite next month. He's been putting in extra hours at the gym and following a strict diet. Really admire his dedication.",
+					"content": "Had lunch with Alex at that new poke place downtown. He's completely laser-focused on his climbing competition in Yosemite next month. He's been training 5 days a week now and following this insanely strict meal plan — no sugar, no alcohol, tracking macros to the gram. He ordered the biggest bowl they had and told me exactly how many grams of protein were in it.\n\nI really admire his discipline. When he commits to something he goes all in. We talked about work too — he's frustrated with the new design system migration but handling it well. He had some really smart ideas about how to phase the rollout that I think the team should hear.\n\nHe invited me to come watch the competition. Might actually be a fun road trip.",
+					"images": ["poke-bowl.jpg"],
 					"createdAt": "DAYS_AGO:-1",
 					"updatedAt": "DAYS_AGO:-1"
+				},
+				{
+					"content": "Alex and I paired on a tricky animation bug today. Took us three hours but we finally figured out it was a race condition between two useEffect hooks. Classic React footgun. We were both so relieved when the fix worked that we high-fived across the desk like idiots.\n\nAfterward we grabbed beers and he told me about this outdoor climbing trip he did last weekend at Smith Rock. Showed me some incredible photos — the landscape there is unreal. He's trying to convince me to try climbing. I'm terrified of heights but he says that's normal and you get over it. Maybe I'll give the indoor wall a shot first.",
+					"images": [
+						"smith-rock-landscape.jpg",
+						"rock-climbing-outdoor.jpg",
+						"craft-beer-friends.jpg"
+					],
+					"createdAt": "DAYS_AGO:-15",
+					"updatedAt": "DAYS_AGO:-15"
 				}
 			],
 			"reminders": [
@@ -165,7 +195,7 @@
 		},
 		{
 			"name": "Maria Rodriguez",
-			"summary": "Yoga instructor and wellness coach, incredibly positive energy, vegetarian",
+			"summary": "Yoga instructor and wellness coach, incredibly positive energy, vegetarian #friends #fitness",
 			"avatar": "female2.jpg",
 			"notes": [
 				{
@@ -181,9 +211,15 @@
 					"updatedAt": "DAYS_AGO:-80"
 				},
 				{
-					"content": "Went to Maria's morning yoga class. She's started a new meditation workshop series and invited me to join. Her positive energy is infectious. She mentioned her sister is visiting from Spain next week.",
+					"content": "Went to Maria's 7am yoga class this morning. I almost didn't go because it was raining and my bed was very comfortable, but I'm so glad I did. She has this ability to read the energy of the room and adjust — today everyone seemed tired so she kept it gentle and restorative instead of the usual vinyasa flow.\n\nAfterward she told me about a new meditation workshop series she's launching. It's a 6-week program focused on stress management for people with demanding jobs. She clearly designed it with people like me in mind, which was sweet. She's also been experimenting with sound healing and showed me these beautiful singing bowls she got.\n\nHer sister is visiting from Barcelona next week and she's so excited. They haven't seen each other in over a year. She's planning to take her hiking and to all the good vegetarian restaurants in town.",
 					"createdAt": "DAYS_AGO:-5",
 					"updatedAt": "DAYS_AGO:-5"
+				},
+				{
+					"content": "Maria invited me to a sunset yoga session she was teaching on the beach. It was magical — about 20 people on the sand with the waves in the background. She wove in some philosophy about letting go of what you can't control and I swear she was speaking directly to me and my work stress.\n\nAfterward a group of us went to this vegetarian Thai place she loves. The food was incredible, even for someone who normally needs meat in every meal. Maria has this gift of bringing people together — half the group were strangers at the start of class and by the end of dinner everyone was exchanging numbers.",
+					"images": ["sunset-beach-yoga.jpg", "thai-food-vegetarian.jpg"],
+					"createdAt": "DAYS_AGO:-20",
+					"updatedAt": "DAYS_AGO:-20"
 				}
 			],
 			"reminders": [
@@ -205,7 +241,7 @@
 		},
 		{
 			"name": "Ben Williams",
-			"summary": "College roommate, now lives in NYC, works in marketing, big foodie",
+			"summary": "College roommate, now lives in NYC, works in marketing, big foodie #friends #creative",
 			"avatar": "male3.jpg",
 			"notes": [
 				{
@@ -221,9 +257,19 @@
 					"updatedAt": "DAYS_AGO:-150"
 				},
 				{
-					"content": "Ben texted me photos from his latest restaurant discovery in Brooklyn. He's planning a food tour when I visit NYC next month and has already made a spreadsheet of places we need to try. Classic Ben!",
+					"content": "Ben texted me a barrage of photos from his latest restaurant discovery — some tiny 12-seat omakase place in Brooklyn that apparently has no sign on the door. The plating looked absolutely insane. He's already planning a food tour for when I visit NYC next month and sent me a Google Sheet with color-coded categories (pizza, ramen, cocktails, bakeries, \"must-try weird stuff\"). The man made a spreadsheet for eating. Classic Ben.\n\nHe's also been killing it at work — his agency just won a major account and he led the pitch. He downplays it but I know he worked nights and weekends on that proposal. Really proud of him. We need to properly celebrate when I'm there.",
+					"images": [
+						"omakase-sushi-1.jpg",
+						"omakase-sushi-2.jpg",
+						"brooklyn-restaurant.jpg"
+					],
 					"createdAt": "DAYS_AGO:-12",
 					"updatedAt": "DAYS_AGO:-12"
+				},
+				{
+					"content": "Long phone call with Ben tonight. He's going through a rough patch with his girlfriend — sounds like they want different things long-term. He was unusually quiet about it which means it's really bothering him. I mostly just listened. Sometimes that's what you need.\n\nWe ended up reminiscing about college, which seemed to cheer him up. He reminded me of the time we tried to cook Thanksgiving dinner in our dorm with a hot plate and a toaster oven. The turkey was raw in the middle and we ended up ordering Chinese food. Feels like a lifetime ago.\n\nI should make sure to check in on him more often. Distance makes it easy to lose track of how people are actually doing.",
+					"createdAt": "DAYS_AGO:-30",
+					"updatedAt": "DAYS_AGO:-30"
 				}
 			],
 			"reminders": [
@@ -246,7 +292,7 @@
 		},
 		{
 			"name": "Emma Foster",
-			"summary": "Freelance graphic designer, lives downtown, loves indie music and vintage fashion",
+			"summary": "Freelance graphic designer, lives downtown, loves indie music and vintage fashion #friends #creative",
 			"avatar": "female3.jpg",
 			"notes": [
 				{
@@ -262,9 +308,20 @@
 					"updatedAt": "DAYS_AGO:-70"
 				},
 				{
-					"content": "Emma showed me her latest branding project for a local coffee shop. Her work is amazing - she has such a great eye for color and typography. She's been struggling with client payments lately though, which is stressful.",
+					"content": "Met Emma for drinks at that wine bar on Pearl Street. She showed me her latest branding project for a local coffee shop — the whole visual identity, from logo to packaging to the mural design for their wall. Her eye for color is unreal, she has this way of combining shades that shouldn't work together but somehow do.\n\nBut she's stressed. Two clients owe her money and one has been ghosting her for weeks. It's the ugly side of freelancing that people don't talk about — doing amazing work and then having to beg to get paid for it. She's been looking into contract templates and late fees but it's hard to enforce when you're a solo operation.\n\nI told her about that invoice tool my friend uses and she seemed interested. I should send her the link.",
+					"images": ["coffee-shop-branding.jpg"],
 					"createdAt": "DAYS_AGO:-6",
 					"updatedAt": "DAYS_AGO:-6"
+				},
+				{
+					"content": "Emma dragged me to a vintage market in an old warehouse. I wasn't expecting much but it was actually incredible — rows and rows of curated clothing, vinyl records, handmade jewelry. She found this 70s leather jacket that fit her perfectly and haggled the price down like a pro.\n\nShe introduced me to a bunch of her creative friends who were selling there. Everyone was so warm and interesting. One guy makes furniture out of reclaimed wood, another does hand-painted sneakers. Emma is the kind of person who knows everyone and makes you feel like you belong in any crowd.\n\nWe grabbed tacos from a food truck outside and sat on the curb people-watching. One of those perfect afternoon vibes.",
+					"images": [
+						"vintage-market.jpg",
+						"leather-jacket-vintage.jpg",
+						"street-tacos.jpg"
+					],
+					"createdAt": "DAYS_AGO:-25",
+					"updatedAt": "DAYS_AGO:-25"
 				}
 			],
 			"reminders": [
@@ -287,7 +344,7 @@
 		},
 		{
 			"name": "David Kim",
-			"summary": "Gym buddy, personal trainer, studying for physical therapy degree",
+			"summary": "Gym buddy, personal trainer, studying for physical therapy degree #friends #fitness",
 			"avatar": "male4.jpg",
 			"notes": [
 				{
@@ -303,9 +360,15 @@
 					"updatedAt": "DAYS_AGO:-60"
 				},
 				{
-					"content": "David helped me with my deadlift form today. He's stressed about his PT school applications but trying to stay positive. His knowledge of anatomy and movement is incredible - he'll make a great physical therapist.",
+					"content": "David spent 20 minutes fixing my deadlift form today and the difference was night and day. He noticed I was rounding my lower back at the bottom of the lift — something I've been doing wrong for months apparently. He had me do some mobility drills first and then we rebuilt the movement from scratch. He explains things so clearly, using anatomy terms but then immediately translating to normal English.\n\nHe opened up about his PT school applications. He's applied to five programs and has heard back from two — one waitlist and one rejection. He's trying not to get discouraged but I could tell it's weighing on him. His grades are good and his practical experience is incredible, so I think it's just a numbers game. I told him that and I think it helped a little.\n\nHis dream is to work with athletes recovering from injuries. With his background in training and his empathy for what people are going through, he'd be amazing at it.",
 					"createdAt": "DAYS_AGO:-4",
 					"updatedAt": "DAYS_AGO:-4"
+				},
+				{
+					"content": "Hit a new bench PR today and David was more excited than I was. He literally yelled across the gym. We've been working toward this for three months and his programming is clearly working. He adjusted my accessory work last month to focus more on tricep strength and it made all the difference.\n\nAfterward we grabbed smoothies and he showed me his study notes for his anatomy exam. The level of detail is insane — hand-drawn diagrams of every muscle insertion point. He's the hardest-working person I know.",
+					"images": ["gym-celebration.jpg"],
+					"createdAt": "DAYS_AGO:-16",
+					"updatedAt": "DAYS_AGO:-16"
 				}
 			],
 			"reminders": [
@@ -321,7 +384,7 @@
 		},
 		{
 			"name": "Lisa & Tom Anderson",
-			"summary": "Family friends, Lisa is a nurse, Tom is an engineer, recently moved to Portland",
+			"summary": "Family friends, Lisa is a nurse, Tom is an engineer, recently moved to Portland #family",
 			"avatar": "couple2.jpg",
 			"notes": [
 				{
@@ -337,7 +400,8 @@
 					"updatedAt": "DAYS_AGO:-30"
 				},
 				{
-					"content": "Video called Lisa and Tom tonight to see how they're settling in Portland. They love their new neighborhood and Tom already found a good hiking group. Lisa is adjusting to the new hospital but likes her colleagues. They invited me to visit once they're fully settled.",
+					"content": "Video called Lisa and Tom tonight to see how they're settling into Portland. Tom was practically glowing — he's already found a hiking group that goes out every Saturday morning and has been exploring trails I've never even heard of. He kept pulling up photos on his phone and holding them up to the camera. The views from their local trails are gorgeous.\n\nLisa is adjusting to the new hospital. Different systems, different culture, but she says her colleagues are wonderful. The ER is busier than her old one which she actually prefers — says it keeps the shifts moving. She's already mentoring a new grad nurse which is so Lisa.\n\nThey invited me to visit once they're fully settled. Their guest room should be done by next month. I really want to go — Portland in the spring sounds perfect, and I miss them. It's weird not having them 20 minutes away anymore.",
+					"images": ["portland-hiking.jpg", "mountain-trail-view.jpg"],
 					"createdAt": "DAYS_AGO:-7",
 					"updatedAt": "DAYS_AGO:-7"
 				}
@@ -362,7 +426,7 @@
 		},
 		{
 			"name": "Rachel Green",
-			"summary": "Book club friend, librarian, has two teenage daughters, going through divorce",
+			"summary": "Book club friend, librarian, has two teenage daughters, going through divorce #friends",
 			"avatar": "female4.jpg",
 			"notes": [
 				{
@@ -384,7 +448,7 @@
 					"updatedAt": "DAYS_AGO:-25"
 				},
 				{
-					"content": "At book club, Rachel seemed more like her old self. She's been seeing a therapist which is helping. Sophie got into honor society and Maya made the volleyball team - she's so proud of them both.",
+					"content": "Book club tonight. We discussed Demon Copperhead and Rachel led the discussion beautifully, as always. She has this way of drawing out quiet people and asking questions that make you reconsider everything you thought about a character.\n\nMore importantly, she seemed more like her old self. She told me after the group that therapy has been really helpful — she's been going twice a week and working through a lot of the guilt she was carrying about the divorce. She said the hardest part is watching her daughters navigate it, but they're handling it better than she expected.\n\nSophie got into honor society, which is huge. And Maya made the varsity volleyball team as a freshman — Rachel nearly cried telling me. She's so proud of them, and rightfully so. Those kids are incredible.\n\nWe stayed late after everyone else left and just talked. It felt like the old Rachel is coming back.",
 					"createdAt": "DAYS_AGO:-9",
 					"updatedAt": "DAYS_AGO:-9"
 				}
@@ -409,7 +473,7 @@
 		},
 		{
 			"name": "Carlos Mendez",
-			"summary": "Former colleague, started his own consulting business, lives in Austin with wife Ana",
+			"summary": "Former colleague, started his own consulting business, lives in Austin with wife Ana #work",
 			"avatar": "male5.jpg",
 			"notes": [
 				{
@@ -425,9 +489,14 @@
 					"updatedAt": "DAYS_AGO:-200"
 				},
 				{
-					"content": "Carlos called to catch up. His consulting business is doing really well - he just landed two major clients. Ana got a promotion at her marketing firm. They're house hunting and excited about the Austin market.",
+					"content": "Carlos called to catch up while walking his dog through Zilker Park. His consulting business is doing really well — he just landed two major clients, both enterprise companies that found him through referrals. He's at the point where he might need to hire his first employee, which is exciting but terrifying, his words.\n\nAna got a big promotion at her marketing firm, she's now VP of client strategy. They're house hunting in the Mueller neighborhood and Carlos was hilariously stressed about Austin real estate prices. He showed me a few listings and honestly the houses are nice but the prices are eye-watering.\n\nHe gave me some great advice about the side project I'm working on. He has this clarity about business stuff that I really admire — probably why his clients love him. He said the hardest part of going independent was learning to value his own time properly. Important lesson.",
 					"createdAt": "DAYS_AGO:-14",
 					"updatedAt": "DAYS_AGO:-14"
+				},
+				{
+					"content": "Carlos shared a milestone on LinkedIn — one year since he started his consulting business. His post was thoughtful and honest about the highs and lows. I commented and then we ended up texting for an hour about the early days when he was terrified of leaving his steady paycheck.\n\nHe mentioned he and Ana are planning a trip to Portugal in the fall. They've been wanting to go for years and finally pulled the trigger on booking it. He was researching Porto neighborhoods with the same intensity he brings to client work. The man can't turn off the analytical brain.",
+					"createdAt": "DAYS_AGO:-45",
+					"updatedAt": "DAYS_AGO:-45"
 				}
 			],
 			"reminders": [
@@ -449,7 +518,7 @@
 		},
 		{
 			"name": "Sophie Turner",
-			"summary": "Barista at my favorite coffee shop, art student, very creative and energetic",
+			"summary": "Barista at my favorite coffee shop, art student, very creative and energetic #friends #creative",
 			"avatar": "female5.jpg",
 			"notes": [
 				{
@@ -465,7 +534,8 @@
 					"updatedAt": "DAYS_AGO:-90"
 				},
 				{
-					"content": "Sophie was excited about her upcoming art show next month. She's been working on a series of ceramic pieces inspired by ocean waves. Her enthusiasm is contagious - she always brightens my morning coffee runs.",
+					"content": "Sophie was buzzing this morning about her upcoming art show next month. She's been working on a series of ceramic pieces inspired by ocean waves — she showed me photos on her phone and they're stunning. Each piece captures a different state of water, from calm ripples to crashing breakers. The glazes she uses create this iridescent effect that looks almost alive.\n\nShe's nervous about the show being her first solo exhibition. I told her the work speaks for itself but I think the anxiety is part of the creative process for her. She said she's been staying up until 2am most nights in the ceramics lab, which tracks — she had visible clay under her fingernails while making my latte.\n\nShe always brightens my mornings. There's something about the combination of creative passion and genuine warmth that makes even a random Tuesday feel a little more interesting.",
+					"images": ["ceramic-pottery-1.jpg", "ceramic-pottery-2.jpg"],
 					"createdAt": "DAYS_AGO:-3",
 					"updatedAt": "DAYS_AGO:-3"
 				}
@@ -483,7 +553,7 @@
 		},
 		{
 			"name": "Mom",
-			"summary": "Retired nurse, volunteers at animal shelter, loves gardening and cooking",
+			"summary": "Retired nurse, volunteers at animal shelter, loves gardening and cooking #family",
 			"avatar": "mom.jpg",
 			"notes": [
 				{
@@ -499,9 +569,15 @@
 					"updatedAt": "DAYS_AGO:-300"
 				},
 				{
-					"content": "I video called Mom this morning. She's fostering a new rescue dog named Buddy - a golden retriever mix who's very sweet but nervous. Her garden is thriving and she's already planning what to preserve for winter. She asked about my eating habits as usual.",
+					"content": "Video called Mom this morning. Big news — she's fostering a new rescue dog named Buddy, a golden retriever mix who was found wandering near the highway. He's very sweet but nervous around loud noises and new people. She's already got him on a routine and is doing that calm assertive thing she does so well. I give it two weeks before he's sleeping on her bed.\n\nHer garden is thriving — she walked me through the camera showing off her tomatoes, zucchini, and the new herb spiral she built. She's already planning what to preserve for winter. Last year's canned tomato sauce was incredible, hope she makes extra this time.\n\nShe asked about my eating habits, as always. I told her I've been cooking more and she demanded photographic evidence. I should actually do that — it'll make her happy and keep me accountable.\n\nShe seems really content. The shelter work gives her purpose and she's made a whole group of friends there. I worry about her being alone sometimes but I think she's doing better than I give her credit for.",
+					"images": ["golden-retriever-rescue.jpg", "home-garden-herbs.jpg"],
 					"createdAt": "DAYS_AGO:-1",
 					"updatedAt": "DAYS_AGO:-1"
+				},
+				{
+					"content": "Mom called to tell me she successfully made her grandmother's pierogi recipe from memory. She's been trying to recreate it for years and finally nailed the dough consistency. She was so excited she could barely get the words out. She's making a huge batch to freeze and sending some to me and Dad.\n\nWe talked about Thanksgiving plans. She wants to host again this year and is already planning the menu in March. That's so her. She asked if I'm bringing anyone, which is her not-so-subtle way of asking about my dating life. I changed the subject to her garden.",
+					"createdAt": "DAYS_AGO:-28",
+					"updatedAt": "DAYS_AGO:-28"
 				}
 			],
 			"reminders": [
@@ -528,7 +604,7 @@
 		},
 		{
 			"name": "Jason Park",
-			"summary": "High school friend, dentist, married to Kelly, lives in suburbs with twin boys",
+			"summary": "High school friend, dentist, married to Kelly, lives in suburbs with twin boys #friends",
 			"avatar": "male6.jpg",
 			"notes": [
 				{
@@ -544,9 +620,15 @@
 					"updatedAt": "DAYS_AGO:-180"
 				},
 				{
-					"content": "Ran into Jason at the grocery store. The twins just started soccer and are loving it, but it means crazy weekends driving to games. Kelly started a part-time job at a marketing agency. Jason looks tired but happy - parenthood suits him.",
+					"content": "Ran into Jason at the grocery store — he had both twins in the cart and they were arguing about which cereal to get. Classic. He looked tired but in that happy-tired way that parents of young kids always have.\n\nThe twins just started soccer and are absolutely loving it. Jake is apparently a natural goalkeeper and Luke just wants to run as fast as possible in every direction. Jason and Kelly spend every weekend driving between games and practices. He joked that he sees more of the inside of his minivan than his dental office.\n\nKelly started a part-time job at a marketing agency now that the boys are in school full-time. She's been wanting to get back to work for a while and it sounds like the right fit — flexible hours and interesting clients.\n\nWe said we'd get the guys together for a poker night soon. We've been saying that for six months. One of these days we'll actually do it.",
 					"createdAt": "DAYS_AGO:-11",
 					"updatedAt": "DAYS_AGO:-11"
+				},
+				{
+					"content": "Jason hosted a barbecue for his birthday. Perfect weather, good food, and the twins were running around with water guns soaking every adult in sight. Kelly made this amazing three-layer cake that looked like it came from a bakery.\n\nI hadn't seen some of the high school crew in ages. It was great catching up with everyone. Time moves differently when you're with old friends — within five minutes the guys were roasting each other like we were 17 again.\n\nJason gave a toast thanking everyone for coming and got unexpectedly emotional. He said turning 35 hit different as a dad. It was sweet. He's a good dude.",
+					"images": ["backyard-bbq.jpg", "birthday-cake-homemade.jpg"],
+					"createdAt": "DAYS_AGO:-40",
+					"updatedAt": "DAYS_AGO:-40"
 				}
 			],
 			"reminders": [
@@ -559,6 +641,57 @@
 			],
 			"createdAt": "DAYS_AGO:-200",
 			"updatedAt": "DAYS_AGO:-11"
+		},
+		{
+			"name": "Priya Sharma",
+			"summary": "Running buddy, data analyst, training for her first marathon #friends #fitness",
+			"avatar": "female6.jpg",
+			"notes": [
+				{
+					"content": "Data analyst at a healthcare startup",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-55",
+					"updatedAt": "DAYS_AGO:-55"
+				},
+				{
+					"content": "Training for the Portland Marathon in October",
+					"pinned": true,
+					"createdAt": "DAYS_AGO:-40",
+					"updatedAt": "DAYS_AGO:-40"
+				},
+				{
+					"content": "Did a 10-mile run with Priya along the river trail this morning. She's getting so strong — her pace has improved dramatically in the last month. We used to struggle to hold 9-minute miles together and today she was pushing sub-8s on the hills like it was nothing.\n\nShe told me about her marathon training plan. She's following a structured 18-week program and tracking everything obsessively, which tracks with her data analyst brain. She has spreadsheets tracking pace, heart rate, sleep, nutrition. She showed me a chart of her progression and it looked like a pitch deck.\n\nThe run along the river was beautiful. Cherry blossoms everywhere, barely anyone out that early. We stopped at the bridge overlook and just stood there for a minute catching our breath and taking it in. These are the mornings I'll remember.",
+					"images": ["river-trail-morning.jpg", "cherry-blossoms-path.jpg"],
+					"createdAt": "DAYS_AGO:-2",
+					"updatedAt": "DAYS_AGO:-2"
+				},
+				{
+					"content": "Priya and I signed up for a half marathon together next month as part of her training. After we registered she immediately sent me a shared training calendar with our joint runs highlighted. She doesn't do anything halfway.\n\nWe went for brunch after our Saturday run and she opened up about feeling burned out at work. The healthcare startup is going through a rough funding round and the team is being asked to do more with less. She loves the mission but the pace is unsustainable. She's been quietly looking at other opportunities but feels guilty about it.\n\nI told her there's no shame in protecting your own wellbeing. You can care about a mission and also recognize when the environment isn't healthy. I think she needed to hear that from someone outside the situation.",
+					"createdAt": "DAYS_AGO:-13",
+					"updatedAt": "DAYS_AGO:-13"
+				}
+			],
+			"reminders": [
+				{
+					"text": "Saturday morning run with Priya",
+					"dueAtDate": "DAYS_FROM_NOW:4",
+					"repeat": {
+						"interval": 1,
+						"unit": "week"
+					},
+					"createdAt": "DAYS_AGO:-30",
+					"updatedAt": "DAYS_AGO:-2"
+				},
+				{
+					"text": "Register for half marathon before early bird deadline",
+					"dueAtDate": "DAYS_AGO:-10",
+					"done": true,
+					"createdAt": "DAYS_AGO:-13",
+					"updatedAt": "DAYS_AGO:-10"
+				}
+			],
+			"createdAt": "DAYS_AGO:-60",
+			"updatedAt": "DAYS_AGO:-2"
 		},
 		{
 			"name": "Amanda Brooks",

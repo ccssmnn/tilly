@@ -1,15 +1,7 @@
 import { Group, co, z, type ResolveQuery } from "jazz-tools"
 import { isBefore, isToday } from "date-fns"
 
-export {
-	isDeleted,
-	isDueToday,
-	sortByDueAt,
-	sortByCreatedAt,
-	sortByUpdatedAt,
-	sortByDeletedAt,
-	hasDueReminders,
-}
+export { isDeleted, isDueToday, sortByUpdatedAt, sortByDeletedAt }
 
 export let PushDevice = z.object({
 	isEnabled: z.boolean(),
@@ -94,10 +86,6 @@ export let Person = co.map({
 
 export let UserProfile = co.profile({
 	name: z.string(),
-})
-
-export let Settings = co.map({
-	version: z.literal(1),
 })
 
 export let UserAccountRoot = co.map({
@@ -223,27 +211,6 @@ function isDueToday(reminder: { dueAtDate: string }): boolean {
 	return isToday(dateToCheck) || isBefore(dateToCheck, new Date())
 }
 
-function sortByDueAt<T extends { dueAtDate: string }>(arr: Array<T>): Array<T> {
-	return arr.sort((a, b) => {
-		return new Date(a.dueAtDate).getTime() - new Date(b.dueAtDate).getTime()
-	})
-}
-
-function sortByCreatedAt<
-	T extends {
-		createdAt?: Date
-		$jazz: {
-			createdAt: number
-		}
-	},
->(arr: Array<T>): Array<T> {
-	return arr.sort((a, b) => {
-		let aTime = (a.createdAt || new Date(a.$jazz.createdAt)).getTime()
-		let bTime = (b.createdAt || new Date(b.$jazz.createdAt)).getTime()
-		return bTime - aTime
-	})
-}
-
 function sortByUpdatedAt<
 	T extends {
 		updatedAt?: Date
@@ -297,19 +264,4 @@ function sortByDeletedAt<
 			).getTime()
 		return bTime - aTime
 	})
-}
-
-function hasDueReminders(person: {
-	reminders?: {
-		$isLoaded?: boolean
-		values?: () => Array<{ done?: boolean; dueAtDate?: string }>
-	}
-}): boolean {
-	if (!person.reminders || !person.reminders.$isLoaded) return false
-	for (let reminder of person.reminders.values?.() || []) {
-		if (!reminder.done && isDueToday(reminder as { dueAtDate: string })) {
-			return true
-		}
-	}
-	return false
 }

@@ -10,6 +10,9 @@ const baseAssistantMessages = messages({
 	"assistant.subscribe.description":
 		"Tilly Agent can turn your thoughts into notes and reminders. It's like talking to your journal! Try free for 30 days.",
 	"assistant.subscribe.settings": "Start Free Trial",
+	"assistant.signedOut.title": "Sign in to use Tilly AI",
+	"assistant.signedOut.description":
+		"Tilly AI needs an account to access your contacts, notes, and reminders.",
 	"assistant.subscribe.currentPlan": "Current plan: {$plan}",
 	"assistant.subscribe.currentPlan.unknown": "Unknown",
 	"assistant.subscribe.trialStatus": "Free trial active",
@@ -60,6 +63,11 @@ const baseAssistantMessages = messages({
 	"assistant.clearChatHint.description":
 		"Starting a new conversation helps save your usage budget. Clear your chat to begin fresh.",
 	"assistant.clearChatHint.dismiss": "Got it",
+	"assistant.input.hint": "Press Enter to send, Shift+Enter for a new line.",
+	"assistant.input.send": "Send message",
+	"assistant.input.send.short": "Send",
+	"assistant.input.stopGenerating": "Stop response generation",
+	"assistant.input.stopGenerating.short": "Stop",
 	"assistant.placeholder.offline": "Chat requires internet connection",
 	"assistant.placeholder.generating": "Generating response...",
 	"assistant.placeholder.initial": "Chat with Tilly",
@@ -211,6 +219,9 @@ const baseAssistantMessages = messages({
 	"tool.userQuestion.no": "No",
 	"tool.userQuestion.cancel": "Cancel",
 	"tool.userQuestion.submit": "Submit",
+	"tool.userQuestion.title": "Question",
+	"tool.userQuestion.result.questionLabel": "Q:",
+	"tool.userQuestion.result.answerLabel": "A:",
 
 	// Voice recording messages
 	"assistant.voiceRecording.title": "Voice Message",
@@ -242,6 +253,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.subscribe.description":
 		"Der Tilly Agent verwandelt lose Gedanken in Notizen und Erinnerungen. Als würdest du mit deinem Journal Sprechen. 30 Tage kostenlos testen.",
 	"assistant.subscribe.settings": "Kostenlos testen",
+	"assistant.signedOut.title": "Melde dich an, um Tilly KI zu nutzen",
+	"assistant.signedOut.description":
+		"Die Tilly KI benötigt ein Konto, um auf Kontakte, Notizen und Erinnerungen zuzugreifen.",
 	"assistant.subscribe.currentPlan": "Aktueller Tarif: {$plan}",
 	"assistant.subscribe.currentPlan.unknown": "Unbekannt",
 	"assistant.subscribe.trialStatus": "Kostenlose Testphase aktiv",
@@ -294,6 +308,12 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"assistant.clearChatHint.description":
 		"Ein neues Gespräch zu beginnen hilft, dein Nutzungsbudget zu sparen. Lösche deinen Chat für einen frischen Start.",
 	"assistant.clearChatHint.dismiss": "Alles klar",
+	"assistant.input.hint":
+		"Drücke Enter zum Senden, Shift+Enter für eine neue Zeile.",
+	"assistant.input.send": "Nachricht senden",
+	"assistant.input.send.short": "Senden",
+	"assistant.input.stopGenerating": "Antwortgenerierung stoppen",
+	"assistant.input.stopGenerating.short": "Stopp",
 	"assistant.placeholder.offline": "Chat erfordert Internetverbindung",
 	"assistant.placeholder.generating": "Antwort wird erstellt...",
 	"assistant.placeholder.initial": "Mit Tilly chatten",
@@ -458,6 +478,9 @@ const deAssistantMessages = translate(baseAssistantMessages, {
 	"tool.userQuestion.no": "Nein",
 	"tool.userQuestion.cancel": "Abbrechen",
 	"tool.userQuestion.submit": "Senden",
+	"tool.userQuestion.title": "Frage",
+	"tool.userQuestion.result.questionLabel": "F:",
+	"tool.userQuestion.result.answerLabel": "A:",
 
 	// Voice recording messages
 	"assistant.voiceRecording.title": "Sprachnachricht",

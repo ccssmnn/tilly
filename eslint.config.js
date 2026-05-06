@@ -5,6 +5,20 @@ import reactHooks from "eslint-plugin-react-hooks"
 import react from "eslint-plugin-react"
 import globals from "globals"
 import astro from "eslint-plugin-astro"
+import architecture from "eslint-plugin-architecture"
+
+let featureRoots = [
+	{
+		path: "src/app/features",
+		allowedZones: ["screens", "widgets", "parts", "hooks", "lib"],
+	},
+	{
+		path: "src/server/features",
+		allowedZones: ["handlers", "operations", "lib", "middleware", "apps"],
+	},
+]
+
+let architectureOptions = { featureRoots }
 
 let commonRules = {
 	"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
@@ -67,11 +81,130 @@ export default [
 		rules: commonRules,
 	},
 	{
+		files: [
+			"src/app/features/{people,reminders,notes,assistant,settings}/**/*.{ts,tsx}",
+		],
+		ignores: ["**/*.test.ts"],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-feature-part-composition": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/no-local-subcomponents": ["error", architectureOptions],
+			"architecture/no-widget-composition": ["error", architectureOptions],
+			"architecture/no-utility-definitions-in-ui-modules": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/no-deep-feature-imports": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-routes-may-import-screens": [
+				"error",
+				architectureOptions,
+			],
+		},
+	},
+	{
+		files: ["src/app/routes/**/*.{ts,tsx}"],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-deep-feature-imports": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
+		},
+	},
+	{
+		files: [
+			"src/app/components/**/*.{ts,tsx}",
+			"src/app/hooks/**/*.{ts,tsx}",
+			"src/app/lib/**/*.{ts,tsx}",
+		],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-deep-feature-imports": ["error", architectureOptions],
+			"architecture/only-routes-may-import-screens": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
+		},
+	},
+	{
+		files: ["src/server/features/**/*.ts"],
+		ignores: ["**/*.test.ts"],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-feature-part-composition": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/no-utility-definitions-in-ui-modules": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/no-deep-feature-imports": ["error", architectureOptions],
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-screens-and-widgets-may-import-parts": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-router-may-import-handlers": [
+				"error",
+				architectureOptions,
+			],
+			"architecture/only-handlers-may-import-operations": [
+				"error",
+				architectureOptions,
+			],
+		},
+	},
+	{
+		files: ["src/server/main.ts"],
+		plugins: { architecture },
+		rules: {
+			"architecture/no-loose-feature-module-imports": [
+				"error",
+				architectureOptions,
+			],
+		},
+	},
+	{
+		files: ["tools/**/*.ts"],
+		languageOptions: {
+			parser: tsparser,
+			parserOptions: { ecmaVersion: "latest", sourceType: "module" },
+			globals: globals.node,
+		},
+		plugins: { "@typescript-eslint": tseslint },
+		rules: { ...tseslint.configs.recommended.rules, ...commonRules },
+	},
+	{
 		ignores: [
-			"dist/",
+			"**/dist/",
 			"build/",
 			"node_modules/",
 			"*.config.{js,mjs,ts}",
+			"*.setup.ts",
 			"vercel.ts",
 			".vercel/",
 			".astro/",

@@ -1,13 +1,14 @@
 import { Badge } from "#shared/ui/badge"
 import { TypographyH2, TypographyLead } from "#shared/ui/typography"
+import { HugeiconsIcon } from "@hugeicons/react"
 import {
-	PersonHearts,
-	BellFill,
-	PhoneFill,
-	ChatFill,
-	CloudCheckFill,
-	LockFill,
-} from "react-bootstrap-icons"
+	UserIcon,
+	Notification01Icon,
+	SmartPhone01Icon,
+	ChatIcon,
+	CloudIcon,
+	LockIcon,
+} from "@hugeicons/core-free-icons"
 
 export { FeatureGridCentered }
 
@@ -23,12 +24,12 @@ interface Props {
 }
 
 let iconMap = {
-	PersonHearts,
-	Bell: BellFill,
-	PhoneFill,
-	Chat: ChatFill,
-	Download: LockFill,
-	CloudCheck: CloudCheckFill,
+	PersonHearts: { icon: UserIcon },
+	Bell: { icon: Notification01Icon },
+	PhoneFill: { icon: SmartPhone01Icon },
+	Chat: { icon: ChatIcon },
+	Download: { icon: LockIcon },
+	CloudCheck: { icon: CloudIcon },
 }
 
 function FeatureGridCentered({ badge, title, description, features }: Props) {
@@ -49,12 +50,15 @@ function FeatureGridCentered({ badge, title, description, features }: Props) {
 			<div className="mx-auto mt-16 max-w-2xl md:mt-20 md:max-w-5xl">
 				<dl className="grid max-w-xl grid-cols-1 gap-x-12 gap-y-12 md:max-w-none md:grid-cols-3 md:gap-y-16">
 					{features.map(feature => {
-						let IconComponent = iconMap[feature.icon as keyof typeof iconMap]
+						let iconData = iconMap[feature.icon as keyof typeof iconMap]
 						return (
 							<div key={feature.name}>
 								<dt className="text-foreground text-base font-semibold">
 									<div className="bg-primary mb-4 flex size-12 items-center justify-center rounded-xl">
-										<IconComponent className="text-primary-foreground size-7" />
+										<HugeiconsIcon
+											icon={iconData.icon}
+											className="text-primary-foreground size-7"
+										/>
 									</div>
 									{feature.name}
 								</dt>
