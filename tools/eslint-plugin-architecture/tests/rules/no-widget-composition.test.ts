@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/no-widget-composition.js"
+import rule from "../../rules/no-widget-composition.js"
 
 ruleTester.run("no-widget-composition", rule, {
 	valid: [

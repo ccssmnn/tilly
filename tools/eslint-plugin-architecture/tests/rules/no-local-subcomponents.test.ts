@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/no-local-subcomponents.js"
+import rule from "../../rules/no-local-subcomponents.js"
 
 ruleTester.run("no-local-subcomponents", rule, {
 	valid: [

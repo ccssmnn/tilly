@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/only-handlers-may-import-operations.js"
+import rule from "../../rules/only-handlers-may-import-operations.js"
 
 ruleTester.run("only-handlers-may-import-operations", rule, {
 	valid: [

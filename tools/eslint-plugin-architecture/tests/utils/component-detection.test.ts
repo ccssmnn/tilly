@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { isPascalCase } from "../../src/utils/component-detection.js"
+import { isPascalCase } from "../../utils/component-detection.js"
 
 describe("isPascalCase", () => {
 	test("PascalCase names", () => {

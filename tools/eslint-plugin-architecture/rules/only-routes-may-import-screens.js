@@ -2,31 +2,23 @@ import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
-	isSameFeature,
 	DEFAULT_ALIASES,
 	DEFAULT_FEATURE_ROOTS,
-	type AliasMap,
-	type FeatureRootConfig,
 } from "../utils/path-classification.js"
-
 const createRule = ESLintUtils.RuleCreator(
 	name =>
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
-
+const ALLOWED_ZONES = new Set(["route", "feature-index"])
 export default createRule({
-	name: "only-handlers-may-import-operations",
+	name: "only-routes-may-import-screens",
 	meta: {
 		type: "problem",
 		docs: {
-			description:
-				"Only handlers may import operations. Operations must not import other operations.",
+			description: "Only route files may import screens.",
 		},
 		messages: {
-			operationChain:
-				"Operations must not import other operations. Keep the dependency tree flat.",
-			forbidden:
-				"Only handlers may import operations. Current file is in '{{zone}}'.",
+			forbidden: "Only route files may import screens.",
 		},
 		schema: [
 			{
@@ -52,41 +44,26 @@ export default createRule({
 	},
 	defaultOptions: [
 		{
-			aliases: undefined as AliasMap | undefined,
-			featureRoots: undefined as FeatureRootConfig[] | undefined,
+			aliases: undefined,
+			featureRoots: undefined,
 		},
 	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
 		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let currentFile = classifyFile(context.filename, featureRoots)
-
 		return {
 			ImportDeclaration(node) {
 				if (node.importKind === "type") return
-
 				let imported = classifyImport(
 					node.source.value,
 					context.filename,
 					aliases,
 					featureRoots,
 				)
-				if (imported.zone !== "operation") return
-				if (currentFile.zone === "feature-index") return
-
-				if (
-					(currentFile.zone === "handler" || currentFile.zone === "app") &&
-					isSameFeature(currentFile, imported)
-				) {
-					return
-				}
-
-				context.report({
-					node,
-					messageId:
-						currentFile.zone === "operation" ? "operationChain" : "forbidden",
-					data: { zone: currentFile.zone },
-				})
+				if (imported.zone !== "screen") return
+				if (ALLOWED_ZONES.has(currentFile.zone)) return
+				context.report({ node, messageId: "forbidden" })
 			},
 		}
 	},

@@ -2,28 +2,25 @@ import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
+	isSameFeature,
 	DEFAULT_ALIASES,
 	DEFAULT_FEATURE_ROOTS,
-	type AliasMap,
-	type FeatureRootConfig,
 } from "../utils/path-classification.js"
-
 const createRule = ESLintUtils.RuleCreator(
 	name =>
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
-
-const ALLOWED_ZONES = new Set(["route", "feature-index"])
-
 export default createRule({
-	name: "only-routes-may-import-screens",
+	name: "no-deep-feature-imports",
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Only route files may import screens.",
+			description:
+				"Forbid cross-feature deep imports. Use the feature index instead.",
 		},
 		messages: {
-			forbidden: "Only route files may import screens.",
+			noDeepImport:
+				"Import from '{{featurePath}}' instead of deep importing into another feature's internals.",
 		},
 		schema: [
 			{
@@ -49,30 +46,49 @@ export default createRule({
 	},
 	defaultOptions: [
 		{
-			aliases: undefined as AliasMap | undefined,
-			featureRoots: undefined as FeatureRootConfig[] | undefined,
+			aliases: undefined,
+			featureRoots: undefined,
 		},
 	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
 		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let currentFile = classifyFile(context.filename, featureRoots)
-
 		return {
 			ImportDeclaration(node) {
 				if (node.importKind === "type") return
-
+				let source = node.source.value
 				let imported = classifyImport(
-					node.source.value,
+					source,
 					context.filename,
 					aliases,
 					featureRoots,
 				)
-				if (imported.zone !== "screen") return
-				if (ALLOWED_ZONES.has(currentFile.zone)) return
-
-				context.report({ node, messageId: "forbidden" })
+				if (imported.feature === null) return
+				if (imported.zone === "feature-index") return
+				if (imported.zone === "unknown") return
+				if (isSameFeature(currentFile, imported)) return
+				// Routes deep-import screens, router deep-imports handlers
+				if (currentFile.zone === "route" && imported.zone === "screen") return
+				if (currentFile.feature === null && imported.zone === "handler") return
+				let featurePath = imported.root
+					? findAliasedPath(imported.root, imported.feature, aliases)
+					: `features/${imported.feature}`
+				context.report({
+					node,
+					messageId: "noDeepImport",
+					data: { featurePath },
+				})
 			},
 		}
 	},
 })
+function findAliasedPath(root, feature, aliases) {
+	let fullPath = `${root}/${feature}`
+	for (let [alias, target] of Object.entries(aliases)) {
+		if (fullPath.startsWith(target + "/") || fullPath === target) {
+			return alias + fullPath.slice(target.length)
+		}
+	}
+	return fullPath
+}

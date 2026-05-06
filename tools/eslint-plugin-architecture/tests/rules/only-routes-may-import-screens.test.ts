@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/only-routes-may-import-screens.js"
+import rule from "../../rules/only-routes-may-import-screens.js"
 
 ruleTester.run("only-routes-may-import-screens", rule, {
 	valid: [

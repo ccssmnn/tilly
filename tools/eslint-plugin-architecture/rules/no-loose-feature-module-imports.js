@@ -5,31 +5,22 @@ import {
 	resolveImportPath,
 	DEFAULT_ALIASES,
 	DEFAULT_FEATURE_ROOTS,
-	type AliasMap,
-	type FeatureRootConfig,
 } from "../utils/path-classification.js"
-
 const createRule = ESLintUtils.RuleCreator(
 	name =>
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
-
-function normalize(filePath: string): string {
+function normalize(filePath) {
 	return filePath.replace(/\\/g, "/")
 }
-
-function escapeRegex(str: string): string {
+function escapeRegex(str) {
 	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
-
-function buildFeatureDirectImportPattern(
-	featureRoots: FeatureRootConfig[],
-): RegExp {
+function buildFeatureDirectImportPattern(featureRoots) {
 	let rootPatterns = featureRoots.map(r => escapeRegex(normalize(r.path)))
 	return new RegExp(`^(?:${rootPatterns.join("|")})/([^/]+)$`)
 }
-
-function findProjectRoot(filename: string): string | null {
+function findProjectRoot(filename) {
 	let dir = path.dirname(filename)
 	while (dir !== path.dirname(dir)) {
 		if (fs.existsSync(path.join(dir, "src"))) return dir
@@ -37,12 +28,10 @@ function findProjectRoot(filename: string): string | null {
 	}
 	return null
 }
-
-function isDirectory(projectRoot: string, resolved: string): boolean {
+function isDirectory(projectRoot, resolved) {
 	let absolute = path.join(projectRoot, resolved)
 	return fs.existsSync(absolute) && fs.statSync(absolute).isDirectory()
 }
-
 export default createRule({
 	name: "no-loose-feature-module-imports",
 	meta: {
@@ -82,8 +71,8 @@ export default createRule({
 	},
 	defaultOptions: [
 		{
-			aliases: undefined as AliasMap | undefined,
-			featureRoots: undefined as FeatureRootConfig[] | undefined,
+			aliases: undefined,
+			featureRoots: undefined,
 		},
 	],
 	create(context, [options]) {
@@ -91,24 +80,19 @@ export default createRule({
 		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let projectRoot = findProjectRoot(context.filename)
 		let pattern = buildFeatureDirectImportPattern(featureRoots)
-
 		return {
 			ImportDeclaration(node) {
 				if (node.importKind === "type") return
 				if (!projectRoot) return
-
 				let resolved = resolveImportPath(
 					node.source.value,
 					context.filename,
 					aliases,
 				)
 				if (!resolved) return
-
 				let match = resolved.match(pattern)
 				if (!match) return
-
 				if (isDirectory(projectRoot, resolved)) return
-
 				context.report({
 					node,
 					messageId: "noLooseImport",

@@ -1,25 +1,20 @@
-import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
+import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	DEFAULT_FEATURE_ROOTS,
-	type FeatureRootConfig,
-	type Zone,
 } from "../utils/path-classification.js"
 import { isPascalCase } from "../utils/component-detection.js"
-
 const createRule = ESLintUtils.RuleCreator(
 	name =>
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
-
-const DEFAULT_STRUCTURAL_ZONES: Zone[] = [
+const DEFAULT_STRUCTURAL_ZONES = [
 	"screen",
 	"widget",
 	"part",
 	"handler",
 	"operation",
 ]
-
 export default createRule({
 	name: "no-utility-definitions-in-ui-modules",
 	meta: {
@@ -61,8 +56,8 @@ export default createRule({
 	},
 	defaultOptions: [
 		{
-			featureRoots: undefined as FeatureRootConfig[] | undefined,
-			structuralZones: undefined as Zone[] | undefined,
+			featureRoots: undefined,
+			structuralZones: undefined,
 		},
 	],
 	create(context, [options]) {
@@ -72,9 +67,8 @@ export default createRule({
 		)
 		let currentFile = classifyFile(context.filename, featureRoots)
 		if (!structuralZones.has(currentFile.zone)) return {}
-
-		function collectReexportedNames(program: TSESTree.Program): Set<string> {
-			let names = new Set<string>()
+		function collectReexportedNames(program) {
+			let names = new Set()
 			for (let stmt of program.body) {
 				if (stmt.type === "ExportNamedDeclaration" && !stmt.declaration) {
 					for (let spec of stmt.specifiers) {
@@ -86,12 +80,7 @@ export default createRule({
 			}
 			return names
 		}
-
-		function reportFunction(
-			name: string,
-			node: TSESTree.Node,
-			reexportedNames: Set<string>,
-		) {
+		function reportFunction(name, node, reexportedNames) {
 			if (isPascalCase(name)) return
 			if (reexportedNames.has(name)) return
 			if (name.startsWith("use")) {
@@ -100,19 +89,13 @@ export default createRule({
 				context.report({ node, messageId: "noUtility", data: { name } })
 			}
 		}
-
-		function checkStatement(
-			stmt: TSESTree.ProgramStatement,
-			reexportedNames: Set<string>,
-		) {
+		function checkStatement(stmt, reexportedNames) {
 			if (stmt.type === "FunctionDeclaration" && stmt.id) {
 				reportFunction(stmt.id.name, stmt, reexportedNames)
 			}
-
 			if (stmt.type === "VariableDeclaration") {
 				checkVariableDeclaration(stmt, reexportedNames)
 			}
-
 			if (
 				stmt.type === "ExportNamedDeclaration" ||
 				stmt.type === "ExportDefaultDeclaration"
@@ -127,11 +110,7 @@ export default createRule({
 				}
 			}
 		}
-
-		function checkVariableDeclaration(
-			node: TSESTree.VariableDeclaration,
-			reexportedNames: Set<string>,
-		) {
+		function checkVariableDeclaration(node, reexportedNames) {
 			for (let decl of node.declarations) {
 				if (decl.id.type !== "Identifier") continue
 				let name = decl.id.name
@@ -154,9 +133,8 @@ export default createRule({
 				}
 			}
 		}
-
 		return {
-			Program(node: TSESTree.Program) {
+			Program(node) {
 				let reexportedNames = collectReexportedNames(node)
 				for (let stmt of node.body) {
 					checkStatement(stmt, reexportedNames)

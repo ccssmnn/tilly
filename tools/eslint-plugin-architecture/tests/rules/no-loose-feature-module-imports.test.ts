@@ -22,7 +22,7 @@ vi.spyOn(fs, "statSync").mockImplementation(
 )
 
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/no-loose-feature-module-imports.js"
+import rule from "../../rules/no-loose-feature-module-imports.js"
 
 ruleTester.run("no-loose-feature-module-imports", rule, {
 	valid: [

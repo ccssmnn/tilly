@@ -1,22 +1,17 @@
-import { ESLintUtils, type TSESTree } from "@typescript-eslint/utils"
+import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
 	isSameFeature,
 	DEFAULT_ALIASES,
 	DEFAULT_FEATURE_ROOTS,
-	type AliasMap,
-	type FeatureRootConfig,
-	type Zone,
 } from "../utils/path-classification.js"
-
 const createRule = ESLintUtils.RuleCreator(
 	name =>
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
-
-const LEAF_ZONES: Set<Zone> = new Set(["part", "feature-lib", "hook"])
-const COMPOSITION_ZONES: Set<Zone> = new Set([
+const LEAF_ZONES = new Set(["part", "feature-lib", "hook"])
+const COMPOSITION_ZONES = new Set([
 	"screen",
 	"widget",
 	"handler",
@@ -27,8 +22,7 @@ const COMPOSITION_ZONES: Set<Zone> = new Set([
 // `feature-lib` and `hook` are leaves but form part of the public surface, so
 // the feature index may re-export them. `part` is strictly private and may
 // only be reached from the same feature's composition layer.
-const BARREL_REEXPORTABLE: Set<Zone> = new Set(["feature-lib", "hook"])
-
+const BARREL_REEXPORTABLE = new Set(["feature-lib", "hook"])
 export default createRule({
 	name: "only-screens-and-widgets-may-import-parts",
 	meta: {
@@ -65,26 +59,16 @@ export default createRule({
 	},
 	defaultOptions: [
 		{
-			aliases: undefined as AliasMap | undefined,
-			featureRoots: undefined as FeatureRootConfig[] | undefined,
+			aliases: undefined,
+			featureRoots: undefined,
 		},
 	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
 		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let currentFile = classifyFile(context.filename, featureRoots)
-
-		function check(
-			node:
-				| TSESTree.ImportDeclaration
-				| TSESTree.ExportNamedDeclaration
-				| TSESTree.ExportAllDeclaration,
-			source: string,
-			isTypeOnly: boolean,
-			isReexport: boolean,
-		) {
+		function check(node, source, isTypeOnly, isReexport) {
 			if (isTypeOnly) return
-
 			let imported = classifyImport(
 				source,
 				context.filename,
@@ -92,14 +76,12 @@ export default createRule({
 				featureRoots,
 			)
 			if (!LEAF_ZONES.has(imported.zone)) return
-
 			if (
 				COMPOSITION_ZONES.has(currentFile.zone) &&
 				isSameFeature(currentFile, imported)
 			) {
 				return
 			}
-
 			if (
 				isReexport &&
 				currentFile.zone === "feature-index" &&
@@ -108,14 +90,12 @@ export default createRule({
 			) {
 				return
 			}
-
 			context.report({
 				node,
 				messageId: "forbidden",
 				data: { zone: currentFile.zone },
 			})
 		}
-
 		return {
 			ImportDeclaration(node) {
 				check(node, node.source.value, node.importKind === "type", false)

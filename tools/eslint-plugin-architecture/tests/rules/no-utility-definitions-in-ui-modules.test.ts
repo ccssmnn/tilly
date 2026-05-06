@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/no-utility-definitions-in-ui-modules.js"
+import rule from "../../rules/no-utility-definitions-in-ui-modules.js"
 
 ruleTester.run("no-utility-definitions-in-ui-modules", rule, {
 	valid: [

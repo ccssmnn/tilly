@@ -3,11 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"scripts": {
-		"build": "tsc"
-	},
+	"main": "index.js",
 	"peerDependencies": {
 		"eslint": ">=9"
 	},
@@ -16,7 +12,6 @@
 	},
 	"devDependencies": {
 		"@typescript-eslint/parser": "^8.59.2",
-		"@typescript-eslint/rule-tester": "^8.59.2",
-		"typescript": "5.9.3"
+		"@typescript-eslint/rule-tester": "^8.59.2"
 	}
 }

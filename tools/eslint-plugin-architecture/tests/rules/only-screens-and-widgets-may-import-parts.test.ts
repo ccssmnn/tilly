@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/only-screens-and-widgets-may-import-parts.js"
+import rule from "../../rules/only-screens-and-widgets-may-import-parts.js"
 
 ruleTester.run("only-screens-and-widgets-may-import-parts", rule, {
 	valid: [

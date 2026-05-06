@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/no-deep-feature-imports.js"
+import rule from "../../rules/no-deep-feature-imports.js"
 
 ruleTester.run("no-deep-feature-imports", rule, {
 	valid: [

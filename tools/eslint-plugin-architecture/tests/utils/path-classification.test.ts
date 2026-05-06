@@ -5,7 +5,7 @@ import {
 	isSameFeature,
 	DEFAULT_ALIASES,
 	DEFAULT_FEATURE_ROOTS,
-} from "../../src/utils/path-classification.js"
+} from "../../utils/path-classification.js"
 
 describe("classifyFile", () => {
 	test("screen", () => {

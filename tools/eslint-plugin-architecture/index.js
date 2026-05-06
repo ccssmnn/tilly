@@ -8,7 +8,6 @@ import onlyScreensAndWidgetsMayImportParts from "./rules/only-screens-and-widget
 import onlyRoutesMayImportScreens from "./rules/only-routes-may-import-screens.js"
 import onlyRouterMayImportHandlers from "./rules/only-router-may-import-handlers.js"
 import onlyHandlersMayImportOperations from "./rules/only-handlers-may-import-operations.js"
-
 const plugin = {
 	meta: {
 		name: "eslint-plugin-architecture",
@@ -28,5 +27,4 @@ const plugin = {
 		"only-handlers-may-import-operations": onlyHandlersMayImportOperations,
 	},
 }
-
 export default plugin

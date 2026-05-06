@@ -1,5 +1,5 @@
 import { ruleTester } from "../rule-tester.js"
-import rule from "../../src/rules/no-feature-part-composition.js"
+import rule from "../../rules/no-feature-part-composition.js"
 
 ruleTester.run("no-feature-part-composition", rule, {
 	valid: [

@@ -1,28 +1,14 @@
-import type { TSESTree } from "@typescript-eslint/utils"
-
-export function isPascalCase(name: string): boolean {
+export function isPascalCase(name) {
 	return /^[A-Z]/.test(name)
 }
-
-export function getJSXComponentName(
-	node: TSESTree.JSXOpeningElement,
-): string | null {
+export function getJSXComponentName(node) {
 	if (node.name.type === "JSXIdentifier" && isPascalCase(node.name.name)) {
 		return node.name.name
 	}
 	return null
 }
-
-type ComponentCandidate = {
-	name: string
-	node: TSESTree.Node
-}
-
-export function collectLocalComponents(
-	body: TSESTree.ProgramStatement[],
-): ComponentCandidate[] {
-	let components: ComponentCandidate[] = []
-
+export function collectLocalComponents(body) {
+	let components = []
 	for (let stmt of body) {
 		if (
 			stmt.type === "FunctionDeclaration" &&
@@ -31,7 +17,6 @@ export function collectLocalComponents(
 		) {
 			components.push({ name: stmt.id.name, node: stmt })
 		}
-
 		if (stmt.type === "VariableDeclaration") {
 			for (let decl of stmt.declarations) {
 				if (
@@ -46,7 +31,6 @@ export function collectLocalComponents(
 				}
 			}
 		}
-
 		if (stmt.type === "ExportNamedDeclaration" && stmt.declaration) {
 			let decl = stmt.declaration
 			if (
@@ -70,7 +54,6 @@ export function collectLocalComponents(
 				}
 			}
 		}
-
 		if (stmt.type === "ExportDefaultDeclaration") {
 			let decl = stmt.declaration
 			if (
@@ -82,6 +65,5 @@ export function collectLocalComponents(
 			}
 		}
 	}
-
 	return components
 }

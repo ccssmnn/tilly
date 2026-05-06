@@ -2,26 +2,26 @@ import { ESLintUtils } from "@typescript-eslint/utils"
 import {
 	classifyFile,
 	classifyImport,
+	isSameFeature,
 	DEFAULT_ALIASES,
 	DEFAULT_FEATURE_ROOTS,
-	type AliasMap,
-	type FeatureRootConfig,
 } from "../utils/path-classification.js"
-
+import { getJSXComponentName } from "../utils/component-detection.js"
 const createRule = ESLintUtils.RuleCreator(
 	name =>
 		`https://github.com/ccssmnn/tilly/blob/main/tools/eslint-plugin-architecture/README.md#${name}`,
 )
-
 export default createRule({
-	name: "only-router-may-import-handlers",
+	name: "no-widget-composition",
 	meta: {
 		type: "problem",
 		docs: {
-			description: "Only the router may import handlers.",
+			description:
+				"Widgets must not render other widgets. Compose widgets in screens.",
 		},
 		messages: {
-			forbidden: "Only the router may import handlers.",
+			noWidgetComposition:
+				"Widgets must not render other widgets. Compose widgets in screens instead.",
 		},
 		schema: [
 			{
@@ -47,30 +47,37 @@ export default createRule({
 	},
 	defaultOptions: [
 		{
-			aliases: undefined as AliasMap | undefined,
-			featureRoots: undefined as FeatureRootConfig[] | undefined,
+			aliases: undefined,
+			featureRoots: undefined,
 		},
 	],
 	create(context, [options]) {
 		let aliases = options.aliases ?? DEFAULT_ALIASES
 		let featureRoots = options.featureRoots ?? DEFAULT_FEATURE_ROOTS
 		let currentFile = classifyFile(context.filename, featureRoots)
-
+		if (currentFile.zone !== "widget") return {}
+		let importClassifications = new Map()
 		return {
 			ImportDeclaration(node) {
 				if (node.importKind === "type") return
-
-				let imported = classifyImport(
+				let classification = classifyImport(
 					node.source.value,
 					context.filename,
 					aliases,
 					featureRoots,
 				)
-				if (imported.zone !== "handler" && imported.zone !== "app") return
-				if (currentFile.zone === "feature-index") return
-				if (currentFile.feature === null) return
-
-				context.report({ node, messageId: "forbidden" })
+				if (classification.zone !== "widget") return
+				if (isSameFeature(classification, currentFile)) return
+				for (let specifier of node.specifiers) {
+					importClassifications.set(specifier.local.name, classification)
+				}
+			},
+			JSXOpeningElement(node) {
+				let name = getJSXComponentName(node)
+				if (!name) return
+				if (importClassifications.has(name)) {
+					context.report({ node, messageId: "noWidgetComposition" })
+				}
 			},
 		}
 	},
