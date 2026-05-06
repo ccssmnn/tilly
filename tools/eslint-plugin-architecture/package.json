@@ -12,11 +12,11 @@
 		"eslint": ">=9"
 	},
 	"dependencies": {
-		"@typescript-eslint/utils": "^8.53.1"
+		"@typescript-eslint/utils": "^8.59.2"
 	},
 	"devDependencies": {
-		"@typescript-eslint/parser": "^8.53.1",
-		"@typescript-eslint/rule-tester": "^8.53.1",
+		"@typescript-eslint/parser": "^8.59.2",
+		"@typescript-eslint/rule-tester": "^8.59.2",
 		"typescript": "5.9.3"
 	}
 }
