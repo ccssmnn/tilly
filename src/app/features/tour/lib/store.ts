@@ -21,6 +21,7 @@ export let useTourStore = create<TourStoreState>()(
 		{
 			name: "tilly-tour-store",
 			storage: createIdbStorage(persistedSchema, { tourSkipped: false }),
+			partialize: state => ({ tourSkipped: state.tourSkipped }),
 		},
 	),
 )

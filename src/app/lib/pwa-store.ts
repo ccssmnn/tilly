@@ -24,6 +24,9 @@ export let usePWAStore = create<PWAStoreState>()(
 			storage: createIdbStorage(persistedSchema, {
 				installHintDismissed: false,
 			}),
+			partialize: state => ({
+				installHintDismissed: state.installHintDismissed,
+			}),
 		},
 	),
 )
