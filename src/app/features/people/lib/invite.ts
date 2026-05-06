@@ -1,5 +1,5 @@
 export type { InviteData }
-export { parseInviteHash, getOrRestoreInviteData, clearPendingInvite }
+export { parseInviteHash, getOrRestoreInviteData }
 
 let PENDING_INVITE_KEY = "tilly:pending-invite"
 
@@ -39,8 +39,4 @@ function getOrRestoreInviteData(): InviteData | null {
 	}
 
 	return null
-}
-
-function clearPendingInvite() {
-	localStorage.removeItem(PENDING_INVITE_KEY)
 }

@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode, type RefObject } from "react"
+import { useId, type ReactNode, type RefObject } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
 	Add01Icon,
@@ -14,23 +14,8 @@ import {
 	InputGroupButton,
 	InputGroupInput,
 } from "#shared/ui/input-group"
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuLabel,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuTrigger,
-} from "#shared/ui/dropdown-menu"
-import { Sliders } from "react-bootstrap-icons"
 
-export {
-	ReminderToolbar,
-	ReminderSearch,
-	ReminderStatusFilter,
-	NewReminderButton,
-}
+export { ReminderToolbar, ReminderSearch, NewReminderButton }
 
 function ReminderToolbar({ children }: { children?: ReactNode }) {
 	return (
@@ -89,61 +74,6 @@ function ReminderSearch({
 				)}
 			</InputGroup>
 		</div>
-	)
-}
-
-type StatusFilter = "active" | "done" | "deleted"
-
-function ReminderStatusFilter({
-	value,
-	onChange,
-}: {
-	value: StatusFilter
-	onChange: (value: StatusFilter) => void
-}) {
-	let t = useIntl()
-	let [open, setOpen] = useState(false)
-
-	let isFiltered = value !== "active"
-
-	let statusOptions = [
-		{ value: "active", label: t("filter.status.active") },
-		{ value: "done", label: t("filter.status.done") },
-		{ value: "deleted", label: t("filter.status.deleted") },
-	]
-
-	return (
-		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger
-				render={
-					<InputGroupButton
-						variant={isFiltered ? "secondary" : "ghost"}
-						size="icon-xs"
-						onClick={() => setOpen(true)}
-						aria-label={t("filter.status")}
-					>
-						<Sliders />
-					</InputGroupButton>
-				}
-			/>
-			<DropdownMenuContent align="end" className="w-auto">
-				<DropdownMenuGroup>
-					<DropdownMenuLabel>
-						<T k="filter.status" />
-					</DropdownMenuLabel>
-				</DropdownMenuGroup>
-				<DropdownMenuRadioGroup
-					value={value}
-					onValueChange={v => onChange(v as StatusFilter)}
-				>
-					{statusOptions.map(option => (
-						<DropdownMenuRadioItem key={option.value} value={option.value}>
-							{option.label}
-						</DropdownMenuRadioItem>
-					))}
-				</DropdownMenuRadioGroup>
-			</DropdownMenuContent>
-		</DropdownMenu>
 	)
 }
 

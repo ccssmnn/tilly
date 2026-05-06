@@ -1,10 +1,7 @@
 export {
 	useAvailableLists,
-	extractListFilterFromQuery,
-	setListFilterInQuery,
 	removeHashtagFromSummary,
 	addHashtagToSummary,
-	replaceHashtagInSummary,
 	extractHashtags,
 	hasHashtag,
 }
@@ -39,17 +36,6 @@ function useAvailableLists(people: PersonWithSummary[]): AvailableList[] {
 	return hashtags
 }
 
-function extractListFilterFromQuery(query: string): string | null {
-	let match = query.match(/^(#[a-zA-Z0-9_]+)\s*/)
-	return match ? match[1].toLowerCase() : null
-}
-
-function setListFilterInQuery(query: string, filter: string | null): string {
-	let withoutFilter = query.replace(/^#[a-zA-Z0-9_]+\s*/, "").trim()
-	if (!filter) return withoutFilter
-	return `${filter} ${withoutFilter}`.trim()
-}
-
 function removeHashtagFromSummary(
 	summary: string | undefined,
 	hashtag: string,
@@ -68,16 +54,6 @@ function addHashtagToSummary(
 ): string {
 	let current = summary?.trim() || ""
 	return current ? `${current} ${hashtag}` : hashtag
-}
-
-function replaceHashtagInSummary(
-	summary: string | undefined,
-	oldTag: string,
-	newTag: string,
-): string {
-	if (!summary) return ""
-	let escaped = oldTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-	return summary.replace(new RegExp(`${escaped}(?=\\s|$)`, "gi"), newTag).trim()
 }
 
 function extractHashtags(summary?: string): string[] {

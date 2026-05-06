@@ -2,19 +2,6 @@ import { tool, type InferUITool } from "ai"
 import { z } from "zod"
 
 export { userQuestionTool, userQuestionExecute }
-export type { QuestionOption, UserQuestionResult }
-
-type QuestionOption = {
-	value: string
-	label: string
-}
-
-type UserQuestionResult = {
-	question: string
-	answer: boolean | string
-	answerLabel?: string
-	answeredAt: string
-}
 
 let userQuestionTool = tool({
 	description:

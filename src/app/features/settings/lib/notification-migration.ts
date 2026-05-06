@@ -1,13 +1,5 @@
-import { Account, Group, type co, type ID, deleteCoValues } from "jazz-tools"
-import { NotificationSettings } from "#shared/schema/user"
-import { ServerAccount } from "#shared/schema/server"
-
-export {
-	migrateNotificationSettings,
-	addServerToGroup,
-	copyNotificationSettingsData,
-}
-export type { MigrationContext, NotificationSettingsInput }
+export { copyNotificationSettingsData }
+export type { NotificationSettingsInput }
 
 type NotificationSettingsInput = {
 	version: 1
@@ -22,11 +14,6 @@ type NotificationSettingsInput = {
 		endpoint: string
 		keys: { p256dh: string; auth: string }
 	}>
-}
-
-type MigrationContext = {
-	loadAs: Account
-	rootLanguage?: "de" | "en"
 }
 
 type NotificationSettingsLike = {
@@ -64,69 +51,4 @@ function copyNotificationSettingsData(
 			},
 		})),
 	}
-}
-
-async function migrateNotificationSettings(
-	oldSettings: co.loaded<typeof NotificationSettings>,
-	serverAccountId: string,
-	context: MigrationContext,
-): Promise<{
-	newSettings: co.loaded<typeof NotificationSettings>
-	cleanup: () => Promise<void>
-}> {
-	let group = Group.create()
-
-	await addServerToGroup(group, serverAccountId, context)
-
-	let settingsData = copyNotificationSettingsData(
-		oldSettings,
-		context.rootLanguage,
-	)
-
-	let newSettings = NotificationSettings.create(settingsData, { owner: group })
-
-	let cleanup = async () => {
-		let owner = oldSettings.$jazz.owner
-		if (owner instanceof Group) {
-			let hasAdminPermission = owner.members.some(
-				m =>
-					m.account?.$jazz.id === context.loadAs.$jazz.id && m.role === "admin",
-			)
-			if (!hasAdminPermission) {
-				console.error(
-					"[NotificationSettingsMigration] Caller lacks admin permission on owning group",
-				)
-				throw new Error("Caller lacks admin permission on owning group")
-			}
-		}
-
-		try {
-			await deleteCoValues(NotificationSettings, oldSettings.$jazz.id)
-		} catch (error) {
-			console.error(
-				"[NotificationSettingsMigration] Failed to delete old settings:",
-				error,
-			)
-			throw error
-		}
-	}
-
-	return { newSettings, cleanup }
-}
-
-async function addServerToGroup(
-	group: Group,
-	serverAccountId: string,
-	context: MigrationContext,
-): Promise<void> {
-	let serverAccount = await ServerAccount.load(
-		serverAccountId as ID<typeof ServerAccount>,
-		{ loadAs: context.loadAs },
-	)
-
-	if (!serverAccount || !serverAccount.$isLoaded) {
-		throw new Error("Failed to load server account")
-	}
-
-	group.addMember(serverAccount, "writer")
 }

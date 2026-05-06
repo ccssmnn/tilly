@@ -4,7 +4,6 @@ import { tryCatch } from "#shared/lib/trycatch"
 
 export {
 	subscribeToPushNotifications,
-	unsubscribeFromPushNotifications,
 	requestNotificationPermission,
 	getNotificationPermission,
 	arrayBufferToBase64,
@@ -93,33 +92,6 @@ async function subscribeToPushNotifications(): Promise<{
 			auth: arrayBufferToBase64(auth),
 		},
 	}
-}
-
-async function unsubscribeFromPushNotifications(): Promise<boolean> {
-	let registrationResult = await tryCatch(getServiceWorkerRegistration())
-	if (!registrationResult.ok) {
-		return false
-	}
-
-	let registration = registrationResult.data
-	if (!registration) {
-		return false
-	}
-
-	let subscriptionResult = await tryCatch(
-		registration.pushManager.getSubscription(),
-	)
-	if (!subscriptionResult.ok) {
-		return false
-	}
-
-	let subscription = subscriptionResult.data
-	if (subscription) {
-		let unsubscribeResult = await tryCatch(subscription.unsubscribe())
-		return unsubscribeResult.ok ? unsubscribeResult.data : false
-	}
-
-	return false
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {

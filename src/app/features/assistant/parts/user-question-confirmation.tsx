@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { T, useIntl } from "#shared/intl/setup"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "#shared/ui/button"
@@ -49,6 +49,11 @@ function UserQuestionConfirmation({
 			}),
 		),
 		defaultValues: { selectedValue: "" },
+	})
+
+	let selectedValue = useWatch({
+		control: form.control,
+		name: "selectedValue",
 	})
 
 	let handleAnswer = async (answer: boolean | string, answerLabel?: string) => {
@@ -184,7 +189,7 @@ function UserQuestionConfirmation({
 							type="button"
 							variant="default"
 							onClick={form.handleSubmit(handleSubmitForm)}
-							disabled={isResponding || !form.watch("selectedValue")}
+							disabled={isResponding || !selectedValue}
 							className="flex-1 md:flex-none"
 						>
 							<T k="tool.userQuestion.submit" />
