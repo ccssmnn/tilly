@@ -4,6 +4,7 @@ import { motion } from "motion/react"
 import { Button } from "#shared/ui/button"
 import { TypographyH1, TypographyLead } from "#shared/ui/typography"
 import { useTourStore } from "#app/features/tour"
+import { useSplashVisible } from "#app/components/splash-screen"
 import { T } from "#shared/intl/setup"
 import {
 	SkipForwardFill,
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/")({
 
 function WelcomeIndex() {
 	let setTourSkipped = useTourStore(state => state.setTourSkipped)
+	let splashVisible = useSplashVisible()
 
 	return (
 		<div
@@ -59,14 +61,28 @@ function WelcomeIndex() {
 				<div className="absolute inset-x-0 top-1/2 -translate-y-1/2">
 					<div className="mx-auto flex w-full max-w-md flex-col items-center gap-6">
 						<div className="inline-flex items-center gap-4">
-							<motion.img
-								src="/app/icons/icon-192x192.png"
-								className="size-24 rounded-lg"
-								layoutId="logo"
-							/>
-							<motion.div layoutId="title">
-								<TypographyH1>Tilly</TypographyH1>
-							</motion.div>
+							{splashVisible ? (
+								<>
+									<img
+										src="/app/icons/icon-192x192.png"
+										className="size-24 rounded-lg opacity-0"
+									/>
+									<div className="opacity-0">
+										<TypographyH1>Tilly</TypographyH1>
+									</div>
+								</>
+							) : (
+								<>
+									<motion.img
+										src="/app/icons/icon-192x192.png"
+										className="size-24 rounded-lg"
+										layoutId="logo"
+									/>
+									<motion.div layoutId="title">
+										<TypographyH1>Tilly</TypographyH1>
+									</motion.div>
+								</>
+							)}
 						</div>
 						<motion.div
 							initial={{ y: 12, opacity: 0 }}

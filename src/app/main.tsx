@@ -1,6 +1,7 @@
 import { ClerkProvider, useClerk } from "@clerk/clerk-react"
 import { JazzReactProviderWithClerk, useAccount } from "jazz-tools/react"
 import { RouterProvider, createRouter } from "@tanstack/react-router"
+import { LayoutGroup } from "motion/react"
 import {
 	PUBLIC_JAZZ_SYNC_SERVER,
 	PUBLIC_CLERK_PUBLISHABLE_KEY,
@@ -14,6 +15,7 @@ import { PWAContext, usePWAProvider } from "#app/lib/pwa"
 import {
 	SplashScreen,
 	SplashScreenStatic,
+	SplashVisibilityProvider,
 	useSplashDelay,
 } from "./components/splash-screen"
 import { PWAInstallHint } from "#app/components/pwa-install-hint"
@@ -71,20 +73,22 @@ function RouterWithJazz() {
 	let locale = contextMe?.root?.language || "en"
 
 	return (
-		<>
-			<SplashScreen show={showSplash} />
-			{locale === "de" ? (
-				<IntlProvider messages={messagesDe} locale="de">
-					<PWAInstallHint />
-					<RouterProvider router={router} context={{ me: contextMe }} />
-				</IntlProvider>
-			) : (
-				<IntlProvider>
-					<PWAInstallHint />
-					<RouterProvider router={router} context={{ me: contextMe }} />
-				</IntlProvider>
-			)}
-		</>
+		<SplashVisibilityProvider visible={showSplash}>
+			<LayoutGroup>
+				<SplashScreen show={showSplash} />
+				{locale === "de" ? (
+					<IntlProvider messages={messagesDe} locale="de">
+						<PWAInstallHint />
+						<RouterProvider router={router} context={{ me: contextMe }} />
+					</IntlProvider>
+				) : (
+					<IntlProvider>
+						<PWAInstallHint />
+						<RouterProvider router={router} context={{ me: contextMe }} />
+					</IntlProvider>
+				)}
+			</LayoutGroup>
+		</SplashVisibilityProvider>
 	)
 }
 
