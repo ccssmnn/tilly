@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 import { Navigation } from "#app/components/navigation"
-import { StatusIndicator } from "#app/components/status-indicator"
+import { AppStatusIndicator } from "#app/components/status-indicator"
 import {
 	useCleanupInactiveLists,
 	useCleanupEmptyGroups,
@@ -30,7 +30,7 @@ function AppComponent() {
 	return (
 		<>
 			<Outlet />
-			<StatusIndicator />
+			<AppStatusIndicator />
 			<Navigation dueReminderCount={dueReminderCount} />
 		</>
 	)

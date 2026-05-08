@@ -22,23 +22,28 @@ import { useIsMobile } from "#app/hooks/use-mobile"
 import { T, useIntl } from "#shared/intl/setup"
 import { Alert, AlertTitle } from "#shared/ui/alert"
 
-export { StatusIndicator }
+export { UpdateIndicator, AppStatusIndicator }
 
 const UPDATE_TOAST_ID = "status-update-available"
 const SIGNED_OUT_TOAST_ID = "status-signed-out"
 const SIGNED_OUT_DISMISSED_KEY = "status.signedOut.dismissed"
 
-function StatusIndicator() {
+function UpdateIndicator() {
 	let { needRefresh } = usePWA()
+
+	if (needRefresh) {
+		return <UpdateToastIndicator />
+	}
+
+	return null
+}
+
+function AppStatusIndicator() {
 	let isOnline = useOnlineStatus()
 	let { isLoaded, isSignedIn } = useAuth()
 
 	if (!isOnline) {
 		return <OfflineIndicator />
-	}
-
-	if (needRefresh) {
-		return <UpdateToastIndicator />
 	}
 
 	if (isLoaded && !isSignedIn) {

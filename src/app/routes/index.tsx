@@ -39,7 +39,6 @@ function WelcomeIndex() {
 		>
 			<div className="relative h-full w-full">
 				<div className="items-top absolute inset-x-0 top-0 flex gap-4">
-					<div className="flex-1" />
 					<motion.div
 						layoutId="skip"
 						initial={{ y: 12, opacity: 0 }}

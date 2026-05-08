@@ -3,6 +3,7 @@ import { co } from "jazz-tools"
 import { UserAccount } from "#shared/schema/user"
 
 import { ErrorUI } from "#app/components/error-ui"
+import { UpdateIndicator } from "#app/components/status-indicator"
 import { Button } from "#shared/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "#shared/ui/card"
 import { Link } from "@tanstack/react-router"
@@ -32,6 +33,7 @@ function RootComponent() {
 			<div className="container mx-auto max-w-4xl px-3 py-6">
 				<Outlet />
 			</div>
+			<UpdateIndicator />
 		</main>
 	)
 }

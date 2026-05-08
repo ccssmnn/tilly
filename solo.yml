@@ -29,3 +29,17 @@ processes:
     auto_restart: true
     restart_when_changed: []
     env: {}
+  Build:
+    command: bun run build:node
+    working_dir: null
+    auto_start: false
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
+  Preview:
+    command: bun run preview
+    working_dir: null
+    auto_start: false
+    auto_restart: false
+    restart_when_changed: []
+    env: {}
