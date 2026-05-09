@@ -19,7 +19,7 @@ import { useWebHaptics } from "web-haptics/react"
 import { cn } from "#app/lib/utils"
 import { buttonVariants } from "#shared/ui/button"
 
-export { SwipeableListItem }
+export { SwipeableListItem, useSafariSwipeHack }
 export type { SwipeAction, SwipeableListItemProps }
 
 type SwipeAction = {
@@ -257,17 +257,10 @@ function SwipeableListItem({
 					}
 
 					if (fullSwipeSnap.current) {
-						let actionContainer =
-							fullSwipeSnap.current === "right"
-								? rightActionsRef.current
-								: leftActionsRef.current
-						let primaryButton = actionContainer?.querySelector(
-							"[data-swipe-action]",
-						) as HTMLButtonElement | null
-						if (primaryButton) {
-							if (prefersReducedMotion) {
-								primaryButton.click()
-							} else {
+						let action =
+							fullSwipeSnap.current === "right" ? rightAction : leftAction
+						if (action) {
+							if (!prefersReducedMotion) {
 								animate([
 									[
 										containerRef.current!,
@@ -280,8 +273,8 @@ function SwipeableListItem({
 										{ duration: 0.4, type: "spring" },
 									],
 								])
-								primaryButton.click()
 							}
+							action.onAction()
 						}
 						target = 0
 						let animationConfig = prefersReducedMotion
@@ -623,4 +616,21 @@ function closeOtherActiveSwipe(id: string) {
 		activeSwipe.close()
 		activeSwipe = null
 	}
+}
+
+/**
+ * HACK: iOS Safari doesn't properly deliver touch events to elements until
+ * a capturing touchstart listener exists on the document. Without this,
+ * swipe gestures only work once after page load, then stop working until
+ * a dialog/dropdown is opened (which adds such a listener via Radix UI).
+ *
+ * Call this hook once at the app root level.
+ */
+function useSafariSwipeHack() {
+	useEffect(() => {
+		let noop = () => {}
+		document.addEventListener("touchstart", noop, { capture: true })
+		return () =>
+			document.removeEventListener("touchstart", noop, { capture: true })
+	}, [])
 }

@@ -7,7 +7,7 @@ import {
 	useCleanupInaccessiblePeople,
 } from "#app/hooks/use-cleanups"
 import { useRegisterNotifications } from "#app/features/settings"
-import { useSafariSwipeHack } from "#shared/ui/swipeable-list-item"
+import { useSafariSwipeHack } from "#app/components/swipeable-list-item"
 import { useDueReminders } from "#app/features/reminders"
 
 export const Route = createFileRoute("/_app")({
