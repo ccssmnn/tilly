@@ -58,6 +58,50 @@ function DialogContent({
 	let closeRef = React.useRef<HTMLButtonElement>(null)
 	let dragY = useMotionValue(0)
 	let isBeyondThresholdRef = React.useRef(false)
+	let dragStartYRef = React.useRef<number | null>(null)
+	let resetDragOnMount = React.useCallback(
+		(el: HTMLDivElement | null) => {
+			if (el) dragY.set(0)
+		},
+		[dragY],
+	)
+
+	let onHandlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (event.button !== 0 && event.pointerType === "mouse") return
+		dragStartYRef.current = event.clientY
+		event.currentTarget.setPointerCapture(event.pointerId)
+		dragY.stop()
+	}
+
+	let onHandlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (dragStartYRef.current == null) return
+		let offset = Math.max(0, event.clientY - dragStartYRef.current)
+		dragY.set(offset)
+		let isBeyond = offset > SWIPE_CLOSE_THRESHOLD
+		if (isBeyond !== isBeyondThresholdRef.current) {
+			isBeyondThresholdRef.current = isBeyond
+			triggerHaptic()
+		}
+	}
+
+	let onHandlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (dragStartYRef.current == null) return
+		let offset = Math.max(0, event.clientY - dragStartYRef.current)
+		dragStartYRef.current = null
+		isBeyondThresholdRef.current = false
+		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+			event.currentTarget.releasePointerCapture(event.pointerId)
+		}
+		if (offset > SWIPE_CLOSE_THRESHOLD) {
+			animate(dragY, window.innerHeight, {
+				duration: 0.15,
+				ease: "easeOut",
+				onComplete: () => closeRef.current?.click(),
+			})
+		} else {
+			animate(dragY, 0, { type: "spring", stiffness: 300, damping: 25 })
+		}
+	}
 
 	let contentClassName = cn(
 		"bg-background ring-foreground/5 fixed z-50 flex max-h-[95dvh] flex-col gap-6 overflow-y-auto p-6 text-sm shadow-lg ring-1 outline-none will-change-transform max-md:duration-200 md:duration-100",
@@ -99,49 +143,23 @@ function DialogContent({
 					data-slot="dialog-content"
 					render={
 						<motion.div
-							style={{ ...mobileStyle, y: dragY }}
+							ref={resetDragOnMount}
+							style={{ ...mobileStyle, y: dragY, transition: "none" }}
 							className={contentClassName}
 						/>
 					}
 					{...props}
 					initialFocus={false}
 				>
-					<motion.div
-						drag="y"
-						dragConstraints={{ top: 0, bottom: 0 }}
-						dragElastic={0}
-						style={{ x: 0, y: 0 }}
-						onDrag={(_, info) => {
-							let offset = Math.max(0, info.offset.y)
-							dragY.set(offset)
-
-							let isBeyond = offset > SWIPE_CLOSE_THRESHOLD
-							if (isBeyond !== isBeyondThresholdRef.current) {
-								isBeyondThresholdRef.current = isBeyond
-								triggerHaptic()
-							}
-						}}
-						onDragEnd={(_, info) => {
-							if (info.offset.y > SWIPE_CLOSE_THRESHOLD) {
-								isBeyondThresholdRef.current = false
-								animate(dragY, window.innerHeight, {
-									duration: 0.15,
-									ease: "easeOut",
-									onComplete: () => closeRef.current?.click(),
-								})
-							} else {
-								isBeyondThresholdRef.current = false
-								animate(dragY, 0, {
-									type: "spring",
-									stiffness: 300,
-									damping: 25,
-								})
-							}
-						}}
+					<div
+						onPointerDown={onHandlePointerDown}
+						onPointerMove={onHandlePointerMove}
+						onPointerUp={onHandlePointerEnd}
+						onPointerCancel={onHandlePointerEnd}
 						className="-mt-4 -mb-1 flex cursor-grab touch-none justify-center pt-1 pb-1.5 select-none active:cursor-grabbing pointer-fine:hidden"
 					>
 						<div className="bg-muted-foreground/30 h-1.5 w-10 rounded-full" />
-					</motion.div>
+					</div>
 					{children}
 					{closeButton}
 				</DialogPrimitive.Popup>
