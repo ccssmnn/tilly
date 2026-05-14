@@ -27,6 +27,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Add01Icon } from "@hugeicons/core-free-icons"
 import { Button } from "#shared/ui/button"
 import { T } from "#shared/intl/setup"
+import { testIds } from "#shared/lib/test-ids"
 
 type PeopleScreenProps = {
 	fallback: Parameters<typeof usePeopleData>[0]
@@ -139,7 +140,7 @@ export function PeopleScreen({ fallback }: PeopleScreenProps) {
 							<NewPerson
 								onSuccess={handlePersonSuccess}
 								render={
-									<Button>
+									<Button data-testid={testIds.person.newButton}>
 										<HugeiconsIcon icon={Add01Icon} className="size-4" />
 										<span className="sr-only md:not-sr-only">
 											<T k="people.newPersonLabel" />

@@ -34,6 +34,7 @@ import { formatDistanceToNow } from "date-fns"
 import { de as dfnsDe } from "date-fns/locale"
 import { useLocale } from "#shared/intl/setup"
 import { Trash, ArrowCounterclockwise } from "react-bootstrap-icons"
+import { testIds } from "#shared/lib/test-ids"
 
 export { DeletedPerson }
 
@@ -77,7 +78,11 @@ function DeletedPerson({ person, searchQuery, noLazy }: DeletedPersonProps) {
 	)
 
 	return (
-		<>
+		<div
+			data-testid={testIds.person.listItem}
+			data-person-id={person.$jazz.id}
+			data-person-status="deleted"
+		>
 			<SwipeableListItem
 				leftAction={{
 					variant: "destructive",
@@ -119,7 +124,11 @@ function DeletedPerson({ person, searchQuery, noLazy }: DeletedPersonProps) {
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-3">
-							<Button className="h-12 w-full" onClick={restore}>
+							<Button
+								className="h-12 w-full"
+								onClick={restore}
+								data-testid={testIds.person.restoreButton}
+							>
 								<T k="person.restore.title" params={{ name: person.name }} />
 							</Button>
 							<Button
@@ -154,6 +163,6 @@ function DeletedPerson({ person, searchQuery, noLazy }: DeletedPersonProps) {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</>
+		</div>
 	)
 }

@@ -6,6 +6,7 @@ import { TypographyH1 } from "#shared/ui/typography"
 import { Button } from "#shared/ui/button"
 import { T } from "#shared/intl"
 import { useTourStore } from "../lib/store"
+import { testIds } from "#shared/lib/test-ids"
 import {
 	Stars,
 	GearFill,
@@ -142,6 +143,7 @@ function TourHeader({
 					nativeButton={false}
 					variant="outline"
 					render={<Link to="/people" onClick={() => setTourSkipped(true)} />}
+					data-testid={testIds.tour.skipButton}
 				>
 					<SkipForwardFill />
 					<T k="welcome.skip" />

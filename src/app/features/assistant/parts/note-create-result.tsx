@@ -44,14 +44,11 @@ function NoteCreateResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			updateNote(
-				{ deletedAt: new Date() },
-				{
-					personId: result.personId,
-					noteId: result.noteId,
-					worker: me,
-				},
-			)
+			updateNote(me, {
+				personId: result.current.personId,
+				noteId: result.current.noteId,
+				deletedAt: new Date(),
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -100,7 +97,7 @@ function NoteCreateResult({
 				<T
 					k="tool.note.created.message"
 					params={{
-						content: `"${result.content.substring(0, 50)}${result.content.length > 50 ? "..." : ""}"`,
+						content: `"${result.current.content.substring(0, 50)}${result.current.content.length > 50 ? "..." : ""}"`,
 					}}
 				/>
 			}
@@ -118,8 +115,10 @@ function NoteCreateResult({
 						<h4 className="mb-2 text-sm font-medium">
 							<T k="tool.note.created.dialog.section" />
 						</h4>
-						<p className="text-sm whitespace-pre-line">{result.content}</p>
-						{result.pinned && (
+						<p className="text-sm whitespace-pre-line">
+							{result.current.content}
+						</p>
+						{result.current.pinned && (
 							<p className="text-muted-foreground mt-1 text-sm">
 								<T k="tool.note.pinned" />
 							</p>
@@ -129,9 +128,9 @@ function NoteCreateResult({
 						<Button variant="outline" className="flex-1">
 							<Link
 								to="/people/$personID"
-								params={{ personID: result.personId }}
+								params={{ personID: result.current.personId }}
 								search={{ tab: "notes" }}
-								hash={`note-${result.noteId}`}
+								hash={`note-${result.current.noteId}`}
 							>
 								<T k="tool.viewPerson" />
 							</Link>

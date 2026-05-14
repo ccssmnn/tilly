@@ -54,14 +54,11 @@ function ReminderCreateResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			await updateReminder(
-				{ deletedAt: new Date() },
-				{
-					worker: me,
-					personId: result.personId,
-					reminderId: result.reminderId,
-				},
-			)
+			await updateReminder(me, {
+				personId: result.current.personId,
+				reminderId: result.current.reminderId,
+				deletedAt: new Date(),
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -70,7 +67,7 @@ function ReminderCreateResult({
 					{
 						type: "text",
 						text: t("tool.reminder.created.undo.success", {
-							text: result.text,
+							text: result.current.text,
 						}),
 					},
 				],
@@ -98,7 +95,7 @@ function ReminderCreateResult({
 		}
 	}
 
-	let textPreview = `"${result.text.length > 50 ? result.text.substring(0, 50) + "..." : result.text}"`
+	let textPreview = `"${result.current.text.length > 50 ? result.current.text.substring(0, 50) + "..." : result.current.text}"`
 
 	if (isUndone) {
 		return (
@@ -133,19 +130,19 @@ function ReminderCreateResult({
 							<T k="tool.reminder.created.dialog.section" />
 						</h4>
 						{ReminderDetails(t, locale, {
-							text: result.text,
-							dueAt: result.dueAtDate,
-							repeat: result.repeat,
-							done: result.done,
+							text: result.current.text,
+							dueAt: result.current.dueAtDate,
+							repeat: result.current.repeat,
+							done: result.current.done,
 						})}
 					</div>
 					<div className="flex gap-3">
 						<Button variant="outline" className="flex-1">
 							<Link
 								to="/people/$personID"
-								params={{ personID: result.personId }}
+								params={{ personID: result.current.personId }}
 								search={{ tab: "reminders" }}
-								hash={`reminder-${result.reminderId}`}
+								hash={`reminder-${result.current.reminderId}`}
 							>
 								<T k="tool.viewPerson" />
 							</Link>

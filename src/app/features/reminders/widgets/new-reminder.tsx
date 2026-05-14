@@ -65,17 +65,12 @@ function NewReminder(props: {
 	}) {
 		if (!me.$isLoaded || !selectedPersonId) return
 		let result = await tryCatch(
-			createReminder(
-				{
-					text: values.text,
-					dueAtDate: values.dueAtDate,
-					repeat: values.repeat,
-				},
-				{
-					personId: selectedPersonId,
-					worker: me,
-				},
-			),
+			createReminder(me, {
+				personId: selectedPersonId,
+				text: values.text,
+				dueAtDate: values.dueAtDate,
+				repeat: values.repeat,
+			}),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -84,7 +79,7 @@ function NewReminder(props: {
 			return
 		}
 
-		props.onSuccess?.(result.data.reminderID)
+		props.onSuccess?.(result.data.current.reminderId)
 		toast.success(t("reminders.created.success"))
 		setDrawerOpen(false)
 		setSelectedPersonId(props.personId ?? "")

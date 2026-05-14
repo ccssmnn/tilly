@@ -32,22 +32,20 @@ async function handleCreateNote(
 	t: T,
 ): Promise<{ ok: boolean; noteId?: string }> {
 	let result = await tryCatch(
-		createNote(
-			{
-				title: "",
-				content: values.content,
-				pinned: values.pinned,
-				imageFiles: values.images,
-			},
-			{ personId, worker: me },
-		),
+		createNote(me, {
+			personId,
+			title: "",
+			content: values.content,
+			pinned: values.pinned,
+			imageFiles: values.images,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
 		return { ok: false }
 	}
 	toast.success(t("notes.created.success"))
-	return { ok: true, noteId: result.data.noteID }
+	return { ok: true, noteId: result.data.current.noteId }
 }
 
 async function handleEditNote(
@@ -62,30 +60,33 @@ async function handleEditNote(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		updateNote(
-			{
-				content: values.content,
-				pinned: values.pinned,
-				imageFiles: values.images,
-				removedImageIds: values.removedImageIds,
-			},
-			{ personId: ref.personId, noteId: ref.noteId, worker: me },
-		),
+		updateNote(me, {
+			personId: ref.personId,
+			noteId: ref.noteId,
+			content: values.content,
+			pinned: values.pinned,
+			imageFiles: values.images,
+			removedImageIds: values.removedImageIds,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
 		return { ok: false }
 	}
 
+	let { previous } = result.data
 	toast.success(t("note.toast.updated"), {
 		action: {
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updateNote(result.data.previous, {
+					updateNote(me, {
 						personId: ref.personId,
 						noteId: ref.noteId,
-						worker: me,
+						title: previous.title,
+						content: previous.content,
+						pinned: previous.pinned,
+						createdAt: previous.createdAt,
 					}),
 				)
 				if (undo.ok) toast.success(t("note.toast.updateUndone"))
@@ -98,10 +99,11 @@ async function handleEditNote(
 
 async function handleDeleteNote(me: Me, ref: NoteRef, t: T) {
 	let result = await tryCatch(
-		updateNote(
-			{ deletedAt: new Date() },
-			{ personId: ref.personId, noteId: ref.noteId, worker: me },
-		),
+		updateNote(me, {
+			personId: ref.personId,
+			noteId: ref.noteId,
+			deletedAt: new Date(),
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -113,10 +115,11 @@ async function handleDeleteNote(me: Me, ref: NoteRef, t: T) {
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updateNote(
-						{ deletedAt: undefined },
-						{ personId: ref.personId, noteId: ref.noteId, worker: me },
-					),
+					updateNote(me, {
+						personId: ref.personId,
+						noteId: ref.noteId,
+						deletedAt: undefined,
+					}),
 				)
 				if (undo.ok) toast.success(t("note.toast.restored"))
 				else toast.error(errorMessage(undo.error))
@@ -128,10 +131,11 @@ async function handleDeleteNote(me: Me, ref: NoteRef, t: T) {
 async function handleTogglePin(me: Me, ref: NoteRef, pinned: boolean, t: T) {
 	let newPinned = !pinned
 	let result = await tryCatch(
-		updateNote(
-			{ pinned: newPinned },
-			{ personId: ref.personId, noteId: ref.noteId, worker: me },
-		),
+		updateNote(me, {
+			personId: ref.personId,
+			noteId: ref.noteId,
+			pinned: newPinned,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -147,10 +151,11 @@ async function handleRestoreNote(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		updateNote(
-			{ deletedAt: undefined },
-			{ personId: ref.personId, noteId: ref.noteId, worker: me },
-		),
+		updateNote(me, {
+			personId: ref.personId,
+			noteId: ref.noteId,
+			deletedAt: undefined,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))

@@ -1,32 +1,52 @@
-import { tool } from "ai"
 import { z } from "zod"
-import { Note, Person, UserAccount } from "#shared/schema/user"
-import { co, type Loaded } from "jazz-tools"
-import { tryCatch } from "#shared/lib/trycatch"
+import { co } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
+import { Note, Person } from "#shared/schema/user"
+import {
+	defineTool,
+	updatedSchema,
+	type Updated,
+	type Worker,
+} from "#shared/tools/define-tool"
+import { noteCurrent } from "#shared/tools/note-create"
 
-export { createEditNoteTool, createDeleteNoteTool, updateNote }
+export { updateNote, createEditNoteTool, createDeleteNoteTool }
 
-export type { NoteData, NoteUpdated }
+type NoteCurrent = z.infer<typeof noteCurrent>
+
+let editNoteInput = z.object({
+	personId: z.string().describe("The person's ID who owns the note"),
+	noteId: z.string().describe("The note's ID"),
+	title: z.string().optional().describe("Updated title"),
+	content: z
+		.string()
+		.optional()
+		.describe("The updated note content. Supports markdown formatting."),
+	pinned: z
+		.boolean()
+		.optional()
+		.describe(
+			"Whether the note should be pinned. Pinned notes appear at the top of the note list.",
+		),
+	createdAt: z
+		.string()
+		.optional()
+		.describe("Updated creation date (date string)"),
+})
+
+type UpdateNoteInput = z.infer<typeof editNoteInput> & {
+	deletedAt?: Date | string | undefined
+	imageFiles?: File[]
+	removedImageIds?: string[]
+}
 
 async function updateNote(
-	updates: Partial<
-		Pick<NoteData, "title" | "content" | "pinned" | "createdAt"> & {
-			deletedAt: Date | string | undefined
-		}
-	> & {
-		imageFiles?: File[]
-		removedImageIds?: string[]
-	},
-	options: {
-		personId: string
-		noteId: string
-		worker: Loaded<typeof UserAccount>
-	},
-): Promise<NoteUpdated> {
-	let person = await Person.load(options.personId, {
+	worker: Worker,
+	input: UpdateNoteInput,
+): Promise<Updated<NoteCurrent>> {
+	let person = await Person.load(input.personId, {
 		resolve: { notes: true, inactiveNotes: true },
-		loadAs: options.worker,
+		loadAs: worker,
 	})
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
@@ -37,35 +57,26 @@ async function updateNote(
 		)
 	}
 
-	let note = await Note.load(options.noteId, {
+	let note = await Note.load(input.noteId, {
 		resolve: { images: { $each: true } },
-		loadAs: options.worker,
+		loadAs: worker,
 	})
 	if (!note.$isLoaded) throw errors.NOTE_NOT_FOUND
 
-	let previous = {
-		version: note.version,
-		title: note.title,
-		content: note.content,
-		pinned: note.pinned,
-		deletedAt: note.deletedAt,
-		createdAt: note.createdAt,
-		updatedAt: note.updatedAt,
-		imageCount: note.imageCount,
+	let previous: NoteCurrent = serializeNote(note, input.personId)
+
+	if (input.title !== undefined) {
+		note.$jazz.set("title", input.title)
+	}
+	if (input.content !== undefined) {
+		note.$jazz.set("content", input.content)
+	}
+	if (input.pinned !== undefined) {
+		note.$jazz.set("pinned", input.pinned)
 	}
 
-	if (updates.title !== undefined) {
-		note.$jazz.set("title", updates.title)
-	}
-	if (updates.content !== undefined) {
-		note.$jazz.set("content", updates.content)
-	}
-	if (updates.pinned !== undefined) {
-		note.$jazz.set("pinned", updates.pinned)
-	}
-
-	if (updates.createdAt !== undefined) {
-		let createdDate = new Date(updates.createdAt)
+	if (input.createdAt !== undefined) {
+		let createdDate = new Date(input.createdAt)
 		let now = new Date()
 		createdDate.setHours(
 			now.getHours(),
@@ -76,14 +87,11 @@ async function updateNote(
 		note.$jazz.set("createdAt", createdDate)
 	}
 
-	if (
-		updates.imageFiles !== undefined ||
-		updates.removedImageIds !== undefined
-	) {
+	if (input.imageFiles !== undefined || input.removedImageIds !== undefined) {
 		let imageList = co.list(co.image()).create([])
 
 		if (note.images?.$isLoaded) {
-			let removedIds = new Set(updates.removedImageIds ?? [])
+			let removedIds = new Set(input.removedImageIds ?? [])
 			for (let existingImage of note.images.values()) {
 				if (existingImage && !removedIds.has(existingImage.$jazz.id)) {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,9 +100,9 @@ async function updateNote(
 			}
 		}
 
-		if (updates.imageFiles) {
+		if (input.imageFiles) {
 			let remainingSlots = 10 - imageList.length
-			for (let file of updates.imageFiles.slice(0, remainingSlots)) {
+			for (let file of input.imageFiles.slice(0, remainingSlots)) {
 				let image = await createImage(file, {
 					owner: person.$jazz.owner,
 					maxSize: 2048,
@@ -115,12 +123,11 @@ async function updateNote(
 		}
 	}
 
-	if ("deletedAt" in updates && updates.deletedAt === undefined) {
+	if ("deletedAt" in input && input.deletedAt === undefined) {
 		note.$jazz.delete("deletedAt")
-		// Move to active
 		if (person.inactiveNotes?.$isLoaded) {
 			let inactiveIdx = Array.from(person.inactiveNotes.values()).findIndex(
-				n => n?.$jazz.id === options.noteId,
+				n => n?.$jazz.id === input.noteId,
 			)
 			if (inactiveIdx !== -1) {
 				person.notes.$jazz.push(note)
@@ -129,12 +136,11 @@ async function updateNote(
 		}
 	}
 
-	if (updates.deletedAt !== undefined) {
-		note.$jazz.set("deletedAt", new Date(updates.deletedAt))
-		// Move to inactive
+	if (input.deletedAt !== undefined) {
+		note.$jazz.set("deletedAt", new Date(input.deletedAt))
 		if (person.inactiveNotes?.$isLoaded) {
 			let activeIdx = Array.from(person.notes.values()).findIndex(
-				n => n?.$jazz.id === options.noteId,
+				n => n?.$jazz.id === input.noteId,
 			)
 			if (activeIdx !== -1) {
 				person.inactiveNotes.$jazz.push(note)
@@ -148,20 +154,25 @@ async function updateNote(
 
 	return {
 		operation: "update",
-		noteID: options.noteId,
-		personID: options.personId,
-		current: {
-			version: note.version,
-			title: note.title,
-			content: note.content,
-			pinned: note.pinned,
-			deletedAt: note.deletedAt,
-			createdAt: note.createdAt,
-			updatedAt: note.updatedAt,
-			imageCount: note.imageCount,
-		},
+		current: serializeNote(note, input.personId),
 		previous,
-		_ref: note,
+	}
+}
+
+function serializeNote(
+	note: co.loaded<typeof Note>,
+	personId: string,
+): NoteCurrent {
+	return {
+		noteId: note.$jazz.id,
+		personId,
+		title: note.title,
+		content: note.content,
+		pinned: note.pinned ?? false,
+		imageCount: note.imageCount,
+		createdAt: note.createdAt.toISOString(),
+		updatedAt: note.updatedAt.toISOString(),
+		deletedAt: note.deletedAt?.toISOString(),
 	}
 }
 
@@ -170,98 +181,22 @@ let errors = {
 	NOTE_NOT_FOUND: "note not found",
 } as const
 
-type NoteData = Parameters<typeof Note.create>[0]
+let createEditNoteTool = defineTool({
+	description: "Edit a note by ID",
+	input: editNoteInput,
+	output: updatedSchema(noteCurrent),
+	serverOp: updateNote,
+})
 
-type NoteUpdated = {
-	_ref: co.loaded<typeof Note>
-	operation: "update"
-	noteID: string
-	personID: string
-	current: NoteData
-	previous: NoteData
-}
+let deleteNoteInput = z.object({
+	personId: z.string().describe("The person's ID who owns the note"),
+	noteId: z.string().describe("The note's ID"),
+})
 
-function createEditNoteTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description: "Edit a note by ID",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID who owns the note"),
-			noteId: z.string().describe("The note's ID"),
-			title: z.string().optional().describe("Updated title"),
-			content: z
-				.string()
-				.optional()
-				.describe("The updated note content. Supports markdown formatting."),
-			pinned: z
-				.boolean()
-				.optional()
-				.describe(
-					"Whether the note should be pinned. Pinned notes appear at the top of the note list.",
-				),
-			createdAt: z
-				.string()
-				.optional()
-				.describe("Updated creation date (date string)"),
-		}),
-		execute: async input => {
-			let { personId, noteId, createdAt, ...otherUpdates } = input
-			let updates = {
-				...otherUpdates,
-				...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
-			}
-
-			let res = await tryCatch(
-				updateNote(updates, { personId, noteId, worker }),
-			)
-			if (!res.ok) return { error: `${res.error}` }
-			let result = res.data
-			return {
-				personId: result.personID,
-				noteId: result.noteID,
-				title: result.current.title,
-				content: result.current.content,
-				pinned: result.current.pinned,
-				deletedAt: result.current.deletedAt?.toISOString(),
-				createdAt: result.current.createdAt.toISOString(),
-				updatedAt: result.current.updatedAt.toISOString(),
-				previous: {
-					title: result.previous.title,
-					content: result.previous.content,
-					pinned: result.previous.pinned,
-					deletedAt: result.current.deletedAt?.toISOString(),
-					createdAt: result.previous.createdAt.toISOString(),
-					updatedAt: result.previous.updatedAt.toISOString(),
-				},
-			}
-		},
-	})
-}
-
-function createDeleteNoteTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description: "Delete a note by ID",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID who owns the note"),
-			noteId: z.string().describe("The note's ID"),
-		}),
-		execute: async input => {
-			let { personId, noteId } = input
-
-			let res = await tryCatch(
-				updateNote({ deletedAt: new Date() }, { personId, noteId, worker }),
-			)
-			if (!res.ok) return { error: `${res.error}` }
-			let result = res.data
-			return {
-				personId: result.personID,
-				noteId: result.noteID,
-				title: result.current.title,
-				content: result.current.content,
-				pinned: result.current.pinned,
-				deletedAt: result.current.deletedAt?.toISOString(),
-				createdAt: result.current.createdAt.toISOString(),
-				updatedAt: result.current.updatedAt.toISOString(),
-			}
-		},
-	})
-}
+let createDeleteNoteTool = defineTool({
+	description: "Delete a note by ID",
+	input: deleteNoteInput,
+	output: updatedSchema(noteCurrent),
+	serverOp: (worker, input) =>
+		updateNote(worker, { ...input, deletedAt: new Date() }),
+})

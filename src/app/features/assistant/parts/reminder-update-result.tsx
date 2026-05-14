@@ -60,21 +60,14 @@ function ReminderUpdateResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			if (result.previous) {
-				await updateReminder(
-					{
-						text: result.previous.text,
-						dueAtDate: result.previous.dueAtDate,
-						repeat: result.previous.repeat,
-						done: result.previous.done,
-					},
-					{
-						worker: me,
-						personId: result.personId,
-						reminderId: result.reminderId,
-					},
-				)
-			}
+			await updateReminder(me, {
+				personId: result.current.personId,
+				reminderId: result.current.reminderId,
+				text: result.previous.text,
+				dueAtDate: result.previous.dueAtDate,
+				repeat: result.previous.repeat,
+				done: result.previous.done,
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -106,7 +99,7 @@ function ReminderUpdateResult({
 		}
 	}
 
-	let textPreview = `"${result.text.length > 50 ? result.text.substring(0, 50) + "..." : result.text}"`
+	let textPreview = `"${result.current.text.length > 50 ? result.current.text.substring(0, 50) + "..." : result.current.text}"`
 
 	if (isUndone) {
 		return (
@@ -141,32 +134,30 @@ function ReminderUpdateResult({
 							<T k="tool.reminder.updated.dialog.current" />
 						</h4>
 						{ReminderDetails(t, locale, {
-							text: result.text,
-							dueAt: result.dueAtDate,
-							repeat: result.repeat,
-							done: result.done,
+							text: result.current.text,
+							dueAt: result.current.dueAtDate,
+							repeat: result.current.repeat,
+							done: result.current.done,
 						})}
 					</div>
-					{result.previous && (
-						<div className="text-muted-foreground">
-							<h4 className="mb-2 text-sm font-medium">
-								<T k="tool.reminder.updated.dialog.previous" />
-							</h4>
-							{ReminderDetails(t, locale, {
-								text: result.previous.text,
-								dueAt: result.previous.dueAtDate,
-								repeat: result.previous.repeat,
-								done: result.previous.done,
-							})}
-						</div>
-					)}
+					<div className="text-muted-foreground">
+						<h4 className="mb-2 text-sm font-medium">
+							<T k="tool.reminder.updated.dialog.previous" />
+						</h4>
+						{ReminderDetails(t, locale, {
+							text: result.previous.text,
+							dueAt: result.previous.dueAtDate,
+							repeat: result.previous.repeat,
+							done: result.previous.done,
+						})}
+					</div>
 					<div className="flex gap-3">
 						<Button variant="outline" className="flex-1">
 							<Link
 								to="/people/$personID"
-								params={{ personID: result.personId }}
+								params={{ personID: result.current.personId }}
 								search={{ tab: "reminders" }}
-								hash={`reminder-${result.reminderId}`}
+								hash={`reminder-${result.current.reminderId}`}
 							>
 								<T k="tool.viewPerson" />
 							</Link>

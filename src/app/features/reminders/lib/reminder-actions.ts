@@ -39,14 +39,12 @@ async function handleCreateReminder(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		createReminder(
-			{
-				text: values.text,
-				dueAtDate: values.dueAtDate,
-				repeat: values.repeat,
-			},
-			{ personId, worker: me },
-		),
+		createReminder(me, {
+			personId,
+			text: values.text,
+			dueAtDate: values.dueAtDate,
+			repeat: values.repeat,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -57,9 +55,7 @@ async function handleCreateReminder(
 }
 
 async function handleMarkDone(me: Me, ref: ReminderRef, t: T) {
-	let result = await tryCatch(
-		updateReminder({ done: true }, { worker: me, ...ref }),
-	)
+	let result = await tryCatch(updateReminder(me, { ...ref, done: true }))
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
 		return
@@ -80,7 +76,7 @@ async function handleMarkDone(me: Me, ref: ReminderRef, t: T) {
 						? { done: false, dueAtDate: result.data.previous.dueAtDate }
 						: { done: false }
 					let undo = await tryCatch(
-						updateReminder(undoUpdates, { worker: me, ...ref }),
+						updateReminder(me, { ...ref, ...undoUpdates }),
 					)
 					if (undo.ok) {
 						toast.success(
@@ -98,9 +94,7 @@ async function handleMarkDone(me: Me, ref: ReminderRef, t: T) {
 }
 
 async function handleMarkUndone(me: Me, ref: ReminderRef, t: T) {
-	let result = await tryCatch(
-		updateReminder({ done: false }, { worker: me, ...ref }),
-	)
+	let result = await tryCatch(updateReminder(me, { ...ref, done: false }))
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
 		return
@@ -110,9 +104,7 @@ async function handleMarkUndone(me: Me, ref: ReminderRef, t: T) {
 		action: {
 			label: t("common.undo"),
 			onClick: async () => {
-				let undo = await tryCatch(
-					updateReminder({ done: true }, { worker: me, ...ref }),
-				)
+				let undo = await tryCatch(updateReminder(me, { ...ref, done: true }))
 				if (undo.ok) {
 					toast.success(t("reminder.toast.markedDoneAgain"))
 				} else {
@@ -130,22 +122,30 @@ async function handleEditReminder(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		updateReminder(
-			{ text: values.text, dueAtDate: values.dueAtDate, repeat: values.repeat },
-			{ worker: me, ...ref },
-		),
+		updateReminder(me, {
+			...ref,
+			text: values.text,
+			dueAtDate: values.dueAtDate,
+			repeat: values.repeat,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
 		return { ok: false }
 	}
 
+	let { previous } = result.data
 	toast.success(t("reminder.toast.updated"), {
 		action: {
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updateReminder(result.data.previous, { worker: me, ...ref }),
+					updateReminder(me, {
+						...ref,
+						text: previous.text,
+						dueAtDate: previous.dueAtDate,
+						repeat: previous.repeat,
+					}),
 				)
 				if (undo.ok) {
 					toast.success(t("reminder.toast.updateUndone"))
@@ -160,7 +160,7 @@ async function handleEditReminder(
 
 async function handleDeleteReminder(me: Me, ref: ReminderRef, t: T) {
 	let result = await tryCatch(
-		updateReminder({ deletedAt: new Date() }, { worker: me, ...ref }),
+		updateReminder(me, { ...ref, deletedAt: new Date() }),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -172,7 +172,7 @@ async function handleDeleteReminder(me: Me, ref: ReminderRef, t: T) {
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updateReminder({ deletedAt: undefined }, { worker: me, ...ref }),
+					updateReminder(me, { ...ref, deletedAt: undefined }),
 				)
 				if (undo.ok) {
 					toast.success(t("reminder.toast.restored"))
@@ -190,7 +190,7 @@ async function handleRestoreReminder(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		updateReminder({ deletedAt: undefined }, { worker: me, ...ref }),
+		updateReminder(me, { ...ref, deletedAt: undefined }),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))

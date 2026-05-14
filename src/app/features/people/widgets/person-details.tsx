@@ -15,6 +15,7 @@ import {
 } from "../parts/person-timestamps"
 import { SharedWithBadge } from "../parts/shared-with-badge"
 import { isPersonAdmin, getPersonOwnerName } from "../lib/person-utils"
+import { testIds } from "#shared/lib/test-ids"
 
 export { PersonDetails }
 
@@ -71,15 +72,27 @@ function PersonDetails({
 				</ActionsDropdown>
 				<div className="w-full flex-1 md:w-auto">
 					<div className="flex items-center justify-between gap-3">
-						<h1 className="text-3xl font-bold select-text">{person.name}</h1>
+						<h1
+							className="text-3xl font-bold select-text"
+							data-testid={testIds.person.detailName}
+						>
+							{person.name}
+						</h1>
 						<ActionsDropdown person={person} me={me}>
-							<Button variant="secondary" size="sm">
+							<Button
+								variant="secondary"
+								size="sm"
+								data-testid={testIds.person.actionsTrigger}
+							>
 								<T k="person.actions.title" />
 							</Button>
 						</ActionsDropdown>
 					</div>
 					{person.summary && (
-						<p className="text-muted-foreground my-3 select-text">
+						<p
+							className="text-muted-foreground my-3 select-text"
+							data-testid={testIds.person.detailSummary}
+						>
 							{person.summary.split(/(#[a-zA-Z0-9_]+)/).map((part, i) =>
 								part.startsWith("#") ? (
 									<span key={i} className="text-primary font-bold">

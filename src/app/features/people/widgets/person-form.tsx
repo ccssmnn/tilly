@@ -26,6 +26,7 @@ import {
 import { AvatarField } from "../parts/avatar-field"
 import { AvatarCropperDialog } from "../parts/avatar-cropper-dialog"
 import { getCroppedImg } from "../lib/image-crop"
+import { testIds } from "#shared/lib/test-ids"
 
 export { PersonForm }
 
@@ -121,6 +122,7 @@ function PersonForm({
 								<Input
 									placeholder={t("person.form.name.placeholder")}
 									onKeyDown={submitOnCtrlEnter}
+									data-testid={testIds.person.formNameInput}
 									{...field}
 								/>
 							</FormControl>
@@ -142,6 +144,7 @@ function PersonForm({
 									placeholder={t("person.form.summary.placeholder")}
 									rows={4}
 									onKeyDown={submitOnCtrlEnter}
+									data-testid={testIds.person.formSummaryInput}
 									{...field}
 								/>
 							</FormControl>
@@ -155,7 +158,11 @@ function PersonForm({
 						<Tooltip>
 							<TooltipTrigger
 								render={
-									<Button type="submit" disabled={form.formState.isSubmitting}>
+									<Button
+										type="submit"
+										disabled={form.formState.isSubmitting}
+										data-testid={testIds.person.formSubmit}
+									>
 										{form.formState.isSubmitting ? (
 											<T k="person.form.saving" />
 										) : (

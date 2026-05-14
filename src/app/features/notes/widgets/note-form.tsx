@@ -25,6 +25,7 @@ import { createNoteFormSchema } from "../lib/note-form-schema"
 import type { NoteFormValues } from "../lib/note-form-schema"
 import { NoteContentEditor } from "../parts/note-content-editor"
 import { ImagesField } from "../parts/images-field"
+import { testIds } from "#shared/lib/test-ids"
 
 export { NoteForm }
 export type { NoteFormValues }
@@ -96,6 +97,7 @@ function NoteForm({
 									onChange={field.onChange}
 									onKeyDown={submitOnModEnter}
 									placeholder={t("note.form.placeholder")}
+									data-testid={testIds.note.formContentInput}
 								/>
 							</FormControl>
 							<FormMessage />
@@ -182,6 +184,7 @@ function NoteForm({
 									type="submit"
 									disabled={form.formState.isSubmitting}
 									className="flex-1"
+									data-testid={testIds.note.formSubmit}
 								>
 									{form.formState.isSubmitting ? (
 										<T k="form.saving" />

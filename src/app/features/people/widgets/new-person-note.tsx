@@ -17,6 +17,7 @@ import {
 	DialogTitle,
 } from "#shared/ui/dialog"
 import { format } from "date-fns"
+import { testIds } from "#shared/lib/test-ids"
 
 export { NewPersonNote }
 
@@ -46,7 +47,10 @@ function NewPersonNote({ person, onCreated }: NewPersonNoteProps) {
 
 	return (
 		<>
-			<Button onClick={() => setOpen(true)} data-testid="add-note-button">
+			<Button
+				onClick={() => setOpen(true)}
+				data-testid={testIds.note.newButton}
+			>
 				<Plus />
 				<span className="hidden md:inline">
 					<T k="person.detail.addNote" />

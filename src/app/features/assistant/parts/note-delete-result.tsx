@@ -42,14 +42,11 @@ function NoteDeleteResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			await updateNote(
-				{ deletedAt: undefined },
-				{
-					personId: result.personId,
-					noteId: result.noteId,
-					worker: me,
-				},
-			)
+			await updateNote(me, {
+				personId: result.current.personId,
+				noteId: result.current.noteId,
+				deletedAt: undefined,
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -98,7 +95,7 @@ function NoteDeleteResult({
 				<T
 					k="tool.note.deleted.message"
 					params={{
-						content: `"${result.content?.substring(0, 50) || ""}${(result.content?.length || 0) > 50 ? "..." : ""}"`,
+						content: `"${result.current.content?.substring(0, 50) || ""}${(result.current.content?.length || 0) > 50 ? "..." : ""}"`,
 					}}
 				/>
 			}
@@ -116,8 +113,10 @@ function NoteDeleteResult({
 						<h4 className="mb-2 text-sm font-medium">
 							<T k="tool.note.deleted.dialog.section" />
 						</h4>
-						<p className="text-sm whitespace-pre-line">{result.content}</p>
-						{result.pinned && (
+						<p className="text-sm whitespace-pre-line">
+							{result.current.content}
+						</p>
+						{result.current.pinned && (
 							<p className="text-muted-foreground mt-1 text-sm">
 								<T k="tool.note.pinned" />
 							</p>

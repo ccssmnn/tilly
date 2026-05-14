@@ -1,35 +1,47 @@
-import { format, parse } from "date-fns"
-import { tool } from "ai"
+import { format, parse, addDays, addWeeks, addMonths, addYears } from "date-fns"
 import { z } from "zod"
-import { Person, Reminder, UserAccount } from "#shared/schema/user"
-import { addDays, addWeeks, addMonths, addYears } from "date-fns"
-import { co, type Loaded } from "jazz-tools"
-import { tryCatch } from "#shared/lib/trycatch"
+import { co } from "jazz-tools"
+import { Person, Reminder } from "#shared/schema/user"
+import {
+	defineTool,
+	updatedSchema,
+	type Updated,
+	type Worker,
+} from "#shared/tools/define-tool"
+import { reminderCurrent } from "#shared/tools/reminder-create"
 
-export { createUpdateReminderTool, createRemoveReminderTool, updateReminder }
+export { updateReminder, createUpdateReminderTool, createRemoveReminderTool }
 
-export type { ReminderData, ReminderUpdated }
+type ReminderCurrent = z.infer<typeof reminderCurrent>
+
+let repeatSchema = z.object({
+	interval: z.number().min(1),
+	unit: z.enum(["day", "week", "month", "year"]),
+})
+
+let updateReminderInput = z.object({
+	personId: z.string().describe("The person's ID who owns the reminder"),
+	reminderId: z.string().describe("The reminder's ID"),
+	text: z.string().optional().describe("The new reminder text"),
+	dueAtDate: z
+		.string()
+		.optional()
+		.describe("New due date as a date string (e.g., '2025-07-18')"),
+	repeat: repeatSchema.optional().describe("New repeat configuration"),
+	done: z.boolean().optional().describe("Mark reminder as done/undone"),
+})
+
+type UpdateReminderInput = z.infer<typeof updateReminderInput> & {
+	deletedAt?: Date | undefined
+}
 
 async function updateReminder(
-	updates: {
-		text?: string
-		dueAtDate?: string
-		repeat?: {
-			interval: number
-			unit: "day" | "week" | "month" | "year"
-		}
-		done?: boolean
-		deletedAt?: Date | undefined
-	},
-	options: {
-		worker: Loaded<typeof UserAccount>
-		personId: string
-		reminderId: string
-	},
-): Promise<ReminderUpdated> {
-	let person = await Person.load(options.personId, {
+	worker: Worker,
+	input: UpdateReminderInput,
+): Promise<Updated<ReminderCurrent>> {
+	let person = await Person.load(input.personId, {
 		resolve: { reminders: true, inactiveReminders: true },
-		loadAs: options.worker,
+		loadAs: worker,
 	})
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
@@ -40,32 +52,29 @@ async function updateReminder(
 		)
 	}
 
-	let reminder = await Reminder.load(options.reminderId, {
-		loadAs: options.worker,
-	})
+	let reminder = await Reminder.load(input.reminderId, { loadAs: worker })
 	if (!reminder.$isLoaded) throw errors.REMINDER_NOT_FOUND
 
-	let previous = { ...reminder }
+	let previous: ReminderCurrent = serializeReminder(reminder, input.personId)
 
-	if (updates.text !== undefined) {
-		reminder.$jazz.set("text", updates.text)
+	if (input.text !== undefined) {
+		reminder.$jazz.set("text", input.text)
 	}
-	if (updates.dueAtDate !== undefined) {
-		reminder.$jazz.set("dueAtDate", updates.dueAtDate)
+	if (input.dueAtDate !== undefined) {
+		reminder.$jazz.set("dueAtDate", input.dueAtDate)
 	}
-	if (updates.repeat !== undefined) {
-		reminder.$jazz.set("repeat", updates.repeat)
+	if (input.repeat !== undefined) {
+		reminder.$jazz.set("repeat", input.repeat)
 	}
-	if ("repeat" in updates && updates.repeat === undefined) {
+	if ("repeat" in input && input.repeat === undefined) {
 		reminder.$jazz.delete("repeat")
 	}
 
-	if (updates.done === true && !reminder.done && !reminder.repeat) {
-		reminder.$jazz.set("done", updates.done)
-		// Move to inactive
+	if (input.done === true && !reminder.done && !reminder.repeat) {
+		reminder.$jazz.set("done", input.done)
 		if (person.inactiveReminders?.$isLoaded) {
 			let activeIdx = Array.from(person.reminders.values()).findIndex(
-				r => r?.$jazz.id === options.reminderId,
+				r => r?.$jazz.id === input.reminderId,
 			)
 			if (activeIdx !== -1) {
 				person.inactiveReminders.$jazz.push(reminder)
@@ -73,17 +82,16 @@ async function updateReminder(
 			}
 		}
 	}
-	if (updates.done === true && !reminder.done && reminder.repeat) {
+	if (input.done === true && !reminder.done && reminder.repeat) {
 		let { nextDueAtDate } = calculateNextDueDate(reminder)
 		reminder.$jazz.set("dueAtDate", nextDueAtDate)
 		reminder.$jazz.set("done", false)
 	}
-	if (updates.done === false && reminder.done) {
-		reminder.$jazz.set("done", updates.done)
+	if (input.done === false && reminder.done) {
+		reminder.$jazz.set("done", input.done)
 		if (!reminder.deletedAt && person.inactiveReminders?.$isLoaded) {
-			// Move to active
 			let inactiveIdx = Array.from(person.inactiveReminders.values()).findIndex(
-				r => r?.$jazz.id === options.reminderId,
+				r => r?.$jazz.id === input.reminderId,
 			)
 			if (inactiveIdx !== -1) {
 				person.reminders.$jazz.push(reminder)
@@ -92,12 +100,11 @@ async function updateReminder(
 		}
 	}
 
-	if ("deletedAt" in updates && updates.deletedAt === undefined) {
+	if ("deletedAt" in input && input.deletedAt === undefined) {
 		reminder.$jazz.delete("deletedAt")
 		if (!reminder.done && person.inactiveReminders?.$isLoaded) {
-			// Move to active
 			let inactiveIdx = Array.from(person.inactiveReminders.values()).findIndex(
-				r => r?.$jazz.id === options.reminderId,
+				r => r?.$jazz.id === input.reminderId,
 			)
 			if (inactiveIdx !== -1) {
 				person.reminders.$jazz.push(reminder)
@@ -106,12 +113,11 @@ async function updateReminder(
 		}
 	}
 
-	if (updates.deletedAt !== undefined) {
-		reminder.$jazz.set("deletedAt", updates.deletedAt)
-		// Move to inactive
+	if (input.deletedAt !== undefined) {
+		reminder.$jazz.set("deletedAt", input.deletedAt)
 		if (person.inactiveReminders?.$isLoaded) {
 			let activeIdx = Array.from(person.reminders.values()).findIndex(
-				r => r?.$jazz.id === options.reminderId,
+				r => r?.$jazz.id === input.reminderId,
 			)
 			if (activeIdx !== -1) {
 				person.inactiveReminders.$jazz.push(reminder)
@@ -125,11 +131,25 @@ async function updateReminder(
 
 	return {
 		operation: "update",
-		reminderID: options.reminderId,
-		personID: options.personId,
-		current: { ...reminder },
+		current: serializeReminder(reminder, input.personId),
 		previous,
-		_ref: reminder,
+	}
+}
+
+function serializeReminder(
+	reminder: co.loaded<typeof Reminder>,
+	personId: string,
+): ReminderCurrent {
+	return {
+		reminderId: reminder.$jazz.id,
+		personId,
+		text: reminder.text,
+		dueAtDate: reminder.dueAtDate,
+		repeat: reminder.repeat,
+		done: reminder.done,
+		createdAt: reminder.createdAt.toISOString(),
+		updatedAt: reminder.updatedAt.toISOString(),
+		deletedAt: reminder.deletedAt?.toISOString(),
 	}
 }
 
@@ -156,7 +176,7 @@ function calculateNextDueDate(reminder: co.loaded<typeof Reminder>): {
 			nextDueDate = addYears(currentDueDate, interval)
 			break
 		default:
-			nextDueDate = addDays(currentDueDate, 1)
+			nextDueDate = addDays(currentDueDate, interval)
 	}
 
 	return { nextDueAtDate: format(nextDueDate, "yyyy-MM-dd") }
@@ -165,99 +185,25 @@ function calculateNextDueDate(reminder: co.loaded<typeof Reminder>): {
 let errors = {
 	PERSON_NOT_FOUND: "person not found",
 	REMINDER_NOT_FOUND: "reminder not found",
-	REMINDER_ALREADY_DONE: "cannot set reminder to done. is already done.",
 } as const
 
-type ReminderData = Parameters<typeof Reminder.create>[0]
+let createUpdateReminderTool = defineTool({
+	description:
+		"Update a reminder's text, due date, repeat settings, or done status",
+	input: updateReminderInput,
+	output: updatedSchema(reminderCurrent),
+	serverOp: updateReminder,
+})
 
-type ReminderUpdated = {
-	_ref: co.loaded<typeof Reminder>
-	operation: "update"
-	reminderID: string
-	personID: string
-	current: ReminderData
-	previous: ReminderData
-}
+let removeReminderInput = z.object({
+	personId: z.string().describe("The person's ID who owns the reminder"),
+	reminderId: z.string().describe("The reminder's ID to remove"),
+})
 
-function createUpdateReminderTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description:
-			"Update a reminder's text, due date, repeat settings, or done status",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID who owns the reminder"),
-			reminderId: z.string().describe("The reminder's ID"),
-			text: z.string().optional().describe("The new reminder text"),
-			dueAtDate: z
-				.string()
-				.optional()
-				.describe("New due date as a date string (e.g., '2025-07-18')"),
-			repeat: z
-				.object({
-					interval: z.number().min(1),
-					unit: z.enum(["day", "week", "month", "year"]),
-				})
-				.optional()
-				.describe("New repeat configuration"),
-			done: z.boolean().optional().describe("Mark reminder as done/undone"),
-		}),
-		execute: async input => {
-			let { personId, reminderId, ...updates } = input
-			let res = await tryCatch(
-				updateReminder(updates, { worker, personId, reminderId }),
-			)
-			if (!res.ok) return { error: `${res.error}` }
-			let result = res.data
-			return {
-				personId: result.personID,
-				reminderId: result.reminderID,
-				text: result.current.text,
-				dueAtDate: result.current.dueAtDate,
-				repeat: result.current.repeat,
-				done: result.current.done,
-				createdAt: result.current.createdAt.toISOString(),
-				updatedAt: result.current.updatedAt.toISOString(),
-				previous: {
-					text: result.previous.text,
-					dueAtDate: result.previous.dueAtDate,
-					repeat: result.previous.repeat,
-					done: result.previous.done,
-					createdAt: result.previous.createdAt.toISOString(),
-					updatedAt: result.previous.updatedAt.toISOString(),
-				},
-			}
-		},
-	})
-}
-
-function createRemoveReminderTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description: "Remove a reminder from a person",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID who owns the reminder"),
-			reminderId: z.string().describe("The reminder's ID to remove"),
-		}),
-		execute: async input => {
-			let { personId, reminderId } = input
-
-			let res = await tryCatch(
-				updateReminder(
-					{ deletedAt: new Date() },
-					{ worker, personId, reminderId },
-				),
-			)
-			if (!res.ok) return { error: `${res.error}` }
-			let result = res.data
-			return {
-				personId: result.personID,
-				reminderId: result.reminderID,
-				text: result.current.text,
-				dueAtDate: result.current.dueAtDate,
-				repeat: result.current.repeat,
-				done: result.current.done,
-				deletedAt: result.current.deletedAt?.toISOString(),
-				createdAt: result.current.createdAt.toISOString(),
-				updatedAt: result.current.updatedAt.toISOString(),
-			}
-		},
-	})
-}
+let createRemoveReminderTool = defineTool({
+	description: "Remove a reminder from a person",
+	input: removeReminderInput,
+	output: updatedSchema(reminderCurrent),
+	serverOp: (worker, input) =>
+		updateReminder(worker, { ...input, deletedAt: new Date() }),
+})

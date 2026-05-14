@@ -30,7 +30,7 @@ async function removeTagFromDeselectedPeople({
 
 	for (let person of deselected) {
 		let newSummary = removeHashtagFromSummary(person.summary, oldTag)
-		await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+		await updatePerson(me, { personId: person.$jazz.id, summary: newSummary })
 	}
 }
 
@@ -60,7 +60,7 @@ async function addTagToNewlySelectedPeople({
 		let withoutOldTag = removeHashtagFromSummary(person.summary, oldTag)
 		let newSummary = addHashtagToSummary(withoutOldTag, newTag)
 
-		await updatePerson(personId, { summary: newSummary }, me)
+		await updatePerson(me, { personId, summary: newSummary })
 	}
 }
 
@@ -81,7 +81,7 @@ async function renameTagForRemainingPeople({
 
 	for (let person of remaining) {
 		let newSummary = replaceHashtagInSummary(person.summary, oldTag, newTag)
-		await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+		await updatePerson(me, { personId: person.$jazz.id, summary: newSummary })
 	}
 }
 

@@ -27,6 +27,7 @@ import {
 import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
+import { testIds } from "#shared/lib/test-ids"
 
 export { ActiveReminder }
 
@@ -83,7 +84,11 @@ function ActiveReminder({
 	}
 
 	return (
-		<>
+		<div
+			data-testid={testIds.reminder.listItem}
+			data-reminder-id={reminder.$jazz.id}
+			data-reminder-status="active"
+		>
 			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
 				<SwipeableListItem
 					rightAction={{
@@ -129,13 +134,21 @@ function ActiveReminder({
 									<T k="note.showLess" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={markDone}>
+							<Button
+								variant="outline"
+								onClick={markDone}
+								data-testid={testIds.reminder.doneToggle}
+							>
 								<CheckLg />
 								<span className="max-sm:sr-only">
 									<T k="reminder.actions.markDone" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={() => setEditing(true)}>
+							<Button
+								variant="outline"
+								onClick={() => setEditing(true)}
+								data-testid={testIds.reminder.editButton}
+							>
 								<PencilSquare />
 								<span className="max-sm:sr-only">
 									<T k="reminder.actions.edit" />
@@ -156,6 +169,7 @@ function ActiveReminder({
 								variant="outline"
 								onClick={remove}
 								className="text-destructive"
+								data-testid={testIds.reminder.deleteButton}
 							>
 								<Trash />
 								<span className="max-sm:sr-only">
@@ -188,6 +202,6 @@ function ActiveReminder({
 					/>
 				</DialogContent>
 			</Dialog>
-		</>
+		</div>
 	)
 }

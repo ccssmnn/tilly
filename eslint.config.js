@@ -199,6 +199,16 @@ export default [
 		rules: { ...tseslint.configs.recommended.rules, ...commonRules },
 	},
 	{
+		files: ["e2e/**/*.ts"],
+		languageOptions: {
+			parser: tsparser,
+			parserOptions: { ecmaVersion: "latest", sourceType: "module" },
+			globals: globals.node,
+		},
+		plugins: { "@typescript-eslint": tseslint },
+		rules: { ...tseslint.configs.recommended.rules, ...commonRules },
+	},
+	{
 		ignores: [
 			"**/dist/",
 			"build/",

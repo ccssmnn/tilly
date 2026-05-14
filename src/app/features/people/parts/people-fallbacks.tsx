@@ -16,6 +16,7 @@ import {
 	EmptyTitle,
 } from "#shared/ui/empty"
 import { NewPerson } from "../widgets/new-person"
+import { testIds } from "#shared/lib/test-ids"
 
 export {
 	NoPeopleState,
@@ -47,7 +48,7 @@ function NoPeopleState({
 					<NewPerson
 						onSuccess={onSuccess}
 						render={
-							<Button>
+							<Button data-testid={testIds.person.newButton}>
 								<PeopleFill />
 								<T k="addPerson.button" />
 							</Button>
@@ -82,7 +83,7 @@ function NoActivePeopleState({
 					<NewPerson
 						onSuccess={onSuccess}
 						render={
-							<Button>
+							<Button data-testid={testIds.person.newButton}>
 								<T k="addPerson.button" />
 							</Button>
 						}

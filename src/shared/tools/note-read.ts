@@ -1,16 +1,47 @@
-import { tool } from "ai"
 import { z } from "zod"
-import { co, type Loaded } from "jazz-tools"
-import { UserAccount, Person, Note, isDeleted } from "#shared/schema/user"
-import { tryCatch } from "#shared/lib/trycatch"
+import { co } from "jazz-tools"
+import { Person, Note, isDeleted } from "#shared/schema/user"
+import { defineTool, type Worker } from "#shared/tools/define-tool"
 
-export { createListNotesTool }
-export type { ListNotesResult }
+export { listNotes, createListNotesTool }
+
+let noteSummary = z.object({
+	id: z.string(),
+	title: z.string(),
+	content: z.string(),
+	pinned: z.boolean(),
+	deleted: z.boolean(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+	deletedAt: z.string().optional(),
+	person: z.object({
+		id: z.string(),
+		name: z.string(),
+	}),
+})
+
+let listNotesOutput = z.object({
+	operation: z.literal("list"),
+	notes: z.array(noteSummary),
+	totalCount: z.number(),
+	filteredCount: z.number(),
+	searchQuery: z.string().optional(),
+})
+
+let listNotesInput = z.object({
+	searchQuery: z
+		.string()
+		.optional()
+		.describe(
+			"Optional query to filter notes by content, title, or person name",
+		),
+	includeDeleted: z.boolean().optional(),
+})
 
 async function listNotes(
-	options: { searchQuery?: string; includeDeleted?: boolean },
-	worker: Loaded<typeof UserAccount>,
-): Promise<ListNotesResult> {
+	worker: Worker,
+	input: z.infer<typeof listNotesInput>,
+): Promise<z.infer<typeof listNotesOutput>> {
 	let user = await worker.$jazz.ensureLoaded({
 		resolve: {
 			root: {
@@ -30,17 +61,15 @@ async function listNotes(
 		if (!person) continue
 		if (isDeleted(person)) continue
 
-		// Check active notes
 		if (person.notes) {
 			for (let note of person.notes.values()) {
 				if (!note) continue
-				if (!options.includeDeleted && isDeleted(note)) continue
+				if (!input.includeDeleted && isDeleted(note)) continue
 				notePairs.push({ note, person })
 			}
 		}
 
-		// Check inactive notes if includeDeleted is true
-		if (person.inactiveNotes && options.includeDeleted) {
+		if (person.inactiveNotes && input.includeDeleted) {
 			for (let note of person.inactiveNotes.values()) {
 				if (!note) continue
 				notePairs.push({ note, person })
@@ -49,8 +78,8 @@ async function listNotes(
 	}
 
 	let filteredPairs = notePairs
-	if (options.searchQuery) {
-		let searchLower = options.searchQuery.toLowerCase()
+	if (input.searchQuery) {
+		let searchLower = input.searchQuery.toLowerCase()
 		filteredPairs = notePairs.filter(({ note, person }) => {
 			let noteContent = note.content.toLowerCase()
 			let noteTitle = (note.title || "").toLowerCase()
@@ -95,75 +124,30 @@ async function listNotes(
 
 	return {
 		operation: "list",
-		notes: orderedPairs.map(toNotePayload),
+		notes: orderedPairs.map(({ note, person }) => ({
+			id: note.$jazz.id,
+			title: note.title || "",
+			content: note.content,
+			pinned: note.pinned || false,
+			deleted: isDeleted(note),
+			deletedAt: note.deletedAt?.toISOString(),
+			createdAt: note.createdAt.toISOString(),
+			updatedAt: note.updatedAt.toISOString(),
+			person: {
+				id: person.$jazz.id,
+				name: person.name,
+			},
+		})),
 		totalCount: notePairs.length,
 		filteredCount: filteredPairs.length,
-		...(options.searchQuery && { searchQuery: options.searchQuery }),
+		...(input.searchQuery && { searchQuery: input.searchQuery }),
 	}
 }
 
-function toNotePayload({
-	note,
-	person,
-}: {
-	note: co.loaded<typeof Note>
-	person: co.loaded<typeof Person>
-}): NoteSummary {
-	return {
-		id: note.$jazz.id,
-		title: note.title || "",
-		content: note.content,
-		pinned: note.pinned || false,
-		deleted: isDeleted(note),
-		deletedAt: note.deletedAt?.toISOString(),
-		createdAt: note.createdAt.toISOString(),
-		updatedAt: note.updatedAt.toISOString(),
-		person: {
-			id: person.$jazz.id,
-			name: person.name,
-		},
-	}
-}
-
-type NoteSummary = {
-	id: string
-	title: string
-	content: string
-	pinned: boolean
-	deleted: boolean
-	createdAt: string
-	updatedAt: string
-	deletedAt?: string
-	person: {
-		id: string
-		name: string
-	}
-}
-
-type ListNotesResult = {
-	operation: "list"
-	notes: Array<NoteSummary>
-	totalCount: number
-	filteredCount: number
-	searchQuery?: string
-}
-
-function createListNotesTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description:
-			"List notes across all people with optional search on note content, titles, and person names. Note content supports markdown formatting.",
-		inputSchema: z.object({
-			searchQuery: z
-				.string()
-				.optional()
-				.describe(
-					"Optional query to filter notes by content, title, or person name",
-				),
-		}),
-		execute: async input => {
-			let result = await tryCatch(listNotes(input, worker))
-			if (!result.ok) return { error: `${result.error}` }
-			return result.data
-		},
-	})
-}
+let createListNotesTool = defineTool({
+	description:
+		"List notes across all people with optional search on note content, titles, and person names. Note content supports markdown formatting.",
+	input: listNotesInput,
+	output: listNotesOutput,
+	serverOp: listNotes,
+})

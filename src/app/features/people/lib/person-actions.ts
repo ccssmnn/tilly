@@ -29,7 +29,7 @@ type PersonRef = {
 
 async function handleDeletePerson(me: Me, ref: PersonRef, t: T) {
 	let result = await tryCatch(
-		updatePerson(ref.personId, { deletedAt: new Date() }, me),
+		updatePerson(me, { personId: ref.personId, deletedAt: new Date() }),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -41,7 +41,7 @@ async function handleDeletePerson(me: Me, ref: PersonRef, t: T) {
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updatePerson(ref.personId, { deletedAt: undefined }, me),
+					updatePerson(me, { personId: ref.personId, deletedAt: undefined }),
 				)
 				if (undo.ok) {
 					toast.success(t("person.toast.restored", { name: ref.personName }))
@@ -59,7 +59,7 @@ async function handleRestorePerson(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		updatePerson(ref.personId, { deletedAt: undefined }, me),
+		updatePerson(me, { personId: ref.personId, deletedAt: undefined }),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -106,10 +106,12 @@ async function handleAddNoteToPerson(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		createNote(
-			{ title: "", content: data.content, pinned: data.pinned },
-			{ personId, worker: me },
-		),
+		createNote(me, {
+			personId,
+			title: "",
+			content: data.content,
+			pinned: data.pinned,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -121,10 +123,11 @@ async function handleAddNoteToPerson(
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updateNote(
-						{ deletedAt: new Date() },
-						{ personId, noteId: result.data.noteID, worker: me },
-					),
+					updateNote(me, {
+						personId,
+						noteId: result.data.current.noteId,
+						deletedAt: new Date(),
+					}),
 				)
 				if (undo.ok) toast.success(t("note.toast.removed"))
 				else toast.error(errorMessage(undo.error))
@@ -147,10 +150,12 @@ async function handleAddReminderToPerson(
 	t: T,
 ): Promise<{ ok: boolean }> {
 	let result = await tryCatch(
-		createReminder(
-			{ text: data.text, dueAtDate: data.dueAtDate, repeat: data.repeat },
-			{ personId, worker: me },
-		),
+		createReminder(me, {
+			personId,
+			text: data.text,
+			dueAtDate: data.dueAtDate,
+			repeat: data.repeat,
+		}),
 	)
 	if (!result.ok) {
 		toast.error(errorMessage(result.error))
@@ -162,14 +167,11 @@ async function handleAddReminderToPerson(
 			label: t("common.undo"),
 			onClick: async () => {
 				let undo = await tryCatch(
-					updateReminder(
-						{ deletedAt: new Date() },
-						{
-							personId,
-							reminderId: result.data.reminderID,
-							worker: me,
-						},
-					),
+					updateReminder(me, {
+						personId,
+						reminderId: result.data.current.reminderId,
+						deletedAt: new Date(),
+					}),
 				)
 				if (undo.ok) toast.success(t("reminder.toast.removed"))
 				else toast.error(errorMessage(undo.error))

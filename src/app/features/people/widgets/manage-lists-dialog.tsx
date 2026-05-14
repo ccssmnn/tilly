@@ -61,7 +61,7 @@ function ManageListsDialog({
 			let currentSummary = personSummary || ""
 			let newSummary = `${currentSummary} ${hashtag}`.trim()
 
-			await updatePerson(personId, { summary: newSummary }, me)
+			await updatePerson(me, { personId, summary: newSummary })
 		} finally {
 			setIsLoading(false)
 		}
@@ -80,7 +80,7 @@ function ManageListsDialog({
 				.join(" ")
 				.trim()
 
-			await updatePerson(personId, { summary: newSummary }, me)
+			await updatePerson(me, { personId, summary: newSummary })
 		} finally {
 			setIsLoading(false)
 		}

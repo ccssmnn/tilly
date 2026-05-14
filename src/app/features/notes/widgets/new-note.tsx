@@ -67,18 +67,13 @@ function NewNote(props: {
 		if (!me.$isLoaded || !selectedPersonId) return
 
 		let result = await tryCatch(
-			createNote(
-				{
-					title: "",
-					content: values.content,
-					pinned: values.pinned,
-					imageFiles: values.images,
-				},
-				{
-					personId: selectedPersonId,
-					worker: me,
-				},
-			),
+			createNote(me, {
+				personId: selectedPersonId,
+				title: "",
+				content: values.content,
+				pinned: values.pinned,
+				imageFiles: values.images,
+			}),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -87,7 +82,7 @@ function NewNote(props: {
 			return
 		}
 
-		props.onSuccess?.(result.data.noteID)
+		props.onSuccess?.(result.data.current.noteId)
 		toast.success(t("notes.created.success"))
 		setDrawerOpen(false)
 		setSelectedPersonId(props.personId ?? "")
