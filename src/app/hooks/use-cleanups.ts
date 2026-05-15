@@ -2,6 +2,8 @@ export {
 	useCleanupInactiveLists,
 	useCleanupEmptyGroups,
 	useCleanupInaccessiblePeople,
+	cleanupInactiveLists,
+	isStale,
 }
 
 import { useEffect, useRef } from "react"

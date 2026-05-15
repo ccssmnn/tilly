@@ -3,6 +3,9 @@ export {
 	addTagToNewlySelectedPeople,
 	renameTagForRemainingPeople,
 	normalizeHashtag,
+	removeHashtagFromSummary,
+	addHashtagToSummary,
+	replaceHashtagInSummary,
 }
 
 import type { Loaded } from "jazz-tools"
