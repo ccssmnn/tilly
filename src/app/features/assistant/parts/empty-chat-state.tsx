@@ -79,7 +79,10 @@ function EmptyChatState({
 
 	function submitOnEnter(event: React.KeyboardEvent<HTMLTextAreaElement>) {
 		if (event.key !== "Enter") return
-		if (event.shiftKey) return
+		let hasPhysicalKeyboard = window.matchMedia(
+			"(hover: hover) and (pointer: fine)",
+		).matches
+		if (event.shiftKey || !hasPhysicalKeyboard) return
 
 		event.preventDefault()
 

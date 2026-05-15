@@ -47,8 +47,11 @@ function PersonUpdateResult({
 		)
 	}
 
+	if (!("current" in result) || !result.current) return null
+
 	let handleUndo = async () => {
-		if (!me.$isLoaded) return setIsUndoing(true)
+		if (!me.$isLoaded) return
+		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
 			await updatePerson(me, {

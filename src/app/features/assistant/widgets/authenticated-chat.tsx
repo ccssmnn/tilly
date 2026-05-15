@@ -103,7 +103,7 @@ function AuthenticatedChat({ fallback }: { fallback: AssistantAccount }) {
 
 						<ScrollIntoView trigger={messages} />
 
-						<div className="h-22" />
+						<div className="h-36" />
 
 						<ChatInput
 							me={me}
