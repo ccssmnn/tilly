@@ -55,6 +55,8 @@ function ReminderDeleteResult({
 		)
 	}
 
+	if (!("current" in result) || !result.current) return null
+
 	let handleUndo = async () => {
 		if (!me.$isLoaded) return
 		setIsUndoing(true)
