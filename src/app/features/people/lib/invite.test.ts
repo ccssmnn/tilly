@@ -3,8 +3,7 @@ import { parseInviteHash } from "./invite"
 
 describe("parseInviteHash", () => {
 	test("parses a valid invite hash", () => {
-		let hash =
-			"#/person/co_zABC123/invite/co_zDEF456/inviteSecret_zSECRET"
+		let hash = "#/person/co_zABC123/invite/co_zDEF456/inviteSecret_zSECRET"
 		let result = parseInviteHash(hash)
 		expect(result).toEqual({
 			personId: "co_zABC123",
@@ -34,16 +33,12 @@ describe("parseInviteHash", () => {
 	})
 
 	test("returns null when inviteSecret is missing prefix", () => {
-		expect(
-			parseInviteHash("#/person/co_zABC/invite/co_zDEF/zSEC"),
-		).toBeNull()
+		expect(parseInviteHash("#/person/co_zABC/invite/co_zDEF/zSEC")).toBeNull()
 	})
 
 	test("returns null for trailing slash", () => {
 		expect(
-			parseInviteHash(
-				"#/person/co_zABC/invite/co_zDEF/inviteSecret_zSEC/",
-			),
+			parseInviteHash("#/person/co_zABC/invite/co_zDEF/inviteSecret_zSEC/"),
 		).toBeNull()
 	})
 

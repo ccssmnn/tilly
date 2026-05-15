@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest"
 import { co } from "jazz-tools"
 import { Note, Person, Reminder, UserAccount } from "#shared/schema/user"
-import { createAccount, seedPerson, seedNote, seedReminder } from "#shared/tools/test-helpers"
+import {
+	createAccount,
+	seedPerson,
+	seedNote,
+	seedReminder,
+} from "#shared/tools/test-helpers"
 import { cleanupInactiveLists, isStale } from "./use-cleanups"
 
 function daysAgo(n: number): Date {
@@ -151,9 +156,9 @@ describe("cleanupInactiveLists", () => {
 				inactiveReminders: { $each: true },
 			},
 		})
-		expect(
-			after.reminders.some(r => r?.$jazz.id === reminder.$jazz.id),
-		).toBe(false)
+		expect(after.reminders.some(r => r?.$jazz.id === reminder.$jazz.id)).toBe(
+			false,
+		)
 		expect(
 			after.inactiveReminders?.some(r => r?.$jazz.id === reminder.$jazz.id),
 		).toBe(true)
@@ -177,9 +182,9 @@ describe("cleanupInactiveLists", () => {
 				inactiveReminders: { $each: true },
 			},
 		})
-		expect(
-			after.reminders.some(r => r?.$jazz.id === reminder.$jazz.id),
-		).toBe(false)
+		expect(after.reminders.some(r => r?.$jazz.id === reminder.$jazz.id)).toBe(
+			false,
+		)
 		expect(
 			after.inactiveReminders?.some(r => r?.$jazz.id === reminder.$jazz.id),
 		).toBe(true)
@@ -204,8 +209,8 @@ describe("cleanupInactiveLists", () => {
 			},
 		})
 		expect(after.notes.some(n => n?.$jazz.id === note.$jazz.id)).toBe(true)
-		expect(
-			after.reminders.some(r => r?.$jazz.id === reminder.$jazz.id),
-		).toBe(true)
+		expect(after.reminders.some(r => r?.$jazz.id === reminder.$jazz.id)).toBe(
+			true,
+		)
 	})
 })

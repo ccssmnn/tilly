@@ -32,9 +32,9 @@ describe("normalizeHashtag", () => {
 
 describe("removeHashtagFromSummary", () => {
 	test("removes tag from end of summary", () => {
-		expect(removeHashtagFromSummary("friend from work #colleague", "#colleague")).toBe(
-			"friend from work",
-		)
+		expect(
+			removeHashtagFromSummary("friend from work #colleague", "#colleague"),
+		).toBe("friend from work")
 	})
 
 	test("removes tag from middle of summary", () => {
@@ -102,9 +102,9 @@ describe("replaceHashtagInSummary", () => {
 	})
 
 	test("only replaces whole-word matches", () => {
-		expect(
-			replaceHashtagInSummary("#oldfriend #old", "#old", "#new"),
-		).toBe("#oldfriend #new")
+		expect(replaceHashtagInSummary("#oldfriend #old", "#old", "#new")).toBe(
+			"#oldfriend #new",
+		)
 	})
 
 	test("replaces tag at end of string", () => {
@@ -137,8 +137,16 @@ describe("bulk tag operations", () => {
 			oldTag: "#team",
 			selectedPeople,
 			peopleInList: [
-				{ $jazz: { id: alice.$jazz.id }, name: "Alice", summary: "friend #team" },
-				{ $jazz: { id: bob.$jazz.id }, name: "Bob", summary: "colleague #team" },
+				{
+					$jazz: { id: alice.$jazz.id },
+					name: "Alice",
+					summary: "friend #team",
+				},
+				{
+					$jazz: { id: bob.$jazz.id },
+					name: "Bob",
+					summary: "colleague #team",
+				},
 			],
 			me: owner,
 		})
