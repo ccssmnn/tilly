@@ -18,6 +18,7 @@ import {
 import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
+import { testIds } from "#shared/lib/test-ids"
 
 export { DoneReminder }
 
@@ -67,82 +68,88 @@ function DoneReminder({
 	}
 
 	return (
-		<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
-			<SwipeableListItem
-				rightAction={{
-					variant: "success",
-					icon: <ArrowCounterclockwise />,
-					label: <T k="reminder.done.markUndone" />,
-					onAction: markUndone,
-				}}
-				leftAction={{
-					variant: "destructive",
-					icon: <Trash />,
-					label: <T k="reminder.actions.delete" />,
-					onAction: remove,
-				}}
-			>
-				<Collapsible.Trigger
-					nativeButton={false}
-					render={<div />}
-					className="flex-1"
+		<div
+			data-testid={testIds.reminder.listItem}
+			data-reminder-id={reminder.$jazz.id}
+			data-reminder-status="done"
+		>
+			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
+				<SwipeableListItem
+					rightAction={{
+						variant: "success",
+						icon: <ArrowCounterclockwise />,
+						label: <T k="reminder.done.markUndone" />,
+						onAction: markUndone,
+					}}
+					leftAction={{
+						variant: "destructive",
+						icon: <Trash />,
+						label: <T k="reminder.actions.delete" />,
+						onAction: remove,
+					}}
 				>
-					<DoneReminderListItem
-						reminder={reminder}
-						person={showPerson !== false ? person : undefined}
-						searchQuery={searchQuery}
-						referenceDate={getReferenceDate(reminder)}
-					/>
-				</Collapsible.Trigger>
-			</SwipeableListItem>
+					<Collapsible.Trigger
+						nativeButton={false}
+						render={<div />}
+						className="flex-1"
+					>
+						<DoneReminderListItem
+							reminder={reminder}
+							person={showPerson !== false ? person : undefined}
+							searchQuery={searchQuery}
+							referenceDate={getReferenceDate(reminder)}
+						/>
+					</Collapsible.Trigger>
+				</SwipeableListItem>
 
-			<Collapsible.Panel
-				keepMounted
-				className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
-			>
-				<div
-					className={cn(
-						"flex items-center gap-3 pb-4",
-						showPerson !== false && "ml-19",
-					)}
+				<Collapsible.Panel
+					keepMounted
+					className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-300 ease-out data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none"
 				>
-					<ButtonGroup>
-						<Button variant="outline" onClick={() => setExpanded(false)}>
-							<ChevronUp />
-							<span className="max-sm:sr-only">
-								<T k="note.showLess" />
-							</span>
-						</Button>
-						<Button variant="outline" onClick={markUndone}>
-							<ArrowCounterclockwise />
-							<span className="max-sm:sr-only">
-								<T k="reminder.done.markUndone" />
-							</span>
-						</Button>
-						{showPerson !== false && (
-							<Button variant="outline" onClick={goToPerson}>
-								<PersonFill />
+					<div
+						className={cn(
+							"flex items-center gap-3 pb-4",
+							showPerson !== false && "ml-19",
+						)}
+					>
+						<ButtonGroup>
+							<Button variant="outline" onClick={() => setExpanded(false)}>
+								<ChevronUp />
 								<span className="max-sm:sr-only">
-									<T k="reminder.actions.viewPerson" />
+									<T k="note.showLess" />
 								</span>
 							</Button>
-						)}
-					</ButtonGroup>
-					<div className="flex-1" />
-					<ButtonGroup>
-						<Button
-							variant="outline"
-							onClick={remove}
-							className="text-destructive"
-						>
-							<Trash />
-							<span className="max-sm:sr-only">
-								<T k="reminder.actions.delete" />
-							</span>
-						</Button>
-					</ButtonGroup>
-				</div>
-			</Collapsible.Panel>
-		</Collapsible.Root>
+							<Button variant="outline" onClick={markUndone}>
+								<ArrowCounterclockwise />
+								<span className="max-sm:sr-only">
+									<T k="reminder.done.markUndone" />
+								</span>
+							</Button>
+							{showPerson !== false && (
+								<Button variant="outline" onClick={goToPerson}>
+									<PersonFill />
+									<span className="max-sm:sr-only">
+										<T k="reminder.actions.viewPerson" />
+									</span>
+								</Button>
+							)}
+						</ButtonGroup>
+						<div className="flex-1" />
+						<ButtonGroup>
+							<Button
+								variant="outline"
+								onClick={remove}
+								className="text-destructive"
+							>
+								<Trash />
+								<span className="max-sm:sr-only">
+									<T k="reminder.actions.delete" />
+								</span>
+							</Button>
+						</ButtonGroup>
+					</div>
+				</Collapsible.Panel>
+			</Collapsible.Root>
+		</div>
 	)
 }

@@ -23,6 +23,7 @@ import {
 import { cn } from "#app/lib/utils"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
+import { testIds } from "#shared/lib/test-ids"
 
 export { DeletedReminder }
 
@@ -73,7 +74,11 @@ function DeletedReminder({
 	}
 
 	return (
-		<>
+		<div
+			data-testid={testIds.reminder.listItem}
+			data-reminder-id={reminder.$jazz.id}
+			data-reminder-status="deleted"
+		>
 			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
 				<SwipeableListItem
 					rightAction={{
@@ -120,7 +125,11 @@ function DeletedReminder({
 									<T k="note.showLess" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={restore}>
+							<Button
+								variant="outline"
+								onClick={restore}
+								data-testid={testIds.reminder.restoreButton}
+							>
 								<ArrowCounterclockwise />
 								<span className="max-sm:sr-only">
 									<T k="reminder.restore.button" />
@@ -157,6 +166,6 @@ function DeletedReminder({
 				onOpenChange={setConfirmingDelete}
 				onConfirm={onConfirmPermanentDelete}
 			/>
-		</>
+		</div>
 	)
 }

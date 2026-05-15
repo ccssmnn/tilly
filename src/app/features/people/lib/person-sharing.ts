@@ -1,5 +1,6 @@
 export {
 	createPersonInviteLink,
+	acceptPersonInvite,
 	getInviteGroupsWithMembers,
 	getPendingInviteGroups,
 	removeInviteGroup,
@@ -16,9 +17,37 @@ export type {
 	SharingCollaborator,
 }
 
-import { co, Group, type ID } from "jazz-tools"
+import { Account, co, Group, type ID } from "jazz-tools"
 import { Person, UserAccount, Note, Reminder } from "#shared/schema/user"
 import { permanentlyDeletePerson } from "#shared/lib/delete-covalue"
+import type { InviteData } from "./invite"
+
+type AcceptResult =
+	| { status: "accepted"; person: co.loaded<typeof Person> }
+	| { status: "already-member"; person: co.loaded<typeof Person> }
+	| { status: "revoked" }
+
+async function acceptPersonInvite(
+	account: co.loaded<typeof UserAccount, { root: { people: true } }>,
+	inviteData: InviteData,
+): Promise<AcceptResult> {
+	await account.acceptInvite(
+		inviteData.inviteGroupId as ID<Group>,
+		inviteData.inviteSecret as `inviteSecret_z${string}`,
+		Group,
+	)
+
+	let person = await Person.load(inviteData.personId as ID<typeof Person>)
+	if (!person?.$isLoaded) return { status: "revoked" }
+
+	let alreadyHas = account.root.people.some(
+		p => p?.$jazz.id === inviteData.personId,
+	)
+	if (alreadyHas) return { status: "already-member", person }
+
+	account.root.people.$jazz.push(person)
+	return { status: "accepted", person }
+}
 
 type SharingCollaborator = {
 	id: string
@@ -51,10 +80,11 @@ type FullyLoadedPerson = co.loaded<
 async function createPersonInviteLink(
 	person: FullyLoadedPerson,
 	userId: string,
+	baseURL?: string,
 ): Promise<string> {
 	let personGroup = getPersonGroup(person)
 
-	let baseURL = `${window.location.origin}/app/invite`
+	let resolvedBaseURL = baseURL ?? `${window.location.origin}/app/invite`
 
 	if (personGroup) {
 		let myRole = personGroup.myRole()
@@ -71,7 +101,7 @@ async function createPersonInviteLink(
 		personGroup.addMember(inviteGroup, "writer")
 
 		let inviteSecret = inviteGroup.$jazz.createInvite("writer")
-		return `${baseURL}#/person/${person.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
+		return `${resolvedBaseURL}#/person/${person.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 	} else {
 		let { group: newPersonGroup, person: newPerson } =
 			await migratePersonToGroup(person, userId)
@@ -80,7 +110,7 @@ async function createPersonInviteLink(
 		newPersonGroup.addMember(inviteGroup, "writer")
 
 		let inviteSecret = inviteGroup.$jazz.createInvite("writer")
-		return `${baseURL}#/person/${newPerson.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
+		return `${resolvedBaseURL}#/person/${newPerson.$jazz.id}/invite/${inviteGroup.$jazz.id}/${inviteSecret}`
 	}
 }
 
@@ -167,9 +197,15 @@ function removeInviteGroup(
 }
 
 function getPersonGroup(person: co.loaded<typeof Person>): Group | null {
-	let group = person.$jazz.owner
-	if (!group || !(group instanceof Group)) return null
-	return group
+	let owner = person.$jazz.owner
+	if (!owner || !(owner instanceof Group)) return null
+	// Jazz exposes account-owned CoValues with a Group-typed `owner` whose
+	// CoValue ID equals the owning account's ID. That implicit group cannot
+	// be `addMember`-ed (Jazz throws "Cannot extend an account"), so for the
+	// sharing flow it does not count as a shareable group.
+	let me = Account.getMe()
+	if (owner.$jazz.id === me.$jazz.id) return null
+	return owner
 }
 
 function isGroupOwned(person: co.loaded<typeof Person>): boolean {

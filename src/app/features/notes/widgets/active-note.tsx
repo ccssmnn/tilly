@@ -38,6 +38,7 @@ import {
 import { NoteForm } from "./inline-note-form"
 import { format } from "date-fns"
 import type { NoteFormValues } from "../lib/note-form-schema"
+import { testIds } from "#shared/lib/test-ids"
 
 export { ActiveNote }
 
@@ -95,7 +96,11 @@ function ActiveNote({
 	}
 
 	return (
-		<>
+		<div
+			data-testid={testIds.note.listItem}
+			data-note-id={note.$jazz.id}
+			data-note-status="active"
+		>
 			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
 				<SwipeableListItem
 					rightAction={{
@@ -149,13 +154,21 @@ function ActiveNote({
 									<T k="note.showLess" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+							<Button
+								variant="outline"
+								onClick={() => setEditDialogOpen(true)}
+								data-testid={testIds.note.editButton}
+							>
 								<PencilSquare />
 								<span className="max-sm:sr-only">
 									<T k="note.actions.edit" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={togglePin}>
+							<Button
+								variant="outline"
+								onClick={togglePin}
+								data-testid={testIds.note.pinButton}
+							>
 								<Pin />
 								<span className="max-sm:sr-only">
 									{note.pinned ? (
@@ -180,6 +193,7 @@ function ActiveNote({
 								variant="outline"
 								onClick={remove}
 								className="text-destructive"
+								data-testid={testIds.note.deleteButton}
 							>
 								<Trash />
 								<span className="max-sm:sr-only">
@@ -232,6 +246,6 @@ function ActiveNote({
 					/>
 				</DialogContent>
 			</Dialog>
-		</>
+		</div>
 	)
 }

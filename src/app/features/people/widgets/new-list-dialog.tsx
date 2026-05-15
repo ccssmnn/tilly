@@ -51,7 +51,7 @@ function NewListDrawer({
 
 				let newSummary = addHashtagToSummary(person.summary, hashtag)
 
-				await updatePerson(personId, { summary: newSummary }, me)
+				await updatePerson(me, { personId, summary: newSummary })
 			}
 
 			onListCreated?.(hashtag)

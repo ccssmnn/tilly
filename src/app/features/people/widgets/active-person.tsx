@@ -33,6 +33,7 @@ import {
 	PersonFill,
 	ChevronUp,
 } from "react-bootstrap-icons"
+import { testIds } from "#shared/lib/test-ids"
 
 export { ActivePerson }
 
@@ -84,7 +85,11 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 	}
 
 	return (
-		<>
+		<div
+			data-testid={testIds.person.listItem}
+			data-person-id={person.$jazz.id}
+			data-person-status="active"
+		>
 			<Collapsible.Root open={isExpanded} onOpenChange={setExpanded}>
 				<SwipeableListItem
 					leftAction={{
@@ -202,6 +207,6 @@ function ActivePerson({ person, searchQuery, noLazy }: ActivePersonProps) {
 					/>
 				</DialogContent>
 			</Dialog>
-		</>
+		</div>
 	)
 }

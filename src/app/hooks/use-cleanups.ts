@@ -2,11 +2,13 @@ export {
 	useCleanupInactiveLists,
 	useCleanupEmptyGroups,
 	useCleanupInaccessiblePeople,
+	cleanupInactiveLists,
+	isStale,
 }
 
 import { useEffect, useRef } from "react"
 import { useAccount } from "jazz-tools/react"
-import { Group, type co, type ResolveQuery } from "jazz-tools"
+import { Account, Group, type co, type ResolveQuery } from "jazz-tools"
 import { UserAccount, Person, isDeleted } from "#shared/schema/user"
 import {
 	permanentlyDeleteNote,
@@ -303,7 +305,9 @@ function cleanupEmptyInviteGroups(person: co.loaded<typeof Person>): boolean {
 }
 
 function getPersonGroup(person: co.loaded<typeof Person>): Group | null {
-	let group = person.$jazz.owner
-	if (!group || !(group instanceof Group)) return null
-	return group
+	let owner = person.$jazz.owner
+	if (!owner || !(owner instanceof Group)) return null
+	let me = Account.getMe()
+	if (owner.$jazz.id === me.$jazz.id) return null
+	return owner
 }

@@ -33,6 +33,7 @@ function MarkdownEditor({
 	className,
 	onKeyDown,
 	id,
+	"data-testid": dataTestId,
 }: MarkdownEditorProps) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -181,6 +182,7 @@ function MarkdownEditor({
 						rows={rows}
 						maxHeight={400}
 						id={id}
+						data-testid={dataTestId}
 						className={cn(
 							"max-h-[80dvh] overflow-y-auto [&::-webkit-resizer]:hidden",
 							className,
@@ -516,6 +518,7 @@ type MarkdownEditorProps = {
 	className?: string
 	onKeyDown?: (e: React.KeyboardEvent) => void
 	id?: string
+	"data-testid"?: string
 }
 
 type MarkdownFormatType = "bold" | "italic" | "link" | "heading" | "list"

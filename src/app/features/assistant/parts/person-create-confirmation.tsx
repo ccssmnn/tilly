@@ -12,10 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Tick02Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
 import { useAccount } from "jazz-tools/react-core"
 import { UserAccount } from "#shared/schema/user"
-import {
-	createPersonExecute,
-	createPersonTool,
-} from "#shared/tools/person-create"
+import { createPerson, createPersonTool } from "#shared/tools/person-create"
 import type { AddToolResultFunction } from "#shared/tools/tools"
 import type { InferUITool } from "ai"
 import { tryCatch } from "#shared/lib/trycatch"
@@ -43,7 +40,7 @@ function PersonCreateConfirmation({
 	let handleConfirm = async () => {
 		if (!me.$isLoaded) return
 		setIsCreating(true)
-		let res = await tryCatch(createPersonExecute(me.$jazz.id, part.input))
+		let res = await tryCatch(createPerson(me, part.input))
 		if (res.ok) {
 			addToolResult({
 				tool: "createPerson",

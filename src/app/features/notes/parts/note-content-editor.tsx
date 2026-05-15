@@ -41,11 +41,13 @@ function NoteContentEditor({
 	onChange,
 	onKeyDown,
 	placeholder,
+	"data-testid": dataTestId,
 }: {
 	value: string
 	onChange: (value: string) => void
 	onKeyDown?: (e: KeyboardEvent) => void
 	placeholder?: string
+	"data-testid"?: string
 }) {
 	let [showPreview, setShowPreview] = useState(false)
 	let textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -213,6 +215,7 @@ function NoteContentEditor({
 					onChange={e => onChange(e.target.value)}
 					placeholder={placeholder}
 					rows={4}
+					data-testid={dataTestId}
 					className="[&::-webkit-resizer]:hidden"
 				/>
 				{toolbarAddonBottom}

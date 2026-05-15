@@ -27,6 +27,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "#shared/ui/tooltip"
 import { Kbd, KbdGroup } from "#shared/ui/kbd"
 import { isMac } from "#app/hooks/use-pwa"
+import { testIds } from "#shared/lib/test-ids"
 
 export { ReminderFields, type ReminderFieldValues }
 
@@ -96,6 +97,7 @@ function ReminderFields({
 								<Textarea
 									placeholder={placeholder}
 									onKeyDown={submitOnCtrlEnter}
+									data-testid={testIds.reminder.formTextInput}
 									{...field}
 								/>
 							</FormControl>
@@ -115,6 +117,7 @@ function ReminderFields({
 								<Input
 									style={{ WebkitAppearance: "none" }}
 									type="date"
+									data-testid={testIds.reminder.formDueInput}
 									{...field}
 								/>
 							</FormControl>
@@ -230,6 +233,7 @@ function ReminderFields({
 									type="submit"
 									disabled={form.formState.isSubmitting}
 									className="flex-1"
+									data-testid={testIds.reminder.formSubmit}
 								>
 									{form.formState.isSubmitting ? (
 										<T k="form.saving" />

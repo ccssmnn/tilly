@@ -40,6 +40,7 @@ import { useAccount } from "jazz-tools/react"
 import { Group, co } from "jazz-tools"
 import { isPersonAdmin } from "../lib/person-utils"
 import type { ReactNode } from "react"
+import { testIds } from "#shared/lib/test-ids"
 
 export { ActionsDropdown }
 
@@ -86,15 +87,12 @@ function ActionsDropdown({
 		avatar?: File | null
 	}) {
 		let result = await tryCatch(
-			updatePerson(
-				person.$jazz.id,
-				{
-					name: values.name,
-					summary: values.summary,
-					avatarFile: values.avatar,
-				},
-				me,
-			),
+			updatePerson(me, {
+				personId: person.$jazz.id,
+				name: values.name,
+				summary: values.summary,
+				avatarFile: values.avatar,
+			}),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -110,7 +108,11 @@ function ActionsDropdown({
 				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
-						updatePerson(person.$jazz.id, result.data.previous, me),
+						updatePerson(me, {
+							personId: person.$jazz.id,
+							name: result.data.previous.name,
+							summary: result.data.previous.summary,
+						}),
 					)
 					if (undoResult.ok) {
 						toast.success(t("toast.personUpdateUndone"))
@@ -128,7 +130,7 @@ function ActionsDropdown({
 
 	async function handleDeletePerson() {
 		let result = await tryCatch(
-			updatePerson(person.$jazz.id, { deletedAt: new Date() }, me),
+			updatePerson(me, { personId: person.$jazz.id, deletedAt: new Date() }),
 		)
 		if (!result.ok) {
 			toast.error(
@@ -144,7 +146,10 @@ function ActionsDropdown({
 				label: t("common.undo"),
 				onClick: async () => {
 					let undoResult = await tryCatch(
-						updatePerson(person.$jazz.id, { deletedAt: undefined }, me),
+						updatePerson(me, {
+							personId: person.$jazz.id,
+							deletedAt: undefined,
+						}),
 					)
 					if (undoResult.ok) {
 						toast.success(t("toast.personRestored"))
@@ -241,6 +246,7 @@ function ActionsDropdown({
 									<Button
 										variant="outline"
 										className="w-full justify-between"
+										data-testid={testIds.person.editButton}
 									/>
 								}
 							>
@@ -279,6 +285,7 @@ function ActionsDropdown({
 									setActionsOpen(false)
 									setIsDeleteDialogOpen(true)
 								}}
+								data-testid={testIds.person.deleteButton}
 							>
 								<T k="person.delete.title" />
 								<Trash />
@@ -312,7 +319,10 @@ function ActionsDropdown({
 						<AlertDialogCancel>
 							<T k="common.cancel" />
 						</AlertDialogCancel>
-						<AlertDialogAction onClick={handleDeletePerson}>
+						<AlertDialogAction
+							onClick={handleDeletePerson}
+							data-testid={testIds.person.deleteConfirmButton}
+						>
 							<T k="person.delete.title" />
 						</AlertDialogAction>
 					</AlertDialogFooter>

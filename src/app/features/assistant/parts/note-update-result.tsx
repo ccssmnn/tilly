@@ -46,24 +46,15 @@ function NoteUpdateResult({
 		setDrawerOpen(false)
 		try {
 			if (result.previous) {
-				await updateNote(
-					{
-						title: result.previous.title,
-						content: result.previous.content,
-						pinned: result.previous.pinned,
-						createdAt: result.previous.createdAt
-							? new Date(result.previous.createdAt)
-							: undefined,
-						deletedAt: result.previous.deletedAt
-							? new Date(result.previous.deletedAt)
-							: undefined,
-					},
-					{
-						personId: result.personId,
-						noteId: result.noteId,
-						worker: me,
-					},
-				)
+				await updateNote(me, {
+					personId: result.current.personId,
+					noteId: result.current.noteId,
+					title: result.previous.title,
+					content: result.previous.content,
+					pinned: result.previous.pinned,
+					createdAt: result.previous.createdAt,
+					deletedAt: result.previous.deletedAt,
+				})
 			}
 			setIsUndone(true)
 			addMessage({
@@ -113,7 +104,7 @@ function NoteUpdateResult({
 				<T
 					k="tool.note.updated.message"
 					params={{
-						content: `"${result.content?.substring(0, 50) || ""}${(result.content?.length || 0) > 50 ? "..." : ""}"`,
+						content: `"${result.current.content?.substring(0, 50) || ""}${(result.current.content?.length || 0) > 50 ? "..." : ""}"`,
 					}}
 				/>
 			}
@@ -127,13 +118,15 @@ function NoteUpdateResult({
 							<T k="tool.note.updated.dialog.description" />
 						</p>
 					</div>
-					{result.content && (
+					{result.current.content && (
 						<div>
 							<h4 className="mb-2 text-sm font-medium">
 								<T k="tool.note.updated.dialog.current" />
 							</h4>
-							<p className="text-sm whitespace-pre-line">{result.content}</p>
-							{result.pinned && (
+							<p className="text-sm whitespace-pre-line">
+								{result.current.content}
+							</p>
+							{result.current.pinned && (
 								<p className="text-muted-foreground mt-1 text-sm">
 									<T k="tool.note.pinned" />
 								</p>
@@ -159,9 +152,9 @@ function NoteUpdateResult({
 						<Button variant="outline" className="flex-1">
 							<Link
 								to="/people/$personID"
-								params={{ personID: result.personId }}
+								params={{ personID: result.current.personId }}
 								search={{ tab: "notes" }}
-								hash={`note-${result.noteId}`}
+								hash={`note-${result.current.noteId}`}
 							>
 								<T k="tool.viewPerson" />
 							</Link>

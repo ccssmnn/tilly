@@ -1,46 +1,72 @@
-import { tool } from "ai"
 import { z } from "zod"
-import { Note, Person, UserAccount } from "#shared/schema/user"
-import { co, type Loaded } from "jazz-tools"
-import { tryCatch } from "#shared/lib/trycatch"
+import { co } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
+import { Note, Person } from "#shared/schema/user"
+import {
+	defineTool,
+	createdSchema,
+	type Created,
+	type Worker,
+} from "#shared/tools/define-tool"
 
-export { createAddNoteTool, createNote }
+export { createNote, createAddNoteTool, noteCurrent }
 
-export type { NoteData, NoteCreated }
+let noteCurrent = z.object({
+	noteId: z.string(),
+	personId: z.string(),
+	title: z.string().optional(),
+	content: z.string(),
+	pinned: z.boolean(),
+	imageCount: z.number().optional(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+	deletedAt: z.string().optional(),
+})
+
+type NoteCurrent = z.infer<typeof noteCurrent>
+
+let createNoteInput = z.object({
+	personId: z.string().describe("The person's ID"),
+	title: z.string().optional().describe("A short title for the note"),
+	content: z
+		.string()
+		.describe("The note content. Supports markdown formatting."),
+	pinned: z
+		.boolean()
+		.optional()
+		.describe("Whether to pin this note for prominent display"),
+})
+
+type CreateNoteInput = z.infer<typeof createNoteInput> & {
+	imageFiles?: File[]
+}
 
 async function createNote(
-	data: Omit<NoteData, "version" | "createdAt" | "updatedAt"> & {
-		imageFiles?: File[]
-	},
-	options: {
-		personId: string
-		worker: Loaded<typeof UserAccount>
-	},
-): Promise<NoteCreated> {
-	let person = await Person.load(options.personId, {
+	worker: Worker,
+	input: CreateNoteInput,
+): Promise<Created<NoteCurrent>> {
+	let person = await Person.load(input.personId, {
 		resolve: { notes: { $each: true } },
-		loadAs: options.worker,
+		loadAs: worker,
 	})
-
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let now = new Date()
 	let note = Note.create(
 		{
 			version: 1,
-			title: data.title,
-			content: data.content,
-			pinned: data.pinned || false,
+			title: input.title,
+			content: input.content,
+			pinned: input.pinned ?? false,
 			createdAt: now,
 			updatedAt: now,
 		},
 		person.$jazz.owner,
 	)
 
-	if (data.imageFiles && data.imageFiles.length > 0) {
+	if (input.imageFiles && input.imageFiles.length > 0) {
 		let imageList = co.list(co.image()).create([], person.$jazz.owner)
-		for (let file of data.imageFiles.slice(0, 10)) {
+		for (let file of input.imageFiles.slice(0, 10)) {
 			let image = await createImage(file, {
 				owner: person.$jazz.owner,
 				maxSize: 2048,
@@ -59,56 +85,27 @@ async function createNote(
 
 	return {
 		operation: "create",
-		noteID: note.$jazz.id,
-		personID: options.personId,
-		current: { ...note },
-		_ref: note,
+		current: {
+			noteId: note.$jazz.id,
+			personId: input.personId,
+			title: note.title,
+			content: note.content,
+			pinned: note.pinned ?? false,
+			imageCount: note.imageCount,
+			createdAt: note.createdAt.toISOString(),
+			updatedAt: note.updatedAt.toISOString(),
+			deletedAt: note.deletedAt?.toISOString(),
+		},
 	}
 }
 
 let errors = {
 	PERSON_NOT_FOUND: "person not found",
-	NOTE_NOT_FOUND: "note not found",
 } as const
 
-type NoteData = Parameters<typeof Note.create>[0]
-
-type NoteCreated = {
-	_ref: co.loaded<typeof Note>
-	operation: "create"
-	noteID: string
-	personID: string
-	current: NoteData
-}
-
-function createAddNoteTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description: "Add a note to a person using their ID",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID"),
-			title: z.string().describe("A short title for the note"),
-			content: z
-				.string()
-				.describe("The note content. Supports markdown formatting."),
-			pinned: z
-				.boolean()
-				.optional()
-				.describe("Whether to pin this note for prominent display"),
-		}),
-		execute: async input => {
-			let { personId, ...data } = input
-			let res = await tryCatch(createNote(data, { personId, worker }))
-			if (!res.ok) return { error: `${res.error}` }
-			let result = res.data
-			return {
-				noteId: result.noteID,
-				personId: result.personID,
-				title: result.current.title || "",
-				content: result.current.content,
-				pinned: result.current.pinned || false,
-				createdAt: result.current.createdAt.toISOString(),
-				updatedAt: result.current.updatedAt.toISOString(),
-			}
-		},
-	})
-}
+let createAddNoteTool = defineTool({
+	description: "Add a note to a person using their ID",
+	input: createNoteInput,
+	output: createdSchema(noteCurrent),
+	serverOp: createNote,
+})

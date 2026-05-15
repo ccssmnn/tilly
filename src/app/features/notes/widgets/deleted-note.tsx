@@ -26,6 +26,7 @@ import {
 } from "react-bootstrap-icons"
 import { Button } from "#shared/ui/button"
 import { ButtonGroup } from "#shared/ui/button-group"
+import { testIds } from "#shared/lib/test-ids"
 
 export { DeletedNote }
 
@@ -75,7 +76,11 @@ function DeletedNote({
 	}
 
 	return (
-		<>
+		<div
+			data-testid={testIds.note.listItem}
+			data-note-id={note.$jazz.id}
+			data-note-status="deleted"
+		>
 			<Collapsible.Root open={isExpanded} onOpenChange={onOpenChange}>
 				<SwipeableListItem
 					rightAction={{
@@ -125,7 +130,11 @@ function DeletedNote({
 									<T k="note.showLess" />
 								</span>
 							</Button>
-							<Button variant="outline" onClick={restore}>
+							<Button
+								variant="outline"
+								onClick={restore}
+								data-testid={testIds.note.restoreButton}
+							>
 								<ArrowCounterclockwise />
 								<span className="max-sm:sr-only">
 									<T k="note.restore.button" />
@@ -169,6 +178,6 @@ function DeletedNote({
 				onOpenChange={setConfirmingDelete}
 				onConfirm={onConfirmPermanentDelete}
 			/>
-		</>
+		</div>
 	)
 }

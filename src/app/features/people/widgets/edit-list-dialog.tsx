@@ -112,7 +112,10 @@ function EditListDrawer({
 
 			for (let person of peopleInList) {
 				let newSummary = removeHashtagFromSummary(person.summary, oldTag)
-				await updatePerson(person.$jazz.id, { summary: newSummary }, me)
+				await updatePerson(me, {
+					personId: person.$jazz.id,
+					summary: newSummary,
+				})
 			}
 
 			setIsDeleteConfirmOpen(false)

@@ -28,6 +28,7 @@ import {
 	createNoteFormSchema,
 	type NoteFormValues,
 } from "../lib/note-form-schema"
+import { testIds } from "#shared/lib/test-ids"
 
 export { NoteForm }
 
@@ -108,6 +109,7 @@ function NoteForm({
 									rows={4}
 									value={field.value}
 									id={field.name}
+									data-testid={testIds.note.formContentInput}
 								/>
 							</FormControl>
 							<FormMessage />
@@ -190,6 +192,7 @@ function NoteForm({
 									type="submit"
 									disabled={form.formState.isSubmitting}
 									className="flex-1"
+									data-testid={testIds.note.formSubmit}
 								>
 									{form.formState.isSubmitting ? (
 										<T k="form.saving" />

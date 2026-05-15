@@ -13,6 +13,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#shared/ui/dialog"
+import { testIds } from "#shared/lib/test-ids"
 
 export { NewPersonReminder }
 
@@ -41,7 +42,10 @@ function NewPersonReminder({ person, onCreated }: NewPersonReminderProps) {
 
 	return (
 		<>
-			<Button onClick={() => setOpen(true)} data-testid="add-reminder-button">
+			<Button
+				onClick={() => setOpen(true)}
+				data-testid={testIds.reminder.newButton}
+			>
 				<Plus />
 				<span className="hidden md:inline">
 					<T k="person.detail.addReminder" />

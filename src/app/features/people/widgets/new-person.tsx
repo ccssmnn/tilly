@@ -31,8 +31,9 @@ function NewPerson({
 		summary?: string
 		avatar?: File | null
 	}) {
+		if (!me.$isLoaded) return
 		let result = await tryCatch(
-			createPerson(me.$jazz.id, {
+			createPerson(me, {
 				name: values.name,
 				summary: values.summary,
 				avatarFile: values.avatar,
@@ -45,7 +46,7 @@ function NewPerson({
 			return
 		}
 
-		onSuccess?.(result.data.personID)
+		onSuccess?.(result.data.current.personId)
 		toast.success(t("person.created.success"))
 	}
 

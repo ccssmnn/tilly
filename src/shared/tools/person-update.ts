@@ -1,24 +1,40 @@
-import { tool } from "ai"
 import { z } from "zod"
-import { Person, UserAccount, UserAccountRoot } from "#shared/schema/user"
-import { co, type Loaded, type ResolveQuery } from "jazz-tools"
+import { co, type ResolveQuery } from "jazz-tools"
 import { createImage } from "jazz-tools/media"
+import { Person, UserAccountRoot } from "#shared/schema/user"
+import {
+	defineTool,
+	updatedSchema,
+	type Updated,
+	type Worker,
+} from "#shared/tools/define-tool"
+import { personCurrent } from "#shared/tools/person-create"
 
-export { createUpdatePersonTool, createDeletePersonTool, updatePerson }
-export type { PersonData, PersonUpdated }
+export { updatePerson, createUpdatePersonTool, createDeletePersonTool }
+
+type PersonCurrent = z.infer<typeof personCurrent>
+
+let updatePersonInput = z.object({
+	personId: z.string().describe("The person's ID"),
+	name: z.string().optional().describe("The person's new name"),
+	summary: z
+		.string()
+		.optional()
+		.describe(
+			"A compact summary displayed next to the person's name and avatar. Should include key details like relationship, profession, location, and personality traits. Example: 'sister in law, doctor, lives in switzerland with erik, high energy and positivity'",
+		),
+})
+
+type UpdatePersonInput = z.infer<typeof updatePersonInput> & {
+	deletedAt?: Date | undefined
+	avatarFile?: File | null
+}
 
 async function updatePerson(
-	personId: string,
-	updates: Partial<
-		Pick<PersonData, "name" | "summary"> & {
-			deletedAt: Date | undefined
-		}
-	> & {
-		avatarFile?: File | null
-	},
-	worker: Loaded<typeof UserAccount>,
-): Promise<PersonUpdated> {
-	let person = await Person.load(personId, { loadAs: worker })
+	worker: Worker,
+	input: UpdatePersonInput,
+): Promise<Updated<PersonCurrent>> {
+	let person = await Person.load(input.personId, { loadAs: worker })
 	if (!person.$isLoaded) throw errors.PERSON_NOT_FOUND
 
 	let { root } = await worker.$jazz.ensureLoaded({
@@ -29,25 +45,20 @@ async function updatePerson(
 		root.$jazz.set("inactivePeople", co.list(Person).create([]))
 	}
 
-	let previous = {
-		name: person.name,
-		summary: person.summary,
-		version: person.version,
+	let previous: PersonCurrent = serializePerson(person)
+
+	if (input.name !== undefined) {
+		person.$jazz.set("name", input.name)
+	}
+	if (input.summary !== undefined) {
+		person.$jazz.set("summary", input.summary)
 	}
 
-	if (updates.name !== undefined) {
-		person.$jazz.set("name", updates.name)
-	}
-	if (updates.summary !== undefined) {
-		person.$jazz.set("summary", updates.summary)
-	}
-
-	if ("deletedAt" in updates && updates.deletedAt === undefined) {
+	if ("deletedAt" in input && input.deletedAt === undefined) {
 		person.$jazz.delete("deletedAt")
-		// Move from inactive to active
 		if (root.inactivePeople) {
 			let inactiveIdx = Array.from(root.inactivePeople.values()).findIndex(
-				p => p?.$jazz.id === personId,
+				p => p?.$jazz.id === input.personId,
 			)
 			if (inactiveIdx !== -1) {
 				root.people.$jazz.push(person)
@@ -56,12 +67,11 @@ async function updatePerson(
 		}
 	}
 
-	if (updates.deletedAt !== undefined) {
-		person.$jazz.set("deletedAt", updates.deletedAt)
-		// Move from active to inactive
+	if (input.deletedAt !== undefined) {
+		person.$jazz.set("deletedAt", input.deletedAt)
 		if (root.inactivePeople) {
 			let activeIdx = Array.from(root.people.values()).findIndex(
-				p => p?.$jazz.id === personId,
+				p => p?.$jazz.id === input.personId,
 			)
 			if (activeIdx !== -1) {
 				root.inactivePeople.$jazz.push(person)
@@ -70,11 +80,11 @@ async function updatePerson(
 		}
 	}
 
-	if (updates.avatarFile !== undefined) {
-		if (updates.avatarFile === null) {
+	if (input.avatarFile !== undefined) {
+		if (input.avatarFile === null) {
 			person.$jazz.delete("avatar")
 		} else {
-			let avatar = await createImage(updates.avatarFile, {
+			let avatar = await createImage(input.avatarFile, {
 				owner: person.$jazz.owner,
 				maxSize: 2048,
 				placeholder: "blur",
@@ -88,91 +98,20 @@ async function updatePerson(
 
 	return {
 		operation: "update",
-		personID: personId,
-		current: {
-			name: person.name,
-			summary: person.summary,
-			version: person.version,
-		},
+		current: serializePerson(person),
 		previous,
-		_ref: person,
 	}
 }
 
-function createUpdatePersonTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description:
-			"Update a person's name and/or summary. Can also restore deleted people by updating their information.",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID"),
-			name: z.string().optional().describe("The person's new name"),
-			summary: z
-				.string()
-				.optional()
-				.describe(
-					"A compact summary displayed next to the person's name and avatar. Should include key details like relationship, profession, location, and personality traits. Example: 'sister in law, doctor, lives in switzerland with erik, high energy and positivity'",
-				),
-		}),
-		execute: async input => {
-			let { personId, ...updates } = input
-
-			try {
-				let result = await updatePerson(personId, updates, worker)
-				let { _ref, ...data } = result
-
-				return {
-					personId: data.personID,
-					current: {
-						name: data.current.name,
-						summary: data.current.summary,
-						deletedAt: _ref.deletedAt?.toISOString(),
-						createdAt: _ref.createdAt.toISOString(),
-						updatedAt: _ref.updatedAt.toISOString(),
-					},
-					previous: {
-						name: data.previous.name,
-						summary: data.previous.summary,
-						deletedAt: _ref.deletedAt?.toISOString(),
-						createdAt: _ref.createdAt.toISOString(),
-						updatedAt: _ref.updatedAt.toISOString(),
-					},
-				}
-			} catch (error) {
-				return { error: `${error}` }
-			}
-		},
-	})
-}
-
-function createDeletePersonTool(worker: Loaded<typeof UserAccount>) {
-	return tool({
-		description:
-			"Delete a person from the CRM by marking them as deleted (soft delete). Use updatePerson to restore deleted people.",
-		inputSchema: z.object({
-			personId: z.string().describe("The person's ID to delete"),
-		}),
-		execute: async input => {
-			try {
-				let result = await updatePerson(
-					input.personId,
-					{ deletedAt: new Date() },
-					worker,
-				)
-				let { _ref, ...data } = result
-
-				return {
-					personId: data.personID,
-					name: data.current.name,
-					summary: data.current.summary,
-					deletedAt: _ref.deletedAt?.toISOString(),
-					createdAt: _ref.createdAt.toISOString(),
-					updatedAt: _ref.updatedAt.toISOString(),
-				}
-			} catch (error) {
-				return { error: `${error}` }
-			}
-		},
-	})
+function serializePerson(person: co.loaded<typeof Person>): PersonCurrent {
+	return {
+		personId: person.$jazz.id,
+		name: person.name,
+		summary: person.summary,
+		createdAt: person.createdAt.toISOString(),
+		updatedAt: person.updatedAt.toISOString(),
+		deletedAt: person.deletedAt?.toISOString(),
+	}
 }
 
 let rootResolve = {
@@ -182,19 +121,25 @@ let rootResolve = {
 
 let errors = {
 	PERSON_NOT_FOUND: "person not found",
-	USER_ACCOUNT_NOT_FOUND: "user account not found",
 } as const
 
-type PersonData = {
-	name: string
-	summary?: string
-	version: number
-}
+let createUpdatePersonTool = defineTool({
+	description:
+		"Update a person's name and/or summary. Can also restore deleted people by updating their information.",
+	input: updatePersonInput,
+	output: updatedSchema(personCurrent),
+	serverOp: updatePerson,
+})
 
-type PersonUpdated = {
-	_ref: co.loaded<typeof Person>
-	operation: "update"
-	personID: string
-	current: PersonData
-	previous: PersonData
-}
+let deletePersonInput = z.object({
+	personId: z.string().describe("The person's ID to delete"),
+})
+
+let createDeletePersonTool = defineTool({
+	description:
+		"Delete a person from the CRM by marking them as deleted (soft delete). Use updatePerson to restore deleted people.",
+	input: deletePersonInput,
+	output: updatedSchema(personCurrent),
+	serverOp: (worker, input) =>
+		updatePerson(worker, { ...input, deletedAt: new Date() }),
+})

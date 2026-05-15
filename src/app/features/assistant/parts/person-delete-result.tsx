@@ -53,7 +53,10 @@ function PersonDeleteResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			await updatePerson(result.personId, { deletedAt: undefined }, me)
+			await updatePerson(me, {
+				personId: result.current.personId,
+				deletedAt: undefined,
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -61,7 +64,9 @@ function PersonDeleteResult({
 				parts: [
 					{
 						type: "text",
-						text: t("tool.person.deleted.undo.success", { name: result.name }),
+						text: t("tool.person.deleted.undo.success", {
+							name: result.current.name,
+						}),
 					},
 				],
 			})
@@ -92,7 +97,10 @@ function PersonDeleteResult({
 		return (
 			<ToolMessageWrapper icon={UserMultipleIcon}>
 				<span className="text-gray-500 line-through">
-					<T k="tool.person.deleted.undone" params={{ name: result.name }} />
+					<T
+						k="tool.person.deleted.undone"
+						params={{ name: result.current.name }}
+					/>
 				</span>
 			</ToolMessageWrapper>
 		)
@@ -106,7 +114,7 @@ function PersonDeleteResult({
 			summary={
 				<T
 					k="tool.person.deleted.message"
-					params={{ name: `"${result.name}"` }}
+					params={{ name: `"${result.current.name}"` }}
 				/>
 			}
 			content={
@@ -123,10 +131,10 @@ function PersonDeleteResult({
 						<h4 className="mb-2 text-sm font-medium">
 							<T k="tool.person.deleted.dialog.section" />
 						</h4>
-						<p className="text-sm font-medium">{result.name}</p>
-						{result.summary && (
+						<p className="text-sm font-medium">{result.current.name}</p>
+						{result.current.summary && (
 							<p className="text-muted-foreground mt-1 text-sm">
-								{result.summary}
+								{result.current.summary}
 							</p>
 						)}
 					</div>

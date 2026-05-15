@@ -1,0 +1,50 @@
+export { testIds }
+
+let testIds = {
+	tour: {
+		skipButton: "tour-skip-button",
+	},
+	nav: {
+		peopleTab: "nav-people-tab",
+		remindersTab: "nav-reminders-tab",
+	},
+	person: {
+		newButton: "person-new-button",
+		formNameInput: "person-form-name-input",
+		formSummaryInput: "person-form-summary-input",
+		formSubmit: "person-form-submit",
+		listItem: "person-list-item",
+		detailName: "person-detail-name",
+		detailSummary: "person-detail-summary",
+		actionsTrigger: "person-actions-trigger",
+		editButton: "person-edit-button",
+		deleteButton: "person-delete-button",
+		deleteConfirmButton: "person-delete-confirm-button",
+		restoreButton: "person-restore-button",
+		notesTab: "person-notes-tab",
+		remindersTab: "person-reminders-tab",
+	},
+	note: {
+		newButton: "note-new-button",
+		formContentInput: "note-form-content-input",
+		formSubmit: "note-form-submit",
+		listItem: "note-list-item",
+		content: "note-content",
+		editButton: "note-edit-button",
+		pinButton: "note-pin-button",
+		deleteButton: "note-delete-button",
+		restoreButton: "note-restore-button",
+	},
+	reminder: {
+		newButton: "reminder-new-button",
+		formTextInput: "reminder-form-text-input",
+		formDueInput: "reminder-form-due-input",
+		formSubmit: "reminder-form-submit",
+		listItem: "reminder-list-item",
+		text: "reminder-text",
+		doneToggle: "reminder-done-toggle",
+		editButton: "reminder-edit-button",
+		deleteButton: "reminder-delete-button",
+		restoreButton: "reminder-restore-button",
+	},
+} as const

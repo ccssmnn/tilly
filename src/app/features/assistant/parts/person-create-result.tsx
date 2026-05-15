@@ -60,7 +60,10 @@ function PersonCreateResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			await updatePerson(result.personId, { deletedAt: new Date() }, me)
+			await updatePerson(me, {
+				personId: result.current.personId,
+				deletedAt: new Date(),
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -68,7 +71,9 @@ function PersonCreateResult({
 				parts: [
 					{
 						type: "text",
-						text: t("tool.person.created.undo.success", { name: result.name }),
+						text: t("tool.person.created.undo.success", {
+							name: result.current.name,
+						}),
 					},
 				],
 			})
@@ -99,7 +104,10 @@ function PersonCreateResult({
 		return (
 			<ToolMessageWrapper icon={UserMultipleIcon}>
 				<span className="text-muted-foreground line-through">
-					<T k="tool.person.created.undone" params={{ name: result.name }} />
+					<T
+						k="tool.person.created.undone"
+						params={{ name: result.current.name }}
+					/>
 				</span>
 			</ToolMessageWrapper>
 		)
@@ -113,7 +121,7 @@ function PersonCreateResult({
 			summary={
 				<T
 					k="tool.person.created.message"
-					params={{ name: `"${result.name}"` }}
+					params={{ name: `"${result.current.name}"` }}
 				/>
 			}
 			content={
@@ -130,10 +138,10 @@ function PersonCreateResult({
 						<h4 className="mb-2 text-sm font-medium">
 							<T k="tool.person.created.dialog.section" />
 						</h4>
-						<p className="text-sm font-medium">{result.name}</p>
-						{result.summary && (
+						<p className="text-sm font-medium">{result.current.name}</p>
+						{result.current.summary && (
 							<p className="text-muted-foreground mt-1 text-sm">
-								{result.summary}
+								{result.current.summary}
 							</p>
 						)}
 					</div>
@@ -141,7 +149,7 @@ function PersonCreateResult({
 						<Button variant="outline" className="flex-1">
 							<Link
 								to="/people/$personID"
-								params={{ personID: result.personId }}
+								params={{ personID: result.current.personId }}
 							>
 								<T k="tool.viewPerson" />
 							</Link>

@@ -54,14 +54,11 @@ function PersonUpdateResult({
 		setIsUndoing(true)
 		setDrawerOpen(false)
 		try {
-			await updatePerson(
-				result.personId,
-				{
-					name: result.previous.name,
-					summary: result.previous.summary,
-				},
-				me,
-			)
+			await updatePerson(me, {
+				personId: result.current.personId,
+				name: result.previous.name,
+				summary: result.previous.summary,
+			})
 			setIsUndone(true)
 			addMessage({
 				id: `undo-${nanoid()}`,
@@ -156,7 +153,7 @@ function PersonUpdateResult({
 						<Button variant="outline" className="flex-1">
 							<Link
 								to="/people/$personID"
-								params={{ personID: result.personId }}
+								params={{ personID: result.current.personId }}
 							>
 								<T k="tool.viewPerson" />
 							</Link>
