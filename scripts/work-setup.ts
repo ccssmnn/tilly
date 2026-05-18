@@ -66,10 +66,9 @@ type JazzWorkerCredentials = { accountId: string; accountSecret: string }
 async function createWorkspaceJazzWorker(): Promise<JazzWorkerCredentials> {
 	let port = 45000 + Math.floor(Math.random() * 10000)
 	let peer = `ws://127.0.0.1:${port}`
-	let jazzRun = join(workRoot, "node_modules", ".bin", "jazz-run")
 	let syncProcess = spawn(
-		jazzRun,
-		["sync", "--port", String(port), "--host", "127.0.0.1"],
+		"bun",
+		["x", "jazz-run", "sync", "--port", String(port), "--host", "127.0.0.1"],
 		{ cwd: workRoot, stdio: "ignore" },
 	)
 
@@ -77,8 +76,10 @@ async function createWorkspaceJazzWorker(): Promise<JazzWorkerCredentials> {
 		await waitForPort(port)
 
 		let output = execFileSync(
-			jazzRun,
+			"bun",
 			[
+				"x",
+				"jazz-run",
 				"account",
 				"create",
 				"--name",

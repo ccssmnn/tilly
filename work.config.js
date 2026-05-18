@@ -2,7 +2,7 @@ export default {
 	project: "tilly",
 	worktrees: {
 		dir: "../tilly.worktrees",
-		setup: "bun scripts/work-setup.ts",
+		setup: 'bun "$WORK_SOURCE_ROOT/scripts/work-setup.ts"',
 	},
 	commands: {
 		sync: {
